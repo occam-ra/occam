@@ -254,7 +254,8 @@ public:
 	int *getVariables();
 	int getIndependentVariables(int *indices, int maxCount);
 	int getDependentVariables(int *indices, int maxCount);
-	
+	int copyMissingVariables(int *indices, int maxCount);
+
 	// get a single variable from its index
 	int getVariable(int index);
 	
@@ -264,6 +265,9 @@ public:
 	// return number of variables in relation
 	int getVariableCount();
 	
+	// get the size of the orthogonal expansion of the projection
+	double getExpansionSize();
+
 	// sets a pointer to the table in the relation object
 	void setTable(ocTable *tbl);
 	

@@ -99,6 +99,8 @@ public:
 	// returns immediately. False is returned on any error
 	virtual bool makeFitTable(ocModel *model,int SB=0);
 	
+	void makeOrthoExpansion(ocRelation *rel, ocTable *table);
+
 	// process relations and intersections, as need for DF and H computation
 	void doIntersectionProcessing(ocModel *model, ocIntersectProcessor *proc);
 

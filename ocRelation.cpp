@@ -97,6 +97,25 @@ int *ocRelation::getVariables()
 	return vars;
 }
 
+// returns the list of variable indices for variables not in the relation
+// this function assumes the indices are sorted
+int ocRelation::copyMissingVariables(int *indices, int maxCount)
+{
+  int copycount = 0;
+  int i, j;
+  int missing = 0;
+  for (i = 0; i < varCount; i++) {
+    int nextPresent = vars[i];
+    while (missing < nextPresent) {
+      if (copycount >= maxCount) break;
+      *(indices++) = missing++;
+      copycount++;
+    }
+    missing = nextPresent + 1;
+  }
+  return copycount;
+}
+
 int ocRelation::getIndependentVariables(int *indices, int maxCount)
 {
 	int i, pos;
@@ -140,7 +159,25 @@ int ocRelation::getVariableCount()
 {
 	return varCount;
 }
-	
+
+// get the size of the expansion of the relation, which is the
+// product of cardinalities of missing variables times the
+// number of tuples in the projection.
+double ocRelation::getExpansionSize()
+{
+  ocTable * table = getTable();
+  if (table == 0) return 0;
+
+  int missing[varCount];
+  double size = table->getTupleCount();
+  int missingCount = copyMissingVariables(missing, varCount);
+  for (int i = 0; i < missingCount; i++) {
+    int v = missing[i];
+    size *= varList->getVariable(v)->cardinality;
+  }
+  return size;
+    
+}	
 // sets a pointer to the table in the relation object
 void ocRelation::setTable(ocTable *tbl)
 {

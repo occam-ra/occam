@@ -81,7 +81,7 @@ util.setReportSortName("information")
 util.setSearchDir("up")
 
 # set the search filter (all, loopless, disjoint)
-util.setSearchFilter("loopless")
+util.setSearchFilter("all")
 
 # set the ref model (bottom, top, default, or a specific model)
 util.setRefModel("bottom")
