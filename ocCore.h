@@ -67,7 +67,6 @@ public:
 	void addTuple(ocKeySegment *key, double value);	// append to end
 	void insertTuple(ocKeySegment *key, double value, long index);	// insert in given spot
 	void sumTuple(ocKeySegment *key, double value); // add (or) this value to matching tuple
-	void maxTuple(ocKeySegment *key, double value); // create or update a tuple with max p value
 	
 	//-- key and value access functions	
 	double getValue(long index);

@@ -136,26 +136,6 @@ void ocTable::sumTuple(ocKeySegment *key, double value)
 
 
 /**
- * maxTuple - if the tuple matching the key already exists, set its value
- * to the max probability value.  If not, add a new Tuple.
- */
-void ocTable::maxTuple(ocKeySegment *key, double value)
-{
-	long index = indexOf(key, false);
-	//-- index is either the matching tuple, or the next higher one. So we have to
-	//-- test again.
-	if (index >= tupleCount || ocKey::compareKeys(KeyPtr(data, keysize, index), key, keysize) != 0) {
-		insertTuple(key, value, index);
-	}
-	else {
-		ocTupleValue *valuep = ValuePtr(data, keysize, index);
-		if (*valuep < (ocTupleValue) value) 
-			*valuep = (ocTupleValue) value;
-	}
-}
-
-
-/**
  * getValue - return the value at a given index.  If the index is negative, return
  * 0 as the value (a negative index by convention means the tuples does not exist in
  * the table, so zero is the correct return value).

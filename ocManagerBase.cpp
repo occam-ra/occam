@@ -181,29 +181,62 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel)
 	return true;
 }
 
-bool ocManagerBase::makeMaxProjection(ocTable *t1, ocTable *t2, ocRelation *rel)
+bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inputData, ocRelation *rel)
 {
-	//-- create the max projection data for a given relation. Go through
-	//-- the inputData, and for each tuple, save the max matching value in the new table
-	//-- the mask for the variable set is created from the given relation.
-	if (t1 == NULL || t2 == NULL || rel == NULL) return false;
-	long count = t1->getTupleCount();
-	t2->reset(keysize);	// reset the output table
+	//-- create the max projection data for the IV relation, used for computing percent correct.
+	//-- Two new tables are created. maxpqt contains a tuple for each distinct IV state,
+	//-- and the q value from the qt table. maxpt contains a corresponding tuple for each distinct
+	//-- IV state, and the p value (from the input data).
+	//-- A pass is made through the the qt table, and for each tuple, it is checked against the
+	//-- maxqt table. If it has not been added yet, or if its q value is greater than the value
+	//-- already present on the matching tuple in maxqt, then both the maxqt tuple and the maxpt
+	//-- tuples are updated. At the end, maxpt has a tuple for each IV state, and the p value
+	//-- for the specific IV,DV state which corresponds to the greatest q value across the DV
+	//-- states for that IV state.
+	if (qt == NULL || maxpt == NULL || rel == NULL) return false;
+	long count = qt->getTupleCount();
+	ocTable *maxqt = new ocTable(keysize, count);
+	maxpt->reset(keysize);	// reset the output table
 	ocKeySegment *key = new ocKeySegment[keysize];
 	ocKeySegment *mask = rel->getMask();
 	long i, k;
 	double totalP;
 	for (i = 0; i < count; i++) {
-		t1->copyKey(i, key);
-		double value = t1->getValue(i);
-		//-- set all the variables in the key to don't care if they don't
-		//-- exist in the relation
-		for (k = 0; k < keysize; k++) key[k] |= mask[k];
-		t2->maxTuple(key, value);
-		totalP += value;
+		qt->copyKey(i, key);
+		double qvalue = qt->getValue(i);
+		long pindex = inputData->indexOf(key);
+		if (pindex >= 0) {
+			double pvalue = inputData->getValue(pindex);
+			//-- set up key to match just IVs
+			for (k = 0; k < keysize; k++) key[k] |= mask[k];
+			long maxqindex = maxqt->indexOf(key);
+			long maxpindex = maxpt->indexOf(key);
+			if (maxqindex >= 0 && maxpindex >= 0) {
+				//-- we already saw this IV state; see if the q value is greater
+				double maxqvalue = maxqt->getValue(maxqindex);
+				if (maxqvalue < qvalue) {
+					maxqt->setValue(maxqindex, qvalue);
+					maxpt->setValue(maxpindex, pvalue);
+				}
+			}
+			else {
+				//-- new IV state; add to both tables
+				//-- we have to call indexOf again to get the position, then
+				//-- do the insert
+				maxqindex = maxqt->indexOf(key, false);
+				maxqt->insertTuple(key, qvalue, maxqindex);
+				maxpindex = maxpt->indexOf(key, false);
+				maxpt->insertTuple(key, pvalue, maxpindex);
+			}
+		}
+		else {
+			//-- this IV state didn't appear in the inputs, so we
+			//-- don't do anything in this case.
+		}
 	}
-	t2->sort();
+	maxpt->sort();
 	delete [] key;
+	delete maxqt;
 	return true;
 }
 
