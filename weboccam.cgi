@@ -1,2 +1,3 @@
 #! /bin/sh
-python weboccam.py
+python weboccam.py 2>&1
+
