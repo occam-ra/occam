@@ -14,6 +14,7 @@ struct dv_Data{
         double **cdv_value;
         char **dv_value;
         double *t_freq;
+	double *no_correct;
 
 };
 
