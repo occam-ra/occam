@@ -807,7 +807,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 		endLine = "\n";
 		footer = "\n";
 		headerSep = 
-		"--------------------------------------------------------------------------------\n";
+		"------------------------------------------------------------\n";
 	}
 	int cols = 3;
 	int labelwidth = 20;
@@ -816,7 +816,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	const char *label;
 	
 	fprintf(fd, header);
-	fprintf(fd,"****************************************************************************************************************************************\n\n");
+	fprintf(fd,"**********************************************************\n");
 	fprintf(fd, "\n%sREFERENCE = %s%s", beginLine, ref, endLine);
 	label = "Value";
 	fprintf(fd, "%s%s%s%s", beginLine, separator, label, separator);
@@ -895,7 +895,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	value = model->getAttributeList()->getAttribute("df");
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
 	label = "Loops:";
-	value = model->getAttributeList()->getAttribute("h");
+	value = model->getAttributeList()->getAttribute("LOOPS");
 	fprintf(fd, "%s%s%s%s%s", beginLine, label, separator,
 		value > 0 ? "YES" : "NO", endLine);
 	label = "Entropy(H):";
@@ -907,7 +907,19 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	label = "Transmission (T):";
 	value = model->getAttributeList()->getAttribute("t");
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
+	//H of data, IV and DV
+	
+	double topH = computeH(topRef);
+	fprintf(fd, "%s%s%s%lg%s\n", beginLine, "H(data)", separator, topH, endLine);
+	if (directed) {
+		double depH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_DEP_H);
+		double indH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_IND_H);
+		fprintf(fd,"%s%s%s%lg%s\n", beginLine, "H(IV)", separator, indH, endLine);
+		fprintf(fd,"%s%s%s%lg%s\n", beginLine, "H(DV)", separator, depH, endLine);
+	}
+			 
 	fprintf(fd, footer);
+	
 	//-- print top and bottom reference tables
 	const char *topFields[] = {
 		"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
@@ -944,8 +956,13 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	computeDependentStatistics(model);
 	computeL2Statistics(model);
 	computePearsonStatistics(model);
+	//temp fix Anjali
+	//we are not sure of Pearson calculation for bottom model so leave it blank
+	ocAttributeList *attrs = model->getAttributeList();
+	attrs->setAttribute(ATTRIBUTE_P2, 0);
+			 
 	printRefTable(model->getAttributeList(), fd, "BOTTOM", bottomFields1, 3);
-	fprintf(fd,"****************************************************************************************************************************************\n\n");
+	fprintf(fd,"************************************************************\n");
 }
 
 void ocVBMManager::printBasicStatistics()
