@@ -148,7 +148,6 @@ class ocUtils:
 		else:
 			if (a1 > a2): result = -1
 			if (a1 < a2): result = 1
-		print "compare, m1 =",m1.get("name"), a1,"m2 =",m2.get("name"), a2, "result = ", result, "<br>"
 		return result
 
 	# this function decides which statistic to computed, based
@@ -189,10 +188,8 @@ class ocUtils:
 					if self.__compareModels(newModel, newModels[pos]) <= 0: break
 					pos = pos + 1;
 				if pos < len(newModels):
-					print "insert:",newModel.get("name"),"at",pos,"<br>"
 					newModels.insert(pos, newModel)
 				elif self.__searchWidth > 0 and len(newModels) < self.__searchWidth:
-					print "append:",newModel.get("name"),"<br>"
 					newModels.append(newModel)
 				addCount = addCount + 1;
 				newModel.deleteFitTable()	#recover fit table memory

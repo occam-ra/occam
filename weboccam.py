@@ -232,7 +232,7 @@ def actionSearch(formFields):
 		reportvars = reportvars + ", bp_t"
 
 	if formFields.get("showpct", ""):
-		reportvars = reportvars + ", pct_correct"
+		reportvars = reportvars + ", pct_correct_data, pct_correct_test"
 
 	oc.setReportSortName(reportSort)
  	oc.setSortName(searchSort)
@@ -289,7 +289,7 @@ def startBatch(formFields):
 	if not dirname: dirname = "."
 
 	cmd = "nohup %s/occambatch %s %s %s %s &" % (dirname, sys.argv[0], ctlfilename, toaddress, csvname)
-	print "<hr>Batch job started:<p> data file: %s, sent to %s\n" % (datafilename, toaddress)
+	print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
 	result = os.system(cmd)
 
 

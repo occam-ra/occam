@@ -456,7 +456,8 @@ private:
 #define ATTRIBUTE_BP_COND_H "bp_cond_h"
 #define ATTRIBUTE_BP_COND_DH "bp_cond_dh"
 #define ATTRIBUTE_BP_COND_PCT_DH "bp_cond_pct_dh"
-#define ATTRIBUTE_PCT_CORRECT "pct_correct"
+#define ATTRIBUTE_PCT_CORRECT_DATA "pct_correct_data"
+#define ATTRIBUTE_PCT_CORRECT_TEST "pct_correct_test"
 
 /**
  * ocStateConstraint - defines the set of states (variable combinations) within a relation

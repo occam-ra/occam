@@ -60,7 +60,8 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_BP_COND_H, "H|Model(BP)", "%12f"},
 {ATTRIBUTE_BP_COND_DH, "dH|Model(BP)", "%12f"},
 {ATTRIBUTE_BP_COND_PCT_DH, "est. %dH(DV)(BP)", "%12f"},
-{ATTRIBUTE_PCT_CORRECT, "% Correct", "%12f"},
+{ATTRIBUTE_PCT_CORRECT_DATA, "% Correct(Data)", "%12f"},
+{ATTRIBUTE_PCT_CORRECT_TEST, "% Correct(Test)", "%12f"},
 };
 
 bool ocReport::htmlMode = false;
@@ -256,7 +257,9 @@ void ocReport::print(FILE *fd)
 				fmt = (pct && toupper(*(pct+1)) == 'I') ? "%14.0f" : "%12f";
 			}
 			double attr = modelAttrs->getAttribute(attrs[a]);
-			sprintf(field, fmt, attr);
+			//-- -1 means uninitialized, so don't print
+			if (attr == -1.0) field[0] = '\0';
+			else sprintf(field, fmt, attr);
 			switch(sepStyle) {
 			case 0:
 				fprintf(fd, "<td>%s</td>\n", field);

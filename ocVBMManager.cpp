@@ -592,24 +592,32 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 
 void ocVBMManager::computePercentCorrect(ocModel *model)
 {
+	double total;
+	long count, i;
 	ocRelation *indRel = getIndRelation();
 	makeFitTable(model);
 	ocTable *modelTable = fitTable1;
 	ocTable *maxTable = new ocTable(keysize, modelTable->getTupleCount());
-	if (testData) {
-	  makeMaxProjection(modelTable, maxTable, testData, indRel);
-	}
-	else {
-	  makeMaxProjection(modelTable, maxTable, inputData, indRel);
-	}
-	double total = 0.0;
-	long count = maxTable->getTupleCount();
-	long i;
+	maxTable = new ocTable(keysize, modelTable->getTupleCount());
+	makeMaxProjection(modelTable, maxTable, inputData, indRel);
+	total = 0.0;
+	count = maxTable->getTupleCount();
 	for (i = 0; i < count; i++) {
-		total += maxTable->getValue(i);
+	  total += maxTable->getValue(i);
+	}
+	model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT_DATA, 100 * total);
+
+	if (testData) {
+	  maxTable->reset(keysize);
+	  makeMaxProjection(modelTable, maxTable, testData, indRel);
+	  total = 0.0;
+	  count = maxTable->getTupleCount();
+	  for (i = 0; i < count; i++) {
+	    total += maxTable->getValue(i);
+	  }
+	  model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT_TEST, 100 * total);
 	}
 	delete maxTable;
-	model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT, 100 * total);
 }
 
 void ocVBMManager::setFilter(const char *attrname, double attrvalue, RelOp op)
