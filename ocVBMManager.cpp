@@ -816,7 +816,7 @@ void ocVBMManager::printBasicStatistics()
 		header = "";
 		beginLine = "    ";
 		separator = ",";
-		endLine = "\n";
+		endLine = "";
 		footer = "\n";
 	}
 	bool directed = getVariableList()->isDirected();
