@@ -179,6 +179,7 @@ protected:
 	ocTable *fitTable2;
 	ocTable *projTable;
 	int **State_Space_Arr;
+	int dataLines;
 };
  
  #endif

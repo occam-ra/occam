@@ -14,9 +14,10 @@
 /**
  * oldRead - read data from old format files. The ocTable and ocVariableList are allocated
  * in this function, and then populated with the input data and the variables, respectively
+ * The return value is the number of data lines read.
  */
  
-bool ocReadFile(FILE *fd, class ocOptions *options,
+int ocReadFile(FILE *fd, class ocOptions *options,
 	ocTable **indata, ocTable **testdata, ocVariableList **vars);
 
 #endif

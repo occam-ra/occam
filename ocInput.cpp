@@ -42,9 +42,9 @@ bool KeepVal(LostVar *lostvarpt,char * var){
         return false;
 }
 
-/*ReadData - read data tuples, one per line
+/*ReadData - read data tuples, one per line; return number of lines read
  */
-bool ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata,LostVar *lostvarp)
+long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata,LostVar *lostvarp)
 {
         char line[MAXLINE];
         ocKeySegment *key = 0;
@@ -171,7 +171,7 @@ int l=0;
 		}
         }
         bool result = vars->checkCardinalities();
-        return result;//temp fix
+        return result ? l : 0;//temp fix
 }
 
 void ocDefineVariables(ocOptions *options, ocVariableList *vars)
@@ -604,7 +604,7 @@ done1:
 /*
  * oldRead - read old format files.
  */
-bool ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdata, ocVariableList **vars)
+int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdata, ocVariableList **vars)
 {
 	ocVariableList *varp=NULL;
 	ocTable *indatap=NULL;
@@ -613,6 +613,8 @@ bool ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testda
 	void * nextp=NULL;
         const char * val=NULL;
 	LostVar *lostvarp=NULL;
+	int dataLines = 0;
+	int testLines = 0;
 	*vars = varp = new ocVariableList(10);
 	if (fd) {
 		options->readOptions(fd);
@@ -625,17 +627,17 @@ bool ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testda
 	//-- If not at end of file, there is data in this file
 	if (!feof(fd)) {
 		*indata = indatap = new ocTable(varp->getKeySize(), 100);
-		ocReadData(fd, varp, indatap,lostvarp);
+		dataLines = ocReadData(fd, varp, indatap,lostvarp);
 		indatap->sort();
 	}
 	//-- If there's still data, then it must be test data
 	if (!feof(fd)) {
 		*testdata = testdatap = new ocTable(varp->getKeySize(), 100);
-		ocReadData(fd, varp, testdatap,lostvarp);
+		testLines = ocReadData(fd, varp, testdatap,lostvarp);
 		testdatap->sort();
 	}
 	system("date");
-	return true;
+	return dataLines;
 }
 
 

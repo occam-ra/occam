@@ -66,7 +66,7 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
 			printf("ERROR: couldn't open %s\n", fname);
 			return false;
 		}
-		else if (!ocReadFile(fd, options, &input, &test, &vars)) {
+		else if ((dataLines = ocReadFile(fd, options, &input, &test, &vars)) == 0) {
 			printf("ERROR: ocReadFile() failed for %s\n", fname);
 			return false;
 		}
@@ -1135,6 +1135,12 @@ rap:
 void ocManagerBase::printOptions(bool printHTML=false) 
 {
 	options->write(NULL, printHTML);
+	if (printHTML) {
+	  printf("<tr><td>Data Lines Read</td><td>%ld</td></tr>\n", dataLines);
+	}
+	else {
+	  printf("Data Lines Read\t%ld\n", dataLines);
+	}
 }
 
 void ocManagerBase::printSizes()
