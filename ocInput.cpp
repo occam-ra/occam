@@ -234,6 +234,8 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
 	char e[]="exclude";
 	int v=0;
 	int num_var_actual=0;
+	printf("Note : For variables marked for no use  rebinning parameters will not be considered \n");
+
                 //Three cases, either rebin string not present in that case do
                 //normal stuff,else rebin string present and ; not present
                 //in that case variable is not kept (marked for no use)
@@ -578,7 +580,7 @@ done1:
 				//or since the variable type is 0...the rebinning string will be ignored
 				if(rebin[0]!='\0'){
 				//issue a small message about the rebinning string not being used
-			      printf("For variable =>%s rebinning parameters will not be considered since it is marked for no use\n",abbrev);
+			      //printf("For variable =>%s rebinning parameters will not be considered since it is marked for no use\n",abbrev);
 				}
                                 if(type !=0){  //Anjali
 					//printf("normal value %s\n",abbrev);
