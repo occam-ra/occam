@@ -391,11 +391,18 @@ double ocVBMManager::computeBPT(ocModel *model)
 	class BPIntersectProcessor : public ocIntersectProcessor
 	{
 	public:
-		BPIntersectProcessor(ocTable *inData, int rels, long fullDim)
-		{
+		BPIntersectProcessor(ocTable *inData, double fullDim)
+	        {
 			inputData = inData;
 			keysize = inputData->getKeySize();
 			qData = new ocTable(keysize, inputData->getTupleCount());
+			fullDimension = fullDim;
+		}
+
+	        void reset(int rels)
+		{
+		        qData->reset(keysize);
+
 			//-- seed the computed table with the tuples from the input data,
 			//-- but with zero values. These are the only tuples we care about.
 			for (int i = 0; i < inputData->getTupleCount(); i++) {
@@ -408,19 +415,23 @@ double ocVBMManager::computeBPT(ocModel *model)
 			originTerms = 0;
 
 			relCount = rels;
-
-			fullDimension = fullDim;
 		}
+
+ 		virtual ~BPIntersectProcessor()
+		{
+			delete qData;
+		}
+
 
 
 		virtual void process(int sign, ocRelation *rel)
 		{
-			ocKeySegment *key = new ocKeySegment[keysize];
+			ocKeySegment key[keysize];
 			double qi, q;
 			//-- get the orthogonal dimension of the relation (the number of states
 			//-- projected into one substate)
-			long relDimension = fullDimension / 
-				((long)ocDegreesOfFreedom(rel) + 1);
+			double relDimension = fullDimension / 
+				(ocDegreesOfFreedom(rel) + 1);
 			//-- add the scaled contribution to each q
 			for (int i = 0; i < qData->getTupleCount(); i++) {
 				qData->copyKey(i, key);
@@ -465,18 +476,21 @@ double ocVBMManager::computeBPT(ocModel *model)
 		}
 
 		ocTable *qData, *inputData;
-		long fullDimension;
+		double fullDimension;
 		int keysize;
 		int relCount;
 		int originTerms;
 	};
+
+	static BPIntersectProcessor *processor = NULL;
+
 	ocAttributeList *attrs = model->getAttributeList();
 
 	//-- see if we did this already.
 	double modelT = attrs->getAttribute(ATTRIBUTE_BP_T);
 	if (modelT >= 0) return modelT;
 
-	long fullDimension = (long)ocDegreesOfFreedom(topRef->getRelation(0)) + 1;
+	double fullDimension = ocDegreesOfFreedom(topRef->getRelation(0)) + 1;
 
 	//-- because we clear the cache periodically, we have to force
 	//-- creation of all projections here
@@ -488,9 +502,10 @@ double ocVBMManager::computeBPT(ocModel *model)
 	  ocManagerBase::makeProjection(rel);
 	}
 
-	BPIntersectProcessor processor(inputData, relCount, fullDimension);
-	doIntersectionProcessing(model, &processor);
-	modelT = processor.getTransmission();
+	if (processor == NULL) processor = new BPIntersectProcessor(inputData, fullDimension);
+	processor->reset(relCount);
+	doIntersectionProcessing(model, processor);
+	modelT = processor->getTransmission();
 	attrs->setAttribute(ATTRIBUTE_BP_T, modelT);
 	return modelT;
 }

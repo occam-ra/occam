@@ -3,7 +3,7 @@
 # ocutils - utility scripts for common operations,
 # such as processing old format occam files
 
-import os, sys, re, occam
+import os, sys, re, occam, random
 totalgen=0
 totalkept=0
 
@@ -161,7 +161,7 @@ class ocUtils:
 		elif self.__sortName == "pct_correct":
 			self.__manager.computePercentCorrect(model)
 		# anything else, just compute everything we might need
-		else:
+		elif self.__sortName != "random":
 			self.__manager.computeL2Statistics(model)
 			self.__manager.computeDependentStatistics(model)
 
@@ -172,16 +172,27 @@ class ocUtils:
 	# as the dependent statistics (dH, %dH, etc.)
 	#
 
-	def processModel(self, level, modelList, model):
-		newModels = self.__manager.searchOneLevel(model)
-		for newModel in newModels :
+	def processModel(self, level, newModels, model):
+		addCount = 0;
+		generatedModels = self.__manager.searchOneLevel(model)
+		for newModel in generatedModels :
 			if newModel.get("processed") <= 0.0 :
 				newModel.processed = 1.0
+				newModel.random = random.random()
 				newModel.level = level
-				modelList.append(newModel)
+				pos = 0;
+				while pos < len(newModels) and pos < self.__searchWidth:
+					if self.__compareModels(newModel, newModels[pos]) <= 0: break
+					pos = pos + 1;
+				if pos < len(newModels):
+					newModels.insert(pos, newModel)
+				elif self.__searchWidth > 0 and len(newModels) < self.__searchWidth:
+					newModels.append(newModel)
+				addCount = addCount + 1;
 				self.computeSortStatistic(newModel)
 				newModel.deleteFitTable()	#recover fit table memory
 				newModel.deleteRelationLinks()	#recover relation link memory
+		return addCount
 
 			
 	#
@@ -193,17 +204,18 @@ class ocUtils:
 		global totalgen
                 global totalkept
 		newModels = []
+		fullCount = 0;
 		for model in oldModels:
 			print '.',	# progress indicator
-			self.processModel(level, newModels, model)
-		newModels.sort(self.__compareModels)
-		fullCount = len(newModels)
+			fullCount = fullCount + self.processModel(level, newModels, model)
+		#newModels.sort(self.__compareModels)
+		#fullCount = len(newModels)
 		if self.__searchWidth != 0:
 			newModels = newModels[0:self.__searchWidth]
 		self.__manager.deleteTablesFromCache()
 		truncCount = len(newModels)
-		totalgen =fullCount+totalgen
-                totalkept =truncCount+totalkept
+		totalgen = fullCount+totalgen
+                totalkept = truncCount+totalkept
 		print " ,%ld models generated, %ld kept,%ld total models generated,%ld total models kept, " % (fullCount, truncCount, totalgen+1 ,totalkept+1)
 		# print self.__manager.printSizes();
 		return newModels

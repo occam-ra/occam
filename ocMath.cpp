@@ -63,9 +63,10 @@ double ocDegreesOfFreedom(ocRelation *rel)
 {
 	double df = 1.0;
 	int count = rel->getVariableCount();
+	ocVariableList *vars = rel->getVariableList();
 	for (int i = 0; i < count; i++) {
 		int varIndex = rel->getVariable(i);
-		df *= rel->getVariableList()->getVariable(varIndex)->cardinality;
+		df *= vars->getVariable(varIndex)->cardinality;
 	}
 	return df - 1;
 }

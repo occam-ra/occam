@@ -43,7 +43,8 @@ LIBOBJECTS = \
 	ocSearch.o
 
 EXPORTFILES = occam.so ocutils.py weboccam.py basic.py occam3 occambatch occammail.py  OpagCGI.py \
-	header.html switchform.html searchform.html fitform.html logform.html base.css header.txt
+	header.html switchform.html searchform.html fitform.html logform.html base.css header.txt \
+	index.html
 
 AR = ar
 COMPILE = $(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS)
@@ -57,7 +58,7 @@ install: all export
 all: $(LIB) $(PY_OCCAM)
 
 export:
-	cp $(EXPORTFILES) /var/www/occamkwillett
+	cp $(EXPORTFILES) ../html
 	cp $(EXPORTFILES) install
 
 .SUFFIXES:

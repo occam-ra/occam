@@ -419,10 +419,11 @@ bool ocManagerBase::hasLoops(ocModel *model)
 
 double ocManagerBase::computeDF(ocRelation *rel)	// degrees of freedom
 {
-	double df = rel->getAttributeList()->getAttribute(ATTRIBUTE_DF);
+	double df = -1;
+	df = rel->getAttributeList()->getAttribute(ATTRIBUTE_DF);
 	if (df < 0.0) {	//-- not set yet
-		df = ::ocDegreesOfFreedom(rel);
-		rel->getAttributeList()->setAttribute(ATTRIBUTE_DF, df);
+	  df = ::ocDegreesOfFreedom(rel);
+	  rel->getAttributeList()->setAttribute(ATTRIBUTE_DF, df);
 	}
 	return df;
 }
@@ -432,8 +433,8 @@ double ocManagerBase::computeDF(ocModel *model)
 {
 	double df = model->getAttributeList()->getAttribute(ATTRIBUTE_DF);
 	if (df < 0.0) {	//-- not set yet
-		DFAndEntropy(model);
-		df = model->getAttributeList()->getAttribute(ATTRIBUTE_DF);
+	  DFAndEntropy(model);
+	  df = model->getAttributeList()->getAttribute(ATTRIBUTE_DF);
 	}
 	return df;
 }
@@ -526,7 +527,7 @@ double ocManagerBase::computeTransmission(ocModel *model, HMethod method)
 
 //-- intersect two variable lists, producing a third. returns true if intersection
 //-- is not empty, and returns the list and count of common variables
-static bool intersect (ocRelation *rel1, ocRelation *rel2,
+static bool intersect(ocRelation *rel1, ocRelation *rel2,
 	int* &var, int &count)
 {
 	int *var1, *var2;
@@ -559,8 +560,8 @@ void ocManagerBase::DFAndEntropy(ocModel *model)
 		virtual void process(int sign, ocRelation *rel)
 		{
 			if (rel) {
-				df += sign * manager->computeDF(rel);
-				h += sign * manager->computeH(rel);
+			  df += sign * manager->computeDF(rel);
+			  h += sign * manager->computeH(rel);
 			}
 		}
 	};
