@@ -585,9 +585,14 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 	makeMaxProjection(modelTable, maxTable, indRel);
 	double total = 0.0;
 	long count = maxTable->getTupleCount();
-	long i;
+	long i, pindex;
+	ocKeySegment *key;
 	for (i = 0; i < count; i++) {
-		total += maxTable->getValue(i);
+		key = maxTable->getKey(i);
+		pindex = inputData->indexOf(key);
+		if (pindex >= 0) {
+			total += inputData->getValue(pindex);
+		}
 	}
 	delete maxTable;
 	model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT, 100 * total);

@@ -57,7 +57,7 @@ install: all export
 all: $(LIB) $(PY_OCCAM)
 
 export:
-	cp $(EXPORTFILES) ../html
+	cp $(EXPORTFILES) /var/www/occamkwillett
 	cp $(EXPORTFILES) install
 
 .SUFFIXES:
