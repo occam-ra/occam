@@ -479,7 +479,10 @@ void ocOptions::write(FILE *fd, bool printHTML)
 	while (opt) {
 		const char *name = opt->def->name;
 		const char *value = opt->value;
-		fprintf(fd, "%s%s%s%s%s", startline, name, fieldsep, value, endline);
+		// (kenw) don't print data file name here; the real name is printed elsewhere
+		if (strcmp(name, "datafile") != 0) {
+		  fprintf(fd, "%s%s%s%s%s", startline, name, fieldsep, value, endline);
+		}
 		opt = opt->next;
 	}
 }
