@@ -6,7 +6,8 @@
 import os, sys, re, occam, random
 totalgen=0
 totalkept=0
-
+# don't exceed 500 MB
+maxMemoryToUse = 500000000
 
 class ocUtils:
 
@@ -216,7 +217,8 @@ class ocUtils:
 		truncCount = len(newModels)
 		totalgen = fullCount+totalgen
                 totalkept = truncCount+totalkept
-		print " ,%ld models generated, %ld kept,%ld total models generated,%ld total models kept, " % (fullCount, truncCount, totalgen+1 ,totalkept+1)
+		memUsed = self.__manager.getMemUsage();
+		print " ,%ld models generated, %ld kept,%ld total models generated,%ld total models kept, %ld bytes memory used" % (fullCount, truncCount, totalgen+1 ,totalkept+1, memUsed)
 		# print self.__manager.printSizes();
 		return newModels
 
@@ -296,6 +298,10 @@ class ocUtils:
                 print "State Space:, %lg ," %(StateSpace)
 		print "Searching levels:",
 		for i in xrange(1,self.__searchLevels+1):
+			if self.__manager.getMemUsage() > maxMemoryToUse:
+				print "Memory limit exceeded: stopping search"
+				break
+
 			print i,' ',	# progress indicator
 			newModels = self.processLevel(i, oldModels)
 			for model in newModels:

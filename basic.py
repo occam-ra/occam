@@ -2,7 +2,7 @@
 import os, sys, occam
 
 import resource
-resource.setrlimit(resource.RLIMIT_CORE, [36000, 36000])
+resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 
 from ocutils import ocUtils
 
@@ -78,7 +78,7 @@ util.setSortName("bp_t")
 util.setReportSortName("bp_t")
 
 # set the search direction (up, down)
-#util.setSearchDir("up")
+#util.setSearchDir("down")
 
 # set the search filter (all, loopless, disjoint)
 util.setSearchFilter("all")

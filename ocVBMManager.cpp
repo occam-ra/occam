@@ -423,7 +423,6 @@ double ocVBMManager::computeBPT(ocModel *model)
 		}
 
 
-
 		virtual void process(int sign, ocRelation *rel)
 		{
 			ocKeySegment key[keysize];
