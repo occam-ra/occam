@@ -691,7 +691,6 @@ bool ocSearchChain::makeChainModels()
 static char *oldBrk = 0;
 if (oldBrk == 0) oldBrk = (char*) sbrk(0);
 double used = ((char*) sbrk(0)) - oldBrk;
-printf("%ld Add model %s, memory=%lg\n", slot, model->getPrintName(), used);
 		if (!cache->addModel(model)) {
 			ocModel *cachedModel = cache->findModel(model->getPrintName());
 			delete model;

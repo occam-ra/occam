@@ -61,7 +61,7 @@ util.setReportSeparator(3)
 # based on whether the ref model is top or bottom. List is separated
 # by commas, and provided as a single text string
 # for ref=top, this is a good list:
-util.setReportVariables("Level$I, h, ddf, lr, alpha, information, bp_t")
+util.setReportVariables("Level$I, h, ddf, lr, alpha, information, pct_correct_data")
 util.setNoIPF(1)
 # for ref=bottom, use something like this:
 #util.setReportVariables("Level$I, h, ddf, lr, alpha, information")
@@ -81,7 +81,7 @@ util.setReportSortName("information")
 util.setSearchDir("up")
 
 # set the search filter (all, loopless, disjoint)
-util.setSearchFilter("chain")
+util.setSearchFilter("loopless")
 
 # set the ref model (bottom, top, default, or a specific model)
 util.setRefModel("bottom")

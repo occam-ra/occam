@@ -552,7 +552,7 @@ bool ocManagerBase::makeFitTable(ocModel *model,int SB)
 			  }
 			  delete [] varvalues;
 			  fitTable1->normalize();
-			  //fitTable1->dump(true);
+			  //fitTable1->dump(true);fflush(stdout);
 			}
 			else {
 			  // create a projection of the computed data, based on the
