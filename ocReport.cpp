@@ -577,10 +577,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	for(int i=0;i<card;i++){
 		marginal[i]=0.0;
 		for(int j=0;j<k_count;j++){
-		marginal[i]+=dv_data.cdv_value[j][i];
+		marginal[i]+=dv_data.cdv_value[j][i]*dv_data.t_freq[j];
 	
 		}
-		marginal[i]=marginal[i]/k_count;
+		marginal[i]=marginal[i];
 	}
 	fprintf(fd, header2);
 	for(int i=0;i<card;i++){
@@ -800,10 +800,10 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	for(int i=0;i<card;i++){
 		marginal[i]=0.0;
 		for(int j=0;j<k_count;j++){
-		marginal[i]+=dv_data.cdv_value[j][i];
+		marginal[i]+=dv_data.cdv_value[j][i]*dv_data.t_freq[j];
 	
 		}
-		marginal[i]=marginal[i]/k_count;
+		marginal[i]=marginal[i];
 	}
 	fprintf(fd, header2);
 	for(int i=0;i<card;i++){
