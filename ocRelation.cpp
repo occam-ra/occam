@@ -104,14 +104,19 @@ int ocRelation::copyMissingVariables(int *indices, int maxCount)
   int copycount = 0;
   int i, j;
   int missing = 0;
+  int nextPresent;
   for (i = 0; i < varCount; i++) {
-    int nextPresent = vars[i];
+    nextPresent = vars[i];
     while (missing < nextPresent) {
       if (copycount >= maxCount) break;
       *(indices++) = missing++;
       copycount++;
     }
     missing = nextPresent + 1;
+  }
+  while (missing < maxCount) {
+      *(indices++) = missing++;
+      copycount++;
   }
   return copycount;
 }
@@ -168,9 +173,10 @@ double ocRelation::getExpansionSize()
   ocTable * table = getTable();
   if (table == 0) return 0;
 
-  int missing[varCount];
+  int maxCount = getVariableList()->getVarCount();
+  int missing[maxCount];
   double size = table->getTupleCount();
-  int missingCount = copyMissingVariables(missing, varCount);
+  int missingCount = copyMissingVariables(missing, maxCount);
   for (int i = 0; i < missingCount; i++) {
     int v = missing[i];
     size *= varList->getVariable(v)->cardinality;

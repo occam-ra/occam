@@ -95,6 +95,9 @@ public:
 	// greater than the second (lexically).
 	static int compareKeys(ocKeySegment *key1, ocKeySegment *key2, int keysize);
 
+	// copy key1 to key1
+	static int copyKey(ocKeySegment *key1, ocKeySegment *key2, int keysize);
+
 	static void buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars,
 		int *varindices, int varcount);
 

@@ -93,6 +93,17 @@ int ocKey::compareKeys(ocKeySegment *key1, ocKeySegment *key2, int keysize)
 
 
 /**
+ * copy a key
+ */
+int ocKey::copyKey(ocKeySegment *key1, ocKeySegment *key2, int keysize)
+{
+	int i;
+	for (i = 0; i < keysize; i++) {
+	  *(key2++) = *(key1++);
+	}
+}
+
+/**
  * buildMask - create a key with all 0's in included variables, 1's elsewhere
  */
 void ocKey::buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars,

@@ -614,21 +614,51 @@ bool ocManagerBase::makeFitTable(ocModel *model,int SB)
  * compute the orthogonal expansion of a projection. This means taking every tuple in the projection, and
  * apportioning it evenly across all the states which map into the substate of that projection.
  */
+void ocManagerBase::expandTuple(double tupleValue, ocKeySegment *key, int *missingVars, int missingCount, ocTable *outTable, int currentMissingVar)
+{
+  if (missingCount == 0) {
+	outTable->addTuple(key, tupleValue);
+  }
+  else {
+    int var = missingVars[currentMissingVar++];
+    //-- make a copy of the key, with the current variable replaced
+    //-- by each legal value in turn.
+    ocKeySegment newKey[keysize];
+    int varvalue;
+    int cardinality = getVariableList()->getVariable(var)->cardinality;
+    for (varvalue = 0; varvalue < cardinality; varvalue++) {
+      ocKey::copyKey(key, newKey, keysize);
+      ocKey::setKeyValue(newKey, keysize, getVariableList(), var, varvalue);
+      //-- If we have set all the values, then add this tuple. Otherwise recurse
+      if (currentMissingVar >= missingCount) {
+	outTable->addTuple(newKey, tupleValue);
+      }
+      else {
+	expandTuple(tupleValue, newKey, missingVars, missingCount, outTable, currentMissingVar);
+      }
+    }
+  }
+}
+
+
 void ocManagerBase::makeOrthoExpansion(ocRelation *rel, ocTable *outTable)
 {
   //-- get an array of the variable indices which don't occur in the relation.
   int varCount = rel->getVariableList()->getVarCount();
-  int missingvars[varCount];
-  int missingCount = rel->copyMissingVariables(missingvars, varCount);
+  int missingVars[varCount];
+  int missingCount = rel->copyMissingVariables(missingVars, varCount);
   ocTable *relTable = rel->getTable();
+
   long tupleCount = relTable->getTupleCount();
   outTable->reset(keysize);
-  for (i = 0; i < tupleCount; i++) {
-
-
-
+  for (int i = 0; i < tupleCount; i++) {
+    ocKeySegment key[keysize];
+    relTable->copyKey(i, key);
+    double value = relTable->getValue(i);
+    expandTuple(value, key, missingVars, missingCount, outTable, 0);
   }
-  
+  outTable->sort();
+  outTable->normalize();
 }
 
 bool ocManagerBase::hasLoops(ocModel *model)

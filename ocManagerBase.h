@@ -99,6 +99,12 @@ public:
 	// returns immediately. False is returned on any error
 	virtual bool makeFitTable(ocModel *model,int SB=0);
 	
+	// expand a single tuple into all values of all missing variables,
+	// recursively
+	void expandTuple(double tupleValue, ocKeySegment *key,
+			 int *missingVars, int missingCount,
+			 ocTable *outTable, int currentMissingVar);
+
 	void makeOrthoExpansion(ocRelation *rel, ocTable *table);
 
 	// process relations and intersections, as need for DF and H computation
