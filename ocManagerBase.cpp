@@ -341,6 +341,7 @@ bool ocManagerBase::makeFitTable(ocModel *model)
 		error = 0.0;		// abs difference between original proj and computed values
 		for (int r = 0; r < model->getRelationCount(); r++) {
 			ocRelation *rel = model->getRelation(r);
+			ocTable *relp = rel->getTable();
 			ocKeySegment *mask = rel->getMask();
 			//-- First time special case, to get things started
 			if (iter == 0 && r == 0) {
@@ -348,81 +349,84 @@ bool ocManagerBase::makeFitTable(ocModel *model)
 				//-- relation; i.e., cells in the input space / cells in the
 				//-- projection. This is used in place of the projection sum
 				//-- for the first pass.
-			#if 1
-				int inputCells = 1;
-				int varcount = varList->getVarCount();
-				for (i = 0; i < varcount; i++) {
-					inputCells *= varList->getVariable(i)->cardinality;
-				}
-				double cellWeight = 1.0 / inputCells;
-				int *varvalues = new int[varcount];
-				
-				for (i = 0; i < varcount; i++) {
-					varvalues[i] = 0;
-				}
-				ocKeySegment *key = new ocKeySegment[keysize];
-				long cellCount = 0;
-				for(;;) {
-					ocKey::buildFullKey(key, keysize, varList, varvalues);
-					fitTable1->addTuple(key, cellWeight);
-					cellCount++;
-					if (!nextTuple(varList, varvalues)) break;
-				}
-				delete [] varvalues;
-			#else
-				fitTable1->copy(inputData);
-				int inputCells = fitTable1->getTupleCount();
-				double cellWeight = 1.0 / inputCells;
-				for(i = 0; i < inputCells; i++) {
-					fitTable1->setValue(i, cellWeight);
-				}
-			#endif
+			  int inputCells = 1;
+			  int varcount = varList->getVarCount();
+			  //for (i = 0; i < varcount; i++) {
+			  //  inputCells *= varList->getVariable(i)->cardinality;
+			  //}
+			  //double cellWeight = 1.0 / inputCells;
+			  int *varvalues = new int[varcount];
+			  
+			  for (i = 0; i < varcount; i++) {
+			    varvalues[i] = 0;
+			  }
+			  ocKeySegment *key = new ocKeySegment[keysize];
+			  ocKeySegment *relkey = new ocKeySegment[keysize];
+			  long cellCount = 0;
+			  for(;;) {
+			    //-- fill up the table, but only add tuples if the relation has
+			    //-- a non-zero value. This gives us a partial distribution which
+			    //-- will be normalized later.
+			    ocKey::buildFullKey(key, keysize, varList, varvalues);
+			    for (k = 0; k < keysize; k++) relkey[k] = key[k] | mask[k];
+			    j = relp->indexOf(relkey);
+			    if (j >= 0) {
+			      double value = relp->getValue(j);
+			      fitTable1->addTuple(key, value);
+			    }
+			    cellCount++;
+			    if (!nextTuple(varList, varvalues)) break;
+			  }
+			  delete [] varvalues;
+			  fitTable1->normalize();
+			  fitTable1->dump(true);
 			}
-			// create a projection of the computed data, based on the
-			// variables in the relation
-			projTable->reset(keysize);
-			makeProjection(fitTable1, projTable, rel);
-			ocTable *relp = rel->getTable();
-			// for each tuple in fitTable1, create a scaled tuple in fitTable2, scaled by the
-			// ratio of the projection from the input data, and the computed projection
-			// from the previous iteration.  In any cases where the input marginal is
-			// zero, or where the computed marginal is 0, skip this tuple (equivalent
-			// to setting it to zero, but conserves space).
-			long tupleCount = fitTable1->getTupleCount();
-			fitTable2->reset(keysize);
-			totalP = 0.0;
-			for (i = 0; i < tupleCount; i++) {
-				double newValue = 0.0;
-				fitTable1->copyKey(i, key);
-				double value = fitTable1->getValue(i);
-				for (k = 0; k < keysize; k++) key[k] |= mask[k];
-				j = relp->indexOf(key);
+			else {
+			  // create a projection of the computed data, based on the
+			  // variables in the relation
+			  projTable->reset(keysize);
+			  makeProjection(fitTable1, projTable, rel);
+			  // for each tuple in fitTable1, create a scaled tuple in fitTable2, scaled by the
+			  // ratio of the projection from the input data, and the computed projection
+			  // from the previous iteration.  In any cases where the input marginal is
+			  // zero, or where the computed marginal is 0, skip this tuple (equivalent
+			  // to setting it to zero, but conserves space).
+			  long tupleCount = fitTable1->getTupleCount();
+			  fitTable2->reset(keysize);
+			  totalP = 0.0;
+			  for (i = 0; i < tupleCount; i++) {
+			    double newValue = 0.0;
+			    fitTable1->copyKey(i, key);
+			    double value = fitTable1->getValue(i);
+			    for (k = 0; k < keysize; k++) key[k] |= mask[k];
+			    j = relp->indexOf(key);
+			    if (j >= 0) {
+			      double relvalue = relp->getValue(j);
+			      if (relvalue > 0.0) {
+				j = projTable->indexOf(key);
 				if (j >= 0) {
-					double relvalue = relp->getValue(j);
-					if (relvalue > 0.0) {
-						j = projTable->indexOf(key);
-						if (j >= 0) {
-							double projvalue = projTable->getValue(j);
-							if (projvalue > 0.0) { 
-								newValue = value * relvalue / projvalue;
-							}
-							error = fmax(error, fabs(relvalue - projvalue));
-						}
-						else error = fmax(error, relvalue);
-					}
+				  double projvalue = projTable->getValue(j);
+				  if (projvalue > 0.0) { 
+				    newValue = value * relvalue / projvalue;
+				  }
+				  error = fmax(error, fabs(relvalue - projvalue));
 				}
-				else {
+				else error = fmax(error, relvalue);
+			      }
+			    }
+			    else {
 				}
-				if (newValue > 0) {
-					fitTable1->copyKey(i, key);
-					fitTable2->addTuple(key, newValue);
-					totalP += newValue;
-				}
+			    if (newValue > 0) {
+			      fitTable1->copyKey(i, key);
+			      fitTable2->addTuple(key, newValue);
+			      totalP += newValue;
+			    }
+			  }
+			  // swap fitTable1 and fitTable2 for next pass
+			  ocTable *ftswap = fitTable1;
+			  fitTable1 = fitTable2;
+			  fitTable2 = ftswap;
 			}
-			// swap fitTable1 and fitTable2 for next pass
-			ocTable *ftswap = fitTable1;
-			fitTable1 = fitTable2;
-			fitTable2 = ftswap;
 		}
 		// check convergence
 		if (error < delta2) break;
