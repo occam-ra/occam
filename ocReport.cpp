@@ -27,15 +27,15 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_ALG_H, "H(ALG)", "%12f"},
 {ATTRIBUTE_FIT_T, "T(IPF)", "%12f"},
 {ATTRIBUTE_ALG_T, "T(ALG)", "%12f"},
-{ATTRIBUTE_LOOPS, "LOOPS", "%2.0f"},        		// Junghan
-{ATTRIBUTE_EXPLAINED_I, "Inf", "%12.4f"}, 		// change name "Information" to "Inf"
-{ATTRIBUTE_AIC, "dAIC", "%12.4f"}, 			// new
-{ATTRIBUTE_BIC, "dBIC", "%12.4f"},    			// new
-{ATTRIBUTE_BP_AIC, "dAIC(BP)", "%12f"},                	// new
-{ATTRIBUTE_BP_BIC, "dBIC(BP)", "%12f"},                	// new
-{ATTRIBUTE_PCT_CORRECT_DATA, "%C(Data)", "%12f"},	// change name % correct
-{ATTRIBUTE_PCT_CORRECT_TEST, "%C(Test)", "%12f"},	// change name % correct
-{ATTRIBUTE_BP_EXPLAINED_I, "Inf(BP)", "%12f"},		// change name "Information" to "Inf"
+{ATTRIBUTE_LOOPS, "LOOPS", "%2.0f"},      // Junghan
+{ATTRIBUTE_EXPLAINED_I, "Inf", "%12.4f"},             // change name "Information" to "Inf"
+{ATTRIBUTE_AIC, "dAIC", "%12.4f"},                    // new
+{ATTRIBUTE_BIC, "dBIC", "%12.4f"},                            // new
+{ATTRIBUTE_BP_AIC, "dAIC(BP)", "%12f"},                       // new
+{ATTRIBUTE_BP_BIC, "dBIC(BP)", "%12f"},                       // new
+{ATTRIBUTE_PCT_CORRECT_DATA, "%C(Data)", "%12f"},       // change name % correct
+{ATTRIBUTE_PCT_CORRECT_TEST, "%C(Test)", "%12f"},       // change name % correct
+{ATTRIBUTE_BP_EXPLAINED_I, "Inf(BP)", "%12f"},          // change name "Information" to "Inf"
 //*******************************************************************************
 {ATTRIBUTE_UNEXPLAINED_I, "Unexp Info", "%12f"},
 {ATTRIBUTE_T_FROM_H, "T(H)", "%12f"},
@@ -314,8 +314,7 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 	ocTable *refData = manager->getInputData();
 	ocTable *table1 = manager->getFitTable();
 	ocVariableList *varlist = model->getRelation(0)->getVariableList();
-
-	fprintf(fd,"-------------------------------------------------------------------------\n");
+	fprintf(fd,"<br>");
 	fprintf(fd, "        RESIDUALS\n\n");
 	if (table1 == NULL) {
 		fprintf(fd, "Error: no fitted table computed\n");
@@ -331,7 +330,7 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 	int sepStyle = htmlMode ? 0 : separator;
 	switch(sepStyle) {
 	case 0:
-		header = "<table><tr><th>Cell</th><th>Obs</th><th>Exp</th><th>Res</th></tr>\n";
+		header = "<table border =\"1\"><tr><th>Cell</th><th>Obs</th>><th>Exp</th><th>Res</th></tr>\n";
 		format = "<tr><td>%s</td><td>%6.3f</td><td>%6.3f</td><td>%6.3f</td></tr>\n";
 		footer = "</table>";
 		break;
@@ -401,7 +400,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 		fprintf(fd, "Error: no fitted table computed\n");
 		return;
 	}
-	ocVariableList *varlist = model->getRelation(0)->getVariableList();
+	ocVariableList *varlist = manager->getVariableList();
 	//table to store conditional DV values.
 	ocTable *table_DV= new ocTable(varlist->getKeySize(),100);
 	int DV_index=-1;
@@ -414,6 +413,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	}
 
 	long varcount = varlist->getVarCount();
+	//printf("vacount %d\n",varcount);
 	int keysize = refData->getKeySize();
 
 	ocVariable *var = varlist->getVariable(DV_index);
@@ -427,6 +427,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	dv_data.key=new (ocKeySegment *)[i_statespace];
 	dv_data.cdv_value=new (double *)[i_statespace];
 	dv_data.t_freq=new double[i_statespace]; 	
+	dv_data.no_correct=new double[i_statespace]; 	
+	
 	ocKeySegment *t_key;
 	double *t_valptr;
 	for(int i=0;i<i_statespace;i++){		
@@ -444,21 +446,24 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	
 
 	const int cwid=15;
-	const char *format, *header, *header2, *footer, *format1;
+	const char *format, *header, *header2, *footer, *format1,*format2,*format3;
 	const char *end,*end2,*seperator1,*seperator2;
 	char *keystr = new char[varcount+1];
 	fprintf(fd,"-------------------------------------------------------------------------\n");
-	fprintf(fd, "\nConditional DV (D) (percent) for each IV composite state for the Model %s    \n\n",model->getPrintName());
+	fprintf(fd,"<br>");
+	fprintf(fd, "\nConditional DV (D) (%%) for each IV composite state for the Model %s    \n\n",model->getPrintName());
 
 	//-- set appropriate format
 	int sepStyle = htmlMode ? 0 : separator;
 	switch(sepStyle) {
 	case 0:
-		header = "<table><tr><th>Cell</th><th>Freq</th><th>Cond_DV</th></tr>\n";
+		header = "<table border=\"1\"><tr><th>Cell</th><th>Freq</th><th></th><th>Cond_DV</th></tr>\n";
 		header2="<tr><td>    </td><td>       x";
 		seperator2="</td><td>";
-		format = "<tr><td>%s</td><td>%6.3f</td><td>";
+		format = "<tr><td>%s</td><td>%d</td><td>";
 		format1="%6.3f";
+		format2="%s";
+		format3="%6.0f";
 		seperator1="</td><td>";	
 		end2="</td></tr>\n";
 		end="</td></tr>\n";
@@ -467,26 +472,32 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	case 1:
 		header = "Cell\tFreq\tCond_DV\n";
 		header2="\t";
-		format = "%s\t%6.3f";
+		format = "%s\t%d";
 		format1="%6.3f";
+		format2="%s";
+		format3="%6.0f";
 		seperator1=seperator2="\t";
 		end=end2="\n";
 		footer = "";
 		break;
 	case 2:
 		header = "Cell,Freq,Cond_DV\n";
-		format = "%s,%6.3f";
+		format = "%s,%d";
 		header2=",";
 		format1="%6.3f";
+		format2="%s";
+		format3="%6.0f";
 		seperator1=seperator2=",";
 		end=end2="\n";
 		footer = "";
 		break;
 	case 3:
 		header = "    Cell    Freq     Cond_DV\n    ------------------------------------\n";
-		format = "%8s  %6.3f";
+		format = "%8s  %d";
 		header2="              ";
 		format1="%6.3f";
+		format2="%s";
+		format3="%6.0f";
 		seperator1=seperator2="  ";
 		end=end2="\n";
 		footer = "";
@@ -515,6 +526,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 		dv_data.dv_value[i][len1]='\0';
 	}
 	
+		fprintf(fd, seperator2);
 	for(int i=0;i<card;i++){
 		fprintf(fd, seperator2);
 		fprintf(fd,dv_data.dv_value[i]);	
@@ -555,22 +567,56 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 			for(int i=0;i<no_sib;i++){	
 				t_value+=table1->getValue(index_sibs[i]);	
 			}
+			t_freq=t_value*samplesz;
+			//to roundoff
+			int o2=(int)(t_freq);
+			double m2=t_freq- (double)o2 ;
+			if(m2>0.5)o2=o2+1;
+
+			dv_data.t_freq[k_count]=o2;
+			t_freq=o2;
 			//printf("no of siblings %d\n",no_sib);
-			percent_DV=((value*1000)/(t_value*1000))*100;
+			
+			value=value*samplesz;
+			//to roundoff
+			int o3=(int)(value);
+			double m3=value- (double)o3 ;
+			if(m3>0.5)o3=o3+1;
+			value=o3;	
+			
+			percent_DV=((value)/(t_freq))*100;
+			int last_i=0;
 			for(int i=0;i<no_sib;i++){
 				ocKeySegment *tkey=table1->getKey(index_sibs[i]);	
 				int dv_value=0;
 				ocKey::getKeyValue(tkey,keysize,varlist,DV_index,&dv_value);	
 				double cdv_value=0;
-				cdv_value=((table1->getValue(index_sibs[i]))/t_value)*100;
+				//cdv_value=((table1->getValue(index_sibs[i]))/t_value)*100;
+				//replaced with
+				cdv_value=table1->getValue(index_sibs[i]);
+				int o4=(int)(cdv_value*samplesz);
+				double m4=cdv_value*samplesz- (double)o4 ;
+				if(m4>0.5)o4=o4+1;
+				cdv_value=o4;
+				cdv_value=(cdv_value/t_freq)*100;
+
 				//put it in dv_data
 				dv_data.cdv_value[k_count][dv_value]=cdv_value;
 				//long ref_key_i=refData->indexOf(tkey);
 				//t_freq+=refData->getValue(ref_key_i)*1000;
-				
-			}
-				t_freq=t_value;
-				dv_data.t_freq[k_count]=t_freq;
+				if(i==0){	
+					dv_data.no_correct[k_count]=cdv_value;		
+					last_i=dv_value;
+				}
+				else{		
+					if(cdv_value>dv_data.cdv_value[k_count][last_i])dv_data.no_correct[k_count]=cdv_value;
+					else
+					dv_data.no_correct[k_count]=dv_data.cdv_value[k_count][last_i];
+					last_i=dv_value;
+				}			
+			}	
+			//printf("max value %f\n",dv_data.no_correct[k_count]);
+				dv_data.no_correct[k_count]=dv_data.no_correct[k_count]*t_freq/100;	
 				k_count++;
 				
 			}
@@ -582,32 +628,69 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	for(int i=0;i<card;i++){
 		marginal[i]=0.0;
 		for(int j=0;j<k_count;j++){
-		marginal[i]+=dv_data.cdv_value[j][i]*dv_data.t_freq[j];
+		marginal[i]+=dv_data.cdv_value[j][i]*dv_data.t_freq[j]/samplesz;
 	
 		}
 		marginal[i]=marginal[i];
 	}
+	double percent_correct=0.0;
+	for(int i=0;i<k_count;i++){
+		percent_correct+=dv_data.no_correct[i];	
+	}
+	percent_correct=percent_correct*100/samplesz;
 	fprintf(fd, header2);
+		fprintf(fd, seperator2);
 	for(int i=0;i<card;i++){
 		fprintf(fd, seperator2);
 		fprintf(fd,format1,marginal[i]);	
 		
 	}
+	fprintf(fd, seperator2);
+	fprintf(fd, seperator2);
+	fprintf(fd,"rule");
+	fprintf(fd, seperator2);
+	fprintf(fd, seperator2);
+	fprintf(fd,"no. correct");
+
 	fprintf(fd,end2);
 	for(int i=0;i<k_count;i++){
 			ocKey::keyToUserString(dv_data.key[i], varlist, keystr);
-		fprintf(fd, format, keystr, (dv_data.t_freq[i])*samplesz);
+		fprintf(fd, format, keystr, (int)dv_data.t_freq[i]);
+		char *rule;
+		double rule_val=0;		
 		for(int j=0;j<card;j++){
 			fprintf(fd, seperator1);
 			fprintf(fd,format1,dv_data.cdv_value[i][j]);	
+			if(rule_val<=dv_data.cdv_value[i][j]){
+				rule=dv_data.dv_value[j];rule_val=dv_data.cdv_value[i][j];
+			}			
 		
 		}
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd,format2,rule);	
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd,format3,dv_data.no_correct[i]);	
+
 		fprintf(fd, end);
 		
 	}
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd, "%% correct");
+			fprintf(fd, seperator1);
+			fprintf(fd,format1,percent_correct);
+		fprintf(fd, end);
+
 	fprintf(fd, footer);
 	delete keystr;
+	int g=model->getRelationCount();
+	//printf("no of relation %d\n",g);
 	for(int i=1;i<model->getRelationCount();i++){
+		//printf("i=%d\n",i);
 		printConditional_DV_rel(fd,model->getRelation(i));	
 	}
 	//print_predictedDV(fd,model,&dv_data);
@@ -650,6 +733,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	dv_data.key=new (ocKeySegment *)[i_statespace];
 	dv_data.cdv_value=new (double *)[i_statespace];
 	dv_data.t_freq=new double[i_statespace]; 	
+	dv_data.no_correct=new double[i_statespace]; 	
 	ocKeySegment *t_key;
 	double *t_valptr;
 	for(int i=0;i<i_statespace;i++){		
@@ -668,21 +752,24 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	
 
 	const int cwid=15;
-	const char *format, *header, *header2, *footer, *format1;
+	const char *format, *header, *header2, *footer, *format1,*format2,*format3;
 	const char *end,*end2,*seperator1,*seperator2;
 	char *keystr = new char[varcount+1];
 	fprintf(fd,"-------------------------------------------------------------------------\n");
-	fprintf(fd, "\nConditional DV (D) (percent) for each IV composite state for the relation %s    \n\n",rel->getPrintName());
+	fprintf(fd,"<br>");
+	fprintf(fd, "\nConditional DV (D) (%%) for each IV composite state for the relation %s    \n\n",rel->getPrintName());
 
 	//-- set appropriate format
 	int sepStyle = htmlMode ? 0 : separator;
 	switch(sepStyle) {
 	case 0:
-		header = "<table><tr><th>Cell</th><th>Freq</th><th>Cond_DV</th></tr>\n";
+		header = "<table border=\"1\"><tr><th>Cell</th><th>Freq</th><th></th><th>Cond_DV</th></tr>\n";
 		header2="<tr><td>    </td><td>       x";
 		seperator2="</td><td>";
-		format = "<tr><td>%s</td><td>%6.3f</td><td>";
+		format = "<tr><td>%s</td><td>%d</td><td>";
 		format1="%6.3f";
+		format2="%s";
+		format3="%6.0f";
 		seperator1="</td><td>";	
 		end2="</td></tr>\n";
 		end="</td></tr>\n";
@@ -691,26 +778,32 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	case 1:
 		header = "Cell\tFreq\tCond_DV\n";
 		header2="\t";
-		format = "%s\t%6.3f";
+		format = "%s\t%d";
 		format1="%6.3f";
+		format2="%s";
+		format3="%6.0f";
 		seperator1=seperator2="\t";
 		end=end2="\n";
 		footer = "";
 		break;
 	case 2:
 		header = "Cell,Freq,Cond_DV\n";
-		format = "%s,%6.3f";
+		format = "%s,%d";
 		header2=",";
 		format1="%6.3f";
+		format2="%s";
+		format3="%6.0f";
 		seperator1=seperator2=",";
 		end=end2="\n";
 		footer = "";
 		break;
 	case 3:
 		header = "    Cell    Freq     Cond_DV\n    ------------------------------------\n";
-		format = "%8s  %6.3f";
+		format = "%8s  %d";
 		header2="              ";
 		format1="%6.3f";
+		format2="%s";
+		format3="%6.0f";
 		seperator1=seperator2="  ";
 		end=end2="\n";
 		footer = "";
@@ -739,6 +832,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 		dv_data.dv_value[i][len1]='\0';
 	}
 	
+		fprintf(fd, seperator2);
 	for(int i=0;i<card;i++){
 		fprintf(fd, seperator2);
 		fprintf(fd,dv_data.dv_value[i]);	
@@ -791,8 +885,16 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 				dv_data.cdv_value[k_count][dv_value]=cdv_value;
 				//long ref_key_i=refData->indexOf(tkey);
 				//t_freq+=refData->getValue(ref_key_i)*1000;
+				if(i==0)		
+					dv_data.no_correct[k_count]=cdv_value;		
+				else{		
+					if(cdv_value>dv_data.cdv_value[k_count][dv_value-1])dv_data.no_correct[k_count]=cdv_value;
+					else
+					dv_data.no_correct[k_count]=dv_data.cdv_value[k_count][dv_value-1];
+				}			
 				
 			}
+				dv_data.no_correct[k_count]=dv_data.no_correct[k_count]*t_value*samplesz/100;	
 				t_freq=t_value;
 				dv_data.t_freq[k_count]=t_freq;
 				k_count++;
@@ -810,27 +912,61 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 		}
 		marginal[i]=marginal[i];
 	}
+	double percent_correct=0.0;
+	for(int i=0;i<k_count;i++){
+		percent_correct+=dv_data.no_correct[i];	
+	}
+	percent_correct=percent_correct*100/samplesz;
 	fprintf(fd, header2);
+		fprintf(fd, seperator2);
 	for(int i=0;i<card;i++){
 		fprintf(fd, seperator2);
 		fprintf(fd,format1,marginal[i]);	
 		
 	}
+	fprintf(fd, seperator2);
+	fprintf(fd, seperator2);
+	fprintf(fd,"rule");
+	fprintf(fd, seperator2);
+	fprintf(fd, seperator2);
+	fprintf(fd,"no. correct");
 	fprintf(fd,end2);
 	for(int i=0;i<k_count;i++){
 			ocKey::keyToUserString(dv_data.key[i], varlist, keystr);
-		fprintf(fd, format, keystr, dv_data.t_freq[i]*samplesz);
-		for(int j=0;j<card;j++){
-			fprintf(fd, seperator1);
-			fprintf(fd,format1,dv_data.cdv_value[i][j]);	
+			int o=(int)((dv_data.t_freq[i])*samplesz);
+			double m=(dv_data.t_freq[i])*samplesz- (double)o ;
+			if(m>0.5)o=o+1;
+			char * rule;
+			double rule_val=0;
+			fprintf(fd, format, keystr, o);
+			for(int j=0;j<card;j++){
+				fprintf(fd, seperator1);
+				fprintf(fd,format1,dv_data.cdv_value[i][j]);	
+				if(rule_val<=dv_data.cdv_value[i][j]){
+					rule=dv_data.dv_value[j];rule_val=dv_data.cdv_value[i][j];
+				}			
 		
-		}
+			}
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd,format2,rule);	
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd,format3,dv_data.no_correct[i]);	
 		fprintf(fd, end);
 		
 	}
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd, seperator1);
+			fprintf(fd, "%% correct");
+			fprintf(fd, seperator1);
+			fprintf(fd,format1,percent_correct);
+		fprintf(fd, end);
 	fprintf(fd, footer);
 	delete keystr;
-	exit(1);
+	//exit(1);
 }
 
 /*void ocReport::print_predictedDV(FILE *fd, ocRelation *model,dv_Data *dv_data)
@@ -871,7 +1007,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	const char *end,*end2,*seperator1,*seperator2;
 	char *keystr = new char[varcount+1];
 	fprintf(fd,"-------------------------------------------------------------------------\n");
-	fprintf(fd, "\nConditional DV (D) (percent) for each IV composite state for the relation %s    \n\n",rel->getPrintName());
+	fprintf(fd, "\nConditional DV (D) (%%) for each IV composite state for the relation %s    \n\n",rel->getPrintName());
 
 	//-- set appropriate format
 	int sepStyle = htmlMode ? 0 : separator;
@@ -880,7 +1016,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 		header = "<table><tr><th>Cell</th><th>Freq</th><th>Cond_DV</th></tr>\n";
 		header2="<tr><td>    </td><td>       x";
 		seperator2="</td><td>";
-		format = "<tr><td>%s</td><td>%6.3f</td><td>";
+		format = "<tr><td>%s</td><td>%d</td><td>";
 		format1="%6.3f";
 		seperator1="</td><td>";	
 		end2="</td></tr>\n";
@@ -890,7 +1026,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	case 1:
 		header = "Cell\tFreq\tCond_DV\n";
 		header2="\t";
-		format = "%s\t%6.3f";
+		format = "%s\t%d";
 		format1="%6.3f";
 		seperator1=seperator2="\t";
 		end=end2="\n";
@@ -898,7 +1034,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 		break;
 	case 2:
 		header = "Cell,Freq,Cond_DV\n";
-		format = "%s,%6.3f";
+		format = "%s,%d";
 		header2=",";
 		format1="%6.3f";
 		seperator1=seperator2=",";
@@ -907,7 +1043,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 		break;
 	case 3:
 		header = "    Cell    Freq     Cond_DV\n    ------------------------------------\n";
-		format = "%8s  %6.3f";
+		format = "%8s  %d";
 		header2="              ";
 		format1="%6.3f";
 		seperator1=seperator2="  ";
@@ -938,6 +1074,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 		dv_data.dv_value[i][len1]='\0';
 	}
 	
+		fprintf(fd, seperator2);
 	for(int i=0;i<card;i++){
 		fprintf(fd, seperator2);
 		fprintf(fd,dv_data.dv_value[i]);	
@@ -1002,7 +1139,11 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	}
 	for(int i=0;i<k_count;i++){
 			ocKey::keyToUserString(dv_data.key[i], varlist, keystr);
-		fprintf(fd, format, keystr, dv_data.t_freq[i]);
+			int o=(int)((dv_data.t_freq[i]));
+			double m=(dv_data.t_freq[i])- (double)o ;
+			if(m>0.5)o=o+1;
+
+		fprintf(fd, format, keystr, o);
 		for(int j=0;j<card;j++){
 			fprintf(fd, seperator1);
 			fprintf(fd,format1,dv_data.cdv_value[i][j]);	

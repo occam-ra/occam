@@ -156,7 +156,8 @@ return 0;
 ocRelation *ocManagerBase::getRelation(int *varindices, int varcount, bool makeProject,int *stateindices)
 {
 	int stateconstsz=0;
-	ocRelation::sort(varindices, varcount);
+	if(stateindices==NULL)
+		ocRelation::sort(varindices, varcount);
 	int keysize = getKeySize();
 	ocRelation *rel=NULL;
 	int *stateindices1=new int[varcount];
@@ -1049,7 +1050,7 @@ ocModel *ocManagerBase::makeSBModel(const char *name, bool makeProject)
                 varcount = varList->getVar_StateList(relname, vars,states);
 //debug start
 		//printf("varcount %d\n",varcount);
-		for(int i=0;i<varcount;i++)
+		//for(int i=0;i<varcount;i++)
 		//printf("varaibel index %d and state index %d\n",vars[i],states[i]);
                if (varcount == 0) {
                         delete model;
