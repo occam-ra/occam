@@ -12,42 +12,6 @@ typedef unsigned long ocKeySegment;
 typedef float ocTupleValue;
 
 /**
- * static functions for manipulating keys and masks (a mask has all 0's in the
- * slot for a variable if it is included in the mask, 1's otherwise)
- */
-class ocKey {
-public:
-	//-- key construction and manipulation functions
-	
-	// build a key, setting don't care's for all variables except those provided,
-	// and setting the appropriate values where provided. Space for the key is
-	// allocated by the caller. Key points to key storage of at least keysize;
-	// varindices and varvalues are the same length and
-	static void buildKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
-		int *varindices, int *varvalues, int varcount);
-	
-	// build a key with a value for every variable.
-	static void buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
-		int *varvalues);
-		
-	// set a single value within a key. Value can be DONT_CARE or a legal variable value.
-	static void setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars,
-		int index, int value);
-		
-	// compare two keys, returning -1, 0, or 1 as the first is less than, equal to, or
-	// greater than the second (lexically).
-	static int compareKeys(ocKeySegment *key1, ocKeySegment *key2, int keysize);
-
-	static void buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars,
-		int *varindices, int varcount);
-
-	static void keyToString(ocKeySegment *key, ocVariableList *var, char *str);
-};
-
-const int DONT_CARE = 0xffffffff;	// all bits on
-const int KEY_SEGMENT_BITS = 32;	// number of usable bits in a key segment
-
-/**
  * ocTable - defines a data table, which is a collection of tuples. The tuples are stored
  * in a contiguous table.  Since tuples are variable sized, the ocTable object stores the
  * size information for the tuple storage.
@@ -100,6 +64,49 @@ private:
 	long maxTupleCount;	// the total size of the data member, in terms of tuples
 	TableType type;			// one of INFO_TYPE, SET_TYPE
 };
+
+/**
+ * static functions for manipulating keys and masks (a mask has all 0's in the
+ * slot for a variable if it is included in the mask, 1's otherwise)
+ */
+class ocKey {
+public:
+	//-- key construction and manipulation functions
+	
+	// build a key, setting don't care's for all variables except those provided,
+	// and setting the appropriate values where provided. Space for the key is
+	// allocated by the caller. Key points to key storage of at least keysize;
+	// varindices and varvalues are the same length and
+	static void buildKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
+		int *varindices, int *varvalues, int varcount);
+	
+	// build a key with a value for every variable.
+	static void buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
+		int *varvalues);
+		
+	// set a single value within a key. Value can be DONT_CARE or a legal variable value.
+	static void setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars,
+		int index, int value);
+	// get a single value within a key. Value can be DONT_CARE or a legal variable value.
+	static void getKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars,int index, int* value);
+
+		
+	// compare two keys, returning -1, 0, or 1 as the first is less than, equal to, or
+	// greater than the second (lexically).
+	static int compareKeys(ocKeySegment *key1, ocKeySegment *key2, int keysize);
+
+	static void buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars,
+		int *varindices, int varcount);
+
+	static void keyToString(ocKeySegment *key, ocVariableList *var, char *str);
+	static void keyToUserString(ocKeySegment *key, ocVariableList *var, char *str);
+	static void getSibblings(ocKeySegment *key, ocVariableList *vars, ocTable *table, long *i_sibs, int DV_ind, int *no_sib);
+
+
+};
+
+const int DONT_CARE = 0xffffffff;	// all bits on
+const int KEY_SEGMENT_BITS = 32;	// number of usable bits in a key segment
 
 
 /**
@@ -157,14 +164,20 @@ public:
 	int getVarCountDF() { return varCountDF; }
 
 	//-- generate printable variable list (copied to str, max=maxlength)	
-	void getPrintName(char *str, int maxlength, int count, int *vars);
-	int getPrintLength(int count, int *vars);
+	void getPrintName(char *str, int maxlength, int count, int *vars,int *state=0);
+	int getPrintLength(int count, int *vars,bool state_b=false);
 	
 	//-- see if this is a directed system
 	bool isDirected();
+
+	//--gets the first DV
+	int getDV();
 	
 	//-- generate a variable index list from a standard format name name
 	int getVariableList(const char *name, int *varlist);
+
+	//-generate a variable index and state constrain index list from a standard format name name
+	int getVar_StateList(const char *name, int *varlist, int *stlist);
 	
 	int getMaxAbbrevLen() { return maxAbbrevLen; }
 
@@ -224,12 +237,13 @@ public:
 	// initializes an empty relation object. The size argument is a hint as to the 
 	// number of variables to allocate space for (but relations can grow dynamically
 	// if needed).
-	ocRelation(ocVariableList *list = 0, int size = 0);
+	ocRelation(ocVariableList *list = 0, int size = 0,int keysz=0,int stateconstsz =0);
 	~ocRelation();
 	long size();
 
 	// adds a variable to the relation
-	void addVariable(int varindex);
+	void addVariable(int varindex,int stateind=-5);
+
 
 	// returns the ocVariableList for this relation
 	ocVariableList *getVariableList();
@@ -309,12 +323,15 @@ public:
 	
 	// dump data to stdout
 	void dump();
+	class ocStateConstraint *getStateConstraint(){return stateConstraints;}
 	
 private:
 	void buildMask();		// build the variable mask from the list of variables
 
 	ocVariableList *varList;	// variable list associated with this relation
 	int *vars;		// array of variable indices
+	int *states;		//ARRAY OF STATES associated with each
+			// variable in the rel,DONT_CARE if no state specified 
 	int varCount;	// number of vars in relation
 	int maxVarCount;	// size of vars array
 	class ocTable *table;
@@ -363,6 +380,15 @@ public:
 	// print out model info
 	void dump();
 	
+	//state based models need to make structure matrix for Df calculation
+        void makeStructMatrix(int statespace,ocVariableList * vars,int **State_sp_Arr);	
+	int * get_indicesfromKey(ocKeySegment *key, ocVariableList *vars, int statespace,int **State_Sp_Arr, int *counter);
+
+	void printStructMatrix();
+	int **get_structMatrix(int *statespace,int* Total_const){
+		*statespace=State_Space_sz;
+		*Total_const=Total_constraints;
+		return structMatrix;};
 private:
 	ocRelation **relations;
 	int relationCount;
@@ -371,6 +397,9 @@ private:
 	class ocAttributeList *attributeList;
 	ocModel *hashNext;
 	char *printName;
+	int **structMatrix;
+	int Total_constraints;
+	int State_Space_sz;
 };
 
 
