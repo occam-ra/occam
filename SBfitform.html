@@ -1,0 +1,43 @@
+
+<FORM method="POST" target="results" enctype="multipart/form-data">
+	<TABLE class="form" width="700">
+		<TR class="form">
+			<TD>
+				Data File:
+			</TD>
+			<TD colspan="4">
+				<INPUT type="file" name="data">
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Model to Fit:
+			</TD>
+			<TD>
+				<INPUT name="model" value="">
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD colspan="2">
+				<INPUT type="checkbox" name='format' value='y'>Return data in spreadsheet format
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD colspan="2">
+				<INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Run in Background, Email Results To:
+			</TD>
+			<TD>
+				<INPUT name="batchOutput">
+			</TD>
+			<TD>
+				<INPUT type="SUBMIT" value="Send">
+			</TD>
+		</TR>
+	</TABLE>
+<INPUT TYPE="HIDDEN" NAME="action" VALUE="SBfit">
+</FORM>
