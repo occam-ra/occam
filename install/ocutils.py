@@ -139,15 +139,17 @@ class ocUtils:
 	# compare function for sorting models. The python list sort function uses this
 	# the name of the attribute to sort on is given above, as well as ascending or descending
 	def __compareModels(self, m1, m2):
+		result = 0
 		a1 = m1.get(self.__sortName)
 		a2 = m2.get(self.__sortName)
 		if self.__searchSortDir == "ascending":
-			if (a1 > a2): return 1
-			if (a1 < a2): return -1
+			if (a1 > a2): result = 1
+			if (a1 < a2): result = -1
 		else:
-			if (a1 > a2): return -1
-			if (a1 < a2): return 1
-		return 0
+			if (a1 > a2): result = -1
+			if (a1 < a2): result = 1
+		print "compare, m1 =",m1.get("name"), a1,"m2 =",m2.get("name"), a2, "result = ", result, "<br>"
+		return result
 
 	# this function decides which statistic to computed, based
 	# on how search is sorting the models. We want to avoid any
@@ -181,18 +183,18 @@ class ocUtils:
 				newModel.processed = 1.0
 				newModel.random = random.random()
 				newModel.level = level
+				self.computeSortStatistic(newModel)
 				pos = 0;
 				while pos < len(newModels) and pos < self.__searchWidth:
-					if self.__compareModels(newModel, newModels[pos]) >= 0: break
+					if self.__compareModels(newModel, newModels[pos]) <= 0: break
 					pos = pos + 1;
 				if pos < len(newModels):
-					#print "insert:",newModel.get("name"),"at",pos
+					print "insert:",newModel.get("name"),"at",pos,"<br>"
 					newModels.insert(pos, newModel)
 				elif self.__searchWidth > 0 and len(newModels) < self.__searchWidth:
-					#print "append:",newModel.get("name")
+					print "append:",newModel.get("name"),"<br>"
 					newModels.append(newModel)
 				addCount = addCount + 1;
-				self.computeSortStatistic(newModel)
 				newModel.deleteFitTable()	#recover fit table memory
 				newModel.deleteRelationLinks()	#recover relation link memory
 		return addCount
