@@ -166,7 +166,7 @@ class ocUtils:
 			self.__manager.computeDFStatistics(model)
 		elif self.__sortName == "bp_t" or self.__sortName == "bp_information" or self.__sortName == "bp_alpha" :
 			self.__manager.computeBPStatistics(model)
-		elif self.__sortName == "pct_correct":
+		elif self.__sortName == "pct_correct_data":
 			self.__manager.computePercentCorrect(model)
 		# anything else, just compute everything we might need
 		elif self.__sortName != "random":

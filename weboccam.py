@@ -6,7 +6,7 @@ from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 
-VERSION = "3.2.15"
+VERSION = "3.2.16"
 
 false = 0; true = 1
 datadir = "data"
