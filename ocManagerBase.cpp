@@ -477,6 +477,9 @@ bool ocManagerBase::makeFitTable(ocModel *model,int SB)
 	if (model == NULL) return false;
 	if (!fitTable1) {
 		stateSpaceSize = (long) ocDegreesOfFreedom(varList) + 1;
+		//-- for large state spaces, start with less space and
+		//-- let it grow.
+		if (stateSpaceSize > 1000000) stateSpaceSize = 1000000;
 		fitTable1 = new ocTable(keysize, stateSpaceSize);
 	}
 	if (!fitTable2) {
