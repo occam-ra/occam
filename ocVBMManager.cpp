@@ -282,24 +282,25 @@ void ocVBMManager::computeInformationStatistics(ocModel *model)
         output : .
 
 ****************************************************************/
-void ocVBMManager::calculateAIC(ocModel *model, ocAttributeList *attrs,
-                                double refDDF)
+void ocVBMManager::calculateAIC(ocModel *model, ocAttributeList *attrs, double refDDF)
 {
         double sampleSize = getSampleSz();
         double deltaH_Aic = computeH(model);
 	deltaH_Aic *= log(2.0);  // convert h to ln rather than log base 2 again
-
 	double deltaH_Bic = deltaH_Aic;
-        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*refDDF;
-        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*refDDF);
 
 	//******************************
 	// delta - AIC & BIC
         if(firstCome){
+	    double reDeltaH_Aic = computeH(refModel);
+	    reDeltaH_Aic *= log(2.0);
             firstCome = false;
-            refer_AIC = deltaH_Aic;
-            refer_BIC = deltaH_Bic;
+            refer_AIC = (2*sampleSize)*reDeltaH_Aic + 2*refDDF;
+            refer_BIC = (2*sampleSize)*reDeltaH_Aic + (log(sampleSize)*refDDF);
         }
+        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*refDDF;
+        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*refDDF);
+
         deltaH_Aic = refer_AIC - deltaH_Aic;
         deltaH_Bic = refer_BIC - deltaH_Bic;
 	//******************************
@@ -308,21 +309,23 @@ void ocVBMManager::calculateAIC(ocModel *model, ocAttributeList *attrs,
         attrs->setAttribute(ATTRIBUTE_BIC, deltaH_Bic);
 }
 void ocVBMManager::calculateBP_AIC(ocModel *model, ocAttributeList *attrs,
-                                double refDDF, double temp1)
+                                double refDDF, double modelH)
 {
         double sampleSize = getSampleSz();
-        double deltaH_Aic = temp1;
+        double deltaH_Aic = modelH;
         deltaH_Aic *= log(2.0);  // convert h to ln rather than log base 2 again
-
         double deltaH_Bic = deltaH_Aic;
+
+        if(firstComeBP){
+	    double reDeltaH_Aic = computeH(refModel);
+	    reDeltaH_Aic *= log(2.0);
+            firstComeBP = false;
+            refer_BP_AIC = (2*sampleSize)*reDeltaH_Aic + 2*refDDF;
+            refer_BP_BIC = (2*sampleSize)*reDeltaH_Aic + (log(sampleSize)*refDDF);
+        }
         deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*refDDF;
         deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*refDDF);
 
-        if(firstComeBP){
-            firstComeBP = false;
-            refer_BP_AIC = deltaH_Aic;
-            refer_BP_BIC = deltaH_Bic;
-        }
         deltaH_Aic = refer_BP_AIC - deltaH_Aic;
         deltaH_Bic = refer_BP_BIC - deltaH_Bic;
         attrs->setAttribute(ATTRIBUTE_BP_AIC, deltaH_Aic);
@@ -330,7 +333,6 @@ void ocVBMManager::calculateBP_AIC(ocModel *model, ocAttributeList *attrs,
 }
 
 //***************************************************************************************
-
 
 void ocVBMManager::computeL2Statistics(ocModel *model)
 {
@@ -380,7 +382,7 @@ void ocVBMManager::computeL2Statistics(ocModel *model)
         /***************************************
                 calculate AIC by Junghan
         ***************************************/
-        calculateAIC(model, attrs, refDDF);
+        calculateAIC(model, attrs,refDDF);
 
 	//?? do something with these returned errors
 	attrs->setAttribute(ATTRIBUTE_DDF, refDDF);
@@ -465,6 +467,7 @@ void ocVBMManager::computeDependentStatistics(ocModel *model)
 	ocAttributeList *attrs = model->getAttributeList();
 	double indH = indAttrs->getAttribute(ATTRIBUTE_H);
 	double refH = computeH(bottomRef);
+	trefH = refH;
 	double refCondH = refH - indH;
 
 	double h = computeH(model);
@@ -621,9 +624,6 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 	//-- estimate H by scaling the standard T of the bottom model, proportionately
 	//-- with the BP_T of the model and the bottom model
 	double modelH = topH + modelT * botStdT / botBPT;
-        //*****************
-        double temp1 = modelH;  // for calculated H(BP) by Junghan
-        //*****************
 
 	attrs->setAttribute(ATTRIBUTE_BP_H, modelH);
 
@@ -672,10 +672,6 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 	if (errcode) printf("ppchi: errcode=%d\n", errcode);
 	refL2Power = 1.0 - chin2(critX2, refDDF, refModelL2, &errcode);
 
-        /*************************************************
-                calculate BP_AIC & BIC by Junghan
-        *************************************************/
-        calculateBP_AIC(model, attrs, refDDF, temp1);
 
 	//?? do something with these returned errors
 	attrs->setAttribute(ATTRIBUTE_DDF, refDDF);
@@ -690,9 +686,16 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 	// for these computations, we need an estimated H which is compatible
 	// with the Info-theoretic measures.
 	double refH = computeH(bottomRef);
+	trefH = refH;		// Junghan
 	double refCondH = refH - indH;
 
 	double condH = modelH - indH;
+
+        /************************************************
+                calculate BP_AIC & BIC by Junghan
+        ************************************************/
+        calculateBP_AIC(model, attrs, refDDF, modelH);
+
 	//	printf("h=%lg, topH=%lg, refH=%lg, modelT=%lg, botT=%lg<br>\n",
 	//       h, topH, refH, modelT, botT);
 	attrs->setAttribute(ATTRIBUTE_BP_COND_H, condH);
