@@ -62,7 +62,7 @@ public:
 	// this will first search the cache and, if the relation is found, return it.
 	// if not in the cache, a new relation is created. If instructed, the projection
 	// corresponding to the relation is also created.
-	virtual ocRelation *getRelation(int *varindices, int varcount, bool makeProject = false);
+	virtual ocRelation *getRelation(int *varindices, int varcount, bool makeProject = false,int *stateindices =0);
 
 	// get a relation just like the given relation, but with the given variable removed.
 	// (skip is the position within the relation, not the variable id).
@@ -73,12 +73,13 @@ public:
 	// VariableList is the one associated with the given relation. False is returned
 	// on any error. This function returns true immediately if the relation already
 	// has a table.
- 	virtual bool makeProjection(ocRelation *rel);
+	//if statebased the SB=0 else SB=1
+ 	virtual bool makeProjection(ocRelation *rel,int SB=0);
 
 	// make a projection of table t1 into t2 (empty), based on the variable
 	// list contained in the given relation. This is used as one step of
 	// the IPF algorithm.
-	virtual bool makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel);
+	virtual bool makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel, int SB=0);
 	
 	// make a "maxProjection" of one table into another. This creates a partial
 	// probability distribution by keeping only the max values for each matching tuple.
@@ -96,7 +97,7 @@ public:
 	// make a fit table. This function uses the IPF algorithm. The fit table is
 	// linked to the model.  If the model already has a fit table, the function
 	// returns immediately. False is returned on any error
-	virtual bool makeFitTable(ocModel *model);
+	virtual bool makeFitTable(ocModel *model,int SB=0);
 	
 	// process relations and intersections, as need for DF and H computation
 	void doIntersectionProcessing(ocModel *model, ocIntersectProcessor *proc);
@@ -117,10 +118,13 @@ public:
 	virtual double computeDF(ocRelation *rel);	// degrees of freedom
 	virtual double computeDF(ocModel *model);
 	virtual double computeH(ocRelation *rel);	// uncertainty
-	virtual double computeH(ocModel *model, HMethod method = AUTO);
-	virtual double computeTransmission(ocModel *model, HMethod method = AUTO);
+	virtual double computeH(ocModel *model, HMethod method = AUTO,int SB=0);
+	virtual double computeTransmission(ocModel *model, HMethod method = AUTO,int SB=0);
 	virtual void computeStatistics(ocRelation *rel);
 	virtual void computeRelWidth(ocModel *model);
+
+	double compute_SB_DF(ocModel *model);
+
 	
 	int getKeySize() { return keysize; }
 	double getSampleSz(){return (double)sampleSize;}
@@ -133,6 +137,7 @@ public:
 	//-- generate a model, given the name. This assumes "." as variable separator and
 	//-- ":" as relation separator. Optionally the data projection can be created.
 	ocModel *makeModel(const char *name, bool makeProject = true);
+	ocModel *makeSBModel(const char *name, bool makeProject = true);
 	
 	//-- get and set options. The options are initialized by command line or datafile options
 	bool setOptionString(ocOptionDef *def, const char *value)
@@ -147,7 +152,15 @@ public:
 	void printOptions(bool printHTML);
 	
 	class ocTable *getFitTable() { return fitTable1; }
+	//state based Model functions
+	//calculates the number of state constarints generated 
+	//by a particular relation
+	int calc_StateConst_sz(int varcount,int *varindices,int *stateindices);
 
+	//add the state constraints for a relation 
+	int addConstraint(int varcount,int *varindices,int *stateindices,int* stateindices_c,ocKeySegment* start,ocRelation *rel);
+	void make_SS(int statespace=0);
+	
 	//-- Print debug info on memory usage
 	void printSizes();
 
@@ -165,6 +178,7 @@ protected:
  	ocTable *fitTable1;
 	ocTable *fitTable2;
 	ocTable *projTable;
+	int **State_Space_Arr;
 };
  
  #endif

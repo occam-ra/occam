@@ -7,6 +7,16 @@
 #ifndef OCREPORT_H
 #define OCREPORT_H
 #include <stdio.h>
+#include "ocCore.h"
+
+struct dv_Data{
+        ocKeySegment **key;
+        double **cdv_value;
+        char **dv_value;
+        double *t_freq;
+
+};
+
 
 class ocReport {
 public:
@@ -43,6 +53,12 @@ public:
 	//-- Print residual table
 	void printResiduals(FILE *fd, ocModel *model);
 	
+	//--Print Conditional DV's
+	void printConditional_DV(FILE *fd, ocModel *model);
+	
+	//--Print Conditional DV's
+	void printConditional_DV_rel(FILE *fd, ocRelation *rel);
+		
 protected:
 	static bool htmlMode;
 	class ocManagerBase *manager;

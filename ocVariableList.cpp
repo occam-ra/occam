@@ -70,7 +70,7 @@ long ocVariableList::size()
  * storage, if needed
  */
 int ocVariableList::addVariable(const char *name, const char *abbrev, int cardinality,
-	bool dv, bool rebin,int old_card)
+	bool dv, bool rebin,int old_card=-1)
 {
 	const int GROWTH_FACTOR = 2;
 	if (varCount >= maxVarCount) {
@@ -257,19 +257,33 @@ void ocVariableList::dump()
 /**
  * Generate a printable a variable list, given a list of variable indices
  */
-void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars)
+void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars1,int *states)
 {
 	int i;
 	char *cp = str;
 	maxlength--;
 	for (i = 0; i < count; i++) {
 		if (maxlength <= 0) break;	// no room
-		int varID = vars[i];
+		int varID = vars1[i];
 		char *name = getVariable(varID)->abbrev;
 		int len = strlen(name);
 		strncpy(cp, name, maxlength);
 		maxlength -= len;
 		cp += len;
+		if(states!=0){
+			int stateID=0;
+			//left here needs modification
+			stateID=states[i];
+			if(stateID!=DONT_CARE){
+				char **map =vars[varID].valmap;
+				int len1=strlen(map[stateID]);
+				strncpy(cp, map[stateID], maxlength);
+				maxlength -= len1;
+				cp += len1;
+				
+			}
+			
+		}
 		if (i < count-1) { // at least one more to go
 			if (maxlength <= 0) break;
 			//*cp++ = '.';
@@ -283,14 +297,18 @@ void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars
 /**
  * Determine length of printed name. This is conservative but not exact.
  */
-int ocVariableList::getPrintLength(int count, int *vars)
+int ocVariableList::getPrintLength(int count, int *vars, bool state_b)
 {
 	int i;
 	int len = 0;
 	for (i = 0; i < count; i++) {
 		int varID = vars[i];
 		char *name = getVariable(varID)->abbrev;
+		int card=getVariable(varID)->cardinality;
+//not consistent...state id and state value are to different things
+		card=card/10;
 		len += strlen(name);
+		len=len+card+1;
 		//len += strlen(name) + 1; // an extra for separator character
 	}
 	return len;
@@ -306,6 +324,14 @@ bool ocVariableList::isDirected()
 		if (vars[i].dv) return true;
 	}
 	return false;
+}
+
+int ocVariableList::getDV()
+{
+	for (int i = 0; i < varCount; i++) {
+		if (vars[i].dv) return i;
+	}
+	return -1;
 }
 
 /**
@@ -339,6 +365,58 @@ int ocVariableList::getVariableList(const char *name, int *varlist)
 		}
 		else {
 			varlist[pos++] = i;
+		}
+	}
+	return pos;
+}
+int ocVariableList::getVar_StateList(const char *name, int *varlist,int *stlist)
+{
+	const char *cp = name;
+	const char *cp2;
+	char vname[MAXNAMELEN];
+	char vname1[MAXNAMELEN];
+	char sname[MAXNAMELEN];
+	int value=0;
+	int pos = 0;
+	while (cp != NULL) {
+		int i=0, len,j;
+		cp2 = findUpper(cp);
+		if (cp2 != NULL) {	// not the last variable
+			len = cp2 - cp;
+			strncpy(vname, cp, len);
+			vname[len] = '\0';
+			j=sscanf(vname, "%[A-Z,a-z]%[0-9,.]",vname1,sname);
+			/*if(j==2){printf("vname is %s and vanme 1 is %s and sname is %s\n",vname,vname1,sname);
+			}
+			else if(j==1)printf("vname1 is %s\n",vname1);*/
+			cp = cp2;
+		}
+		else {	// last variable
+			strcpy(vname, cp);
+			j=sscanf(vname,"%[a-z,A-Z]%[0-9,.]",vname1,sname);
+			//printf("vname is %s\n",vname);
+			//printf("vname1 is %s\n",vname1);
+			cp = NULL;
+		}
+		//printf("i is %d\n and varcount is %d",i,varCount);
+		for (i = 0; i < varCount; i++) {
+			if (strcasecmp(vars[i].abbrev, vname1) == 0) break;
+		}
+		if (i >= varCount) {
+			fprintf(stderr, "variable %s not found\n", vname);
+			return 0;	// bad name
+		}
+		else {
+			//printf("I is %d\n",i);
+			varlist[pos] = i;
+			if(j==2){
+			value = getVarValueIndex(i,sname);
+			//printf("value for sname %s is %d\n",sname,value);
+			stlist[pos]=value;
+			}else{
+			stlist[pos]=DONT_CARE; 
+			}
+			pos++;
 		}
 	}
 	return pos;

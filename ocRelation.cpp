@@ -14,14 +14,21 @@
  #include <string.h>
  
  
-ocRelation::ocRelation(ocVariableList *list, int size)
+ocRelation::ocRelation(ocVariableList *list, int size ,int keysz,int stateconstsz)
 {
 	varList = list;
 	maxVarCount = size;
 	varCount = 0;
 	vars = new int[size];
 	table = NULL;
-	stateConstraints = NULL;
+	if(stateconstsz<=0){
+		stateConstraints = NULL;
+		states=NULL;
+	}else{
+		//needs a better keysize value........Anjali
+		states=new int[size];
+		stateConstraints=new ocStateConstraint(keysz,stateconstsz);
+	}
 	mask = NULL;
 	hashNext = NULL;
 	attributeList = new ocAttributeList(8);
@@ -45,14 +52,21 @@ long ocRelation::size()
 }
 
 // adds a variable to the relation
-void ocRelation::addVariable(int varindex)
+void ocRelation::addVariable(int varindex,int stateind)
 {
 	const int FACTOR = 2;
 	if (varCount >= maxVarCount) {
 		vars = (int*) growStorage(vars, maxVarCount*sizeof(int), FACTOR);
+		if(stateind>=0 || stateind==DONT_CARE){
+			states = (int*) growStorage(states, maxVarCount*sizeof(int), FACTOR);
+		}
 		maxVarCount *= FACTOR;
 	}
-	vars[varCount++] = varindex;
+	vars[varCount] = varindex;
+	if(stateind>=0 || stateind==DONT_CARE){
+		states[varCount]=stateind;
+	}
+	varCount++;
 }
 
 
@@ -224,10 +238,18 @@ void ocRelation::sort()
 const char* ocRelation::getPrintName()
 {
 	if (printName == NULL) {
-		int maxlength = varList->getPrintLength(varCount, vars);
+		int maxlength=0;
+		if(stateConstraints!=NULL)
+			maxlength = varList->getPrintLength(varCount, vars,true);
+		else
+				
+			maxlength = varList->getPrintLength(varCount, vars);
 		if (maxlength < 40) maxlength = 40;	//??String allocation bug?
 		printName = new char[maxlength+1];
-		varList->getPrintName(printName, maxlength, varCount, vars);
+		if(states==NULL)
+			varList->getPrintName(printName, maxlength, varCount, vars);
+		else
+			varList->getPrintName(printName, maxlength, varCount, vars,states);
 	}
 	return printName;
 }

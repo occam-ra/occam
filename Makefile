@@ -39,6 +39,7 @@ LIBOBJECTS = \
 	ocMath.o \
 	ocOptions.o \
 	ocVBMManager.o \
+	ocSBMManager.o \
 	ocSearchBase.o \
 	ocSearch.o
 

@@ -10,6 +10,8 @@
 #include "ocReport.h"
 #include "ocWin32.h"
 #include "unistd.h"
+#include "ocSBMManager.h"
+
 
 #if defined(_WIN32) || defined(__WIN32__)
 #	if defined(STATIC_LINKED)
@@ -57,6 +59,8 @@ static PyObject *ErrorObject;	/* local exception */
 
 /****** Occam object types *****/
 DefinePyObject(ocVBMManager);
+DefinePyObject(ocSBMManager);
+
 DefinePyObject(ocRelation);
 DefinePyObject(ocModel);
 DefinePyObject(ocReport);
@@ -653,6 +657,432 @@ DefinePyFunction(ocVBMManager, new)
 	Py_INCREF(newobj);
 	return (PyObject*) newobj;
 }
+/**************************/
+/****** ocSBMManager ******/
+/**************************/
+
+/****** Methods ******/
+
+// Constructor
+DefinePyFunction(ocSBMManager, initFromCommandLine)
+{
+	PyObject *Pargv;
+	PyArg_ParseTuple(args, "O!", &PyList_Type, &Pargv);
+	int argc = PyList_Size(Pargv);
+	char **argv = new char*[argc];
+	int i;
+	for (i = 0; i < argc; i++) {
+		PyObject *PString = PyList_GetItem(Pargv, i);
+		int size = PyString_Size(PString);
+		argv[i] = new char[size+1];
+		strcpy(argv[i], PyString_AsString(PString));
+	}
+	bool ret;
+	ret = ObjRef(self, ocSBMManager)->initFromCommandLine(argc, argv);
+	for (i = 0; i < argc; i++) delete [] argv[i];
+	delete [] argv;
+	if (!ret)
+	{
+		onError("ocSBMManager: initialization failed");
+	}
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+// ocModel *getTopRefModel()
+DefinePyFunction(ocSBMManager, getTopRefModel)
+{
+        //TRACE("getTopRefModel\n");
+        PocModel *model;
+        PyArg_ParseTuple(args, "");
+        model = ObjNew(ocModel);
+        model->obj = ObjRef(self, ocSBMManager)->getTopRefModel();
+        Py_INCREF((PyObject*)model);
+        return (PyObject*) model;
+}
+// ocModel *getBottomRefModel()
+DefinePyFunction(ocSBMManager, getBottomRefModel)
+{
+        //TRACE("getBottomRefModel\n");
+        PocModel *model;
+        PyArg_ParseTuple(args, "");
+        model = ObjNew(ocModel);
+        model->obj = ObjRef(self, ocSBMManager)->getBottomRefModel();
+        Py_INCREF((PyObject*)model);
+        return (PyObject*) model;
+}
+// ocModel *getRefModel()
+DefinePyFunction(ocSBMManager, getRefModel)
+{
+        //TRACE("getRefModel\n");
+        PocModel *model;
+        PyArg_ParseTuple(args, "");
+        model = ObjNew(ocModel);
+        model->obj = ObjRef(self, ocSBMManager)->getRefModel();
+        Py_INCREF((PyObject*)model);
+        return (PyObject*) model;
+}
+
+// ocModel *setRefModel()
+DefinePyFunction(ocSBMManager, setRefModel)
+{
+        char *name;
+        PyArg_ParseTuple(args, "s", &name);
+        ocModel *ret = ObjRef(self, ocSBMManager)->setRefModel(name);
+        if (ret == NULL) onError("invalid model name");
+        PocModel *newModel = ObjNew(ocModel);
+        newModel->obj = ret;
+        return Py_BuildValue("O", newModel);
+}
+// long computeDF(ocModel *model)
+DefinePyFunction(ocSBMManager, compute_SB_DF)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        double df = ObjRef(self, ocSBMManager)->compute_SB_DF(model);
+        return Py_BuildValue("d", df);
+}
+
+
+// double computeH(ocModel *model)
+DefinePyFunction(ocSBMManager, computeH)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        double h = ObjRef(self,ocSBMManager)->computeH(model,ocSBMManager::IPF);
+        return Py_BuildValue("d", h);
+}
+
+// double computeT(ocModel *model)
+DefinePyFunction(ocSBMManager, computeT)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        double t = ObjRef(self, ocSBMManager)->computeTransmission(model,ocSBMManager::IPF);
+        return Py_BuildValue("d", t);
+}
+
+// void computeInformationStatistics(ocModel *model)
+DefinePyFunction(ocSBMManager, computeInformationStatistics)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        ObjRef(self, ocSBMManager)->computeInformationStatistics(model);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+// void computeDFStatistics(ocModel *model)
+DefinePyFunction(ocSBMManager, computeDFStatistics)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        ObjRef(self, ocSBMManager)->computeDFStatistics(model);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+// void computeL2Statistics(ocModel *model)
+DefinePyFunction(ocSBMManager, computeL2Statistics)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        ObjRef(self, ocSBMManager)->computeL2Statistics(model);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+// void computePearsonStatistics(ocModel *model)
+DefinePyFunction(ocSBMManager, computePearsonStatistics)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        ObjRef(self, ocSBMManager)->computePearsonStatistics(model);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+// void computeDependentStatistics(ocModel *model)
+DefinePyFunction(ocSBMManager, computeDependentStatistics)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        ObjRef(self, ocSBMManager)->computeDependentStatistics(model);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+// void computeBPStatistics(ocModel *model)
+DefinePyFunction(ocSBMManager, computeBPStatistics)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        ObjRef(self, ocSBMManager)->computeBPStatistics(model);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+// ocModel *makeSBModel(String name, bool makeProject)
+DefinePyFunction(ocSBMManager, makeSBModel)
+{
+        char *name;
+        const char *name2;
+        //name2=new char[100];
+        int makeProject;
+        bool bMakeProject;
+        PyArg_ParseTuple(args, "si", &name, &makeProject);
+        bMakeProject = makeProject != 0;
+        ocModel *ret = ObjRef(self, ocSBMManager)->makeSBModel(name, 
+bMakeProject);
+        if (ret == NULL){
+                onError("invalid model name");
+               exit(1);
+       }
+        name2=ret->getPrintName();
+        //printf("model name is %s\n",name2);
+        PocModel *newModel = ObjNew(ocModel);
+        newModel->obj = ret;
+        return Py_BuildValue("O", newModel);
+}
+
+
+
+// void setFilter(String attrName, String op, double value)
+DefinePyFunction(ocSBMManager, setFilter)
+{
+        char *attrName;
+        const char *relOp;
+        double attrValue;
+        ocSBMManager::RelOp op;
+        PyArg_ParseTuple(args, "ssd", &attrName, &relOp, &attrValue);
+        if (strcmp(relOp, "<") == 0 || strcasecmp(relOp, "lt") == 0)
+                op = ocSBMManager::LESSTHAN;
+        else if (strcmp(relOp, "=") == 0 || strcasecmp(relOp, "eq") == 0)
+                op = ocSBMManager::EQUALS;
+        else if (strcmp(relOp, ">") == 0 || strcasecmp(relOp, "gt") == 0)
+                op = ocSBMManager::GREATERTHAN;
+        else {
+                onError("Invalid comparison operator");
+        }
+        ObjRef(self, ocSBMManager)->setFilter(attrName, attrValue, op);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+// void setSort(String attrName, String dir)
+DefinePyFunction(ocSBMManager, setSort)
+{
+        char *attrName;
+        const char *dir;
+        PyArg_ParseTuple(args, "ss", &attrName, &dir);
+        ocSBMManager *mgr = ObjRef(self, ocSBMManager);
+        mgr->setSortAttr(attrName);
+        if (strcasecmp(dir, "ascending") == 0)
+                mgr->setSortDirection(ocReport::ASCENDING);
+        else if (strcasecmp(dir, "descending") == 0)
+                mgr->setSortDirection(ocReport::DESCENDING);
+        else {
+                onError("Invalid sort direction");
+        }
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+// void printFitReport(ocModel *model)
+DefinePyFunction(ocSBMManager, printFitReport)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        ObjRef(self, ocSBMManager)->printFitReport(model, stdout);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+// void getOption(const char *name)
+DefinePyFunction(ocSBMManager, getOption)
+{
+        char *attrName;
+        PyArg_ParseTuple(args, "s", &attrName);
+        const char *value;
+        void *nextp = NULL;
+        if (!ObjRef(self, ocSBMManager)->getOptionString(attrName, &nextp,&value))
+        {
+                value = "";
+        }
+        return Py_BuildValue("s", value);
+}
+
+DefinePyFunction(ocSBMManager, getOptionList)
+{
+        char *attrName;
+        PyArg_ParseTuple(args, "s", &attrName);
+        const char *value;
+        void *nextp = NULL;
+        PyObject *list = PyList_New(0);
+        while(ObjRef(self, ocSBMManager)->getOptionString(attrName,&nextp, &value) &&
+                nextp != NULL)
+        {
+                PyObject *valstr = Py_BuildValue("s", value);
+                PyList_Append(list, valstr);
+        }
+        Py_INCREF(list);
+        return list;
+}
+// ocModel *ocReport()
+DefinePyFunction(ocSBMManager, ocReport)
+{
+        PyArg_ParseTuple(args, "");
+        PocReport *report = ObjNew(ocReport);
+        report->obj = new ocReport(ObjRef(self, ocSBMManager));
+        return Py_BuildValue("O", report);
+}
+
+// void makeFitTable(ocModel *model)
+DefinePyFunction(ocSBMManager, makeFitTable)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *model = ObjRef(Pmodel, ocModel);
+        if (model == NULL) onError("Model is NULL!");
+        ObjRef(self, ocSBMManager)->makeFitTable(model,1);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+// bool isDirected()
+DefinePyFunction(ocSBMManager, isDirected)
+{
+        PyArg_ParseTuple(args, "");
+        bool directed = ObjRef(self,ocSBMManager)->getVariableList()->isDirected();
+        return Py_BuildValue("i", directed ? 1 : 0);
+}
+
+// void printOptions()
+DefinePyFunction(ocSBMManager, printOptions)
+{
+        int printHTML;
+        PyArg_ParseTuple(args, "i", &printHTML);
+        ObjRef(self, ocSBMManager)->printOptions(printHTML != 0);
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+
+// void deleteTablesFromCache()
+DefinePyFunction(ocSBMManager, deleteTablesFromCache)
+{
+        ObjRef(self, ocSBMManager)->deleteTablesFromCache();
+        Py_INCREF(Py_None);
+        return Py_None;
+}
+//double getSampleSz()
+DefinePyFunction(ocSBMManager, getSampleSz)
+{
+        PyArg_ParseTuple(args, "");
+        double ss=ObjRef(self, ocSBMManager)->getSampleSz();
+        return Py_BuildValue("d",ss);
+}
+
+
+static struct PyMethodDef ocSBMManager_methods[] = {
+        PyMethodDef(ocSBMManager, initFromCommandLine),
+        PyMethodDef(ocSBMManager, makeSBModel),
+        PyMethodDef(ocSBMManager, setFilter),
+        PyMethodDef(ocSBMManager, getTopRefModel),
+        PyMethodDef(ocSBMManager, getBottomRefModel),
+        PyMethodDef(ocSBMManager, getRefModel),
+        PyMethodDef(ocSBMManager, setRefModel),
+        PyMethodDef(ocSBMManager, compute_SB_DF),
+        PyMethodDef(ocSBMManager, computeH),
+        PyMethodDef(ocSBMManager, computeT),
+        PyMethodDef(ocSBMManager, computeInformationStatistics),
+        PyMethodDef(ocSBMManager, computeDFStatistics),
+        PyMethodDef(ocSBMManager, computeL2Statistics),
+        PyMethodDef(ocSBMManager, computePearsonStatistics),
+        PyMethodDef(ocSBMManager, computeDependentStatistics),
+        PyMethodDef(ocSBMManager, computeBPStatistics),
+        PyMethodDef(ocSBMManager, printFitReport),
+        PyMethodDef(ocSBMManager, getOption),
+        PyMethodDef(ocSBMManager, getOptionList),
+        PyMethodDef(ocSBMManager, ocReport),
+        PyMethodDef(ocSBMManager, makeFitTable),
+        PyMethodDef(ocSBMManager, isDirected),
+        PyMethodDef(ocSBMManager, printOptions),
+        PyMethodDef(ocSBMManager, deleteTablesFromCache),
+        PyMethodDef(ocSBMManager, getSampleSz),
+        {NULL, NULL, 0}
+        };
+
+/****** Basic Type Operations ******/
+
+static void
+ocSBMManager_dealloc(PocSBMManager *self)
+{
+        if (self->obj) delete self->obj;
+        delete self;
+}
+
+PyObject *
+ocSBMManager_getattr(PyObject *self, char *name)
+{
+        PyObject *method = Py_FindMethod(ocSBMManager_methods, self,name);
+        return method;
+}
+
+/****** Type Definition ******/
+
+PyTypeObject TocSBMManager = {
+        PyObject_HEAD_INIT(&PyType_Type)
+        0,
+        "ocSBMManager",
+        sizeof(PocSBMManager),
+        0,
+        //-- standard methods
+        (destructor) ocSBMManager_dealloc,
+        (printfunc) 0,
+        (getattrfunc) ocSBMManager_getattr,
+        (setattrfunc) 0,
+        (cmpfunc) 0,
+        (reprfunc) 0,
+
+        //-- type categories
+        0,
+        0,
+        0,
+
+        //-- more methods
+        (hashfunc) 0,
+        (ternaryfunc) 0,
+        (reprfunc) 0,
+        (getattrofunc) 0,
+        (setattrofunc) 0,
+};
+
+DefinePyFunction(ocSBMManager, new)
+{
+        if (!PyArg_ParseTuple(args, ""))
+                return NULL;
+        PocSBMManager *newobj = ObjNew(ocSBMManager);
+        newobj->obj = new ocSBMManager();
+        Py_INCREF(newobj);
+        return (PyObject*) newobj;
+}
+
 
 /************************/
 /****** ocRelation ******/
@@ -1068,6 +1498,17 @@ DefinePyFunction(ocReport, printResiduals)
 	return Py_None;
 }
 
+// void printConditional_DV(ocModel *model)
+DefinePyFunction(ocReport, printConditional_DV)
+{
+	PyObject *Pmodel;
+	PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+	ocModel *model = ObjRef(Pmodel, ocModel);
+	ObjRef(self, ocReport)->printConditional_DV(stdout, model);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 
 static struct PyMethodDef ocReport_methods[] = {
 	PyMethodDef(ocReport, get),
@@ -1078,6 +1519,7 @@ static struct PyMethodDef ocReport_methods[] = {
 	PyMethodDef(ocReport, writeReport),
 	PyMethodDef(ocReport, setSeparator),
 	PyMethodDef(ocReport, printResiduals),
+	PyMethodDef(ocReport, printConditional_DV),
 	{NULL, NULL, 0}
 	};
 
@@ -1156,6 +1598,7 @@ static struct PyMethodDef occam_methods[] = {
 	{"ocRelation", ocRelation_new, 1},
 	{"ocModel", ocModel_new, 1},
 	{"ocVBMManager", ocVBMManager_new, 1},
+	{"ocSBMManager", ocSBMManager_new, 1},
 	{"setHTMLMode", setHTMLMode, 1},
 	{NULL, NULL}
 };

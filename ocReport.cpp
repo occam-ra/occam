@@ -6,6 +6,7 @@
 #include "_ocCore.h"
 #include "ocReport.h"
 #include "ocManagerBase.h"
+#include "ocMath.h"
 #include <string.h>
 #include <ctype.h>
 #include <stdlib.h>
@@ -309,6 +310,7 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 	ocTable *table1 = manager->getFitTable();
 	ocVariableList *varlist = model->getRelation(0)->getVariableList();
 
+	fprintf(fd,"-------------------------------------------------------------------------\n");
 	fprintf(fd, "        RESIDUALS\n\n");
 	if (table1 == NULL) {
 		fprintf(fd, "Error: no fitted table computed\n");
@@ -364,19 +366,19 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 			//-- matching keys; both values present
 			refvalue = refData->getValue(refindex++);
 			value = table1->getValue(index++);
-			ocKey::keyToString(key, varlist, keystr);
+			ocKey::keyToUserString(key, varlist, keystr);
 		}
 		else if (compare > 0) {
 			//-- ref value is zero
 			refvalue = 0;
 			value = table1->getValue(index++);
-			ocKey::keyToString(key, varlist, keystr);
+			ocKey::keyToUserString(key, varlist, keystr);
 		}
 		else {
 			//-- table value is zero
 			refvalue = refData->getValue(refindex++);
 			value = 0;
-			ocKey::keyToString(refkey, varlist, keystr);
+			ocKey::keyToUserString(refkey, varlist, keystr);
 		}
 		res = value - refvalue;
 		if (value != 0.0 || refvalue != 0.0)
@@ -385,3 +387,625 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 	fprintf(fd, footer);
 	delete keystr;
 }
+void ocReport::printConditional_DV(FILE *fd, ocModel *model)
+{
+	ocTable *refData = manager->getInputData();
+	ocTable *table1 = manager->getFitTable();
+	if (table1 == NULL) {
+		fprintf(fd, "Error: no fitted table computed\n");
+		return;
+	}
+	ocVariableList *varlist = model->getRelation(0)->getVariableList();
+	//table to store conditional DV values.
+	ocTable *table_DV= new ocTable(varlist->getKeySize(),100);
+	int DV_index=-1;
+	if(varlist->isDirected()){
+		 DV_index=varlist->getDV();
+	}else
+	{
+		printf("DV calculation not possible for neutral system\n");
+		exit(1);
+	}
+
+	long varcount = varlist->getVarCount();
+	int keysize = refData->getKeySize();
+
+	ocVariable *var = varlist->getVariable(DV_index);
+        int card=var->cardinality;
+	long *index_sibs=new long[card];
+
+	//allocate space for dv_data
+	dv_Data dv_data;	
+	int StateSpace = (long) ocDegreesOfFreedom(varlist) + 1;
+	int i_statespace=StateSpace/card;//statespace divide by cardinalty of output variable 
+	dv_data.key=new (ocKeySegment *)[i_statespace];
+	dv_data.cdv_value=new (double *)[i_statespace];
+	dv_data.t_freq=new double[i_statespace]; 	
+	ocKeySegment *t_key;
+	double *t_valptr;
+	for(int i=0;i<i_statespace;i++){		
+		t_key=new ocKeySegment[keysize];
+		for(int j=0;j<keysize;j++){
+		t_key[j]=DONT_CARE;
+		}
+		dv_data.key[i]=t_key;
+		t_valptr=new double[card];
+		for(int k=0;k<card;k++){
+			t_valptr[k]=0.0;
+		}
+		dv_data.cdv_value[i]=t_valptr;
+	}
+	
+
+	const int cwid=15;
+	const char *format, *header, *header2, *footer, *format1;
+	const char *end,*end2,*seperator1,*seperator2;
+	char *keystr = new char[varcount+1];
+	fprintf(fd,"-------------------------------------------------------------------------\n");
+	fprintf(fd, "\nConditional DV (D) (percent) for each IV composite state for the Model %s    \n\n",model->getPrintName());
+
+	//-- set appropriate format
+	int sepStyle = htmlMode ? 0 : separator;
+	switch(sepStyle) {
+	case 0:
+		header = "<table><tr><th>Cell</th><th>Freq</th><th>Cond_DV</th></tr>\n";
+		header2="<tr><td>    </td><td>       x";
+		seperator2="</td><td>";
+		format = "<tr><td>%s</td><td>%6.3f</td><td>";
+		format1="%6.3f";
+		seperator1="</td><td>";	
+		end2="</td></tr>\n";
+		end="</td></tr>\n";
+		footer = "</table>";
+		break;
+	case 1:
+		header = "Cell\tFreq\tCond_DV\n";
+		header2="\t";
+		format = "%s\t%6.3f";
+		format1="%6.3f";
+		seperator1=seperator2="\t";
+		end=end2="\n";
+		footer = "";
+		break;
+	case 2:
+		header = "Cell,Freq,Cond_DV\n";
+		format = "%s,%6.3f";
+		header2=",";
+		format1="%6.3f";
+		seperator1=seperator2=",";
+		end=end2="\n";
+		footer = "";
+		break;
+	case 3:
+		header = "    Cell    Freq     Cond_DV\n    ------------------------------------\n";
+		format = "%8s  %6.3f";
+		header2="              ";
+		format1="%6.3f";
+		seperator1=seperator2="  ";
+		end=end2="\n";
+		footer = "";
+		break;
+	}
+	int index, refindex, compare;
+	ocKeySegment *refkey, *key;
+	ocKeySegment *temp_key=new ocKeySegment[keysize];
+	
+	double value, refvalue, res;
+	
+	//-- walk through both lists. Missing values are zero.
+	//-- we don't print anything if missing in both lists.
+	index = 0; refindex = 0;
+	fprintf(fd, header);
+	fprintf(fd, header2);
+	int k_count=0;
+
+	//initiallize dv_vale in dv_data
+	dv_data.dv_value=new (char*)[card];
+	char **map =var->valmap;
+	for(int i=0;i<card;i++){
+		int len1=strlen(map[i]);
+		dv_data.dv_value[i]=new char[len1+1];
+                strncpy(dv_data.dv_value[i], map[i], len1);	
+		dv_data.dv_value[i][len1]='\0';
+	}
+	
+	for(int i=0;i<card;i++){
+		fprintf(fd, seperator2);
+		fprintf(fd,dv_data.dv_value[i]);	
+		
+	}
+	fprintf(fd,end2);
+	
+	for(;;) {
+		int no_sib=0;
+		double t_value=0; 
+		double t_freq=0;
+		double percent_DV=0;
+		if (refindex >= refData->getTupleCount()) break;
+		if (index >= table1->getTupleCount()) break;
+
+		//refkey = refData->getKey(refindex);
+		key = table1->getKey(index);
+		//compare = ocKey::compareKeys(refkey, key, keysize);
+
+		{
+			//-- matching keys; both values present
+			//refvalue = refData->getValue(refindex++);
+			value = table1->getValue(index++);
+			//ocKey::keyToUserString(key, varlist, keystr);
+        		memcpy((int *)temp_key,(int *)key,keysize*sizeof(long));
+			ocKey::setKeyValue(temp_key,keysize,varlist,DV_index,DONT_CARE);
+//check this*******
+			int flag=0;
+			for(int i=0;i<k_count;i++){
+				int comp=ocKey::compareKeys((ocKeySegment *)dv_data.key[i],temp_key,keysize);	
+				if(comp ==0)flag= 1;
+			}
+			if(flag==0){
+			memcpy((int *)dv_data.key[k_count],(int *)temp_key,sizeof(long)*keysize);
+
+
+				ocKey::getSibblings(key,varlist,table1,index_sibs,DV_index,&no_sib);
+			for(int i=0;i<no_sib;i++){	
+				t_value+=table1->getValue(index_sibs[i]);	
+			}
+			//printf("no of siblings %d\n",no_sib);
+			percent_DV=((value*1000)/(t_value*1000))*100;
+			for(int i=0;i<no_sib;i++){
+				ocKeySegment *tkey=table1->getKey(index_sibs[i]);	
+				int dv_value=0;
+				ocKey::getKeyValue(tkey,keysize,varlist,DV_index,&dv_value);	
+				double cdv_value=0;
+				cdv_value=((table1->getValue(index_sibs[i]))/t_value)*100;
+				//put it in dv_data
+				dv_data.cdv_value[k_count][dv_value]=cdv_value;
+				//long ref_key_i=refData->indexOf(tkey);
+				//t_freq+=refData->getValue(ref_key_i)*1000;
+				
+			}
+				t_freq=t_value;
+				dv_data.t_freq[k_count]=t_freq;
+				k_count++;
+				
+			}
+		}
+		
+		if(k_count>=i_statespace)break;
+	}
+	double *marginal=new double[card];
+	for(int i=0;i<card;i++){
+		marginal[i]=0.0;
+		for(int j=0;j<k_count;j++){
+		marginal[i]+=dv_data.cdv_value[j][i];
+	
+		}
+		marginal[i]=marginal[i]/k_count;
+	}
+	fprintf(fd, header2);
+	for(int i=0;i<card;i++){
+		fprintf(fd, seperator2);
+		fprintf(fd,format1,marginal[i]);	
+		
+	}
+	fprintf(fd,end2);
+	for(int i=0;i<k_count;i++){
+			ocKey::keyToUserString(dv_data.key[i], varlist, keystr);
+		fprintf(fd, format, keystr, (dv_data.t_freq[i])*1000);
+		for(int j=0;j<card;j++){
+			fprintf(fd, seperator1);
+			fprintf(fd,format1,dv_data.cdv_value[i][j]);	
+		
+		}
+		fprintf(fd, end);
+		
+	}
+	fprintf(fd, footer);
+	delete keystr;
+	for(int i=1;i<model->getRelationCount();i++){
+		printConditional_DV_rel(fd,model->getRelation(i));	
+	}
+	//print_predictedDV(fd,model,&dv_data);
+	exit(1);
+}
+
+
+void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
+{
+	ocTable *refData = manager->getInputData();
+	ocTable *table1 = rel->getTable();
+	if (table1 == NULL) {
+		fprintf(fd, "Error: no fitted table computed\n");
+		return;
+	}
+	ocVariableList *varlist = rel->getVariableList();
+	//table to store conditional DV values.
+	ocTable *table_DV= new ocTable(varlist->getKeySize(),100);
+	int DV_index=-1;
+	if(varlist->isDirected()){
+		 DV_index=varlist->getDV();
+	}else
+	{
+		printf("DV calculation not possible for neutral system\n");
+		exit(1);
+	}
+
+	long varcount = varlist->getVarCount();
+	int keysize = refData->getKeySize();
+
+	ocVariable *var = varlist->getVariable(DV_index);
+        int card=var->cardinality;
+	long *index_sibs=new long[card];
+
+	//allocate space for dv_data
+	dv_Data dv_data;	
+	int StateSpace = (long) ocDegreesOfFreedom(varlist) + 1;
+	int i_statespace=StateSpace/card;//statespace divide by cardinalty of output variable 
+	dv_data.key=new (ocKeySegment *)[i_statespace];
+	dv_data.cdv_value=new (double *)[i_statespace];
+	dv_data.t_freq=new double[i_statespace]; 	
+	ocKeySegment *t_key;
+	double *t_valptr;
+	for(int i=0;i<i_statespace;i++){		
+		t_key=new ocKeySegment[keysize];
+		for(int j=0;j<keysize;j++){
+		t_key[j]=DONT_CARE;
+		}
+		dv_data.key[i]=t_key;
+		t_valptr=new double[card];
+		for(int k=0;k<card;k++){
+			t_valptr[k]=0.0;
+		}
+		dv_data.cdv_value[i]=t_valptr;
+	}
+	
+	
+
+	const int cwid=15;
+	const char *format, *header, *header2, *footer, *format1;
+	const char *end,*end2,*seperator1,*seperator2;
+	char *keystr = new char[varcount+1];
+	fprintf(fd,"-------------------------------------------------------------------------\n");
+	fprintf(fd, "\nConditional DV (D) (percent) for each IV composite state for the relation %s    \n\n",rel->getPrintName());
+
+	//-- set appropriate format
+	int sepStyle = htmlMode ? 0 : separator;
+	switch(sepStyle) {
+	case 0:
+		header = "<table><tr><th>Cell</th><th>Freq</th><th>Cond_DV</th></tr>\n";
+		header2="<tr><td>    </td><td>       x";
+		seperator2="</td><td>";
+		format = "<tr><td>%s</td><td>%6.3f</td><td>";
+		format1="%6.3f";
+		seperator1="</td><td>";	
+		end2="</td></tr>\n";
+		end="</td></tr>\n";
+		footer = "</table>";
+		break;
+	case 1:
+		header = "Cell\tFreq\tCond_DV\n";
+		header2="\t";
+		format = "%s\t%6.3f";
+		format1="%6.3f";
+		seperator1=seperator2="\t";
+		end=end2="\n";
+		footer = "";
+		break;
+	case 2:
+		header = "Cell,Freq,Cond_DV\n";
+		format = "%s,%6.3f";
+		header2=",";
+		format1="%6.3f";
+		seperator1=seperator2=",";
+		end=end2="\n";
+		footer = "";
+		break;
+	case 3:
+		header = "    Cell    Freq     Cond_DV\n    ------------------------------------\n";
+		format = "%8s  %6.3f";
+		header2="              ";
+		format1="%6.3f";
+		seperator1=seperator2="  ";
+		end=end2="\n";
+		footer = "";
+		break;
+	}
+	int index, refindex, compare;
+	ocKeySegment *refkey, *key;
+	ocKeySegment *temp_key=new ocKeySegment[keysize];
+	
+	double value, refvalue, res;
+	
+	//-- walk through both lists. Missing values are zero.
+	//-- we don't print anything if missing in both lists.
+	index = 0; refindex = 0;
+	fprintf(fd, header);
+	fprintf(fd, header2);
+	int k_count=0;
+
+	//initiallize dv_vale in dv_data
+	dv_data.dv_value=new (char*)[card];
+	char **map =var->valmap;
+	for(int i=0;i<card;i++){
+		int len1=strlen(map[i]);
+		dv_data.dv_value[i]=new char[len1+1];
+                strncpy(dv_data.dv_value[i], map[i], len1);	
+		dv_data.dv_value[i][len1]='\0';
+	}
+	
+	for(int i=0;i<card;i++){
+		fprintf(fd, seperator2);
+		fprintf(fd,dv_data.dv_value[i]);	
+		
+	}
+	fprintf(fd,end2);
+	
+	for(;;) {
+		int no_sib=0;
+		double t_value=0; 
+		double t_freq=0;
+		double percent_DV=0;
+		if (refindex >= refData->getTupleCount()) break;
+		if (index >= table1->getTupleCount()) break;
+
+		//refkey = refData->getKey(refindex);
+		key = table1->getKey(index);
+		//compare = ocKey::compareKeys(refkey, key, keysize);
+
+		{
+			//-- matching keys; both values present
+			//refvalue = refData->getValue(refindex++);
+			value = table1->getValue(index++);
+			//ocKey::keyToUserString(key, varlist, keystr);
+        		memcpy((int *)temp_key,(int *)key,keysize*sizeof(long));
+			ocKey::setKeyValue(temp_key,keysize,varlist,DV_index,DONT_CARE);
+//check this*******
+			int flag=0;
+			for(int i=0;i<k_count;i++){
+				int comp=ocKey::compareKeys((ocKeySegment *)dv_data.key[i],temp_key,keysize);	
+				if(comp ==0)flag= 1;
+			}
+			if(flag==0){
+			memcpy((int *)dv_data.key[k_count],(int *)temp_key,sizeof(long)*keysize);
+
+
+				ocKey::getSibblings(key,varlist,table1,index_sibs,DV_index,&no_sib);
+			for(int i=0;i<no_sib;i++){	
+				t_value+=table1->getValue(index_sibs[i]);	
+			}
+			//printf("no of siblings %d\n",no_sib);
+			percent_DV=((value*1000)/(t_value*1000))*100;
+			for(int i=0;i<no_sib;i++){
+				ocKeySegment *tkey=table1->getKey(index_sibs[i]);	
+				int dv_value=0;
+				ocKey::getKeyValue(tkey,keysize,varlist,DV_index,&dv_value);	
+				double cdv_value=0;
+				cdv_value=((table1->getValue(index_sibs[i]))/t_value)*100;
+				//put it in dv_data
+				dv_data.cdv_value[k_count][dv_value]=cdv_value;
+				//long ref_key_i=refData->indexOf(tkey);
+				//t_freq+=refData->getValue(ref_key_i)*1000;
+				
+			}
+				t_freq=t_value;
+				dv_data.t_freq[k_count]=t_freq;
+				k_count++;
+				
+			}
+		}
+		if(k_count>=i_statespace)break;
+	}
+	double *marginal=new double[card];
+	for(int i=0;i<card;i++){
+		marginal[i]=0.0;
+		for(int j=0;j<k_count;j++){
+		marginal[i]+=dv_data.cdv_value[j][i];
+	
+		}
+		marginal[i]=marginal[i]/k_count;
+	}
+	fprintf(fd, header2);
+	for(int i=0;i<card;i++){
+		fprintf(fd, seperator2);
+		fprintf(fd,format1,marginal[i]);	
+		
+	}
+	fprintf(fd,end2);
+	for(int i=0;i<k_count;i++){
+			ocKey::keyToUserString(dv_data.key[i], varlist, keystr);
+		fprintf(fd, format, keystr, dv_data.t_freq[i]);
+		for(int j=0;j<card;j++){
+			fprintf(fd, seperator1);
+			fprintf(fd,format1,dv_data.cdv_value[i][j]);	
+		
+		}
+		fprintf(fd, end);
+		
+	}
+	fprintf(fd, footer);
+	delete keystr;
+	exit(1);
+}
+
+/*void ocReport::print_predictedDV(FILE *fd, ocRelation *model,dv_Data *dv_data)
+{
+	ocTable *refData = manager->getInputData();
+	ocTable *table1 = rel->getTable();
+	if (table1 == NULL) {
+		fprintf(fd, "Error: no fitted table computed\n");
+		return;
+	}
+	ocVariableList *varlist = model->getRelation(0)->getVariableList();
+	//table to store conditional DV values.
+	ocTable *table_DV= new ocTable(varlist->getKeySize(),100);
+	int DV_index=-1;
+	if(varlist->isDirected()){
+		 DV_index=varlist->getDV();
+	}else
+	{
+		printf("DV calculation not possible for neutral system\n");
+		exit(1);
+	}
+
+	long varcount = varlist->getVarCount();
+	int keysize = refData->getKeySize();
+
+	ocVariable *var = varlist->getVariable(DV_index);
+        int card=var->cardinality;
+	long *index_sibs=new long[card];
+
+	//allocate space for dv_data
+	int StateSpace = (long) ocDegreesOfFreedom(varlist) + 1;
+	int i_statespace=StateSpace/card;//statespace divide by cardinalty of output variable 
+	
+	
+
+	const int cwid=15;
+	const char *format, *header, *header2, *footer, *format1;
+	const char *end,*end2,*seperator1,*seperator2;
+	char *keystr = new char[varcount+1];
+	fprintf(fd,"-------------------------------------------------------------------------\n");
+	fprintf(fd, "\nConditional DV (D) (percent) for each IV composite state for the relation %s    \n\n",rel->getPrintName());
+
+	//-- set appropriate format
+	int sepStyle = htmlMode ? 0 : separator;
+	switch(sepStyle) {
+	case 0:
+		header = "<table><tr><th>Cell</th><th>Freq</th><th>Cond_DV</th></tr>\n";
+		header2="<tr><td>    </td><td>       x";
+		seperator2="</td><td>";
+		format = "<tr><td>%s</td><td>%6.3f</td><td>";
+		format1="%6.3f";
+		seperator1="</td><td>";	
+		end2="</td></tr>\n";
+		end="</td></tr>\n";
+		footer = "</table>";
+		break;
+	case 1:
+		header = "Cell\tFreq\tCond_DV\n";
+		header2="\t";
+		format = "%s\t%6.3f";
+		format1="%6.3f";
+		seperator1=seperator2="\t";
+		end=end2="\n";
+		footer = "";
+		break;
+	case 2:
+		header = "Cell,Freq,Cond_DV\n";
+		format = "%s,%6.3f";
+		header2=",";
+		format1="%6.3f";
+		seperator1=seperator2=",";
+		end=end2="\n";
+		footer = "";
+		break;
+	case 3:
+		header = "    Cell    Freq     Cond_DV\n    ------------------------------------\n";
+		format = "%8s  %6.3f";
+		header2="              ";
+		format1="%6.3f";
+		seperator1=seperator2="  ";
+		end=end2="\n";
+		footer = "";
+		break;
+	}
+	int index, refindex, compare;
+	ocKeySegment *refkey, *key;
+	ocKeySegment *temp_key=new ocKeySegment[keysize];
+	
+	double value, refvalue, res;
+	
+	//-- walk through both lists. Missing values are zero.
+	//-- we don't print anything if missing in both lists.
+	index = 0; refindex = 0;
+	fprintf(fd, header);
+	fprintf(fd, header2);
+	int k_count=0;
+
+	//initiallize dv_vale in dv_data
+	dv_data.dv_value=new (char*)[card];
+	char **map =var->valmap;
+	for(int i=0;i<card;i++){
+		int len1=strlen(map[i]);
+		dv_data.dv_value[i]=new char[len1+1];
+                strncpy(dv_data.dv_value[i], map[i], len1);	
+		dv_data.dv_value[i][len1]='\0';
+	}
+	
+	for(int i=0;i<card;i++){
+		fprintf(fd, seperator2);
+		fprintf(fd,dv_data.dv_value[i]);	
+		
+	}
+	fprintf(fd,end2);
+	
+	for(;;) {
+		int no_sib=0;
+		double t_value=0; 
+		double t_freq=0;
+		double percent_DV=0;
+		if (refindex >= refData->getTupleCount()) break;
+		if (index >= table1->getTupleCount()) break;
+
+		//refkey = refData->getKey(refindex);
+		key = table1->getKey(index);
+		//compare = ocKey::compareKeys(refkey, key, keysize);
+
+		{
+			//-- matching keys; both values present
+			//refvalue = refData->getValue(refindex++);
+			value = table1->getValue(index++);
+			//ocKey::keyToUserString(key, varlist, keystr);
+        		memcpy((int *)temp_key,(int *)key,keysize*sizeof(long));
+			ocKey::setKeyValue(temp_key,keysize,varlist,DV_index,DONT_CARE);
+//check this*******
+			int flag=0;
+			for(int i=0;i<k_count;i++){
+				int comp=ocKey::compareKeys((ocKeySegment *)dv_data.key[i],temp_key,keysize);	
+				if(comp ==0)flag= 1;
+			}
+			if(flag==0){
+			memcpy((int *)dv_data.key[k_count],(int *)temp_key,sizeof(long)*keysize);
+
+
+				ocKey::getSibblings(key,varlist,table1,index_sibs,DV_index,&no_sib);
+			for(int i=0;i<no_sib;i++){	
+				t_value+=table1->getValue(index_sibs[i]);	
+			}
+			//printf("no of siblings %d\n",no_sib);
+			percent_DV=((value*1000)/(t_value*1000))*100;
+			for(int i=0;i<no_sib;i++){
+				ocKeySegment *tkey=table1->getKey(index_sibs[i]);	
+				int dv_value=0;
+				ocKey::getKeyValue(tkey,keysize,varlist,DV_index,&dv_value);	
+				double cdv_value=0;
+				cdv_value=((table1->getValue(index_sibs[i]))/t_value)*100;
+				//put it in dv_data
+				dv_data.cdv_value[k_count][dv_value]=cdv_value;
+				//long ref_key_i=refData->indexOf(tkey);
+				//t_freq+=refData->getValue(ref_key_i)*1000;
+				
+			}
+				t_freq=t_value;
+				dv_data.t_freq[k_count]=t_freq;
+				k_count++;
+				
+			}
+		}
+		if(k_count>=i_statespace)break;
+	}
+	for(int i=0;i<k_count;i++){
+			ocKey::keyToUserString(dv_data.key[i], varlist, keystr);
+		fprintf(fd, format, keystr, dv_data.t_freq[i]);
+		for(int j=0;j<card;j++){
+			fprintf(fd, seperator1);
+			fprintf(fd,format1,dv_data.cdv_value[i][j]);	
+		
+		}
+		fprintf(fd, end);
+		
+	}
+	fprintf(fd, footer);
+	delete keystr;
+	exit(1);
+}*/
+

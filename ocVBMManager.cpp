@@ -332,7 +332,7 @@ void ocVBMManager::computePearsonStatistics(ocModel *model)
 	else critX2 = modelP2;
 	if (errcode) printf("ppchi: errcode=%d\n", errcode);
 	refP2Power = 1.0 - chin2(critX2, refDDF, modelP2, &errcode);
-	if (errcode) printf("chin2: errcode=%d\n", errcode);
+	//if (errcode) printf("chin2: errcode=%d\n", errcode);
 	//?? do something with these returned errors
 
 	attrs->setAttribute(ATTRIBUTE_P2, modelP2);
@@ -706,26 +706,27 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	else {
 		header = "\n";
 		beginLine = "    ";
-		separator = "\t";
+		separator = ",";
 		endLine = "\n";
 		footer = "\n";
 		headerSep = 
 		"--------------------------------------------------------------------------------\n";
 	}
-	int cols = 4;
+	int cols = 3;
 	int labelwidth = 20;
 	int colwidth = 18;
 	int row, col, rowlabel;
 	const char *label;
 	
 	fprintf(fd, header);
+	fprintf(fd,"****************************************************************************************************************************************\n\n");
 	fprintf(fd, "\n%sREFERENCE = %s%s", beginLine, ref, endLine);
 	label = "Value";
 	fprintf(fd, "%s%s%s%s", beginLine, separator, label, separator);
 	label = "Prob. (Alpha)";
-	fprintf(fd, "%s%s", label, separator);
-	label = "Power (Beta)";
 	fprintf(fd, "%s%s", label, endLine);
+	//label = "Power (Beta)";
+	//fprintf(fd, "%s%s", label, endLine);
 	
 	fprintf(fd, headerSep);
 	for (row = 0; row < rows; row++) {
@@ -821,6 +822,16 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 		"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
 		"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
 	};
+	const char *topFields1[] = {
+		"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, 
+		"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, 
+		"Delta DF (dDF)", ATTRIBUTE_DDF, "", 
+	};
+	const char *bottomFields1[] = {
+		"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, 
+		"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, 
+		"Delta DF (dDF)", ATTRIBUTE_DDF, "",
+	};
 	//-- compute attributes for top and bottom references
 	model->getAttributeList()->reset();
 	setRefModel("top");
@@ -829,14 +840,15 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	computeL2Statistics(model);
 	computePearsonStatistics(model);
 
-	printRefTable(model->getAttributeList(), fd, "TOP", topFields, 3);
+	printRefTable(model->getAttributeList(), fd, "TOP", topFields1, 3);
 	model->getAttributeList()->reset();
 	setRefModel("bottom");
 	computeInformationStatistics(model);
 	computeDependentStatistics(model);
 	computeL2Statistics(model);
 	computePearsonStatistics(model);
-	printRefTable(model->getAttributeList(), fd, "BOTTOM", bottomFields, 3);
+	printRefTable(model->getAttributeList(), fd, "BOTTOM", bottomFields1, 3);
+	fprintf(fd,"****************************************************************************************************************************************\n\n");
 }
 
 void ocVBMManager::printBasicStatistics()

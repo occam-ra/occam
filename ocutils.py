@@ -20,8 +20,11 @@ class ocUtils:
 	#
 	#-- Initialize instance
 	#
-	def __init__(self):
-		self.__manager = occam.ocVBMManager()
+	def __init__(self,man):
+		if man == "VB":
+			self.__manager = occam.ocVBMManager()
+		else:			
+			self.__manager = occam.ocSBMManager()
 		self.__report = self.__manager.ocReport()
 		self.__sortName = "ddf"
 		self.__reportSortName = ""
@@ -281,7 +284,7 @@ class ocUtils:
 
 		self.__manager.setRefModel(self.__refModel)
 
-		if printOptions: self.printOptions()
+		if printOptions: self.printOptions(1)
 		self.__manager.printBasicStatistics()
 		self.__manager.computeL2Statistics(start)
 		self.__manager.computeDependentStatistics(start)
@@ -345,7 +348,7 @@ class ocUtils:
 
 	def doFit(self,printOptions):
 		self.__manager.printBasicStatistics()
-		if printOptions: self.printOptions();
+		if printOptions: self.printOptions(0);
 		for modelName in self.__fitModels:
 			print "Model: ", modelName
 			self.__manager.setRefModel(self.__refModel)
@@ -354,11 +357,32 @@ class ocUtils:
 			self.__manager.computeDependentStatistics(model)
 			self.__report.addModel(model)
 			self.__manager.printFitReport(model)
+			self.__manager.makeFitTable(model)
+			self.__report.printResiduals(model)
+			self.__report.printConditional_DV(model)
 			sys.stdout.flush()
 			if self.__manager.getOption("res-table"):
 				self.__manager.makeFitTable(model)
 				self.__report.printResiduals(model)
 				sys.stdout.flush()
+			print
+			print
+
+	def doSBFit(self,printOptions):
+		self.__manager.printBasicStatistics()
+		if printOptions: self.printOptions(0);
+		for modelName in self.__fitModels:
+			print "Model: ", modelName
+			self.__manager.setRefModel(self.__refModel)
+			model = self.__manager.makeSBModel(modelName, 1)
+			self.__manager.computeL2Statistics(model)
+			self.__manager.computeDependentStatistics(model)
+			self.__report.addModel(model)
+			self.__manager.printFitReport(model)
+			sys.stdout.flush()
+			self.__manager.makeFitTable(model)
+			self.__report.printResiduals(model)
+			sys.stdout.flush()
 			print
 			print
 
@@ -401,6 +425,9 @@ class ocUtils:
 		elif option == "fit":
 			self.doFit(printOptions)
 
+		elif option == "SBfit":
+			self.doSBFit(printOptions)
+
 		else:
 			print "Error: unknown operation", self.__action
 
@@ -410,18 +437,19 @@ class ocUtils:
 		else:
 			print label + "," + str(value)
 
-	def printOptions(self):
+	def printOptions(self,r_type):
 		if self.__HTMLFormat:
 			print "<table>"
 		self.__manager.printOptions(self.__HTMLFormat)
 		self.printOption("Input data file", self.__dataFile)
-		self.printOption("Starting model", self.__startModel)
-		self.printOption("Search direction", self.__searchDir)
-		self.printOption("Ref model", self.__refModel)
-		self.printOption("Models to consider", self.__searchFilter)
-		self.printOption("Search width", self.__searchWidth)
-		self.printOption("Search levels", self.__searchLevels)
-		self.printOption("Sort by", self.__sortName)
+		if r_type==1:	
+			self.printOption("Starting model", self.__startModel)
+			self.printOption("Search direction", self.__searchDir)
+			self.printOption("Ref model", self.__refModel)
+			self.printOption("Models to consider", self.__searchFilter)
+			self.printOption("Search width", self.__searchWidth)
+			self.printOption("Search levels", self.__searchLevels)
+			self.printOption("Sort by", self.__sortName)
 		if self.__HTMLFormat:
 			print "</table>"
 

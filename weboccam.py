@@ -97,7 +97,11 @@ def printForm(formFields):
 	elif action == "search" or action == "advanced" :
 		template.set_template('searchform.html')
 		template.out(formFields)
-
+	
+	if action == "SBfit":
+		template.set_template('SBfitform.html')
+		template.out(formFields)
+		
 	if action == "showlog":
 		template.set_template('logform.html')
 		template.out(formFields)
@@ -143,13 +147,30 @@ def processFit(fn, model, oc):
 	oc.doAction(printOptions)
 
 #
+#---- processSBFit ---- Do state based fit operation
+#
+def processSBFit(fn, model, oc):
+	global datafile, textFormat, printOptions
+
+
+	if textFormat:
+		oc.setReportSeparator(ocUtils.COMMASEP)
+	else:
+		oc.setReportSeparator(ocUtils.HTMLFORMAT)
+
+	if model <> "":
+		oc.setFitModel(model)
+	oc.setAction("SBfit")
+	oc.doAction(printOptions)
+#
 #---- actionFit ---- Report on Fit
 #
 def actionFit(formFields):
 	global textFormat
 
 	fn = getDataFile(formFields)
-	oc = ocUtils()
+	man="VB"
+	oc = ocUtils(man)
 	oc.initFromCommandLine(["",fn])
 	oc.setDataFile(formFields["datafilename"])
 
@@ -159,19 +180,43 @@ def actionFit(formFields):
 	model = formFields["model"]
 
 	if textFormat:
-		processFit(fn, model, oc)
+		processFit(fn, model,oc)
 	else:
 		print "<span class=mono>"
 		processFit(fn, model, oc)
 		print "</span>"
 
 #
+#---- actionSBFit ---- Report on Fit
+#
+def actionSBFit(formFields):
+	global textFormat
+
+	fn = getDataFile(formFields)
+	man="SB"
+	oc = ocUtils(man)
+	oc.initFromCommandLine(["",fn])
+	oc.setDataFile(formFields["datafilename"])
+
+	if not formFields.has_key("data") or not formFields.has_key("model") :
+		actionNone(formFields, "Missing form fields")
+		return
+	model = formFields["model"]
+
+	if textFormat:
+		processSBFit(fn, model,oc)
+	else:
+		print "<span class=mono>"
+		processSBFit(fn, model, oc)
+		print "</span>"
+#
 #---- processSearch ---- Do search operation
 #
 def actionSearch(formFields):
 
 	fn = getDataFile(formFields)
-	oc = ocUtils()
+	man="VB"
+	oc = ocUtils(man)
 	oc.initFromCommandLine(["",fn])
 	oc.setDataFile(formFields["datafilename"])
 
@@ -368,6 +413,8 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
 		try:
 			if formFields["action"] == "fit" :
 				actionFit(formFields)
+			elif formFields["action"] == "SBfit":
+				actionSBFit(formFields)
 			elif formFields["action"] == "search" or formFields["action"] == "advanced":
 				actionSearch(formFields)
 			elif formFields["action"] == "showlog":
