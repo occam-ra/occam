@@ -5,7 +5,7 @@ from ocutils import ocUtils
 from time import clock
 from OpagCGI import OpagCGI
 
-VERSION = "3.2.9"
+VERSION = "3.2.10"
 
 false = 0; true = 1
 datadir = "data"

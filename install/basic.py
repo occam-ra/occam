@@ -99,7 +99,7 @@ util.setSortDir("descending")
 util.setSearchWidth(25)
 
 # set the number of levels to search
-util.setSearchLevels(100)
+util.setSearchLevels(30)
 
 # set model for fit. Skip this to set it from the data file
 #util.setFitModel("ABC:CD")

@@ -108,6 +108,7 @@ ocRelation *ocManagerBase::getRelation(int *varindices, int varcount, bool makeP
 		relCache->addRelation(rel);
 	}
 	if (makeProject) makeProjection(rel);
+	delete mask;
 	return rel;
 }
 
@@ -640,9 +641,6 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
 					newp->rel = getRelation(newvars, newcount, true);
 					newp->startIndex = j;
 					proc->process(sign, newp->rel);
-					//printf("rel=%s, DF=%g, H=%g\n", newp->rel->getPrintName(), computeDF(newp->rel),
-					//	computeH(newp->rel));
-					//newp->rel->getTable()->dump(strlen(newp->rel->getPrintName()) < 10);
 					delete [] newvars;
 				}
 			}
