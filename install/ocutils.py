@@ -28,7 +28,7 @@ class ocUtils:
 		self.__sortDir = "ascending"
 		self.__searchSortDir = "ascending"
 		self.__searchWidth = 20
-		self.__searchLevels = 1000000
+		self.__searchLevels = 12
 		self.__searchDir = "default"
 		self.__searchFilter = "all"
 		self.__startModel = "default"
@@ -183,11 +183,13 @@ class ocUtils:
 				newModel.level = level
 				pos = 0;
 				while pos < len(newModels) and pos < self.__searchWidth:
-					if self.__compareModels(newModel, newModels[pos]) <= 0: break
+					if self.__compareModels(newModel, newModels[pos]) >= 0: break
 					pos = pos + 1;
 				if pos < len(newModels):
+					#print "insert:",newModel.get("name"),"at",pos
 					newModels.insert(pos, newModel)
 				elif self.__searchWidth > 0 and len(newModels) < self.__searchWidth:
+					#print "append:",newModel.get("name")
 					newModels.append(newModel)
 				addCount = addCount + 1;
 				self.computeSortStatistic(newModel)
