@@ -345,7 +345,7 @@ class ocUtils:
 		else:
 			self.__report.printReport()
 		print "--- RELATIONS ---<br><pre>"
-		self.__manager.dumpRelations()
+		#-- self.__manager.dumpRelations()
 		print "</pre>"
 	
 
