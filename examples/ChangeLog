@@ -1,0 +1,30 @@
+1999.11.06 Stanislaw Grygiel <stach@ee.pdx.edu>
+
+	* search1.in: new file (modification of search.in).
+
+1999.10.11 Stanislaw Grygiel <stach@ee.pdx.edu>
+
+	New notation for dependent and independent variables is
+	supported now.
+
+	Old format:
+	-1      omit the variable
+	 0      independent variable
+         1      dependent variable
+
+	New format:
+         0      omit the variable
+         1      independent variable
+         2      dependent variable
+
+        To translate data files from old to new format use perl
+        script old2new. It accepts a list of files as its arguments
+        and translates them to the new format. The old format files
+	are renamed by adding '.old' suffix, the new format files take
+        the names of the original data files.
+	
+        * old2new: new file
+
+1998-03-08  Marcus G. Daniels  <mgd@wijiji.santafe.edu>
+
+	* search.in: New file.

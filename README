@@ -1,0 +1,17 @@
+DESCRIPTION
+
+Occam3 is an application and framework which implements
+reconstructability analysis (RA).  See documents in the
+doc directory for more information.
+
+FILES
+
+ocCore.h - defines core classes of Occam3
+_ocCore.h - internal definitions for the core classes;
+	not used by clients
+ocTable.cpp, ocRelation.cpp, ocVariableList.cpp, ocModel.cpp - 
+	implement the core classes
+ocInput.h, ocInput.cpp - contains facilities for reading
+	input data
+test.cpp - provides simple test functions for the core
+

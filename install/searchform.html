@@ -1,0 +1,200 @@
+<FORM method="POST" target="results" enctype="multipart/form-data">
+	<TABLE class="form" width="700">
+		<TR class="form">
+			<TD colspan="3" align="center" class="formtitle">
+				General Settings
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Data File:
+			</TD>
+			<TD colspan="4">
+				<INPUT type="file" name="data">
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Starting Model:
+			</TD>
+			<TD>
+				<INPUT name="model" value="{model}">
+			</TD>
+		</TR>
+		<TR class="form">
+	 	 	<TD>
+			 	Composition Method:
+			</TD>
+			<TD>
+			 	<INPUT type="radio" checked name="evalmode" value="info">Standard
+				<INPUT type="radio" name="evalmode" value="bp">Back Projection (Fourier)
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Reference Model:
+			</TD>
+			<TD>
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" checked name="refmodel" value="default">Default
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="refmodel" value="top">Top
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="refmodel" value="bottom">Bottom
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="refmodel" value="starting">Starting Model
+			</TD>
+		</TR>
+		<TR>
+			<TD colspan="99">
+				<HR>
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD colspan="3" align="center" class="formtitle">
+				Search Settings
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Models to Consider:
+			</TD>
+			<TD>
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" checked name="searchtype" value="all">All
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="searchtype" value="loopless">Loopless
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="searchtype" value="disjoint">Disjoint
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="searchtype" value="chain">Chain
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Search Direction:
+			</TD>
+			<TD>
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" checked name="searchdir" value="default">Default
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="searchdir" value="up">Up
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="searchdir" value="down">Down
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				During Search, Sort By:
+			</TD>
+			<TD>
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" checked name="sortby" value="information">Information
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="sortby" value="alpha">Alpha
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				When Searching, Prefer:
+			</TD>
+			<TD>
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" checked name="searchsortdir" value="descending">Larger Values
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="searchsortdir" value="ascending">Smaller Values
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Search Width (models to keep at each level)
+			</TD>
+			<TD>
+				<INPUT type="text" size="4" name="searchwidth">
+			</TD>
+		</TR>	
+		<TR class="form">
+			<TD>
+				Search Levels
+			</TD>
+			<TD>
+				<INPUT type="text" size="4" name="searchlevels">
+			</TD>
+		</TR>
+		<TR><TD>&nbsp;</td><TD>(leave blank to use settings from data file, or defaults)</td></tr>	
+		<TR>
+			<TD colspan="99">
+				<HR>
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD colspan="3" align="center" class="formtitle">
+				Report Settings
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				In Report, Sort By:
+			</TD>
+			<TD>
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" checked name="sortreportby" value="information">Information
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="sortreportby" value="alpha">Alpha
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="sortreportby" value="ddf">dDF
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="sortreportby" value="levels">Level
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				In Report, Sort:
+			</TD>
+			<TD>
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" checked name="sortdir" value="descending">Descending
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="sortdir" value="ascending">Ascending
+			</TD>
+		</TR>
+		<TR>
+		 	<TD>
+			 	Add to Report:
+			</TD>
+			<TD>
+			 	<INPUT type="checkbox" name="showbp" value="yes">BP-based Transmission
+			</TD>
+		</TR>
+		<TR>
+		 	<TD>
+			 	&nbsp;
+			</TD>
+			<TD>
+			 	<INPUT type="checkbox" name="showpct" value="yes">Percent Correct
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD colspan="2">
+				<INPUT type="checkbox" name='format' value='y'>Return data in spreadsheet format
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD colspan="2">
+				<INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Run in Background, Email Results To:
+			</TD>
+			<TD>
+				<INPUT name="batchOutput">
+			</TD>
+			<TD>
+				<INPUT type="SUBMIT" value="Send">
+			</TD>
+		</TR>
+	</table>
+<input type="hidden" name="action" value="search">
+</form>

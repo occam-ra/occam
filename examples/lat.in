@@ -1,0 +1,11 @@
+:action
+lattice
+
+:nominal
+soft,3,1,a
+previous,2,1,b
+temp,2,1,c
+prefer,2,1,d
+
+:long-model
+soft,previous,temp,prefer

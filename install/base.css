@@ -1,0 +1,40 @@
+/* Created using Style Master from Western Civilisation CSS1 { 2 2 558 625 } */
+
+BODY {
+background-color: #ffffff;
+color: #000000;
+font-family: Courier;
+font-size: 8pt;
+}
+
+P {
+}
+
+TD {
+}
+
+LI {
+}
+
+.form {
+background-color: #e0e0ff;
+font-family: Verdana, Helvetica, Arial, sans-serif;
+font-size: xx-small;
+}
+.formtitle {
+background-color: #e0e0ff;
+font-family: Verdana, Helvetica, Arial, sans-serif;
+font-size: small;
+font-weight: bold;
+}
+
+table {
+}
+
+.mono {
+background-color: #ffffff;
+color: #0000ff;
+font-family: Courier, monospace;
+font-size: 8pt;
+}
+

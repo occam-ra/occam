@@ -1,0 +1,12 @@
+#! /bin/sh
+
+#PYTHON=/pkg/python/bin/python
+PYTHON=/usr/bin/python
+
+BATCHFILE="batchlogs/$3"
+
+echo "`date` Job started:  $2" >>$BATCHFILE
+
+$PYTHON $1 $2 2>>$BATCHFILE | $PYTHON occammail.py $3 $4
+
+echo "`date` Results for  $2 sent to $3" >>$BATCHFILE
