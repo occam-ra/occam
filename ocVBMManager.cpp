@@ -596,7 +596,12 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 	makeFitTable(model);
 	ocTable *modelTable = fitTable1;
 	ocTable *maxTable = new ocTable(keysize, modelTable->getTupleCount());
-	makeMaxProjection(modelTable, maxTable, inputData, indRel);
+	if (testData) {
+	  makeMaxProjection(modelTable, maxTable, testData, indRel);
+	}
+	else {
+	  makeMaxProjection(modelTable, maxTable, inputData, indRel);
+	}
 	double total = 0.0;
 	long count = maxTable->getTupleCount();
 	long i;

@@ -28,7 +28,7 @@ class ocUtils:
 		self.__sortDir = "ascending"
 		self.__searchSortDir = "ascending"
 		self.__searchWidth = 20
-		self.__searchLevels = 1000000
+		self.__searchLevels = 12
 		self.__searchDir = "default"
 		self.__searchFilter = "all"
 		self.__startModel = "default"

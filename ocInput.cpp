@@ -163,6 +163,12 @@ int l=0;
                 flag=KEEP;
 
                 gotLine = ocOptions::getLine(fin, line, &lineno);
+		//-- see if there is test data; if so, stop here
+		if (strcmp(line, ":test") == 0) break;
+		else if (line[0] == ':') {
+		  printf("Unrecognized directive here: %s\n", line);
+		  break;
+		}
         }
         bool result = vars->checkCardinalities();
         return result;//temp fix
@@ -598,10 +604,11 @@ done1:
 /*
  * oldRead - read old format files.
  */
-bool ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocVariableList **vars)
+bool ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdata, ocVariableList **vars)
 {
 	ocVariableList *varp=NULL;
 	ocTable *indatap=NULL;
+	ocTable *testdatap=NULL;
 	int lineno = 0;
 	void * nextp=NULL;
         const char * val=NULL;
@@ -620,6 +627,12 @@ bool ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocVariableList *
 		*indata = indatap = new ocTable(varp->getKeySize(), 100);
 		ocReadData(fd, varp, indatap,lostvarp);
 		indatap->sort();
+	}
+	//-- If there's still data, then it must be test data
+	if (!feof(fd)) {
+		*testdata = testdatap = new ocTable(varp->getKeySize(), 100);
+		ocReadData(fd, varp, testdatap,lostvarp);
+		testdatap->sort();
 	}
 	system("date");
 	return true;

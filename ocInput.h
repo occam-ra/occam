@@ -17,7 +17,7 @@
  */
  
 bool ocReadFile(FILE *fd, class ocOptions *options,
-	ocTable **indata, ocVariableList **vars);
+	ocTable **indata, ocTable **testdata, ocVariableList **vars);
 
 #endif
 

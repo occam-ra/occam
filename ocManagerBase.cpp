@@ -47,11 +47,12 @@ ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input)
 	inputH = -1;
 	stateSpaceSize = 0;
 	fitTable1 = fitTable2 = projTable = NULL;
+	inputData = testData = NULL;
 }
 
 bool ocManagerBase::initFromCommandLine(int argc, char **argv)
 {
-	ocTable *input;
+	ocTable *input = NULL, *test = NULL;
 	ocVariableList *vars;
 	//-- get all command line options.  Datafile arguments show up as "datafile" option.
 	options->setOptions(argc, argv);
@@ -65,12 +66,13 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
 			printf("ERROR: couldn't open %s\n", fname);
 			return false;
 		}
-		else if (!ocReadFile(fd, options, &input, &vars)) {
+		else if (!ocReadFile(fd, options, &input, &test, &vars)) {
 			printf("ERROR: ocReadFile() failed for %s\n", fname);
 			return false;
 		}
 	}
 	sampleSize = input->normalize();
+	if (test) test->normalize();
 	//-- DEBUG
 	// options->write(stdout);
 	// vars->dump();
@@ -78,6 +80,7 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
 	
 	varList = vars;
 	inputData = input;
+	testData = test;
 	inputH = ocEntropy(inputData);
 	keysize = vars->getKeySize();
 	return true;

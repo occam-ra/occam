@@ -127,6 +127,7 @@ public:
 	class ocRelCache *getRelCache() { return relCache; }
 	class ocModelCache *getModelCache() { return modelCache; }
 	class ocTable *getInputData() { return inputData; }
+	class ocTable *getTestData() { return testData; }
 
 	//-- generate a model, given the name. This assumes "." as variable separator and
 	//-- ":" as relation separator. Optionally the data projection can be created.
@@ -156,6 +157,7 @@ protected:
 	int sampleSize;
 	long stateSpaceSize;
 	ocTable *inputData;
+	ocTable *testData;
 	double inputH;
 	class ocRelCache *relCache;
 	class ocModelCache *modelCache;
