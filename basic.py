@@ -78,10 +78,10 @@ util.setSortName("information")
 util.setReportSortName("information")
 
 # set the search direction (up, down)
-#util.setSearchDir("down")
+util.setSearchDir("up")
 
 # set the search filter (all, loopless, disjoint)
-util.setSearchFilter("all")
+util.setSearchFilter("chain")
 
 # set the ref model (bottom, top, default, or a specific model)
 util.setRefModel("bottom")

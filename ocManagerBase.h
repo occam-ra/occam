@@ -151,7 +151,6 @@ public:
 	//-- Print debug info on memory usage
 	void printSizes();
 
-
 protected:
 	ocVariableList *varList;
 	int keysize;

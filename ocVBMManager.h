@@ -124,6 +124,15 @@ const double OC_COMPARE_EPSILON = 1e-8;
 	
 	void printBasicStatistics();
 
+	//-- Get predicting variables, for a model of adependent system.
+	//-- The predicting variables are those in any relation other than
+	//-- the IV relation. Optionally the dependent variables can be
+	//-- included in this.
+	//-- the varindices arg is filled with the variable indices;
+	//-- it needs to have been allocated large enough.
+	void getPredictingVars(ocModel *model, int *varindices, int &varcount,
+			       bool includeDeps);
+
 private:	// data
 	ocModel *topRef;
 	ocModel *bottomRef;

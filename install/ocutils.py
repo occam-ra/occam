@@ -197,6 +197,9 @@ class ocUtils:
 				addCount = addCount + 1;
 				newModel.deleteFitTable()	#recover fit table memory
 				newModel.deleteRelationLinks()	#recover relation link memory
+				# newModel.dump();
+				memUsed = self.__manager.getMemUsage();
+				print "Memory: ", memUsed
 		return addCount
 
 			

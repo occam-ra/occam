@@ -625,9 +625,22 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 	model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT_DATA, 100 * total);
 
 	if (testData) {
+	  //-- for test data, us projections involving only the predicting variables
+	  int maxCount = varList->getVarCount();
+	  int varindices[maxCount], varcount;
+	  getPredictingVars(model, varindices, varcount, false);
+	  ocRelation *predRelNoDV = getRelation(varindices, varcount);
+	  getPredictingVars(model, varindices, varcount, true);
+	  ocRelation *predRelWithDV = getRelation(varindices, varcount);
+	  ocTable *predModelTable = new ocTable(keysize, modelTable->getTupleCount());
+	  ocTable *predTestTable = new ocTable(keysize, modelTable->getTupleCount());
+	  ocManagerBase::makeProjection(modelTable, predModelTable, predRelWithDV);
+	  ocManagerBase::makeProjection(testData, predTestTable, predRelWithDV);
 	  maxTable->reset(keysize);
-	  makeMaxProjection(modelTable, maxTable, testData, indRel, depRel);
+	  makeMaxProjection(predModelTable, maxTable, predTestTable, predRelNoDV, depRel);
 	  total = 0.0;
+	  // printf("MODEL: %s\n", model->getPrintName());
+	  // maxTable->dump(true);
 	  count = maxTable->getTupleCount();
 	  for (i = 0; i < count; i++) {
 	    total += maxTable->getValue(i);
@@ -857,3 +870,28 @@ void ocVBMManager::printBasicStatistics()
 	printf("%s\n", footer);
 }
 
+void ocVBMManager::getPredictingVars(ocModel *model,
+				      int *varindices, 
+				      int &varcount,
+				      bool includeDeps)
+{
+  ocRelation *indRel = getIndRelation();
+  ocVariableList *vars = getVariableList();
+  varcount = 0;
+  for (int r = 0; r < model->getRelationCount(); r++) {
+    ocRelation *rel = model->getRelation(r);
+    if (rel != indRel) {
+      for (int iv = 0; iv < rel->getVariableCount(); iv++) {
+	int varid = rel->getVariable(iv);
+	if (vars->getVariable(varid)->dv && !includeDeps) continue;
+	for (int jv = 0; jv < varcount; jv++) {
+	  if (varid == varindices[jv]) {
+	    varid = -1;
+	    break;
+	  }
+	}
+	if (varid >= 0) varindices[varcount++] = varid;
+      }
+    }
+  }
+}
