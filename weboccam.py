@@ -6,7 +6,7 @@ from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 
-VERSION = "3.2.14"
+VERSION = "3.2.15"
 
 false = 0; true = 1
 datadir = "data"
@@ -267,6 +267,9 @@ def actionSearch(formFields):
 
 	if formFields["evalmode"] == "bp":
 		reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
+                #********** Junghan
+                #**********  new bp_aic & bp_bic
+                reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
 		oc.setNoIPF(true)
  		if reportSort == "information": reportSort = "bp_information"
 		elif reportSort == "alpha": reportSort = "bp_alpha"
@@ -274,10 +277,12 @@ def actionSearch(formFields):
 		elif searchSort == "alpha": searchSort = "bp_alpha"
 		if oc.isDirected():
 			reportvars = reportvars + ", bp_cond_pct_dh"
+		reportvars = reportvars + ", bp_aic, bp_bic"	#********** Junghan : attach aic & bic
 	else:
 		reportvars = "Level$I, h, ddf, lr, alpha, information"
 		if oc.isDirected():
 			reportvars = reportvars + ", cond_pct_dh"
+		reportvars = reportvars + ", aic, bic"	#********** Junghan : attach aic & bic
 			
 	if formFields.get("showbp", "") and formFields["evalmode"] <> "bp":
 		reportvars = reportvars + ", bp_t"
