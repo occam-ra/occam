@@ -391,6 +391,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 {
 	ocTable *refData = manager->getInputData();
 	ocTable *table1 = manager->getFitTable();
+	double samplesz=manager->getSampleSz();
 	if (table1 == NULL) {
 		fprintf(fd, "Error: no fitted table computed\n");
 		return;
@@ -590,7 +591,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	fprintf(fd,end2);
 	for(int i=0;i<k_count;i++){
 			ocKey::keyToUserString(dv_data.key[i], varlist, keystr);
-		fprintf(fd, format, keystr, (dv_data.t_freq[i])*1000);
+		fprintf(fd, format, keystr, (dv_data.t_freq[i])*samplesz);
 		for(int j=0;j<card;j++){
 			fprintf(fd, seperator1);
 			fprintf(fd,format1,dv_data.cdv_value[i][j]);	
@@ -613,6 +614,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 {
 	ocTable *refData = manager->getInputData();
 	ocTable *table1 = rel->getTable();
+	double samplesz=manager->getSampleSz();
 	if (table1 == NULL) {
 		fprintf(fd, "Error: no fitted table computed\n");
 		return;
@@ -812,7 +814,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	fprintf(fd,end2);
 	for(int i=0;i<k_count;i++){
 			ocKey::keyToUserString(dv_data.key[i], varlist, keystr);
-		fprintf(fd, format, keystr, dv_data.t_freq[i]);
+		fprintf(fd, format, keystr, dv_data.t_freq[i]*samplesz);
 		for(int j=0;j<card;j++){
 			fprintf(fd, seperator1);
 			fprintf(fd,format1,dv_data.cdv_value[i][j]);	
