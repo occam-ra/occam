@@ -250,9 +250,9 @@ class ocUtils:
 			if self.__searchFilter == "loopless":
 				searchMode = "loopless-down"
 			elif self.__searchFilter == "disjoint":
-				searchMode = "disjoint-up"
+				searchMode = "disjoint-down"
 			elif self.__searchFilter == "chain":
-				searchMode = "chain-up"
+				searchMode = "chain-down"
 			else:
 				searchMode = "full-down"
 		return searchMode
@@ -295,7 +295,11 @@ class ocUtils:
 		self.__report.addModel(start)
 		oldModels = [start]
 
-		self.__manager.setSearchType(self.searchType())
+		try:
+			self.__manager.setSearchType(self.searchType())
+		except:
+			print "ERROR: UNDEFINED SEARCH TYPE " + self.searchType()
+			return
 
 		#
 		# process each level, up to the number of levels indicated. Each of the best models
