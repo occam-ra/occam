@@ -172,6 +172,9 @@ public:
 	//-- Print debug info on memory usage
 	void printSizes();
 
+	//-- print out all relations
+	void dumpRelations();
+
 protected:
 	ocVariableList *varList;
 	int keysize;

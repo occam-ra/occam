@@ -344,6 +344,11 @@ class ocUtils:
 			self.__report.writeReport(self.__reportFile)
 		else:
 			self.__report.printReport()
+		print "--- RELATIONS ---<br><pre>"
+		self.__manager.dumpRelations()
+		print "</pre>"
+	
+
 
 	def doFit(self,printOptions):
 		self.__manager.printBasicStatistics()

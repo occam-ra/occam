@@ -1184,6 +1184,10 @@ void ocManagerBase::printSizes()
   printf("Size of all Models in cache: %ld  \n", size); 
 }
 
+void ocManagerBase::dumpRelations()
+{
+  relCache->dump();
+}
 
 
 

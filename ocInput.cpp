@@ -49,7 +49,7 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata,LostVar *lostva
         char line[MAXLINE];
         ocKeySegment *key = 0;
         int lineno = 0;
-        float tupleValue;
+        double tupleValue;
         LostVar *lostvarpt;
         int keysize = vars->getKeySize();
         if((key = new ocKeySegment[keysize])==NULL){
@@ -150,7 +150,7 @@ int l=0;
 		//		printf("variable %d is not good",i);
                 while (*cp && isspace(*cp)) cp++;
                 if (*cp) {      // there is still a tuple value on the line
-                        tupleValue = (float) atof(cp);
+                        tupleValue = (double) atof(cp);
                 }
                 else {
                         tupleValue = 1;

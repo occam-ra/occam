@@ -565,6 +565,15 @@ DefinePyFunction(ocVBMManager, hasTestData)
   return Py_BuildValue("i",result);
 }
 
+//int dumpRelations
+DefinePyFunction(ocVBMManager, dumpRelations)
+{
+  PyArg_ParseTuple(args, "");
+  ocVBMManager *mgr = ObjRef(self, ocVBMManager);
+  mgr->dumpRelations();
+  return Py_BuildValue("i",0);
+}
+
 static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, initFromCommandLine),
 	PyMethodDef(ocVBMManager, makeAllChildRelations),
@@ -600,6 +609,7 @@ static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, printSizes),
 	PyMethodDef(ocVBMManager, getMemUsage),
 	PyMethodDef(ocVBMManager, hasTestData),
+	PyMethodDef(ocVBMManager, dumpRelations),
 	{NULL, NULL, 0}
 	};
 
