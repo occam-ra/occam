@@ -25,6 +25,14 @@ ocVBMManager::ocVBMManager(ocVariableList *vars, ocTable *input):
 	filterValue = 0.0;
 	sortAttr = NULL;
 	sortDirection = 0;
+
+        // by Junghan *****************
+        firstCome = true;
+        firstComeBP = true;
+        refer_AIC = 0;
+        refer_BIC = 0;
+        refer_BP_AIC = 0;
+        refer_BP_BIC = 0;
 }
 
 ocVBMManager::ocVBMManager():
@@ -38,6 +46,14 @@ ocVBMManager::ocVBMManager():
 	filterValue = 0.0;
 	sortAttr = NULL;
 	sortDirection = 0;
+
+        // by Junghan *****************
+        firstCome = true;
+        firstComeBP = true;
+        refer_AIC = 0;
+        refer_BIC = 0;
+        refer_BP_AIC = 0;
+        refer_BP_BIC = 0;
 }
 
 ocVBMManager::~ocVBMManager()
@@ -250,6 +266,72 @@ void ocVBMManager::computeInformationStatistics(ocModel *model)
 	computeUnexplainedInformation(model);
 }
 
+/****************************************************************
+
+        calculateAIC() & calculateBIC() by Junghan
+
+        This function will calculate delta-AIC with H and DF
+
+        * AIC = -2 * samplesize * sigma p log p + 2 * df
+        * BIC = -2 * samplesize * sigma p log p + log (samplesize) * df
+
+        AIC = 2 * N * H + 2 * df
+        BIC = 2 * N * H + log(N) * df
+
+        input  : ocModel *model
+        output : .
+
+****************************************************************/
+void ocVBMManager::calculateAIC(ocModel *model, ocAttributeList *attrs,
+                                double refDDF)
+{
+        double sampleSize = getSampleSz();
+        double deltaH_Aic = computeH(model);
+	deltaH_Aic *= log(2.0);  // convert h to ln rather than log base 2 again
+
+	double deltaH_Bic = deltaH_Aic;
+        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*refDDF;
+        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*refDDF);
+
+	//******************************
+	// delta - AIC & BIC
+        if(firstCome){
+            firstCome = false;
+            refer_AIC = deltaH_Aic;
+            refer_BIC = deltaH_Bic;
+        }
+        deltaH_Aic = refer_AIC - deltaH_Aic;
+        deltaH_Bic = refer_BIC - deltaH_Bic;
+	//******************************
+
+        attrs->setAttribute(ATTRIBUTE_AIC, deltaH_Aic);
+        attrs->setAttribute(ATTRIBUTE_BIC, deltaH_Bic);
+}
+void ocVBMManager::calculateBP_AIC(ocModel *model, ocAttributeList *attrs,
+                                double refDDF, double temp1)
+{
+        double sampleSize = getSampleSz();
+        double deltaH_Aic = temp1;
+        deltaH_Aic *= log(2.0);  // convert h to ln rather than log base 2 again
+
+        double deltaH_Bic = deltaH_Aic;
+        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*refDDF;
+        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*refDDF);
+
+        if(firstComeBP){
+            firstComeBP = false;
+            refer_BP_AIC = deltaH_Aic;
+            refer_BP_BIC = deltaH_Bic;
+        }
+        deltaH_Aic = refer_BP_AIC - deltaH_Aic;
+        deltaH_Bic = refer_BP_BIC - deltaH_Bic;
+        attrs->setAttribute(ATTRIBUTE_BP_AIC, deltaH_Aic);
+        attrs->setAttribute(ATTRIBUTE_BP_BIC, deltaH_Bic);
+}
+
+//***************************************************************************************
+
+
 void ocVBMManager::computeL2Statistics(ocModel *model)
 {
 	//-- make sure we have the fittted table (needed for some statistics)
@@ -295,6 +377,11 @@ void ocVBMManager::computeL2Statistics(ocModel *model)
 	if (errcode) printf("ppchi: errcode=%d\n", errcode);
 	refL2Power = 1.0 - chin2(critX2, refDDF, refModelL2, &errcode);
 
+        /***************************************
+                calculate AIC by Junghan
+        ***************************************/
+        calculateAIC(model, attrs, refDDF);
+
 	//?? do something with these returned errors
 	attrs->setAttribute(ATTRIBUTE_DDF, refDDF);
 	attrs->setAttribute(ATTRIBUTE_LR, refModelL2);
@@ -332,6 +419,7 @@ void ocVBMManager::computePearsonStatistics(ocModel *model)
 	else critX2 = modelP2;
 	if (errcode) printf("ppchi: errcode=%d\n", errcode);
 	refP2Power = 1.0 - chin2(critX2, refDDF, modelP2, &errcode);
+
 	//if (errcode) printf("chin2: errcode=%d\n", errcode);
 	//?? do something with these returned errors
 
@@ -533,6 +621,10 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 	//-- estimate H by scaling the standard T of the bottom model, proportionately
 	//-- with the BP_T of the model and the bottom model
 	double modelH = topH + modelT * botStdT / botBPT;
+        //*****************
+        double temp1 = modelH;  // for calculated H(BP) by Junghan
+        //*****************
+
 	attrs->setAttribute(ATTRIBUTE_BP_H, modelH);
 
 	double info = modelT / botBPT;
@@ -579,6 +671,11 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 	else critX2 = refModelL2;
 	if (errcode) printf("ppchi: errcode=%d\n", errcode);
 	refL2Power = 1.0 - chin2(critX2, refDDF, refModelL2, &errcode);
+
+        /*************************************************
+                calculate BP_AIC & BIC by Junghan
+        *************************************************/
+        calculateBP_AIC(model, attrs, refDDF, temp1);
 
 	//?? do something with these returned errors
 	attrs->setAttribute(ATTRIBUTE_DDF, refDDF);

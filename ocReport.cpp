@@ -27,8 +27,16 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_ALG_H, "H(ALG)", "%12f"},
 {ATTRIBUTE_FIT_T, "T(IPF)", "%12f"},
 {ATTRIBUTE_ALG_T, "T(ALG)", "%12f"},
-{ATTRIBUTE_LOOPS, "LOOPS", "%2.0f"},
-{ATTRIBUTE_EXPLAINED_I, "Information", "%12f"},
+{ATTRIBUTE_LOOPS, "LOOPS", "%2.0f"},        		// Junghan
+{ATTRIBUTE_EXPLAINED_I, "Inf", "%12.4f"}, 		// change name "Information" to "Inf"
+{ATTRIBUTE_AIC, "dAIC", "%12.4f"}, 			// new
+{ATTRIBUTE_BIC, "dBIC", "%12.4f"},    			// new
+{ATTRIBUTE_BP_AIC, "dAIC(BP)", "%12f"},                	// new
+{ATTRIBUTE_BP_BIC, "dBIC(BP)", "%12f"},                	// new
+{ATTRIBUTE_PCT_CORRECT_DATA, "%C(Data)", "%12f"},	// change name % correct
+{ATTRIBUTE_PCT_CORRECT_TEST, "%C(Test)", "%12f"},	// change name % correct
+{ATTRIBUTE_BP_EXPLAINED_I, "Inf(BP)", "%12f"},		// change name "Information" to "Inf"
+//*******************************************************************************
 {ATTRIBUTE_UNEXPLAINED_I, "Unexp Info", "%12f"},
 {ATTRIBUTE_T_FROM_H, "T(H)", "%12f"},
 {ATTRIBUTE_IPF_ITERATIONS, "IPF Iter", "%7.0f"},
@@ -53,7 +61,6 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_BETA, "Beta", "%12f"},
 {ATTRIBUTE_BP_T, "T(BP)", "%12f"},
 {ATTRIBUTE_BP_H, "est. H(BP)", "%12f"},
-{ATTRIBUTE_BP_EXPLAINED_I, "Information(BP)", "%12f"},
 {ATTRIBUTE_BP_UNEXPLAINED_I, "est. Unexplained(BP)", "%12f"},
 {ATTRIBUTE_BP_ALPHA, "Alpha(BP)", "%12f"},
 {ATTRIBUTE_BP_BETA, "Beta(BP)", "%12f"},
@@ -61,8 +68,6 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_BP_COND_H, "H|Model(BP)", "%12f"},
 {ATTRIBUTE_BP_COND_DH, "dH|Model(BP)", "%12f"},
 {ATTRIBUTE_BP_COND_PCT_DH, "est. %dH(DV)(BP)", "%12f"},
-{ATTRIBUTE_PCT_CORRECT_DATA, "% Correct(Data)", "%12f"},
-{ATTRIBUTE_PCT_CORRECT_TEST, "% Correct(Test)", "%12f"},
 };
 
 bool ocReport::htmlMode = false;

@@ -444,6 +444,15 @@ private:
 #define ATTRIBUTE_ALG_T "alg_t"
 #define ATTRIBUTE_LOOPS "loops"
 #define ATTRIBUTE_EXPLAINED_I "information"
+
+//***********************************************************************
+                                                // Junghan
+#define ATTRIBUTE_AIC "aic"                     // new
+#define ATTRIBUTE_BIC "bic"                     // new
+#define ATTRIBUTE_BP_AIC "bp_aic"               // new
+#define ATTRIBUTE_BP_BIC "bp_bic"               // new
+//***********************************************************************
+
 #define ATTRIBUTE_UNEXPLAINED_I "unexplained"
 #define ATTRIBUTE_T_FROM_H "t_h"
 #define ATTRIBUTE_IPF_ITERATIONS "ipf_iterations"

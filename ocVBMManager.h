@@ -133,6 +133,14 @@ const double OC_COMPARE_EPSILON = 1e-8;
 	void getPredictingVars(ocModel *model, int *varindices, int &varcount,
 			       bool includeDeps);
 
+        /************************************************
+        *       calculateAIC() by Junghan               *
+        *                                               *
+        ************************************************/
+        void calculateAIC(ocModel *model, ocAttributeList *attrs, double ddF);
+        void calculateBP_AIC(ocModel *model, ocAttributeList *attrs, double ddF, double calH);
+
+
 private:	// data
 	ocModel *topRef;
 	ocModel *bottomRef;
@@ -145,6 +153,16 @@ private:	// data
 	int sortDirection;
 	RelOp filterOp;
 	
+	/************************************************
+        *       for delta AIC & BIC     by Junghan      *
+        ************************************************/
+        bool firstCome;
+	bool firstComeBP;
+        double refer_AIC;
+        double refer_BIC;
+        double refer_BP_AIC;
+        double refer_BP_BIC;
+
   };
  
  #endif
