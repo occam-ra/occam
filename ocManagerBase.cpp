@@ -286,6 +286,7 @@ bool ocManagerBase::makeProjection(ocRelation *rel,int SB)
 				table->sumTuple(key, value);
 			}
 			totalP += value;
+			delete dont_care_k;
 		}
 	}
 	table->sort();
@@ -346,6 +347,7 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel,int
 				t2->sumTuple(key, value);
 			}
 			totalP += value;
+			delete dont_care_k;
 		}
 	}
 	t2->sort();
@@ -629,6 +631,7 @@ bool ocManagerBase::makeFitTable(ocModel *model,int SB)
 	model->getAttributeList()->setAttribute(ATTRIBUTE_IPF_ITERATIONS, (double) iter);
 	model->getAttributeList()->setAttribute(ATTRIBUTE_IPF_ERROR, error);
 	if(SB==1)printf("model %s, iterations=%d, error=%lg, delta2=%lg\n", model->getPrintName(),iter, error, delta2);
+	delete dont_care_k;
 	return true;
 }
 
