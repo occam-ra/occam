@@ -9,6 +9,7 @@
 #include "ocSearchBase.h"
 #include "ocReport.h"
 #include "ocWin32.h"
+#include "unistd.h"
 
 #if defined(_WIN32) || defined(__WIN32__)
 #	if defined(STATIC_LINKED)
@@ -541,6 +542,16 @@ DefinePyFunction(ocVBMManager, computePercentCorrect)
 }
 
 
+//long getMemUsage()
+DefinePyFunction(ocVBMManager, getMemUsage)
+{
+  static char *oldBrk = 0;
+  PyArg_ParseTuple(args, "");
+  if (oldBrk == 0) oldBrk = (char*) sbrk(0);
+  double used = ((char*) sbrk(0)) - oldBrk;
+  return Py_BuildValue("d",used);
+}
+
 static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, initFromCommandLine),
 	PyMethodDef(ocVBMManager, makeAllChildRelations),
@@ -574,6 +585,7 @@ static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, printBasicStatistics),
 	PyMethodDef(ocVBMManager, computePercentCorrect),
 	PyMethodDef(ocVBMManager, printSizes),
+	PyMethodDef(ocVBMManager, getMemUsage),
 	{NULL, NULL, 0}
 	};
 
