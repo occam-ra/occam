@@ -9,7 +9,7 @@
 //-- but don't cross segment boundaries. For example, 16 3-state variables can be
 //-- packed into one key segment.
 typedef unsigned long ocKeySegment;
-typedef float ocTupleValue;
+typedef double ocTupleValue;
 
 /**
  * ocTable - defines a data table, which is a collection of tuples. The tuples are stored

@@ -222,6 +222,7 @@ class ocUtils:
 		#fullCount = len(newModels)
 		if self.__searchWidth != 0:
 			newModels = newModels[0:self.__searchWidth]
+		self.__manager.dumpRelations()
 		self.__manager.deleteTablesFromCache()
 		truncCount = len(newModels)
 		totalgen = fullCount+totalgen
@@ -345,7 +346,7 @@ class ocUtils:
 		else:
 			self.__report.printReport()
 		print "--- RELATIONS ---<br><pre>"
-		self.__manager.dumpRelations()
+		#-- self.__manager.dumpRelations()
 		print "</pre>"
 	
 

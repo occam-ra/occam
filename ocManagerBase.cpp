@@ -291,6 +291,7 @@ bool ocManagerBase::makeProjection(ocRelation *rel,int SB)
 		}
 	}
 	table->sort();
+	table->normalize();  // in case of roundoff problems, 
 	delete [] key;
 	return true;
 }
