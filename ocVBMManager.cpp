@@ -467,7 +467,7 @@ void ocVBMManager::computeDependentStatistics(ocModel *model)
 	ocAttributeList *attrs = model->getAttributeList();
 	double indH = indAttrs->getAttribute(ATTRIBUTE_H);
 	double refH = computeH(bottomRef);
-	trefH = refH;
+	double trefH = refH;
 	double refCondH = refH - indH;
 
 	double h = computeH(model);
@@ -686,7 +686,7 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 	// for these computations, we need an estimated H which is compatible
 	// with the Info-theoretic measures.
 	double refH = computeH(bottomRef);
-	trefH = refH;		// Junghan
+	double trefH = refH;		// Junghan
 	double refCondH = refH - indH;
 
 	double condH = modelH - indH;
