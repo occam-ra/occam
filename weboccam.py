@@ -4,8 +4,9 @@ import os, sys, cgi, sys, occam,time, string, traceback, pickle
 from ocutils import ocUtils
 from time import clock
 from OpagCGI import OpagCGI
+from jobcontrol import JobControl
 
-VERSION = "3.2.13"
+VERSION = "3.2.14"
 
 false = 0; true = 1
 datadir = "data"
@@ -98,13 +99,18 @@ def printForm(formFields):
 		template.set_template('searchform.html')
 		template.out(formFields)
 	
-	if action == "SBfit":
+	elif action == "SBfit":
 		template.set_template('SBfitform.html')
 		template.out(formFields)
 		
-	if action == "showlog":
+	elif action == "showlog":
 		template.set_template('logform.html')
 		template.out(formFields)
+
+	elif action == "jobcontrol":
+		jc = JobControl()
+		jc.showJobs(formFields)
+
 
 #
 #---- actionForm ---- put up the input form
@@ -333,6 +339,8 @@ def startBatch(formFields):
 	f.close()
 	dirname = os.path.dirname(sys.argv[0])
 	if not dirname: dirname = "."
+
+	print "Process ID: ", os.getpid(), "<p>"
 
 	cmd = "nohup %s/occambatch %s %s %s %s &" % (dirname, sys.argv[0], ctlfilename, toaddress, csvname)
 	print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)

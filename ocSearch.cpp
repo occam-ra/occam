@@ -2,6 +2,7 @@
  * ocSearch.cpp - implements basic LM searches
  */
  
+#include "unistd.h"
 #include <math.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -687,6 +688,10 @@ bool ocSearchChain::makeChainModels()
 
 		//-- put in cache, or use the cached one if already there
 		ocModelCache *cache = manager->getModelCache();
+static char *oldBrk = 0;
+if (oldBrk == 0) oldBrk = (char*) sbrk(0);
+double used = ((char*) sbrk(0)) - oldBrk;
+printf("%ld Add model %s, memory=%lg\n", slot, model->getPrintName(), used);
 		if (!cache->addModel(model)) {
 			ocModel *cachedModel = cache->findModel(model->getPrintName());
 			delete model;

@@ -47,7 +47,7 @@ from ocutils import ocUtils
 # handle Occam2 files and options
 # See the source file for other options which can be set
 
-util = ocUtils()
+util = ocUtils("VB")
 util.initFromCommandLine(sys.argv)
 
 # set desired options which aren't in the data file, or override them
@@ -108,7 +108,7 @@ util.setSearchLevels(100)
 #util.setAction("fit")
 
 # leave this in, if you want a full list of program options printed
-util.printOptions()
+util.printOptions("VB")
 
 # perform the search or fit, and print report
 util.doAction(1)
