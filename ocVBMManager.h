@@ -137,9 +137,8 @@ const double OC_COMPARE_EPSILON = 1e-8;
         *       calculateAIC() by Junghan               *
         *                                               *
         ************************************************/
-        void calculateAIC(ocModel *model, ocAttributeList *attrs, double ddF);
-        void calculateBP_AIC(ocModel *model, ocAttributeList *attrs, double ddF, double calH);
-
+        void calculateAicBic(ocModel *model,ocAttributeList *);
+        void calculateBP_AicBic(ocModel *model, ocAttributeList *attrs);
 
 private:	// data
 	ocModel *topRef;

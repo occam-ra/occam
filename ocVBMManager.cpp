@@ -282,51 +282,57 @@ void ocVBMManager::computeInformationStatistics(ocModel *model)
         output : .
 
 ****************************************************************/
-void ocVBMManager::calculateAIC(ocModel *model, ocAttributeList *attrs, double refDDF)
+void ocVBMManager::calculateAicBic(ocModel *model,ocAttributeList *attrs)
 {
         double sampleSize = getSampleSz();
         double deltaH_Aic = computeH(model);
-	deltaH_Aic *= log(2.0);  // convert h to ln rather than log base 2 again
+	deltaH_Aic *= log(2.0);  		// convert h to ln rather than log base 2 again
 	double deltaH_Bic = deltaH_Aic;
+	double modelDF = computeDF(model);	// get DF of the model
 
 	//******************************
 	// delta - AIC & BIC
-        if(firstCome){
+	if(firstCome){
 	    double reDeltaH_Aic = computeH(refModel);
+	    double refDF = computeDF(refModel);	// get DF of the ref model
 	    reDeltaH_Aic *= log(2.0);
             firstCome = false;
-            refer_AIC = (2*sampleSize)*reDeltaH_Aic + 2*refDDF;
-            refer_BIC = (2*sampleSize)*reDeltaH_Aic + (log(sampleSize)*refDDF);
-        }
-        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*refDDF;
-        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*refDDF);
+            refer_AIC = (2*sampleSize)*reDeltaH_Aic + 2*refDF;
+            refer_BIC = (2*sampleSize)*reDeltaH_Aic + (log(sampleSize)*refDF);
+	}
+        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*modelDF;
+        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*modelDF);
 
-        deltaH_Aic = refer_AIC - deltaH_Aic;
-        deltaH_Bic = refer_BIC - deltaH_Bic;
 	//******************************
-
+	deltaH_Aic = refer_AIC-deltaH_Aic;	// calculate delta AIC and BIC
+	deltaH_Bic = refer_BIC-deltaH_Bic;
         attrs->setAttribute(ATTRIBUTE_AIC, deltaH_Aic);
         attrs->setAttribute(ATTRIBUTE_BIC, deltaH_Bic);
 }
-void ocVBMManager::calculateBP_AIC(ocModel *model, ocAttributeList *attrs,
-                                double refDDF, double modelH)
+
+void ocVBMManager::calculateBP_AicBic(ocModel *model, ocAttributeList *attrs)
 {
         double sampleSize = getSampleSz();
-        double deltaH_Aic = modelH;
+        double deltaH_Aic = computeH(model);
         deltaH_Aic *= log(2.0);  // convert h to ln rather than log base 2 again
         double deltaH_Bic = deltaH_Aic;
+	double modelDF = computeDF(model);	// get DF of the model
 
-        if(firstComeBP){
+	//******************************
+	// delta - AIC & BIC
+	if(firstCome){
 	    double reDeltaH_Aic = computeH(refModel);
+	    double refDF = computeDF(refModel);	// get DF of the ref model
 	    reDeltaH_Aic *= log(2.0);
-            firstComeBP = false;
-            refer_BP_AIC = (2*sampleSize)*reDeltaH_Aic + 2*refDDF;
-            refer_BP_BIC = (2*sampleSize)*reDeltaH_Aic + (log(sampleSize)*refDDF);
-        }
-        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*refDDF;
-        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*refDDF);
+            firstCome = false;
+            refer_BP_AIC = (2*sampleSize)*reDeltaH_Aic + 2*refDF;
+            refer_BP_BIC = (2*sampleSize)*reDeltaH_Aic + (log(sampleSize)*refDF);
+	}
+        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*modelDF;
+        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*modelDF);
 
-        deltaH_Aic = refer_BP_AIC - deltaH_Aic;
+	//******************************
+        deltaH_Aic = refer_BP_AIC - deltaH_Aic;	// calculate AIC and BIC
         deltaH_Bic = refer_BP_BIC - deltaH_Bic;
         attrs->setAttribute(ATTRIBUTE_BP_AIC, deltaH_Aic);
         attrs->setAttribute(ATTRIBUTE_BP_BIC, deltaH_Bic);
@@ -382,7 +388,7 @@ void ocVBMManager::computeL2Statistics(ocModel *model)
         /***************************************
                 calculate AIC by Junghan
         ***************************************/
-        calculateAIC(model, attrs,refDDF);
+        calculateAicBic(model,attrs);
 
 	//?? do something with these returned errors
 	attrs->setAttribute(ATTRIBUTE_DDF, refDDF);
@@ -467,7 +473,6 @@ void ocVBMManager::computeDependentStatistics(ocModel *model)
 	ocAttributeList *attrs = model->getAttributeList();
 	double indH = indAttrs->getAttribute(ATTRIBUTE_H);
 	double refH = computeH(bottomRef);
-	double trefH = refH;
 	double refCondH = refH - indH;
 
 	double h = computeH(model);
@@ -686,7 +691,6 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 	// for these computations, we need an estimated H which is compatible
 	// with the Info-theoretic measures.
 	double refH = computeH(bottomRef);
-	double trefH = refH;		// Junghan
 	double refCondH = refH - indH;
 
 	double condH = modelH - indH;
@@ -694,7 +698,7 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
         /************************************************
                 calculate BP_AIC & BIC by Junghan
         ************************************************/
-        calculateBP_AIC(model, attrs, refDDF, modelH);
+        calculateBP_AicBic(model, attrs);
 
 	//	printf("h=%lg, topH=%lg, refH=%lg, modelT=%lg, botT=%lg<br>\n",
 	//       h, topH, refH, modelT, botT);
@@ -810,7 +814,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 		endLine = "\n";
 		footer = "\n";
 		headerSep = 
-		"------------------------------------------------------------\n";
+		"--------------------------------------------------------------------------------\n";
 	}
 	int cols = 3;
 	int labelwidth = 20;
@@ -819,7 +823,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	const char *label;
 	
 	fprintf(fd, header);
-	fprintf(fd,"**********************************************************\n");
+	fprintf(fd,"****************************************************************************************************************************************\n\n");
 	fprintf(fd, "\n%sREFERENCE = %s%s", beginLine, ref, endLine);
 	label = "Value";
 	fprintf(fd, "%s%s%s%s", beginLine, separator, label, separator);
@@ -898,7 +902,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	value = model->getAttributeList()->getAttribute("df");
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
 	label = "Loops:";
-	value = model->getAttributeList()->getAttribute("LOOPS");
+	value = model->getAttributeList()->getAttribute("h");
 	fprintf(fd, "%s%s%s%s%s", beginLine, label, separator,
 		value > 0 ? "YES" : "NO", endLine);
 	label = "Entropy(H):";
@@ -910,19 +914,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	label = "Transmission (T):";
 	value = model->getAttributeList()->getAttribute("t");
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
-	//H of data, IV and DV
-	
-	double topH = computeH(topRef);
-	fprintf(fd, "%s%s%s%lg%s\n", beginLine, "H(data)", separator, topH, endLine);
-	if (directed) {
-		double depH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_DEP_H);
-		double indH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_IND_H);
-		fprintf(fd,"%s%s%s%lg%s\n", beginLine, "H(IV)", separator, indH, endLine);
-		fprintf(fd,"%s%s%s%lg%s\n", beginLine, "H(DV)", separator, depH, endLine);
-	}
-			 
 	fprintf(fd, footer);
-	
 	//-- print top and bottom reference tables
 	const char *topFields[] = {
 		"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
@@ -959,13 +951,8 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	computeDependentStatistics(model);
 	computeL2Statistics(model);
 	computePearsonStatistics(model);
-	//temp fix Anjali
-	//we are not sure of Pearson calculation for bottom model so leave it blank
-	ocAttributeList *attrs = model->getAttributeList();
-	attrs->setAttribute(ATTRIBUTE_P2, 0);
-			 
 	printRefTable(model->getAttributeList(), fd, "BOTTOM", bottomFields1, 3);
-	fprintf(fd,"************************************************************\n");
+	fprintf(fd,"****************************************************************************************************************************************\n\n");
 }
 
 void ocVBMManager::printBasicStatistics()
