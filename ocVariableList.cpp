@@ -72,7 +72,7 @@ long ocVariableList::size()
  * storage, if needed
  */
 int ocVariableList::addVariable(const char *name, const char *abbrev, int cardinality,
-	bool dv, bool rebin,int old_card=-1)
+	bool dv, bool rebin,int old_card)
 {
 	const int GROWTH_FACTOR = 2;
 	if (varCount >= maxVarCount) {
