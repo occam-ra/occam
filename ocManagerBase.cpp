@@ -205,33 +205,28 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
 		qt->copyKey(i, key);
 		double qvalue = qt->getValue(i);
 		long pindex = inputData->indexOf(key);
-		if (pindex >= 0) {
-			double pvalue = inputData->getValue(pindex);
-			//-- set up key to match just IVs
-			for (k = 0; k < keysize; k++) key[k] |= mask[k];
-			long maxqindex = maxqt->indexOf(key);
-			long maxpindex = maxpt->indexOf(key);
-			if (maxqindex >= 0 && maxpindex >= 0) {
-				//-- we already saw this IV state; see if the q value is greater
-				double maxqvalue = maxqt->getValue(maxqindex);
-				if (maxqvalue < qvalue) {
-					maxqt->setValue(maxqindex, qvalue);
-					maxpt->setValue(maxpindex, pvalue);
-				}
-			}
-			else {
-				//-- new IV state; add to both tables
-				//-- we have to call indexOf again to get the position, then
-				//-- do the insert
-				maxqindex = maxqt->indexOf(key, false);
-				maxqt->insertTuple(key, qvalue, maxqindex);
-				maxpindex = maxpt->indexOf(key, false);
-				maxpt->insertTuple(key, pvalue, maxpindex);
+		double pvalue = 0.0;
+		if (pindex >= 0) pvalue = inputData->getValue(pindex);
+		//-- set up key to match just IVs
+		for (k = 0; k < keysize; k++) key[k] |= mask[k];
+		long maxqindex = maxqt->indexOf(key);
+		long maxpindex = maxpt->indexOf(key);
+		if (maxqindex >= 0 && maxpindex >= 0) {
+			//-- we already saw this IV state; see if the q value is greater
+			double maxqvalue = maxqt->getValue(maxqindex);
+			if (maxqvalue < qvalue) {
+				maxqt->setValue(maxqindex, qvalue);
+				maxpt->setValue(maxpindex, pvalue);
 			}
 		}
 		else {
-			//-- this IV state didn't appear in the inputs, so we
-			//-- don't do anything in this case.
+			//-- new IV state; add to both tables
+			//-- we have to call indexOf again to get the position, then
+			//-- do the insert
+			maxqindex = maxqt->indexOf(key, false);
+			maxqt->insertTuple(key, qvalue, maxqindex);
+			maxpindex = maxpt->indexOf(key, false);
+			maxpt->insertTuple(key, pvalue, maxpindex);
 		}
 	}
 	maxpt->sort();
@@ -668,7 +663,6 @@ void ocManagerBase::computeStatistics(ocRelation *rel)
 	//-- now the dependent-only
 	varcount = rel->getDependentVariables(varindices, maxVars);
 	ocRelation *depRel = getRelation(varindices, varcount, true);
-
 	//-- get the various uncertainties and compute basic combinations	
 	double h = computeH(rel);
 	double hDep = computeH(depRel);
