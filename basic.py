@@ -71,11 +71,11 @@ util.setNoIPF(1)
 # set the model attribute on which sorting is done is done. This
 # controls the selection of "best models" during search. It can
 # also control reporting (see setReportSortName, below)
-util.setSortName("bp_t")
+util.setSortName("information")
 
 # set the model attribute for sorting the report, if it is different
 # from the attribute used during search. Generally this isn't needed.
-util.setReportSortName("bp_t")
+util.setReportSortName("information")
 
 # set the search direction (up, down)
 #util.setSearchDir("down")
@@ -99,7 +99,7 @@ util.setSortDir("descending")
 util.setSearchWidth(25)
 
 # set the number of levels to search
-util.setSearchLevels(30)
+util.setSearchLevels(100)
 
 # set model for fit. Skip this to set it from the data file
 #util.setFitModel("ABC:CD")

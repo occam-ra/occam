@@ -80,6 +80,9 @@ const double OC_COMPARE_EPSILON = 1e-8;
 	//-- get the IV relation (directed systems only)
 	ocRelation *getIndRelation();
 	
+	//-- get the DV relation (directed systems only)
+	ocRelation *getDepRelation();
+	
 	//-- compute basic informational statistics
 	void computeInformationStatistics(ocModel *model);
 

@@ -185,7 +185,8 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel)
 	return true;
 }
 
-bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inputData, ocRelation *rel)
+bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inputData,
+				      ocRelation *indRel, ocRelation *depRel)
 {
 	//-- create the max projection data for the IV relation, used for computing percent correct.
 	//-- Two new tables are created. maxpqt contains a tuple for each distinct IV state,
@@ -197,12 +198,12 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
 	//-- tuples are updated. At the end, maxpt has a tuple for each IV state, and the p value
 	//-- for the specific IV,DV state which corresponds to the greatest q value across the DV
 	//-- states for that IV state.
-	if (qt == NULL || maxpt == NULL || rel == NULL) return false;
+	if (qt == NULL || maxpt == NULL || indRel == NULL || depRel == NULL) return false;
 	long count = qt->getTupleCount();
 	ocTable *maxqt = new ocTable(keysize, count);
 	maxpt->reset(keysize);	// reset the output table
 	ocKeySegment *key = new ocKeySegment[keysize];
-	ocKeySegment *mask = rel->getMask();
+	ocKeySegment *mask = indRel->getMask();
 	long i, k;
 	double totalP;
 	for (i = 0; i < count; i++) {
@@ -232,6 +233,34 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
 			maxpindex = maxpt->indexOf(key, false);
 			maxpt->insertTuple(key, pvalue, maxpindex);
 		}
+	}
+
+	//-- add in entries for the default rule (i.e., if the model doesn't predict
+	//-- a DV value for a particular IV, then just use the most likely DV value).
+	//-- to do this we go through the inputData and find tuples for which (a) the IV
+	//-- state does not exist in maxpt, and (b) where the DV value is the most likely value.
+	//-- These are the inputData tuples which are predicted correctly by the default rule.
+	//-- Their probabilities need to be accounted for.
+	count = inputData->getTupleCount();
+	ocTable *depTable = depRel->getTable();
+	ocKeySegment *dvmask = depRel->getMask();
+	long dvindex = depTable->getMaxValue();
+	ocKeySegment *dvkey = depTable->getKey(dvindex);
+	for (i = 0; i < count; i++) {
+	  inputData->copyKey(i, key);
+	  
+	  for (k = 0; k < keysize; k++) key[k] |= dvmask[k];
+	  if (ocKey::compareKeys(dvkey, key, keysize) != 0) continue; //-- doesn't predict default value
+
+	  inputData->copyKey(i, key);
+	  for (k = 0; k < keysize; k++) key[k] |= mask[k];
+	  long idx = maxpt->indexOf(key);
+	  if (idx >= 0) continue; //-- model predicts this; don't need default
+
+	  //-- add this entry to maxpt; default rule applies
+	  double value = inputData->getValue(i);
+	  long index = maxpt->indexOf(key, false);
+	  maxpt->insertTuple(key, value, index);
 	}
 	maxpt->sort();
 	delete [] key;

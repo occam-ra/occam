@@ -83,7 +83,8 @@ public:
 	// make a "maxProjection" of one table into another. This creates a partial
 	// probability distribution by keeping only the max values for each matching tuple.
 	// rel provides the set of variables to be used in the match (generally the IV set).
-	virtual bool makeMaxProjection(ocTable *t1, ocTable *t2, ocTable *inputData, ocRelation *rel);
+	virtual bool makeMaxProjection(ocTable *t1, ocTable *t2, ocTable *inputData,
+				       ocRelation *indRel, ocRelation *depRel);
 		
 	// make projections for all relations in a model. This just calls makeProject
 	// as many times as needed.

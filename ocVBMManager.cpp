@@ -351,6 +351,19 @@ ocRelation *ocVBMManager::getIndRelation()
 	return NULL;
 }
 
+ocRelation *ocVBMManager::getDepRelation()
+{
+  //-- this function takes advantage of the fact that the bottom model has only two relations;
+  //-- one is the IV relation, the other is the DV
+	if (!getVariableList()->isDirected()) return NULL;	// can only do this for directed models
+	int i;
+	for (i = 0; i < bottomRef->getRelationCount(); i++) {
+		ocRelation *indRel = bottomRef->getRelation(i);
+		if (!indRel->isIndOnly()) return indRel;	// this is the one.
+	}
+	return NULL;
+}
+
 void ocVBMManager::computeDependentStatistics(ocModel *model)
 {
 	//-- the basic metric is the conditional uncertainty u(Z|ABC...), which is
@@ -595,11 +608,15 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 	double total;
 	long count, i;
 	ocRelation *indRel = getIndRelation();
+	ocRelation *depRel = getDepRelation();
+	((ocManagerBase*)this)->makeProjection(depRel);
+
+	//-- get default DV probability, which is the largest of the values in the dependent relation
 	makeFitTable(model);
 	ocTable *modelTable = fitTable1;
 	ocTable *maxTable = new ocTable(keysize, modelTable->getTupleCount());
 	maxTable = new ocTable(keysize, modelTable->getTupleCount());
-	makeMaxProjection(modelTable, maxTable, inputData, indRel);
+	makeMaxProjection(modelTable, maxTable, inputData, indRel, depRel);
 	total = 0.0;
 	count = maxTable->getTupleCount();
 	for (i = 0; i < count; i++) {
@@ -609,7 +626,7 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 
 	if (testData) {
 	  maxTable->reset(keysize);
-	  makeMaxProjection(modelTable, maxTable, testData, indRel);
+	  makeMaxProjection(modelTable, maxTable, testData, indRel, depRel);
 	  total = 0.0;
 	  count = maxTable->getTupleCount();
 	  for (i = 0; i < count; i++) {

@@ -89,6 +89,9 @@ public:
 	// normalize information-theoretic table.  No effect for set-theoretic tables
 	// if these are counts, then the return value is the sample size
 	int normalize();
+
+	// get index of maximum value
+	long getMaxValue();
 	
 private:
 	void* data;			// storage for all keys and values

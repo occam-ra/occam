@@ -247,6 +247,25 @@ int ocTable::normalize()
 }
 
 /**
+ * getMaxValue - get the index of the tuple with the greatest value
+ */
+long ocTable::getMaxValue()
+{
+  double maxv = 0;
+  int maxi = -1;
+  long count = getTupleCount();
+  long i;
+  for (i = 0; i < count; i++) {
+    double value = getValue(i);
+    if (value > maxv) {
+      maxv = value;
+      maxi = i;
+    }
+  }
+  return maxi;
+}
+
+/**
  * reset - reset table to empty
  */
 void ocTable::reset(int keysize)
