@@ -369,7 +369,7 @@ class ocUtils:
 			print
 
 	def doSBFit(self,printOptions):
-		self.__manager.printBasicStatistics()
+		#self.__manager.printBasicStatistics()
 		if printOptions: self.printOptions(0);
 		for modelName in self.__fitModels:
 			print "Model: ", modelName
