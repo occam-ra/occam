@@ -713,6 +713,10 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 	long count, i;
 	ocRelation *indRel = getIndRelation();
 	ocRelation *depRel = getDepRelation();
+
+	//-- if either of these is empty, then we don't have a directed system
+	if (indRel == 0 || depRel == 0) return;
+
 	((ocManagerBase*)this)->makeProjection(depRel);
 
 	//-- get default DV probability, which is the largest of the values in the dependent relation
