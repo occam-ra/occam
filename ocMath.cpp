@@ -879,3 +879,107 @@ g2 *= 2.0; 	/* g2 = 2*n*sum(p*ln(p/q)) = L^2 = LR */
 return nz;
 }
 
+//Gauss Jordanian method to calculate rank 
+//source: http://www.wikipedia.org/wiki/Rank_of_a_matrix
+double ocSB_DF(ocModel *model){
+int nrows=0,ncols=0;
+
+int i=0;
+int j=0;
+	int **struct_matrix=NULL;
+        int** matrix=model->get_structMatrix(&ncols,&nrows);
+//create a temp copy
+   struct_matrix=new (int *)[nrows];
+        int *State_Space_Arr1;
+        for(i=0;i<nrows;i++){
+                State_Space_Arr1=new int[ncols];
+                struct_matrix[i]=State_Space_Arr1;
+        }
+	 for(int i=0;i<nrows;i++){
+		if(i<nrows-1){
+                	for(int j=0;j<ncols;j++){
+                       		struct_matrix[i+1][j]=matrix[i][j];
+                	}
+		}else{
+                	for(int j=0;j<ncols;j++){
+                       		struct_matrix[0][j]=matrix[i][j];
+                	}
+			
+		}
+        }
+	/*for(int i=0;i<nrows;i++){
+                for(int j=0;j<ncols;j++){
+                        printf("%d,",struct_matrix[i][j]);
+                }
+                printf("\n");
+        }*/
+
+i=0;
+j=0;
+int ir,jr,ic,jc;
+int havepivot=0;
+int rmax=0;
+ic=0;
+for(ir=0;ir<nrows;ir++){
+        int i1,j1;
+        havepivot=0;
+        // Find pivot in column j, starting in row i:
+        do{
+                rmax=ir;
+                for(jr=ir+1 ;jr<nrows;jr++){
+                        if (abs(struct_matrix[jr][ic]) > abs(struct_matrix[rmax][ic]) ){
+                                rmax=jr;
+                        }
+                }
+                if (abs(struct_matrix[rmax][ic])>0){
+                        havepivot=1;
+                        if(rmax!=ir){
+                                //switch rows i and max_ind
+                                int temp=0;
+                                for(jc=0;jc<ncols;jc++){
+                                        temp=struct_matrix[ir][jc];
+                                        struct_matrix[ir][jc]=struct_matrix[rmax][jc];
+                                        struct_matrix[rmax][jc]=temp;
+                                }
+                        }
+                }else
+                        ic=ic+1;
+        //printf("havepivot is %d and ic is %d\n",havepivot,ic);
+        }while((havepivot==0) && ic<ncols);
+        if(ic<=ncols-1){
+                for(jr=0;jr<nrows;jr++){
+                        if(jr!=ir){
+                                //divide row i by max_val
+                                int temp1=struct_matrix[jr][ic]/struct_matrix[ir][ic];
+                                for(jc=ic;jc<ncols;jc++){
+                                        struct_matrix[jr][jc]=struct_matrix[jr][jc]-(struct_matrix[ir][jc]*temp1);
+                                }
+                        }
+                }
+        }
+}
+        int rank=0;
+        for(int i=0;i<nrows;i++){
+                int sum=0;
+                for(int j=0;j<ncols;j++){
+                        sum+=abs(struct_matrix[i][j]);
+                }
+
+                if(sum>0)rank++;
+
+        }
+	//printf("degree of freedon in math %d\n",rank-1);
+	/*for(int i=0;i<nrows;i++){
+                for(int j=0;j<ncols;j++){
+                        printf("%d,",struct_matrix[i][j]);
+                }
+                printf("\n");
+        }*/
+
+	delete [] struct_matrix;
+        return rank-1;
+}
+
+
+
+

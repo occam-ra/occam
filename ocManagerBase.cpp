@@ -92,23 +92,123 @@ ocManagerBase::~ocManagerBase()
 //	if (inputData) delete inputData;
 }
 
+//Anjali.. 
+//this function calculates the number of state constraints imposed by a particular relation which
+//has variables as are present in the varindices list and state constraints as present in the
+// stateindices list, a state value of -1 implies a dontcare value 
+
+int ocManagerBase::calc_StateConst_sz(int varcount,int *varindices, int *stateindices){
+	int size=1;
+	ocVariable *var;
+	int card=0;
+	if(varindices ==NULL || stateindices==NULL)return -1;
+	for(int i=0;i<varcount;i++){
+		if(stateindices[i]==DONT_CARE){
+			var=varList->getVariable(varindices[i]);
+			card=var->cardinality;
+			//printf("Card is %d\n",card);
+			size=size*card;
+		}
+	}
+	return size;
+}
+//int loop=0;
+//--add the constraints for a relation 
+int ocManagerBase::addConstraint(int varcount,int *varindices,int *stateindices,int* stateindices_c,ocKeySegment* start1,ocRelation *rel){
+	ocVariable *var;
+	int keysize = getKeySize();
+	int count=varcount-1;
+	int card=0;
+//loop++;
+//printf("loop is %d\n",loop);
+//if(loop==10)exit(1);
+	//get card
+	while(stateindices[count]!=DONT_CARE){	
+		count--;	
+		if(count<0)return 0;
+	}
+//printf("count is %d\n",count);
+start:
+	var=varList->getVariable(varindices[count]);
+	card=var->cardinality;
+	if(stateindices_c[count]==(card-1)){
+//printf("card is reached \n");
+		stateindices_c[count]=0x00;
+		count--;
+		while(stateindices[count]!=DONT_CARE){	
+			count--;	
+			//printf("count is reduced and is %d\n",count);
+			if(count<0)return 0;
+		}
+		goto start;
+	}else{
+		stateindices_c[count]++;
+//printf("stateindices %d and value %d \n",count,stateindices_c[count]);
+		ocKey::buildKey(start1,keysize,varList,varindices,stateindices_c,varcount);
+		rel->getStateConstraint()->addConstraint(start1);
+		addConstraint(varcount,varindices,stateindices,stateindices_c,start1,rel);  
+return 0;
+	}
+		
+}
+
 //-- look in relCache and, if not found, make a new relation and store in relCache
-ocRelation *ocManagerBase::getRelation(int *varindices, int varcount, bool makeProject)
+ocRelation *ocManagerBase::getRelation(int *varindices, int varcount, bool makeProject,int *stateindices)
 {
+	int stateconstsz=0;
 	ocRelation::sort(varindices, varcount);
 	int keysize = getKeySize();
+	ocRelation *rel=NULL;
+	int *stateindices1=new int[varcount];
 	ocKeySegment *mask = new ocKeySegment[keysize];
+	ocKeySegment *start = new ocKeySegment[keysize];
 	ocKey::buildMask(mask, keysize, varList, varindices, varcount);
-	ocRelation *rel = relCache->findRelation(mask, keysize);
-	if (rel == NULL) {
-		rel = new ocRelation(varList, defaultRelSize);
-		for (int i = 0; i < varcount; i++) {
-			rel->addVariable(varindices[i]);
-		}
-		relCache->addRelation(rel);
+	ocKey::buildMask(start, keysize, varList, varindices, varcount);
+	if(stateindices==NULL){
+	rel = relCache->findRelation(mask, keysize);
 	}
-	if (makeProject) makeProjection(rel);
-	delete mask;
+	if (rel == NULL) {
+		if(stateindices!=0){
+			stateconstsz=calc_StateConst_sz(varcount,varindices,stateindices);
+			//printf("state const Size %d\n",	stateconstsz);
+			rel = new ocRelation(varList, defaultRelSize,keysize,stateconstsz);
+			for (int i = 0; i < varcount; i++) {
+				rel->addVariable(varindices[i],stateindices[i]);
+			}
+		}
+		else{
+			rel = new ocRelation(varList, defaultRelSize);
+//printf("I do come here\n varcount %d\n",varcount);
+			for (int i = 0; i < varcount; i++) {
+				rel->addVariable(varindices[i]);
+			}
+		}
+		if(stateindices!=0){
+			//make starting constraint
+			for(int i=0;i<varcount;i++){
+				if(stateindices[i]==DONT_CARE){
+					stateindices1[i]=0x00;
+				}else {
+					stateindices1[i]=stateindices[i];	
+				}
+			}
+			//build the first constraint and then loop
+			ocKey::buildKey(start,keysize,varList,varindices,stateindices1,varcount);
+			rel->getStateConstraint()->addConstraint(start);
+			addConstraint(varcount,varindices,stateindices,stateindices1, start,rel);
+			int c_count=rel->getStateConstraint()->getConstraintCount();
+			//printf("number of constraints added %d\n",c_count);
+		}		
+		if(stateindices==0){
+			relCache->addRelation(rel);
+		}
+	}
+	if (makeProject){
+		if(stateindices!=0)
+			makeProjection(rel,1);
+		else
+			makeProjection(rel,0);
+	}
 	return rel;
 }
 
@@ -129,7 +229,7 @@ ocRelation *ocManagerBase::getChildRelation(ocRelation *rel, int skip, bool make
 	return newRel;
 }
 
-bool ocManagerBase::makeProjection(ocRelation *rel)
+bool ocManagerBase::makeProjection(ocRelation *rel,int SB)
 {
 	//-- create the projection data for a given relation. Go through
 	//-- the inputData, and for each tuple, sum it into the table for
@@ -146,13 +246,47 @@ bool ocManagerBase::makeProjection(ocRelation *rel)
 	ocKeySegment *mask = rel->getMask();
 	long i, k;
 	for (i = 0; i < count; i++) {
+		int is_match=1;
 		inputData->copyKey(i, key);
 		double value = inputData->getValue(i);
 		//-- set all the variables in the key to don't care if they don't
 		//-- exist in the relation
-		for (k = 0; k < keysize; k++) key[k] |= mask[k];
-		table->sumTuple(key, value);
-		totalP += value;
+		if(SB==0){
+			for (k = 0; k < keysize; k++) key[k] |= mask[k];
+			table->sumTuple(key, value);
+			totalP += value;
+		}else{
+			ocKeySegment *dont_care_k=new ocKeySegment[keysize];	
+			for (k = 0; k < keysize; k++) dont_care_k[k] = DONT_CARE;
+			//state based, so if the key matches one of the constraints
+			// then leave it otherwise make it all dont_care
+			for (k = 0; k < keysize; k++) key[k] |= mask[k];
+			int c_count=rel->getStateConstraint()->getConstraintCount();
+		        for(int j=0;j<c_count;j++){
+				is_match=1;
+				ocKeySegment *const_k=rel->getStateConstraint()->getConstraint(j);
+				//printf("keysize is %d\n",keysize);
+				for (k = 0; k < keysize; k++){
+					//printf("index %d Key %x and constraint %x\n",k,key[k],const_k[k]);
+					if(key[k]!=const_k[k]){		
+						//printf("there was no match\n");
+						is_match=-1;
+						break;
+					}
+				}
+				if(is_match==1)break;
+			}		
+			if(is_match==-1){
+				//make a key with all dont care bits to sum up the rest fo the tuples.
+				//printf("making a default key\n");
+				table->sumTuple(dont_care_k, value);
+					
+			}else if(is_match==1){
+				//printf("making a matching key\n");
+				table->sumTuple(key, value);
+			}
+			totalP += value;
+		}
 	}
 	table->sort();
 	delete [] key;
@@ -160,7 +294,7 @@ bool ocManagerBase::makeProjection(ocRelation *rel)
 }
 
 
-bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel)
+bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel,int SB)
 {
 	//-- create the projection data for a given relation. Go through
 	//-- the inputData, and for each tuple, sum it into the table for
@@ -172,13 +306,47 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel)
 	long i, k;
 	double totalP;
 	for (i = 0; i < count; i++) {
+		int is_match=1;
 		t1->copyKey(i, key);
 		double value = t1->getValue(i);
 		//-- set all the variables in the key to don't care if they don't
 		//-- exist in the relation
-		for (k = 0; k < keysize; k++) key[k] |= mask[k];
-		t2->sumTuple(key, value);
-		totalP += value;
+		if(SB==0){
+			for (k = 0; k < keysize; k++) key[k] |= mask[k];
+			t2->sumTuple(key, value);
+			totalP += value;
+		}else{
+			ocKeySegment *dont_care_k=new ocKeySegment[keysize];	
+			for (k = 0; k < keysize; k++) dont_care_k[k] = DONT_CARE;
+			//state based, so if the key matches one of the constraints
+			// then leave it otherwise make it all dont_care
+			for (k = 0; k < keysize; k++) key[k] |= mask[k];
+			int c_count=rel->getStateConstraint()->getConstraintCount();
+		        for(int j=0;j<c_count;j++){
+				is_match=1;
+				ocKeySegment *const_k=rel->getStateConstraint()->getConstraint(j);
+				//printf("keysize is %d\n",keysize);
+				for (k = 0; k < keysize; k++){
+					//printf("index %d Key %x and constraint %x\n",k,key[k],const_k[k]);
+					if(key[k]!=const_k[k]){		
+						//printf("there was no match\n");
+						is_match=-1;
+						break;
+					}
+				}
+				if(is_match==1)break;
+			}		
+			if(is_match==-1){
+				//make a key with all dont care bits to sum up the rest fo the tuples.
+				//printf("making a default key\n");
+				t2->sumTuple(dont_care_k, value);
+					
+			}else if(is_match==1){
+				//printf("making a matching key\n");
+				t2->sumTuple(key, value);
+			}
+			totalP += value;
+		}
 	}
 	t2->sort();
 	delete [] key;
@@ -300,8 +468,9 @@ static bool nextTuple(ocVariableList *varList, int *varvalues)
 }
 
 
-bool ocManagerBase::makeFitTable(ocModel *model)
+bool ocManagerBase::makeFitTable(ocModel *model,int SB)
 {
+	
 	if (model == NULL) return false;
 	if (!fitTable1) {
 		stateSpaceSize = (long) ocDegreesOfFreedom(varList) + 1;
@@ -320,9 +489,13 @@ bool ocManagerBase::makeFitTable(ocModel *model)
 	int i, j, k;
 	double error = 0, totalP = 0.0;
 
+	//for state base modelling
+	ocKeySegment *dont_care_k=new ocKeySegment[keysize];	
+	for (k = 0; k < keysize; k++) dont_care_k[k] = DONT_CARE;
+
 	//-- make sure we have projections for all relations
 	for (int r = 0; r < model->getRelationCount(); r++) {
-		makeProjection(model->getRelation(r));
+		makeProjection(model->getRelation(r),SB);
 	}
 
 
@@ -385,7 +558,7 @@ bool ocManagerBase::makeFitTable(ocModel *model)
 			  // create a projection of the computed data, based on the
 			  // variables in the relation
 			  projTable->reset(keysize);
-			  makeProjection(fitTable1, projTable, rel);
+			  makeProjection(fitTable1, projTable, rel,SB);
 			  // for each tuple in fitTable1, create a scaled tuple in fitTable2, scaled by the
 			  // ratio of the projection from the input data, and the computed projection
 			  // from the previous iteration.  In any cases where the input marginal is
@@ -415,6 +588,27 @@ bool ocManagerBase::makeFitTable(ocModel *model)
 			      }
 			    }
 			    else {
+			    	//printf("came to the else case Sb is %d ****\n",SB);
+					if(SB==1){
+						//then probably its the remainder probabilty
+						j = relp->indexOf(dont_care_k);
+						//printf("index of dont care key  in the relation table%d\n",j);
+						double relvalue = relp->getValue(j);
+						if (relvalue > 0.0) {
+							j = projTable->indexOf(dont_care_k);
+							//printf("index of key in the projection table%d\n",j);
+							if (j >= 0) {
+								double projvalue = projTable->getValue(j);
+								//printf("relvalue is %g and projvalue is %g\n",relvalue,projvalue);
+								if (projvalue > 0.0) { 
+									newValue = value * relvalue / projvalue;
+								}
+								error = fmax(error, fabs(relvalue - projvalue));
+							}
+							else error = fmax(error, relvalue);
+						}
+						
+					}
 				}
 			    if (newValue > 0) {
 			      fitTable1->copyKey(i, key);
@@ -434,8 +628,8 @@ bool ocManagerBase::makeFitTable(ocModel *model)
 	fitTable1->sort();
 	model->getAttributeList()->setAttribute(ATTRIBUTE_IPF_ITERATIONS, (double) iter);
 	model->getAttributeList()->setAttribute(ATTRIBUTE_IPF_ERROR, error);
-		// printf("model %s, iterations=%d, error=%lg, delta2=%lg\n", model->getPrintName(),
-		// iter, error, delta2);
+	if(SB==1)printf("model %s, iterations=%d, error=%lg, delta2=%lg\n", model->getPrintName(),iter, error, delta2);
+		printf("\n\n");
 	return true;
 }
 
@@ -465,13 +659,24 @@ double ocManagerBase::computeDF(ocRelation *rel)	// degrees of freedom
 	return df;
 }
 
+double ocManagerBase::compute_SB_DF(ocModel *model)
+{
+	double df = model->getAttributeList()->getAttribute(ATTRIBUTE_DF);
+	if (df < 0.0) {	//-- not set yet
+		df = ::ocSB_DF(model);
+		//printf("df value in compute_SB_DF %g\n",df);
+		model->getAttributeList()->setAttribute(ATTRIBUTE_DF,df);
+	}
+	return df;
+	
+}
 
 double ocManagerBase::computeDF(ocModel *model)
 {
 	double df = model->getAttributeList()->getAttribute(ATTRIBUTE_DF);
 	if (df < 0.0) {	//-- not set yet
-	  DFAndEntropy(model);
-	  df = model->getAttributeList()->getAttribute(ATTRIBUTE_DF);
+		DFAndEntropy(model);
+		df = model->getAttributeList()->getAttribute(ATTRIBUTE_DF);
 	}
 	return df;
 }
@@ -493,7 +698,7 @@ double ocManagerBase::computeH(ocRelation *rel)	// uncertainty
 }
 
 
-double ocManagerBase::computeH(ocModel *model, HMethod method)
+double ocManagerBase::computeH(ocModel *model, HMethod method,int SB)
 {
 	double h;
 	bool loops;
@@ -508,6 +713,9 @@ double ocManagerBase::computeH(ocModel *model, HMethod method)
 	if (loops) {
 		h = attrs->getAttribute(ATTRIBUTE_FIT_H);
 		if (h < 0) {
+			if(SB)
+			makeFitTable(model,SB);
+			else
 			makeFitTable(model);
 			h = ocEntropy(fitTable1);
 			attrs->setAttribute(ATTRIBUTE_FIT_H, h);
@@ -526,7 +734,7 @@ double ocManagerBase::computeH(ocModel *model, HMethod method)
 }
 
 
-double ocManagerBase::computeTransmission(ocModel *model, HMethod method)
+double ocManagerBase::computeTransmission(ocModel *model, HMethod method,int SB)
 {
 	//-- compute analytically. Krippendorf claims that you
 	//-- can't do this for models with loops, but experimental
@@ -553,7 +761,14 @@ double ocManagerBase::computeTransmission(ocModel *model, HMethod method)
 //	else {
 		t = attrs->getAttribute(ATTRIBUTE_ALG_T);
 		if (t < 0) {	//-- not set yet
-			double h = computeH(model);
+			double h=0;
+
+			if(SB){
+				h = computeH(model, IPF,SB);
+			}
+			else{
+				h = computeH(model);
+			}
 			t = h - inputH;
 			attrs->setAttribute(ATTRIBUTE_ALG_T, t);
 			attrs->setAttribute(ATTRIBUTE_T, t);
@@ -597,8 +812,8 @@ void ocManagerBase::DFAndEntropy(ocModel *model)
 		virtual void process(int sign, ocRelation *rel)
 		{
 			if (rel) {
-			  df += sign * manager->computeDF(rel);
-			  h += sign * manager->computeH(rel);
+				df += sign * manager->computeDF(rel);
+				h += sign * manager->computeH(rel);
 			}
 		}
 	};
@@ -806,6 +1021,115 @@ ocModel *ocManagerBase::makeModel(const char *name, bool makeProject)
 	}
 
 	return model;
+}
+#define MAXSTATENAME 10
+ocModel *ocManagerBase::makeSBModel(const char *name, bool makeProject)
+{
+        ocModel *model = new ocModel(10);
+        char *relname = new char[(1 + varList->getMaxAbbrevLen()) * varList->getVarCount()*2*MAXSTATENAME];
+        int varcount;
+        int *vars = new int[varList->getVarCount()];
+        int *states = new int[varList->getVarCount()];
+        const char *cp = name, *cp2;
+        while (cp) {
+                cp2 = strchr(cp, ':');
+                if (cp2 != NULL) {
+                        int len = cp2 - cp;
+                        strncpy(relname, cp, len);
+                        relname[len] = '\0';
+                        cp = cp2 + 1;
+                }
+                else {
+                        strcpy(relname, cp);
+                        cp = NULL;
+                }
+		//printf("relname is %s\n",relname);
+                varcount = varList->getVar_StateList(relname, vars,states);
+//debug start
+		//printf("varcount %d\n",varcount);
+		for(int i=0;i<varcount;i++)
+		//printf("varaibel index %d and state index %d\n",vars[i],states[i]);
+               if (varcount == 0) {
+                        delete model;
+                        delete relname;
+                        delete vars;
+                        return NULL;    // error in name
+                }
+                ocRelation *rel = getRelation(vars,varcount, makeProject, states);
+                if (rel == NULL) {
+                        delete model;
+                        delete relname;
+                        delete vars;
+                        return NULL;    // error in name
+                }
+		
+                model->addRelation(rel,false);
+        }
+	int StateSpace = (long) ocDegreesOfFreedom(varList) + 1;
+	//printf("state space is %d\n",StateSpace);
+
+	make_SS(StateSpace);
+	int var_count=varList->getVarCount();
+	/*for (int i=0;i<StateSpace;i++){
+		for(int j=0;j<var_count;j++){
+		printf("%d,",State_Space_Arr[i][j]);
+		}
+		printf("\n");
+	}*/
+	model->makeStructMatrix(StateSpace,varList,State_Space_Arr );
+	//printf("structure matrix :\n");
+	//model->printStructMatrix();
+	
+        delete vars;
+        delete relname;
+
+        return model;
+}
+
+void ocManagerBase::make_SS(int statespace){
+	int var_count=varList->getVarCount();
+	//printf("varcount is %d\n",var_count);
+	State_Space_Arr=new (int *)[statespace];
+	int *State_Space_Arr1;
+	for(int i=0;i<statespace;i++){
+		State_Space_Arr1=new int[var_count];
+		State_Space_Arr[i]=State_Space_Arr1;
+	}
+
+	for (int i=0;i<statespace;i++){
+		for(int j=0;j<var_count;j++){
+			State_Space_Arr[i][j]=0;
+		}
+	}
+	for(int k=0;k<var_count;k++){
+		State_Space_Arr[0][k]=0;
+	}	
+	int l=var_count-1;
+	int i=0;
+	int loop1=0;
+	while(i<statespace-1){
+		//first copy from previous state
+		for(int j=0;j<var_count;j++){
+			State_Space_Arr[i+1][j]=State_Space_Arr[i][j];
+		}
+rap:
+		if(i+1==statespace)break;
+		ocVariable *var=varList->getVariable(l);
+		int card=var->cardinality;
+		if(State_Space_Arr[i][l]==(card-1)){
+			//printf("card is reached \n");
+			State_Space_Arr[i+1][l]=0;
+			l--;
+			if(l<0)break;
+			goto rap;
+		}else{
+			State_Space_Arr[i+1][l]++;
+			l=var_count-1;
+			
+		}
+		i++;
+	}
+	
 }
 
 
