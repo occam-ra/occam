@@ -873,6 +873,10 @@ void ocVBMManager::printBasicStatistics()
 	printf("%s\n", header);
 	double topH = computeH(topRef);
 	printf("%s%s%s%lg%s\n", beginLine, "H(data)", separator, topH, endLine);
+	double stateSpace = computeDF(getTopRefModel())+1;
+        double sampleSz1 = getSampleSz();
+	printf("%s%s%s%lg%s\n", beginLine, "State Space Size", separator, stateSpace, endLine);
+	printf("%s%s%s%lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
 	if (directed) {
 		double depH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_DEP_H);
 		double indH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_IND_H);

@@ -202,7 +202,6 @@ class ocUtils:
 				newModel.deleteRelationLinks()	#recover relation link memory
 				# newModel.dump();
 				memUsed = self.__manager.getMemUsage();
-				print "Memory: ", memUsed
 		return addCount
 
 			
@@ -302,10 +301,6 @@ class ocUtils:
 		# process each level, up to the number of levels indicated. Each of the best models
 		# is added to the report generator for later output
 		#
-		StateSpace=self.__manager.computeDF(self.__manager.getTopRefModel())+1
-                SampleSz1=self.__manager.getSampleSz()
-                print "Sample Size:, %ld ," %(SampleSz1)
-                print "State Space:, %lg ," %(StateSpace)
 		print "Searching levels:",
 		for i in xrange(1,self.__searchLevels+1):
 			if self.__manager.getMemUsage() > maxMemoryToUse:
