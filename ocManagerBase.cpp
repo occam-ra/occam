@@ -629,7 +629,6 @@ bool ocManagerBase::makeFitTable(ocModel *model,int SB)
 	model->getAttributeList()->setAttribute(ATTRIBUTE_IPF_ITERATIONS, (double) iter);
 	model->getAttributeList()->setAttribute(ATTRIBUTE_IPF_ERROR, error);
 	if(SB==1)printf("model %s, iterations=%d, error=%lg, delta2=%lg\n", model->getPrintName(),iter, error, delta2);
-		printf("\n\n");
 	return true;
 }
 
