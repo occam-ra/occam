@@ -37,15 +37,17 @@ static void normalizeCase(char *cp)
 
 ocVariableList::ocVariableList(int maxvars)
 {
+  const int MAX_MASK = 100;  // (kenw) max number of variables is 3200
 	maxVarCount = maxvars;
 	varCount = 0;
         varCountDF=0;
 	vars = new ocVariable[maxvars];
 	maxAbbrevLen = 0;
 	//Anjali
-	maxVarMask =1;
-	maskVars = new long;
-        *maskVars=0;
+	maxVarMask = MAX_MASK;
+	maskVars = new long[MAX_MASK];
+	for (int i = 0; i < MAX_MASK; i++)
+	  maskVars[i]=0;
 }
 
 
@@ -140,8 +142,9 @@ int ocVariableList::good(int varCounter)
 	int pos  = varCounter%(sizeof(long)*8);
 	long mask = 1<<pos;
 	long bad=maskVars[word] & mask;
-	if(bad)
+	if(bad) {
 		return 0;
+	}
 	else
 		return 1;
 }
