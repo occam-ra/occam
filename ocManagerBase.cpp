@@ -379,7 +379,7 @@ bool ocManagerBase::makeFitTable(ocModel *model)
 			  }
 			  delete [] varvalues;
 			  fitTable1->normalize();
-			  fitTable1->dump(true);
+			  //fitTable1->dump(true);
 			}
 			else {
 			  // create a projection of the computed data, based on the
