@@ -260,7 +260,7 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
 	  //-- add this entry to maxpt; default rule applies
 	  double value = inputData->getValue(i);
 	  long index = maxpt->indexOf(key, false);
-	  maxpt->insertTuple(key, value, index);
+	  if (value > 0) maxpt->insertTuple(key, value, index);
 	}
 	maxpt->sort();
 	delete [] key;

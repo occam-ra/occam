@@ -132,6 +132,9 @@ class ocUtils:
 	def setOption(self, opt):
 		return self.__manager.setOption(opt)
 
+	def hasTestData(self):
+		return self.__manager.hasTestData()
+
 	#
 	#-- Search operations
 	#

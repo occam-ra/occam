@@ -552,6 +552,15 @@ DefinePyFunction(ocVBMManager, getMemUsage)
   return Py_BuildValue("d",used);
 }
 
+//int hasTestData()
+DefinePyFunction(ocVBMManager, hasTestData)
+{
+  PyArg_ParseTuple(args, "");
+  ocVBMManager *mgr = ObjRef(self, ocVBMManager);
+  int result = (mgr->getTestData() != NULL);
+  return Py_BuildValue("i",result);
+}
+
 static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, initFromCommandLine),
 	PyMethodDef(ocVBMManager, makeAllChildRelations),
@@ -586,6 +595,7 @@ static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, computePercentCorrect),
 	PyMethodDef(ocVBMManager, printSizes),
 	PyMethodDef(ocVBMManager, getMemUsage),
+	PyMethodDef(ocVBMManager, hasTestData),
 	{NULL, NULL, 0}
 	};
 

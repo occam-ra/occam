@@ -232,7 +232,8 @@ def actionSearch(formFields):
 		reportvars = reportvars + ", bp_t"
 
 	if formFields.get("showpct", ""):
-		reportvars = reportvars + ", pct_correct_data, pct_correct_test"
+		reportvars = reportvars + ", pct_correct_data"
+		if oc.hasTestData(): reportvars = reportvars + ", pct_correct_test"
 
 	oc.setReportSortName(reportSort)
  	oc.setSortName(searchSort)
