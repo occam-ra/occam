@@ -241,8 +241,8 @@ int ocTable::normalize()
 		setValue(i, (getValue(i)/denom));
 	}
 	//-- if the data was already normalized, then not much will have happened.
-	//-- but in that case there is no sample size info, so return 0.
-	if (denom < 1.5) return 0;
+	//-- but in that case there is no sample size info, so return 1.
+	if (denom < 1.5) return 1;
 	else return (int) denom;
 }
 
