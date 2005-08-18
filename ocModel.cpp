@@ -121,7 +121,7 @@ void ocModel::makeStructMatrix(int statespace,ocVariableList *vars ,int **State_
 	//printf("total no of constraints in the model %d\n",const_count);
 	Total_constraints=const_count+1;
 	State_Space_sz=statespace;
-	structMatrix=new (int *)[const_count+1];
+	structMatrix=new int *[const_count+1];
 	int *State_Space_Arr1;
 /* OLD CODE
         for(i=0;i<statespace;i++){

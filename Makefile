@@ -13,7 +13,7 @@ DEFS = -I. -DNDEBUG
 LDFLAGS = -lm -lstdc++
 
 
-PY_INCLUDE = /usr/include/python2.2
+PY_INCLUDE = /usr/include/python2.3
 #PY_INCLUDE = ../Python-2.1.1/Include
 #SWIG = swig -python -c++
 #PY_WRAPPER = occam_wrap.cpp

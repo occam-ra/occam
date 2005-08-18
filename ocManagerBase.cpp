@@ -1121,7 +1121,7 @@ ocModel *ocManagerBase::makeSBModel(const char *name, bool makeProject)
 void ocManagerBase::make_SS(int statespace){
 	int var_count=varList->getVarCount();
 	//printf("varcount is %d\n",var_count);
-	State_Space_Arr=new (int *)[statespace];
+	State_Space_Arr=new int *[statespace];
 	int *State_Space_Arr1;
 	for(int i=0;i<statespace;i++){
 		State_Space_Arr1=new int[var_count];

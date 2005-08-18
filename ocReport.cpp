@@ -424,8 +424,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	dv_Data dv_data;	
 	int StateSpace = (long) ocDegreesOfFreedom(varlist) + 1;
 	int i_statespace=StateSpace/card;//statespace divide by cardinalty of output variable 
-	dv_data.key=new (ocKeySegment *)[i_statespace];
-	dv_data.cdv_value=new (double *)[i_statespace];
+	dv_data.key=new ocKeySegment *[i_statespace];
+	dv_data.cdv_value=new double *[i_statespace];
 	dv_data.t_freq=new double[i_statespace]; 	
 	dv_data.no_correct=new double[i_statespace]; 	
 	
@@ -517,7 +517,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	int k_count=0;
 
 	//initiallize dv_vale in dv_data
-	dv_data.dv_value=new (char*)[card];
+	dv_data.dv_value=new char*[card];
 	char **map =var->valmap;
 	for(int i=0;i<card;i++){
 		int len1=strlen(map[i]);
@@ -730,8 +730,8 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	dv_Data dv_data;	
 	int StateSpace = (long) ocDegreesOfFreedom(varlist) + 1;
 	int i_statespace=StateSpace/card;//statespace divide by cardinalty of output variable 
-	dv_data.key=new (ocKeySegment *)[i_statespace];
-	dv_data.cdv_value=new (double *)[i_statespace];
+	dv_data.key=new ocKeySegment *[i_statespace];
+	dv_data.cdv_value=new double *[i_statespace];
 	dv_data.t_freq=new double[i_statespace]; 	
 	dv_data.no_correct=new double[i_statespace]; 	
 	ocKeySegment *t_key;
@@ -823,7 +823,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	int k_count=0;
 
 	//initiallize dv_vale in dv_data
-	dv_data.dv_value=new (char*)[card];
+	dv_data.dv_value=new char*[card];
 	char **map =var->valmap;
 	for(int i=0;i<card;i++){
 		int len1=strlen(map[i]);
@@ -1065,7 +1065,7 @@ void ocReport::printConditional_DV_rel(FILE *fd, ocRelation *rel)
 	int k_count=0;
 
 	//initiallize dv_vale in dv_data
-	dv_data.dv_value=new (char*)[card];
+	dv_data.dv_value=new char*[card];
 	char **map =var->valmap;
 	for(int i=0;i<card;i++){
 		int len1=strlen(map[i]);

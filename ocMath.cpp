@@ -889,7 +889,7 @@ int j=0;
 	int **struct_matrix=NULL;
         int** matrix=model->get_structMatrix(&ncols,&nrows);
 //create a temp copy
-   struct_matrix=new (int *)[nrows];
+   struct_matrix=new int *[nrows];
         int *State_Space_Arr1;
         for(i=0;i<nrows;i++){
                 State_Space_Arr1=new int[ncols];
