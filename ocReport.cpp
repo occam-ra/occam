@@ -315,9 +315,13 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 	ocTable *table1 = manager->getFitTable();
 	ocVariableList *varlist = model->getRelation(0)->getVariableList();
 	fprintf(fd,"<br>");
-	fprintf(fd, "        RESIDUALS\n\n");
+	fprintf(fd, "RESIDUALS\n\n");
 	if (table1 == NULL) {
 		fprintf(fd, "Error: no fitted table computed\n");
+		return;
+	}
+	if(varlist->isDirected()){
+		printf("(Residuals not calculated for directed systems.)<br>\n");
 		return;
 	}
 	long varcount = varlist->getVarCount();
@@ -397,19 +401,19 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	ocTable *table1 = manager->getFitTable();
 	double samplesz=manager->getSampleSz();
 	if (table1 == NULL) {
-		fprintf(fd, "Error: no fitted table computed\n");
+		fprintf(fd, "Error: no fitted table computed.\n");
 		return;
 	}
 	ocVariableList *varlist = manager->getVariableList();
 	//table to store conditional DV values.
 	ocTable *table_DV= new ocTable(varlist->getKeySize(),100);
-	int DV_index=-1;
+	int DV_index = -1;
 	if(varlist->isDirected()){
 		 DV_index=varlist->getDV();
-	}else
-	{
-		printf("DV calculation not possible for neutral system\n");
-		exit(1);
+	} else {
+		printf("(DV calculation not possible for neutral systems.)\n");
+		//exit(1);
+		return;
 	}
 
 	long varcount = varlist->getVarCount();
