@@ -4,13 +4,15 @@ BODY {
 background-color: #ffffff;
 color: #000000;
 font-family: Courier;
-font-size: 8pt;
+font-size: 10pt;
 }
 
 P {
+font-size: 10pt;
 }
 
-TD {
+TH, TD {
+font-size: 10pt;
 }
 
 LI {
@@ -22,6 +24,7 @@ background-color: #e0e0ff;
 font-family: Verdana, Helvetica, Arial, sans-serif;
 font-size: xx-small;
 }
+
 .formtitle {
 background-color: #e0e0ff;
 font-family: Verdana, Helvetica, Arial, sans-serif;
@@ -36,6 +39,6 @@ table {
 background-color: #ffffff;
 color: #0000ff;
 font-family: Courier, monospace;
-font-size: 8pt;
+font-size: 10pt;
 }
 
