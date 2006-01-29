@@ -1,5 +1,5 @@
 /*
- * py-wrap.cpp - defines wrapper functions to map C classes to Python
+ * pyoccam.cpp - defines wrapper functions to map C classes to Python
  */
 
 //-- Hack to get around Python platform checking
@@ -1553,7 +1553,7 @@ ocReport_getattr(PyObject *self, char *name)
 	PyObject *method = Py_FindMethod(ocReport_methods, self, name);
 	if (method) return method;
 
-	ocReport *report = ObjRef(self, ocReport);
+	//ocReport *report = ObjRef(self, ocReport);
 	//-- none defined
 //	TRACE_FN("ocReport::getattr", __LINE__);
 	return NULL;
