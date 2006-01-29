@@ -733,7 +733,7 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 	model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT_DATA, 100 * total);
 
 	if (testData) {
-	  //-- for test data, us projections involving only the predicting variables
+	  //-- for test data, use projections involving only the predicting variables
 	  int maxCount = varList->getVarCount();
 	  int varindices[maxCount], varcount;
 	  getPredictingVars(model, varindices, varcount, false);
@@ -818,7 +818,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 		endLine = "\n";
 		footer = "\n";
 		headerSep = 
-		"--------------------------------------------------------------------------------\n";
+		"-------------------------------------------------------------------------\n";
 	}
 	int cols = 3;
 	int labelwidth = 20;
@@ -827,7 +827,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	const char *label;
 	
 	fprintf(fd, header);
-	fprintf(fd,"****************************************************************************************************************************************\n\n");
+	fprintf(fd,"-------------------------------------------------------------------------\n\n");
 	fprintf(fd, "\n%sREFERENCE = %s%s", beginLine, ref, endLine);
 	label = "Value";
 	fprintf(fd, "%s%s%s%s", beginLine, separator, label, separator);
@@ -956,7 +956,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	computeL2Statistics(model);
 	computePearsonStatistics(model);
 	printRefTable(model->getAttributeList(), fd, "BOTTOM", bottomFields1, 3);
-	fprintf(fd,"****************************************************************************************************************************************\n\n");
+	fprintf(fd,"-------------------------------------------------------------------------\n\n");
 }
 
 void ocVBMManager::printBasicStatistics()
