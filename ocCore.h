@@ -103,7 +103,7 @@ public:
 
 	static void keyToString(ocKeySegment *key, ocVariableList *var, char *str);
 	static void keyToUserString(ocKeySegment *key, ocVariableList *var, char *str);
-	static void getSibblings(ocKeySegment *key, ocVariableList *vars, ocTable *table, long *i_sibs, int DV_ind, int *no_sib);
+	static void getSiblings(ocKeySegment *key, ocVariableList *vars, ocTable *table, long *i_sibs, int DV_ind, int *no_sib);
 
 
 };
