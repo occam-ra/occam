@@ -437,7 +437,7 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
 		except:
 			print "ERROR99"
 			traceback.print_exc(file=sys.stdout)
-			xfile = open('/tmp/except.log', 'w')
+	#		xfile = open('/tmp/except.log', 'w')
 	#		traceback.print_exc(file=xfile)
 	#		os.close(xfile)
 		printTime(startTime, textFormat)
