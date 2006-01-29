@@ -145,6 +145,7 @@ static void setStandardOptions(ocOptions *opts)
 	def = opts->addOptionName("res-confband", "", "Std devs for confidence bands");
 		opts->addOptionValue(def, "#", "");
 	def = opts->addOptionName("res-sorted", "", "Sort residual plot");
+	// I don't think this next option is used anywhere [jsf]
 	def = opts->addOptionName("res-table", "R", "Print residual table and DV|IV, if directed");
 	def = opts->addOptionName("sort", "s", "Sort fit-reports by features, default=info", true);
 		opts->addOptionValue(def, "model", "model");
