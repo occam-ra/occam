@@ -11,11 +11,13 @@
 
 struct dv_Data{
         ocKeySegment **key;
+	char **dv_value;
         double **cdv_value;
-        char **dv_value;
         double *t_freq;
-	double *no_correct;
-
+	int *dv_freq;
+	double *num_correct;
+	double *percent_correct;
+	int *rule_index;
 };
 
 
@@ -56,7 +58,7 @@ public:
 	
 	//--Print Conditional DV's
 	void printConditional_DV(FILE *fd, ocModel *model);
-	
+
 	//--Print Conditional DV's
 	void printConditional_DV_rel(FILE *fd, ocRelation *rel);
 		
