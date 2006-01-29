@@ -136,6 +136,7 @@ public:
 	
 	int getKeySize() { return keysize; }
 	double getSampleSz(){return (double)sampleSize;}
+	double getTestSampleSize(){return (double)testSampleSize;}
 	ocVariableList *getVariableList() { return varList;}
 	class ocRelCache *getRelCache() { return relCache; }
 	class ocModelCache *getModelCache() { return modelCache; }
@@ -179,6 +180,7 @@ protected:
 	ocVariableList *varList;
 	int keysize;
 	int sampleSize;
+	int testSampleSize;
 	long stateSpaceSize;
 	ocTable *inputData;
 	ocTable *testData;
