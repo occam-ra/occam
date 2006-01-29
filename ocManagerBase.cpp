@@ -43,6 +43,7 @@ ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input)
 	relCache = new ocRelCache;
 	modelCache = new ocModelCache;
 	sampleSize = 0;
+	testSampleSize = 0;
 	options = new ocOptions();
 	inputH = -1;
 	stateSpaceSize = 0;
@@ -72,11 +73,14 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
 		}
 	}
 	sampleSize = input->normalize();
-	if (test) test->normalize();
+	if (test) {
+		testSampleSize = test->normalize();
+	}
 	//-- DEBUG
 	// options->write(stdout);
 	// vars->dump();
-	// input->dump();
+	//input->dump(true);
+	//test->dump(true);
 	
 	varList = vars;
 	inputData = input;
