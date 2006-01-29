@@ -166,7 +166,7 @@ ocKeySegment *ocTable::getKey(long index)
 }
 
 /**
- * getKey - copy the key into the caller's storage
+ * copyKey - copy the key into the caller's storage
  */
 void ocTable::copyKey(long index, ocKeySegment *key)
 {
