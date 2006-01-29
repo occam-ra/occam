@@ -44,7 +44,7 @@ bool KeepVal(LostVar *lostvarpt,char * var){
 
 /*ReadData - read data tuples, one per line; return number of lines read
  */
-long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata,LostVar *lostvarp)
+long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostvarp)
 {
         char line[MAXLINE];
         ocKeySegment *key = 0;
@@ -66,7 +66,7 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata,LostVar *lostva
         char newvalue[MAXLINE];
         bool keepval=true;
         int var_val=0;
-	//printf("number of effective variable %d and df variable %d\n",varCount,varCountDF);
+	//printf("number of effective variable %d and df variable %d\n",varCount,varCountDF); //****
         if((values = new int[varCount])==NULL){ // values of the variables
                 printf("No memory available\n");
                 exit(1);
@@ -80,10 +80,10 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata,LostVar *lostva
 	int value1=0;
 	char cp1[MAXLINE];
 	int value=0;
-int l=0;
+	int l=0;
         gotLine = ocOptions::getLine(fin, line, &lineno);
         if (!gotLine){
-                printf("NO data 1!!!\n");
+                printf("No data\n");
                 return false;
         }
         while (gotLine) {
@@ -94,23 +94,23 @@ int l=0;
                         if(vars->good(i)){       //Anjali
                                 if(vars->getVariable(j)->rebin==true || vars->getVariable(j)->exclude!=NULL){
                                 	vars->getnewvalue(j,cp,newvalue);
-				//	if(newvalue[0]!='\0')printf("new value %s for old value %s",newvalue,cp);
+					//if(newvalue[0]!='\0')printf("new value %s for old value %s",newvalue,cp); //****
 					if(newvalue[0]!='\0'){
        		                         	value = vars->getVarValueIndex(j,newvalue);
-						//printf("value is %d\n",value);
+						//printf("value is %d\n",value); //****
                                 		if (value < 0) {        // cardinality error
 		                                        printf("line %d, too many different values for variable %s\n",
                				                                 lineno, vars->getVariable(j)->abbrev);
-		                                }else {
+		                                } else {
 							//printf("value being added");
                                                		 values[j] = value;
 		                                         indices[j] = j;
                                 		}
-					}else
+					} else
 						flag=DISCARD;
-				}else{
+				} else {
        		                         	value = vars->getVarValueIndex(j,cp);
-						//printf("value is %d **\n",value);
+						//printf("value is %d **\n",value); //****
                                 		if (value < 0) {        // cardinality error
 		                                        printf("line %d, too many different values for variable %s\n",
                				                                 lineno, vars->getVariable(j)->abbrev);
@@ -133,7 +133,7 @@ int l=0;
                                 if(b_lostvar){
                                         int ret=sscanf(cp,"%[^\t ]",var);
                                         if(ret==1){
-		//if(lostvarpt!=NULL)printf("lostvarpt is not null\n");
+		//if(lostvarpt!=NULL)printf("lostvarpt is not null\n"); //****
                                                 keepval=KeepVal(lostvarpt,var);
                                                 if(!keepval)flag=DISCARD;
                                         }else{
@@ -629,13 +629,13 @@ int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdat
 	//-- If not at end of file, there is data in this file
 	if (!feof(fd)) {
 		*indata = indatap = new ocTable(varp->getKeySize(), 100);
-		dataLines = ocReadData(fd, varp, indatap,lostvarp);
+		dataLines = ocReadData(fd, varp, indatap, lostvarp);
 		indatap->sort();
 	}
 	//-- If there's still data, then it must be test data
 	if (!feof(fd)) {
 		*testdata = testdatap = new ocTable(varp->getKeySize(), 100);
-		testLines = ocReadData(fd, varp, testdatap,lostvarp);
+		testLines = ocReadData(fd, varp, testdatap, lostvarp);
 		testdatap->sort();
 	}
 	system("date");
