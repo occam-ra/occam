@@ -86,9 +86,9 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
 	normalizeCase(varp->abbrev);
 	varp->cardinality = cardinality;
 	varp->dv = dv;
-	varp->rebin=rebin;
-	varp->old_card=old_card;
-	varp->exclude=NULL;
+	varp->rebin = rebin;
+	varp->old_card = old_card;
+	varp->exclude = NULL;
 
 	//-- keep track of longest name (helps storage allocation of other functions
 	int abbrevLen = strlen(varp->abbrev);
@@ -258,7 +258,7 @@ void ocVariableList::dump()
 }
 
 /**
- * Generate a printable a variable list, given a list of variable indices
+ * Generate a printable variable list, given a list of variable indices
  */
 void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars1,int *states)
 {
@@ -273,13 +273,13 @@ void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars
 		strncpy(cp, name, maxlength);
 		maxlength -= len;
 		cp += len;
-		if(states!=0){
-			int stateID=0;
-			//left here needs modification
-			stateID=states[i];
-			if(stateID!=DONT_CARE){
-				char **map =vars[varID].valmap;
-				int len1=strlen(map[stateID]);
+		if(states != 0) {
+			int stateID = 0;
+			// left here needs modification
+			stateID = states[i];
+			if(stateID != DONT_CARE){
+				char **map = vars[varID].valmap;
+				int len1 = strlen(map[stateID]);
 				strncpy(cp, map[stateID], maxlength);
 				maxlength -= len1;
 				cp += len1;
@@ -307,9 +307,9 @@ int ocVariableList::getPrintLength(int count, int *vars, bool state_b)
 	for (i = 0; i < count; i++) {
 		int varID = vars[i];
 		char *name = getVariable(varID)->abbrev;
-		int card=getVariable(varID)->cardinality;
+		int card = getVariable(varID)->cardinality;
 //not consistent...state id and state value are to different things
-		card=card/10;
+		card = card / 10;
 		len += strlen(name);
 		len=len+card+1;
 		//len += strlen(name) + 1; // an extra for separator character
@@ -431,7 +431,7 @@ int ocVariableList::getVarValueIndex(int varindex, const char *value)
 	char **map = vars[varindex].valmap;
 	char myvalue[100];
 	int chr;
-	int cardinality=vars[varindex].cardinality;
+	int cardinality = vars[varindex].cardinality;
 
 	//-- extract the name as a separate string
 	for (chr = 0; chr < 100; chr++) {
@@ -452,7 +452,8 @@ int ocVariableList::getVarValueIndex(int varindex, const char *value)
 		strcpy(map[index], myvalue);
 		return index;
 	}
-	else return -1;
+	else
+		return -1;
 }
 
 const char *ocVariableList::getVarValue(int varindex, int valueindex)
