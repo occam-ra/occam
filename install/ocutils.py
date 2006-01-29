@@ -222,13 +222,12 @@ class ocUtils:
 		#fullCount = len(newModels)
 		if self.__searchWidth != 0:
 			newModels = newModels[0:self.__searchWidth]
-		self.__manager.dumpRelations()
 		self.__manager.deleteTablesFromCache()
 		truncCount = len(newModels)
 		totalgen = fullCount+totalgen
                 totalkept = truncCount+totalkept
 		memUsed = self.__manager.getMemUsage();
-		print " ,%ld models generated, %ld kept,%ld total models generated,%ld total models kept, %ld bytes memory used" % (fullCount, truncCount, totalgen+1 ,totalkept+1, memUsed)
+		print "  %ld models generated, %ld kept, %ld total models generated, %ld total models kept, %ld bytes memory used<br>" % (fullCount, truncCount, totalgen+1 ,totalkept+1, memUsed)
 		# print self.__manager.printSizes();
 		return newModels
 
@@ -306,7 +305,7 @@ class ocUtils:
 		# process each level, up to the number of levels indicated. Each of the best models
 		# is added to the report generator for later output
 		#
-		print "Searching levels:",
+		print "Searching levels:<br>",
 		for i in xrange(1,self.__searchLevels+1):
 			if self.__manager.getMemUsage() > maxMemoryToUse:
 				print "Memory limit exceeded: stopping search"
@@ -364,12 +363,14 @@ class ocUtils:
 			self.__manager.printFitReport(model)
 			self.__manager.makeFitTable(model)
 			self.__report.printResiduals(model)
+			sys.stdout.flush()
 			self.__report.printConditional_DV(model)
 			sys.stdout.flush()
-			if self.__manager.getOption("res-table"):
-				self.__manager.makeFitTable(model)
-				self.__report.printResiduals(model)
-				sys.stdout.flush()
+			# this code seems to repeat lines above, but is never called [jsf]
+			#if self.__manager.getOption("res-table"):
+			#	self.__manager.makeFitTable(model)
+			#	self.__report.printResiduals(model)
+			#	sys.stdout.flush()
 			print
 			print
 

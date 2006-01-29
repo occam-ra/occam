@@ -6,7 +6,7 @@ from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 
-VERSION = "3.2.18"
+VERSION = "3.2.19"
 
 false = 0; true = 1
 datadir = "data"
@@ -437,7 +437,7 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
 		except:
 			print "ERROR99"
 			traceback.print_exc(file=sys.stdout)
-			xfile = open('/tmp/except.log', 'w')
+	#		xfile = open('/tmp/except.log', 'w')
 	#		traceback.print_exc(file=xfile)
 	#		os.close(xfile)
 		printTime(startTime, textFormat)
