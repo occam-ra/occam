@@ -171,13 +171,13 @@ void ocKey::keyToUserString(ocKeySegment *key, ocVariableList *vars, char *str)
 	char *cp = str;
 	for (i = 0; i < varcount; i++) {
 		ocVariable *var = vars->getVariable(i);
-		char **map =var->valmap;
+		char **map = var->valmap;
 		ocKeySegment mask = var->mask;
 		int segment = var->segment;
 		int value = (key[segment] & mask) >> var->shift;
-		if(value<(var->cardinality)){
+		if(value < (var->cardinality)) {
 			assert(value >= 0 && value < 16);
-			int len1=strlen(map[value]);
+			int len1 = strlen(map[value]);
                 	strncpy(cp, map[value], len1);
 			cp += len1;
 		}
@@ -185,23 +185,23 @@ void ocKey::keyToUserString(ocKeySegment *key, ocVariableList *vars, char *str)
 	*cp = '\0';
 }
 
-void ocKey::getSibblings(ocKeySegment *key,ocVariableList *vars,ocTable *table,long *i_sibs,int DV_ind,int *no_sib)
+void ocKey::getSiblings(ocKeySegment *key, ocVariableList *vars, ocTable *table, long *i_sibs, int DV_ind, int *no_sib)
 {
-	int keySize=vars->getKeySize();	
-	ocKeySegment *temp_key=new ocKeySegment[keySize];
-	memcpy((int *)temp_key,(int *)key,keySize*sizeof(long));	
+	int keySize = vars->getKeySize();	
+	ocKeySegment *temp_key = new ocKeySegment[keySize];
+	memcpy((int *)temp_key, (int *)key, keySize * sizeof(long));	
 	int j=0;
 	ocVariable *var = vars->getVariable(DV_ind);
-        int card=var->cardinality;
+        int card = var->cardinality;
 
-	setKeyValue(temp_key,keySize,vars,DV_ind,0);
-	for(int i=0;i<card;i++){
-		long index=table->indexOf(temp_key);
-		if(index>-1){
-			i_sibs[j++]=index;
+	setKeyValue(temp_key, keySize, vars, DV_ind, 0);
+	for(int i=0; i < card; i++) {
+		long index = table->indexOf(temp_key);
+		if(index > -1) {
+			i_sibs[j++] = index;
 		}	
-		setKeyValue(temp_key,keySize,vars,DV_ind,i+1);
+		setKeyValue(temp_key, keySize, vars, DV_ind, i+1);
 	}
 	delete [] temp_key;
-	*no_sib=j;
+	*no_sib = j;
 }
