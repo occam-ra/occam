@@ -548,8 +548,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 		header_test1 = "<th> </th><th> </th><th> </th><th> </th><th>|</th><th colspan=2>Test Data</th>";
 		header_test2 = "<th> </th><th colspan=2>%%correct</th>";
 		header_end = "</tr>\n";
-		header2 = "<tr><td>&nbsp;</td><td> ";
-		format  = "<tr class=\"%s\"><td>%s</td><td>%d</td><td>";
+		header2 = "<tr><td>&nbsp;</td><td>&nbsp;";
+		format  = "<tr class=\"%s\"><td align=center>%s</td><td align=center>%d</td><td>";
 		// These three are row styles, for white & grey background colors and bold text
 		row0 = "r0";
 		row1 = "r1";
@@ -564,7 +564,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 		header_test1 = "\t \t \t \t \t|\tTest Data";
 		header_test2 = "\t \t%%correct\t ";
 		header_end = "\n";
-		header2="\t";
+		header2=" ";
 		format = "%s%s\t%d";
 		cell_sep = "\t";
 		break;
@@ -574,7 +574,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 		header_test1 = ", , , , ,|,Test Data";
 		header_test2 = ", ,%%correct, ";
 		header_end = "\n";
-		header2=",";
+		header2=" ";
 		format = "%s%s,%d";
 		cell_sep = ",";
 		break;
@@ -610,6 +610,16 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 		temp_key = input_data->getKey(i);
 		ocKey::getKeyValue(temp_key, key_size, var_list, dv_index, &dv_value);
 		input_dv_freq[dv_value] += (int)(input_data->getValue(i) * sample_size);
+	}
+
+	// Find the most common DV value, for test data predictions when no input data exists.
+	int input_default_dv = 0;
+	for (int i=0; i < dv_card; i++) {
+		if(input_dv_freq[i] > input_dv_freq[input_default_dv])
+			input_default_dv = i;
+	}
+	for (int i=0; i < iv_statespace; i++) {
+		fit_rule[i] = input_default_dv;
 	}
 
 	ocKeySegment *temp_key_array = new ocKeySegment[key_size];
@@ -924,6 +934,15 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 	// For each of the model's keys (ie, each row of the table)...
 	for(int i=0; i < iv_statespace; i++) {
 		ocKey::keyToUserString(fit_key[i], var_list, key_str);
+		if (input_key_freq[i] == 0) {
+			if (test_sample_size > 0) {
+				if (test_key_freq[i] == 0) {
+					continue;
+				}
+			} else {
+				continue;
+			}
+		}
 		// Print out the key (the "Cell" column) and the frequency of that key.
 		// Also, switch the bgcolor of each row from grey to white, every other row. (If not in HTML, this does nothing.)
 		if (i % 2) {
@@ -934,18 +953,21 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 		// Print out the percentages for each of the DV states
 		for(int j=0; j < dv_card; j++) {
 			fprintf(fd, cell_sep);
-			fprintf(fd, format_percent, fit_prob[i][dv_order[j]] / fit_key_prob[i] * 100.0);
+			if ((input_key_freq[i] == 0) || (fit_key_prob[i] == 0)) fprintf(fd, format_percent, 0.0);
+			else fprintf(fd, format_percent, fit_prob[i][dv_order[j]] / fit_key_prob[i] * 100.0);
 		}
 		fprintf(fd, cell_sep);
-		// Print the DV state of the best rule.
 		fprintf(fd, cell_sep);
+		// Print the DV state of the best rule. If there was no input to base the rule on, use the default rule.
+		//if (input_key_freq[i] == 0) fprintf(fd, format_str, dv_label[input_default_dv]);
 		fprintf(fd, format_str, dv_label[fit_rule[i]]);
 		fprintf(fd, cell_sep);
 		// Number correct (of the input data, based on the rule from fit)
 		fprintf(fd, format_int, input_freq[i][fit_rule[i]]);
 		fprintf(fd, cell_sep);
 		// Percent correct (of the input data, based on the rule from fit)
-		fprintf(fd, format_percent, (double)input_freq[i][fit_rule[i]] / (double)input_key_freq[i] * 100.0);
+		if (input_key_freq[i] == 0) fprintf(fd, format_percent, 0.0);
+		else fprintf(fd, format_percent, (double)input_freq[i][fit_rule[i]] / (double)input_key_freq[i] * 100.0);
 		if(test_sample_size > 0) {
 			fprintf(fd, cell_sep);
 			fprintf(fd, "|");
@@ -953,15 +975,18 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model)
 			// Print out the percentages for each of the DV states
 			for(int j=0; j < dv_card; j++) {
 				fprintf(fd, cell_sep);
-				fprintf(fd, format_percent, (double)test_freq[i][dv_order[j]] / (double)test_key_freq[i] * 100.0);	
+				if (test_key_freq[i] == 0) fprintf(fd, format_percent, 0.0);
+				else fprintf(fd, format_percent, (double)test_freq[i][dv_order[j]] / (double)test_key_freq[i] * 100.0);	
 			}
 			fprintf(fd, cell_sep);
 			// Frequency in test data
 			fprintf(fd, format_int, test_key_freq[i]);
 			fprintf(fd, cell_sep);
-			fprintf(fd, format_percent, (double)test_freq[i][fit_rule[i]] / (double)test_key_freq[i] * 100.0);
+			if (test_key_freq[i] == 0) fprintf(fd, format_percent, 0.0);
+			else fprintf(fd, format_percent, (double)test_freq[i][fit_rule[i]] / (double)test_key_freq[i] * 100.0);
 			fprintf(fd, cell_sep);
-			fprintf(fd, format_percent, (double)test_freq[i][test_rule[i]] / (double)test_key_freq[i] * 100.0);
+			if (test_key_freq[i] == 0) fprintf(fd, format_percent, 0.0);
+			else fprintf(fd, format_percent, (double)test_freq[i][test_rule[i]] / (double)test_key_freq[i] * 100.0);
 		}
 		fprintf(fd, end);
 	}
