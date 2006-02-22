@@ -57,7 +57,7 @@ public:
 	void printResiduals(FILE *fd, ocModel *model);
 	
 	//--Print Conditional DV's
-	void printConditional_DV(FILE *fd, ocModel *model);
+	void printConditional_DV(FILE *fd, ocModel *model, bool calcExpectedDV);
 
 	//--Print Conditional DV's
 	void printConditional_DV_rel(FILE *fd, ocRelation *rel);
