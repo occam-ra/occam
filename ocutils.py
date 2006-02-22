@@ -39,6 +39,7 @@ class ocUtils:
 		self.__fitModels = []
 		self.__reportFile = ""
 		self.__dataFile = ""
+		self.__calcExpectedDV = 0
 		self.__report.setSeparator(ocUtils.SPACESEP)	# align columns using spaces
 		self.__HTMLFormat = 0
 		self.__BPStatistics = 0
@@ -125,6 +126,9 @@ class ocUtils:
 
 	def setDataFile(self, dataFile):
 		self.__dataFile = dataFile
+
+	def setCalcExpectedDV(self, calcExpectedDV):
+		self.__calcExpectedDV = calcExpectedDV
 
 	def setNoIPF(self, state):
 		self.__NoIPF = state
@@ -364,7 +368,7 @@ class ocUtils:
 			self.__manager.makeFitTable(model)
 			self.__report.printResiduals(model)
 			sys.stdout.flush()
-			self.__report.printConditional_DV(model)
+			self.__report.printConditional_DV(model, self.__calcExpectedDV)
 			sys.stdout.flush()
 			# this code seems to repeat lines above, but is never called [jsf]
 			#if self.__manager.getOption("res-table"):
