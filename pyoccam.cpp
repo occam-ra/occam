@@ -1512,9 +1512,12 @@ DefinePyFunction(ocReport, printResiduals)
 DefinePyFunction(ocReport, printConditional_DV)
 {
 	PyObject *Pmodel;
-	PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+	int calcExpectedDV;
+	bool bCalcExpectedDV = false;
+	PyArg_ParseTuple(args, "O!i", &TocModel, &Pmodel, &calcExpectedDV);
+	if (calcExpectedDV != 0) bCalcExpectedDV = true;
 	ocModel *model = ObjRef(Pmodel, ocModel);
-	ObjRef(self, ocReport)->printConditional_DV(stdout, model);
+	ObjRef(self, ocReport)->printConditional_DV(stdout, model, bCalcExpectedDV);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
