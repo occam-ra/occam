@@ -172,13 +172,14 @@ def processSBFit(fn, model, oc):
 #---- actionFit ---- Report on Fit
 #
 def actionFit(formFields):
-	global textFormat
+	global textFormat, calcExpectedDV
 
 	fn = getDataFile(formFields)
 	man="VB"
 	oc = ocUtils(man)
 	oc.initFromCommandLine(["",fn])
 	oc.setDataFile(formFields["datafilename"])
+	oc.setCalcExpectedDV(calcExpectedDV)
 
 	if not formFields.has_key("data") or not formFields.has_key("model") :
 		actionNone(formFields, "Missing form fields")
@@ -186,7 +187,7 @@ def actionFit(formFields):
 	model = formFields["model"]
 
 	if textFormat:
-		processFit(fn, model,oc)
+		processFit(fn, model, oc)
 	else:
 		print "<span class=mono>"
 		processFit(fn, model, oc)
@@ -393,6 +394,7 @@ template = OpagCGI()
 datafile = ""
 textFormat = ""
 printOptions = ""
+calcExpectedDV = 0
 thispage = os.environ.get('SCRIPT_NAME', '')
 startTime = clock()
 startt=time.time()
@@ -410,6 +412,9 @@ printHeaders(formFields, textFormat)
 
 if formFields.has_key("printoptions"):
 	printOptions = "true"
+
+if formFields.has_key("calcExpectedDV"):
+	calcExpectedDV = 1
 
 printTop(template, textFormat)
 
