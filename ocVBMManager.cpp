@@ -804,11 +804,11 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	//-- Print general report for a single model, similar to Fit in Occam2
 	const char *header, *beginLine, *endLine, *separator, *footer, *headerSep;
 	if (ocReport::isHTMLMode()) {
-		header = "<table><tr><td>&nbsp;</td></tr>\n";
+		header = "<br><table><tr><td>&nbsp;</td></tr>\n";
 		beginLine = "<tr><td>";
 		separator = "</td><td>";
 		endLine = "</td></tr>\n";
-		footer = "</table>";
+		footer = "</table><br>\n";
 		headerSep = "<tr><td colspan=10><hr></td></tr>\n";
 	}
 	else {
@@ -816,7 +816,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 		beginLine = "    ";
 		separator = ",";
 		endLine = "\n";
-		footer = "\n";
+		footer = "\n\n";
 		headerSep = 
 		"-------------------------------------------------------------------------\n";
 	}
@@ -826,8 +826,8 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	int row, col, rowlabel;
 	const char *label;
 	
-	fprintf(fd, header);
 	fprintf(fd,"-------------------------------------------------------------------------\n\n");
+	fprintf(fd, header);
 	fprintf(fd, "\n%sREFERENCE = %s%s", beginLine, ref, endLine);
 	label = "Value";
 	fprintf(fd, "%s%s%s%s", beginLine, separator, label, separator);
@@ -857,38 +857,47 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	//-- Print general report for a single model, similar to Fit in Occam2
 	const char *header, *beginLine, *endLine, *separator, *footer;
 	if (ocReport::isHTMLMode()) {
-		header = "<table>\n";
+		header = "<table border=0 cellspacing=0 cellpadding=0>\n";
 		beginLine = "<tr><td>";
 		separator = "</td><td>";
 		endLine = "</td></tr>\n";
-		footer = "</table>";
-	}
-	else {
+		footer = "</table><br>";
+		fprintf(fd, "<br>\n");
+	} else {
 		header = "";
 		beginLine = "    ";
 		separator = ",";
 		endLine = "\n";
-		footer = "\n";
+		footer = "\n\n";
+		fprintf(fd, "\n");
 	}
 	bool directed = getVariableList()->isDirected();
 	fprintf(fd, header);
-	fprintf(fd, "%sModel%s%s%s", beginLine, separator, 
-		model->getPrintName(), separator);
+	fprintf(fd, "%sModel%s%s", beginLine, separator, model->getPrintName());
 	if (directed)
-		fprintf(fd, "Directed System%s", endLine);
+		fprintf(fd, " (Directed System)%s", endLine);
 	else
-		fprintf(fd, "Neutral System%s", endLine);
+		fprintf(fd, " (Neutral System)%s", endLine);
 	
 	//-- Print relations using long names
 	int i, j;
 	for (i = 0; i < model->getRelationCount(); i++) {
 		fprintf(fd, beginLine);
 		ocRelation *rel = model->getRelation(i);
+		if (directed) {
+			if (rel->isIndOnly() )
+				fprintf(fd, "IV Component:");
+			else
+				fprintf(fd, "Model Component: ");
+			fprintf(fd, separator);
+		}
 		for (j = 0; j <rel->getVariableCount(); j++) {
 			const char *varname = getVariableList()->getVariable(rel->getVariable(j))->name;
 			if (j > 0) fprintf(fd, ", ");
 			fprintf(fd, varname);
 		}
+		fprintf(fd, separator);
+		fprintf(fd, rel->getPrintName());
 		fprintf(fd, endLine);
 	}
 	
@@ -897,18 +906,12 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	const char *label;
 	double value;
 
-	label = "Sample size:";
-	fprintf(fd, "%s%s%s%d%s", beginLine, label, separator, sampleSize, endLine);
-	label = "Number of cells:";
-	value = topRef->getAttributeList()->getAttribute("df") + 1;
-	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
 	label = "Degrees of Freedom (DF):";
 	value = model->getAttributeList()->getAttribute("df");
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
 	label = "Loops:";
-	value = model->getAttributeList()->getAttribute("h");
-	fprintf(fd, "%s%s%s%s%s", beginLine, label, separator,
-		value > 0 ? "YES" : "NO", endLine);
+	value = model->getAttributeList()->getAttribute("loops");
+	fprintf(fd, "%s%s%s%s%s", beginLine, label, separator, value > 0 ? "YES" : "NO", endLine);
 	label = "Entropy(H):";
 	value = model->getAttributeList()->getAttribute("h");
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
@@ -947,8 +950,8 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	computeDependentStatistics(model);
 	computeL2Statistics(model);
 	computePearsonStatistics(model);
-
 	printRefTable(model->getAttributeList(), fd, "TOP", topFields1, 3);
+
 	model->getAttributeList()->reset();
 	setRefModel("bottom");
 	computeInformationStatistics(model);
@@ -964,7 +967,7 @@ void ocVBMManager::printBasicStatistics()
 	const char *header, *beginLine, *endLine, *separator, *footer;
 	double h;
 	if (ocReport::isHTMLMode()) {
-		header = "<table width=\"30%\">\n";
+		header = "<br><br><table border=0 cellpadding=0 cellspacing=0 width=\"30%\">\n";
 		beginLine = "<tr><td>";
 		separator = "</td><td>";
 		endLine = "</td></tr>\n";
@@ -980,11 +983,11 @@ void ocVBMManager::printBasicStatistics()
 	bool directed = getVariableList()->isDirected();
 	printf("%s\n", header);
 	double topH = computeH(topRef);
-	printf("%s%s%s%lg%s\n", beginLine, "H(data)", separator, topH, endLine);
 	double stateSpace = computeDF(getTopRefModel())+1;
         double sampleSz1 = getSampleSz();
 	printf("%s%s%s%lg%s\n", beginLine, "State Space Size", separator, stateSpace, endLine);
 	printf("%s%s%s%lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
+	printf("%s%s%s%lg%s\n", beginLine, "H(data)", separator, topH, endLine);
 	if (directed) {
 		double depH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_DEP_H);
 		double indH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_IND_H);
