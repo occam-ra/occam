@@ -358,7 +358,7 @@ class ocUtils:
 		self.__manager.printBasicStatistics()
 		if printOptions: self.printOptions(0);
 		for modelName in self.__fitModels:
-			print "Model: ", modelName
+			#print "Model: ", modelName
 			self.__manager.setRefModel(self.__refModel)
 			model = self.__manager.makeModel(modelName, 1)
 			self.__manager.computeL2Statistics(model)
@@ -370,11 +370,6 @@ class ocUtils:
 			sys.stdout.flush()
 			self.__report.printConditional_DV(model, self.__calcExpectedDV)
 			sys.stdout.flush()
-			# this code seems to repeat lines above, but is never called [jsf]
-			#if self.__manager.getOption("res-table"):
-			#	self.__manager.makeFitTable(model)
-			#	self.__report.printResiduals(model)
-			#	sys.stdout.flush()
 			print
 			print
 
@@ -449,7 +444,7 @@ class ocUtils:
 
 	def printOptions(self,r_type):
 		if self.__HTMLFormat:
-			print "<table>"
+			print "<br><table border=0 cellpadding=0 cellspacing=0>"
 		self.__manager.printOptions(self.__HTMLFormat)
 		self.printOption("Input data file", self.__dataFile)
 		if r_type==1:	
