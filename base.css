@@ -45,15 +45,15 @@ font-family: Courier, monospace;
 font-size: 10pt;
 }
 
-TR.r0 TD {
+TR.r0 TD, TD.r0, TH.r0 {
 background-color: #ffffff;
 }
 
-TR.r1 TD {
+TR.r1 TD, TD.r1, TH.r1 {
 background-color: #e0e0e0;
 }
 
-TR.em TD {
+TR.em TD, TD.em, TH.em {
 font-weight: bold;
 }
 
