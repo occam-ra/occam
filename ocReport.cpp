@@ -541,11 +541,19 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, bool calcExpectedDV
 	footer = row0 = row1 = emphasis = "";
 	row_start = "%s";
 	row_end = "\n";
+	ocRelation *iv_rel = model->getRelation(0);
 
 	if (htmlMode) fprintf(fd,"<br>\n");
 	fprintf(fd,"-------------------------------------------------------------------------\n");
 	if (htmlMode) fprintf(fd,"<br><br>\n");
 	fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s    \n", model->getPrintName());
+	if (htmlMode) fprintf(fd, "<br><br>\n");
+	fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
+	for(int i=0; i < iv_rel->getVariableCount(); i++) {
+		if (i > 0) fprintf(fd, ", ");
+		fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(i))->name);
+	}
+	fprintf(fd, ")\n");
 	if (htmlMode) fprintf(fd, "<br><br>\n");
 
 	// Set appropriate format
@@ -555,8 +563,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, bool calcExpectedDV
 		header  = "<table border=0 cellpadding=0 cellspacing=0><tr><th>&nbsp;</th><th colspan=3>Training Data</th><th> </th>";
 		header_test = "<th> </th><th> </th><th> </th><th> </th><th>|</th><th colspan=2>Test Data</th>";
 		header_sep = "<th> </th>";
-		header2 = "<tr><th>&nbsp;</th><th>&nbsp;</th><th> </th><th colspan=2>calc. q(DV|IV)</th>";
-		header2_test1 = "<th> </th><th> </th><th> </th><th> </th><th>|</th><th> </th><th colspan=2>obs. p(DV|IV)</th>";
+		header2 = "<tr><th>&nbsp;</th><th>&nbsp;</th><th> </th><th colspan=2 class=r1>calc.&nbsp;q(DV|IV)</th>";
+		header2_test1 = "<th> </th><th> </th><th> </th><th> </th><th>|</th><th> </th><th colspan=2 class=\"r1\">obs.&nbsp;p(DV|IV)</th>";
 		header2_test2 = "<th colspan=2>%%correct</th>";
 		header_end = "</tr>\n";
 		row_start = "<tr class=\"%s\"><td align=right>";
@@ -1013,7 +1021,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, bool calcExpectedDV
 	double total_expected_value = 0.0;
 	// Print out the totals row.
 	fprintf(fd, row_start, emphasis);
-	fprintf(fd, format_str, "total");		fprintf(fd, row_sep);
+	fprintf(fd, format_str, "totals:");		fprintf(fd, row_sep);
 	fprintf(fd, format_int, (int)sample_size);	fprintf(fd, row_sep);		fprintf(fd, row_sep);
 	// Print the marginals for each DV state
 	for(int j=0; j < dv_card; j++) {
@@ -1060,20 +1068,58 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, bool calcExpectedDV
 		}
 	}
 	fprintf(fd, row_end);
+	// Print out a footer, since most tables will be long
+	fprintf(fd, row_start, "");
+	fprintf(fd, format_str, "");		fprintf(fd, row_sep);
+	fprintf(fd, format_str, "freq");	fprintf(fd, row_sep);		fprintf(fd, row_sep);
+	// Print the values for the DV states, above each column
+	for(int i=0; i < dv_card; i++) {
+		fprintf(fd, "%s=", dv_var->abbrev);
+		fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
+	}
+	fprintf(fd, row_sep);
+	fprintf(fd, "rule");		fprintf(fd, row_sep);
+	fprintf(fd, "#correct");	fprintf(fd, row_sep);
+	fprintf(fd, "%%correct");
+	if(calcExpectedDV == true) {
+		fprintf(fd, row_sep);
+		fprintf(fd, "E(DV)");		fprintf(fd, row_sep);
+		fprintf(fd, "MSE");
+	}
+
+	if(test_sample_size > 0) {
+		fprintf(fd, row_sep);
+		fprintf(fd, "|");		fprintf(fd, row_sep);
+		fprintf(fd, "freq");		fprintf(fd, row_sep);
+		// Print the values for the DV states, above each column
+		for(int i=0; i < dv_card; i++) {
+			fprintf(fd, "%s=", dv_var->abbrev);
+			fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
+		}
+		fprintf(fd, "by rule");		fprintf(fd, row_sep);
+		fprintf(fd, "best");
+		if(calcExpectedDV == true) {
+			fprintf(fd, row_sep);
+			fprintf(fd, "MSE");
+		}
+	}
+	fprintf(fd, row_end);
+
 	fprintf(fd, footer);
 
+	// Print out a summary of the performance on the test data, if present.
 	if(test_sample_size > 0) {
 		if (htmlMode) fprintf(fd, "<table cellpadding=0 cellspacing=0 border=0>");
 		fprintf(fd, row_start, "");
 		fprintf(fd, "Performance on Test Data\n");
 		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Default: %6.3f%%\n", default_percent_on_test);
+		fprintf(fd, "Default: %6.3f%% correct\n", default_percent_on_test);
 		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Model rule: %6.3f%%\n", fit_percent_on_test);
+		fprintf(fd, "Model rule: %6.3f%% correct\n", fit_percent_on_test);
 		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Best possible: %6.3f%%\n", best_percent_on_test);
+		fprintf(fd, "Best possible: %6.3f%% correct\n", best_percent_on_test);
 		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Improvement by model: %6.3f%%\n", (fit_percent_on_test - default_percent_on_test) / (best_percent_on_test - default_percent_on_test) * 100.0);
+		fprintf(fd, "Improvement by model: %6.3f%%&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;\n", (fit_percent_on_test - default_percent_on_test) / (best_percent_on_test - default_percent_on_test) * 100.0);
 		fprintf(fd, row_end);
 		fprintf(fd, footer);
 		if (htmlMode) fprintf(fd,"<br>\n");
