@@ -802,23 +802,24 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	const char **strings, int rows)
 {
 	//-- Print general report for a single model, similar to Fit in Occam2
-	const char *header, *beginLine, *endLine, *separator, *footer, *headerSep;
+	const char *line_sep, *header, *beginLine, *endLine, *separator, *footer, *headerSep;
 	if (ocReport::isHTMLMode()) {
-		header = "<br><table><tr><td>&nbsp;</td></tr>\n";
+		line_sep = "<hr>\n";
+		header = "<table border=0 cellpadding=0 cellspacing=0><tr><td>&nbsp;</td></tr>\n";
 		beginLine = "<tr><td>";
 		separator = "</td><td>";
 		endLine = "</td></tr>\n";
-		footer = "</table><br>\n";
+		footer = "</table><br><br>\n";
 		headerSep = "<tr><td colspan=10><hr></td></tr>\n";
 	}
 	else {
-		header = "\n";
+		line_sep = "-------------------------------------------------------------------------\n\n";
+		header = "";
 		beginLine = "    ";
 		separator = ",";
 		endLine = "\n";
 		footer = "\n\n";
-		headerSep = 
-		"-------------------------------------------------------------------------\n";
+		headerSep = "    -----------------------------------------------\n";
 	}
 	int cols = 3;
 	int labelwidth = 20;
@@ -826,7 +827,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	int row, col, rowlabel;
 	const char *label;
 	
-	fprintf(fd,"-------------------------------------------------------------------------\n\n");
+	fprintf(fd, line_sep);
 	fprintf(fd, header);
 	fprintf(fd, "\n%sREFERENCE = %s%s", beginLine, ref, endLine);
 	label = "Value";
@@ -855,8 +856,9 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 {
 	//-- Print general report for a single model, similar to Fit in Occam2
-	const char *header, *beginLine, *endLine, *separator, *footer;
+	const char *line_sep, *header, *beginLine, *endLine, *separator, *footer;
 	if (ocReport::isHTMLMode()) {
+		line_sep = "<hr>\n";
 		header = "<table border=0 cellspacing=0 cellpadding=0>\n";
 		beginLine = "<tr><td>";
 		separator = "</td><td>";
@@ -864,6 +866,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 		footer = "</table><br>";
 		fprintf(fd, "<br>\n");
 	} else {
+		line_sep = "-------------------------------------------------------------------------\n\n";
 		header = "";
 		beginLine = "    ";
 		separator = ",";
@@ -893,7 +896,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 		}
 		for (j = 0; j <rel->getVariableCount(); j++) {
 			const char *varname = getVariableList()->getVariable(rel->getVariable(j))->name;
-			if (j > 0) fprintf(fd, ", ");
+			if (j > 0) fprintf(fd, "; ");
 			fprintf(fd, varname);
 		}
 		fprintf(fd, separator);
@@ -959,7 +962,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	computeL2Statistics(model);
 	computePearsonStatistics(model);
 	printRefTable(model->getAttributeList(), fd, "BOTTOM", bottomFields1, 3);
-	fprintf(fd,"-------------------------------------------------------------------------\n\n");
+	fprintf(fd, line_sep);
 }
 
 void ocVBMManager::printBasicStatistics()
