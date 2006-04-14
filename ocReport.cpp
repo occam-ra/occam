@@ -57,7 +57,7 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_P2, "P2", "%12.4f"},
 {ATTRIBUTE_P2_ALPHA, "P2 Alpha", "%12.4f"},
 {ATTRIBUTE_P2_BETA, "P2 Beta", "%12.4f"},
-{ATTRIBUTE_LR, "LR", "%12.4f"},
+{ATTRIBUTE_LR, "dLR", "%12.4f"},
 {ATTRIBUTE_ALPHA, "Alpha", "%12.4f"},
 {ATTRIBUTE_BETA, "Beta", "%12.4f"},
 {ATTRIBUTE_BP_T, "T(BP)", "%12.4f"},
@@ -196,12 +196,8 @@ void ocReport::print(FILE *fd)
 	const int cwid=15;
 
 	//-- print the header
-	if (sepStyle) {
-		fprintf(fd, "MODEL");
-	}
-	else {
-		fprintf(fd, "<table><tr><th>MODEL</th>");
-	} 
+	if (sepStyle) fprintf(fd, "MODEL");
+	else fprintf(fd, "<table><tr><th>MODEL</th>"); 
 	int pad, tlen;
 	char titlebuf[1000];
 	for (a = 0; a < attrCount; a++) {
@@ -216,31 +212,28 @@ void ocReport::print(FILE *fd)
 		}
 		int tlen = (pct == 0) ? strlen(title) : pct - title;
 		switch(sepStyle) {
-		case 0:
-			fprintf(fd, "<th width=100 align=left>%s</th>\n", title);
-			break;
-		case 1:
-			fprintf(fd, "\t%s", title);
-			break;
-		case 2:
-			fprintf(fd, ",%s", title);
-			break;
-		case 3:
-		default:
-			pad = cwid - tlen;
-			if (pad < 0) pad = 0;
-			if (a == 0) pad += cwid - 5;
-			fprintf(fd, "%*c%s", pad, ' ', title);
-			break;
+			case 0:
+				fprintf(fd, "<th width=100 align=left>%s</th>\n", title);
+				break;
+			case 1:
+				fprintf(fd, "\t%s", title);
+				break;
+			case 2:
+				fprintf(fd, ",%s", title);
+				break;
+			case 3:
+			default:
+				pad = cwid - tlen;
+				if (pad < 0) pad = 0;
+				if (a == 0) pad += cwid - 5;
+				fprintf(fd, "%*c%s", pad, ' ', title);
+				break;
 		}
 	}
-	if (sepStyle) {
-		fprintf(fd, "\n");
-	}
-	else {
-		fprintf(fd, "</tr>\n");
-	}
+	if (sepStyle) fprintf(fd, "\n");
+	else fprintf(fd, "</tr>\n");
 	
+
 	//-- print a line for each model
 	int m;
 	char field[100];
@@ -252,8 +245,7 @@ void ocReport::print(FILE *fd)
 			pad = cwid - strlen(mname);
 			if (pad < 0) pad = 1;
 			fprintf(fd, "%s%*c", mname, pad, ' ');
-		}
-		else {
+		} else {
 			fprintf(fd, "<tr><td>%s</td>", mname);
 		}
 		for (a = 0; a < attrCount; a++) {
@@ -286,13 +278,48 @@ void ocReport::print(FILE *fd)
 				break;
 			}
 		}
-		if (sepStyle) {
-			fprintf(fd, "\n");
+		if (sepStyle) fprintf(fd, "\n");
+		else fprintf(fd, "</tr>\n");
+	}
+
+
+	//-- print the header AGAIN
+	if (sepStyle) fprintf(fd, "MODEL");
+	else fprintf(fd, "<tr><th>MODEL</th>"); 
+	for (a = 0; a < attrCount; a++) {
+		const char *title = attrID[a] >= 0 ? attrDescriptions[attrID[a]].title : attrs[a];
+		const char *pct = strchr(title, '$');
+		tlen = strlen(title);
+		if (pct) {
+			tlen = pct - title;
+			strncpy(titlebuf, title, tlen);
+			titlebuf[tlen] = '\0';
+			title = titlebuf;
 		}
-		else {
-			fprintf(fd, "</tr>\n");
+		int tlen = (pct == 0) ? strlen(title) : pct - title;
+		switch(sepStyle) {
+			case 0:
+				fprintf(fd, "<th width=100 align=left>%s</th>\n", title);
+				break;
+			case 1:
+				fprintf(fd, "\t%s", title);
+				break;
+			case 2:
+				fprintf(fd, ",%s", title);
+				break;
+			case 3:
+			default:
+				pad = cwid - tlen;
+				if (pad < 0) pad = 0;
+				if (a == 0) pad += cwid - 5;
+				fprintf(fd, "%*c%s", pad, ' ', title);
+				break;
 		}
 	}
+	if (sepStyle) fprintf(fd, "\n");
+	else fprintf(fd, "</tr>\n");
+
+
 	if (sepStyle) {
 		fprintf(fd, "\n");
 	}
@@ -317,8 +344,8 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 	ocVariableList *varlist = model->getRelation(0)->getVariableList();
 	if (htmlMode) fprintf(fd,"<br><br>\n");
 	if(varlist->isDirected()) {
-		printf("(Residuals not calculated for directed systems.)\n");
-		if (htmlMode) fprintf(fd, "<br>");
+		printf("(Residuals not calculated for directed systems.)");
+		if (htmlMode) fprintf(fd, "<br>\n");
 		return;
 	} else {
 		fprintf(fd, "RESIDUALS\n");
@@ -402,9 +429,8 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 
 
 static void orderIndices(char **stringArray, int len, int *order) {
-	//// Figure out alphabetical order for the dv states
+	//// Figure out the alphabetical order for an array of strings (such as the dv states)
 	// (This isn't the most effficient algorithm, but it's simple, and enough to sort a few string values.)
-//	int *order = new int[len];
 	
 	// Find the last value in the order list, to initialize the other searches with
 	int last = 0;
@@ -576,11 +602,11 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	format_percent = "%6.3f";
 	format_str     = "%s";
 	format_int     = "%d";
-	row0 = row1 = emphasis = "";
+	footer = row0 = row1 = emphasis = "";
 	row_start = "%s";
-	footer = row_end = "\n";
+	row_end = "\n";
 	ocRelation *iv_rel;
-	line_sep = "-------------------------------------------------------------------------\n";
+	line_sep = "\n-------------------------------------------------------------------------";
 	blank_line = "\n\n";
 
 	// Set appropriate format
@@ -637,19 +663,19 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		break;
 	}
 
-	fprintf(fd, blank_line);
+	if (htmlMode) fprintf(fd, blank_line);
 	fprintf(fd, line_sep);
 	fprintf(fd, blank_line);
 	if(rel == NULL) {
-		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s    ", model->getPrintName());
+		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s    \n", model->getPrintName());
 		iv_rel = model->getRelation(0);
-		fprintf(fd, blank_line);
+		if (htmlMode) fprintf(fd, "<br>\n");
 		fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
 		for(int i=0; i < iv_rel->getVariableCount(); i++) {
 			if (i > 0) fprintf(fd, "; ");
 			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(i))->name);
 		}
-		fprintf(fd, ")\n");
+		fprintf(fd, ")");
 	} else {
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s    ", rel->getPrintName());
 	}
@@ -1142,27 +1168,30 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		}
 	}
 	fprintf(fd, row_end);
-
 	fprintf(fd, footer);
 
 	// Print out a summary of the performance on the test data, if present.
 	if(test_sample_size > 0) {
 		if (htmlMode) fprintf(fd, "<table cellpadding=0 cellspacing=0 border=0>");
+		else fprintf(fd, "\n");
 		fprintf(fd, row_start, "");
 		fprintf(fd, "Performance on Test Data");
 		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Default: %6.3f%% correct", default_percent_on_test);
+		fprintf(fd, "Default:");	fprintf(fd, row_sep);
+		fprintf(fd, "%6.3f%%", default_percent_on_test);	fprintf(fd, row_sep);	fprintf(fd, "correct");
 		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Model rule: %6.3f%% correct", fit_percent_on_test);
+		fprintf(fd, "Model rule:");	fprintf(fd, row_sep);
+		fprintf(fd, "%6.3f%%", fit_percent_on_test);		fprintf(fd, row_sep);	fprintf(fd, "correct");
 		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Best possible: %6.3f%% correct", best_percent_on_test);
+		fprintf(fd, "Best possible:");	fprintf(fd, row_sep);
+		fprintf(fd, "%6.3f%%", best_percent_on_test);		fprintf(fd, row_sep);	fprintf(fd, "correct");
 		fprintf(fd, row_end);	fprintf(fd, row_start, "");
 		temp_percent = best_percent_on_test - default_percent_on_test;
 		if ((temp_percent) != 0) {
 			temp_percent = (fit_percent_on_test - default_percent_on_test) / temp_percent * 100.0;
 		}
-		fprintf(fd, "Improvement by model: %6.3f%%", temp_percent);
-		if (htmlMode) fprintf(fd, "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;");
+		fprintf(fd, "Improvement by model:");	fprintf(fd, row_sep);
+		fprintf(fd, "%6.3f%%", temp_percent);
 		fprintf(fd, row_end);
 		fprintf(fd, footer);
 	}
