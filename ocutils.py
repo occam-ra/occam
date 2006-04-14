@@ -235,6 +235,7 @@ class ocUtils:
 		# print self.__manager.printSizes();
 		return newModels
 
+
 	#
 	# this function returns the name of the search strategy to use based on
 	# the searchMode and loopless settings above
@@ -309,7 +310,7 @@ class ocUtils:
 		# process each level, up to the number of levels indicated. Each of the best models
 		# is added to the report generator for later output
 		#
-		print "Searching levels:<br>",
+		print "<br>Searching levels:<br>"
 		for i in xrange(1,self.__searchLevels+1):
 			if self.__manager.getMemUsage() > maxMemoryToUse:
 				print "Memory limit exceeded: stopping search"
@@ -334,6 +335,9 @@ class ocUtils:
 			# if the list is empty, stop. Also, only do one step for chain search
 			if self.__searchFilter == "chain" or len(oldModels) == 0:
 				break
+		print "<br>"
+
+
 
 	def printReport(self):
 		#
@@ -348,7 +352,6 @@ class ocUtils:
 			self.__report.writeReport(self.__reportFile)
 		else:
 			self.__report.printReport()
-		print "--- RELATIONS ---<br><pre>"
 		#-- self.__manager.dumpRelations()
 		print "</pre>"
 	
@@ -358,7 +361,6 @@ class ocUtils:
 		self.__manager.printBasicStatistics()
 		if printOptions: self.printOptions(0);
 		for modelName in self.__fitModels:
-			#print "Model: ", modelName
 			self.__manager.setRefModel(self.__refModel)
 			model = self.__manager.makeModel(modelName, 1)
 			self.__manager.computeL2Statistics(model)
