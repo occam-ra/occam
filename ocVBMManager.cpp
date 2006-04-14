@@ -282,7 +282,7 @@ void ocVBMManager::computeInformationStatistics(ocModel *model)
         output : .
 
 ****************************************************************/
-void ocVBMManager::calculateAicBic(ocModel *model,ocAttributeList *attrs)
+void ocVBMManager::calculateAicBic(ocModel *model, ocAttributeList *attrs)
 {
         double sampleSize = getSampleSz();
         double deltaH_Aic = computeH(model);
@@ -292,20 +292,20 @@ void ocVBMManager::calculateAicBic(ocModel *model,ocAttributeList *attrs)
 
 	//******************************
 	// delta - AIC & BIC
-	if(firstCome){
+	if(firstCome) {
 	    double reDeltaH_Aic = computeH(refModel);
 	    double refDF = computeDF(refModel);	// get DF of the ref model
 	    reDeltaH_Aic *= log(2.0);
             firstCome = false;
-            refer_AIC = (2*sampleSize)*reDeltaH_Aic + 2*refDF;
-            refer_BIC = (2*sampleSize)*reDeltaH_Aic + (log(sampleSize)*refDF);
+            refer_AIC = (2 * sampleSize) * reDeltaH_Aic + 2 * refDF;
+            refer_BIC = (2 * sampleSize) * reDeltaH_Aic + (log(sampleSize) * refDF);
 	}
-        deltaH_Aic = (2*sampleSize)*deltaH_Aic + 2*modelDF;
-        deltaH_Bic = (2*sampleSize)*deltaH_Bic + (log(sampleSize)*modelDF);
+        deltaH_Aic = (2 * sampleSize) * deltaH_Aic + 2 * modelDF;
+        deltaH_Bic = (2 * sampleSize) * deltaH_Bic + (log(sampleSize) * modelDF);
 
 	//******************************
-	deltaH_Aic = refer_AIC-deltaH_Aic;	// calculate delta AIC and BIC
-	deltaH_Bic = refer_BIC-deltaH_Bic;
+	deltaH_Aic = refer_AIC - deltaH_Aic;	// calculate delta AIC and BIC
+	deltaH_Bic = refer_BIC - deltaH_Bic;
         attrs->setAttribute(ATTRIBUTE_AIC, deltaH_Aic);
         attrs->setAttribute(ATTRIBUTE_BIC, deltaH_Bic);
 }
@@ -813,13 +813,14 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 		headerSep = "<tr><td colspan=10><hr></td></tr>\n";
 	}
 	else {
-		line_sep = "-------------------------------------------------------------------------\n\n";
+		line_sep = "-------------------------------------------------------------------------\n";
 		header = "";
 		beginLine = "    ";
 		separator = ",";
 		endLine = "\n";
-		footer = "\n\n";
-		headerSep = "    -----------------------------------------------\n";
+		footer = "\n";
+		//headerSep = "    -----------------------------------------------\n";
+		headerSep = "";
 	}
 	int cols = 3;
 	int labelwidth = 20;
@@ -866,13 +867,12 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 		footer = "</table><br>";
 		fprintf(fd, "<br>\n");
 	} else {
-		line_sep = "-------------------------------------------------------------------------\n\n";
+		line_sep = "-------------------------------------------------------------------------\n";
 		header = "";
 		beginLine = "    ";
 		separator = ",";
 		endLine = "\n";
-		footer = "\n\n";
-		fprintf(fd, "\n");
+		footer = "\n";
 	}
 	bool directed = getVariableList()->isDirected();
 	fprintf(fd, header);
@@ -981,7 +981,7 @@ void ocVBMManager::printBasicStatistics()
 		beginLine = "    ";
 		separator = ",";
 		endLine = "";
-		footer = "\n";
+		footer = "";
 	}
 	bool directed = getVariableList()->isDirected();
 	printf("%s\n", header);
