@@ -197,7 +197,7 @@ void ocReport::print(FILE *fd)
 
 	//-- print the header
 	if (sepStyle) fprintf(fd, "MODEL");
-	else fprintf(fd, "<table><tr><th>MODEL</th>"); 
+	else fprintf(fd, "<table border=0 cellpadding=0 cellspacing=0><tr><th align=left>MODEL</th>"); 
 	int pad, tlen;
 	char titlebuf[1000];
 	for (a = 0; a < attrCount; a++) {
@@ -285,7 +285,7 @@ void ocReport::print(FILE *fd)
 
 	//-- print the header AGAIN
 	if (sepStyle) fprintf(fd, "MODEL");
-	else fprintf(fd, "<tr><th>MODEL</th>"); 
+	else fprintf(fd, "<tr><th align=left>MODEL</th>"); 
 	for (a = 0; a < attrCount; a++) {
 		const char *title = attrID[a] >= 0 ? attrDescriptions[attrID[a]].title : attrs[a];
 		const char *pct = strchr(title, '$');

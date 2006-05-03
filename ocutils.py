@@ -220,7 +220,7 @@ class ocUtils:
 		newModels = []
 		fullCount = 0;
 		for model in oldModels:
-			print '.',	# progress indicator
+	#		print '.',	# progress indicator
 			fullCount = fullCount + self.processModel(level, newModels, model)
 		#newModels.sort(self.__compareModels)
 		#fullCount = len(newModels)
@@ -316,7 +316,7 @@ class ocUtils:
 				print "Memory limit exceeded: stopping search"
 				break
 
-			print i,' ',	# progress indicator
+			print i,': ',	# progress indicator
 			newModels = self.processLevel(i, oldModels)
 			for model in newModels:
 				# make sure all statistics are calculated. This
