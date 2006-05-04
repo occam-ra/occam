@@ -3,15 +3,15 @@ BODY {
 background-color: #ffffff;
 color: #000000;
 font-family: Courier;
-font-size: 10pt;
+font-size: 9pt;
 }
 
 P {
-font-size: 10pt;
+font-size: 9pt;
 }
 
 TH, TD {
-font-size: 10pt;
+font-size: 9pt;
 padding-left: 6px;
 padding-right: 6px;
 padding-top: 2px;
@@ -42,7 +42,7 @@ TABLE {
 background-color: #ffffff;
 color: #000000;
 font-family: Courier, monospace;
-font-size: 10pt;
+font-size: 9pt;
 }
 
 TR.r0 TD, TD.r0, TH.r0 {
