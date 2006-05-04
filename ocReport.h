@@ -56,12 +56,15 @@ public:
 	//-- Print residual table
 	void printResiduals(FILE *fd, ocModel *model);
 	
-	//--Print Conditional DV's
+	//-- Print conditional DVs
+	//-- Print conditionals for a model.
 	void printConditional_DV(FILE *fd, ocModel *model, bool calcExpectedDV);
+	//-- Print conditionals for a relation.
+	void printConditional_DV(FILE *fd, ocRelation *rel, bool calcExpectedDV);
+	//-- This function is called by both of the others above.
+	//-- If both model and relation are present, the relation is printed.
+	void printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bool calcExpectedDV);
 
-	//--Print Conditional DV's
-	void printConditional_DV_rel(FILE *fd, ocRelation *rel);
-		
 protected:
 	static bool htmlMode;
 	class ocManagerBase *manager;
