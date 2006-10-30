@@ -239,6 +239,8 @@ double ocVBMManager::computeDDF(ocModel *model)
 	double df = refDF - modelDF;
 	//-- for bottom reference the sign will be wrong
 	df = fabs(df);
+	// for each relation in the model
+		// if it's not in the reference model
 	attrs->setAttribute(ATTRIBUTE_DDF, df);
 	return df;
 }
