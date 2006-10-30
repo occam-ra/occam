@@ -507,7 +507,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	//-- Print general report for a single model, similar to Fit in Occam2
 	const char *header, *beginLine, *endLine, *separator, *footer, *headerSep;
 	if (ocReport::isHTMLMode()) {
-		header = "<table>\n";
+		header = "<table border=0 cellpadding=0 cellspacing=0>\n";
 		beginLine = "<tr><td>";
 		separator = "</td><td>";
 		endLine = "</td></tr>\n";
