@@ -162,6 +162,8 @@ private:	// data
         double refer_BP_AIC;
         double refer_BP_BIC;
 
+	// Called by computeDDF to build a list of the relations that differ between two models.
+	void buildDDF(ocRelation *rel, ocModel *loModel, ocModel *diffModel, bool directed);
   };
  
  #endif
