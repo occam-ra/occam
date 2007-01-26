@@ -3,7 +3,8 @@
 # ocutils - utility scripts for common operations,
 # such as processing old format occam files
 
-import os, sys, re, occam, random
+import os, sys, re, occam, random, time
+#from time import clock
 totalgen=0
 totalkept=0
 # don't exceed 500 MB
@@ -26,12 +27,13 @@ class ocUtils:
 		else:			
 			self.__manager = occam.ocSBMManager()
 		self.__report = self.__manager.ocReport()
+		self.__DDFMethod = "new"
 		self.__sortName = "ddf"
 		self.__reportSortName = ""
 		self.__sortDir = "ascending"
 		self.__searchSortDir = "ascending"
-		self.__searchWidth = 20
-		self.__searchLevels = 12
+		self.__searchWidth = 1
+		self.__searchLevels = 5
 		self.__searchDir = "default"
 		self.__searchFilter = "all"
 		self.__startModel = "default"
@@ -70,6 +72,9 @@ class ocUtils:
 	#
 	#-- Set control attributes
 	#
+	def setDDFMethod(self, DDFMethod):
+		self.__DDFMethod = DDFMethod
+
 	def setSortName(self, sortName):
 		self.__sortName = sortName
 
@@ -231,7 +236,9 @@ class ocUtils:
 		totalgen = fullCount+totalgen
                 totalkept = truncCount+totalkept
 		memUsed = self.__manager.getMemUsage();
-		print "  %ld models generated, %ld kept, %ld total models generated, %ld total models kept, %ld bytes memory used<br>" % (fullCount, truncCount, totalgen+1 ,totalkept+1, memUsed)
+		print '  %ld new models, %ld kept; %ld total models,' % (fullCount, truncCount, totalgen+1)
+		print '  %ld total kept; %ld kb memory used; ' % (totalkept+1, memUsed/1024)
+
 		# print self.__manager.printSizes();
 		return newModels
 
@@ -310,7 +317,12 @@ class ocUtils:
 		# process each level, up to the number of levels indicated. Each of the best models
 		# is added to the report generator for later output
 		#
-		print "<br>Searching levels:<br>"
+		if self.__HTMLFormat:
+			print "<br>Searching levels:<br>"
+		else:
+			print "Searching levels:"
+		start_time = time.time()
+		last_time = start_time
 		for i in xrange(1,self.__searchLevels+1):
 			if self.__manager.getMemUsage() > maxMemoryToUse:
 				print "Memory limit exceeded: stopping search"
@@ -318,6 +330,13 @@ class ocUtils:
 
 			print i,': ',	# progress indicator
 			newModels = self.processLevel(i, oldModels)
+			current_time = time.time()
+			print '%.1f seconds, %.1f total' % (current_time - last_time, current_time - start_time)
+			last_time = current_time
+			if self.__HTMLFormat:
+				print "<br>"
+			else:
+				print ""
 			for model in newModels:
 				# make sure all statistics are calculated. This
 				# won't do anything if we did it already
@@ -335,7 +354,8 @@ class ocUtils:
 			# if the list is empty, stop. Also, only do one step for chain search
 			if self.__searchFilter == "chain" or len(oldModels) == 0:
 				break
-		print "<br>"
+		if self.__HTMLFormat:
+			print "<br>"
 
 
 
