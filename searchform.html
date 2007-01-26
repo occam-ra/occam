@@ -61,9 +61,9 @@
 			</TD>
 			<TD>
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" checked name="searchtype" value="all">All
+				<INPUT type="radio" name="searchtype" value="all">All
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchtype" value="loopless">Loopless
+				<INPUT type="radio" checked name="searchtype" value="loopless">Loopless
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="searchtype" value="disjoint">Disjoint
 				&nbsp;&nbsp;&nbsp;
@@ -103,26 +103,26 @@
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" checked name="searchsortdir" value="descending">Larger Values
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchsortdir" value="ascending">Smaller Values
-			</TD>
+				<INPUT type="radio" name="searchsortdir" value="ascending">Smaller Values</TD>
 		</TR>
 		<TR class="form">
 			<TD>
-				Search Width (models to keep at each level)
-			</TD>
+				Search Width:<br>(models to keep at each level)</TD>
 			<TD>
-				<INPUT type="text" size="4" name="searchwidth">
-			</TD>
+				<INPUT type="text" size="4" name="searchwidth" value="1"></TD>
 		</TR>	
 		<TR class="form">
 			<TD>
-				Search Levels
+				Search Levels:
 			</TD>
 			<TD>
-				<INPUT type="text" size="4" name="searchlevels">
-			</TD>
+				<INPUT type="text" size="4" name="searchlevels" value="5">&nbsp;&nbsp;(leave blank to use settings from data file)</TD>
 		</TR>
-		<TR><TD>&nbsp;</td><TD>(leave blank to use settings from data file, or defaults)</td></tr>	
+		<TR>
+			<TD>dDF Calculation:</TD>
+			<TD><input type="radio" name="new" checked>New method
+				<input type="radio" name="old">Old method</TD>
+		</TR>
 		<TR>
 			<TD colspan="99">
 				<HR>
@@ -137,7 +137,7 @@
 			<TD>
 				In Report, Sort By:
 			</TD>
-			<TD>
+			<TD colspan="2">
 				<INPUT type="radio" checked name="sortreportby" value="information">Information
 				<INPUT type="radio" name="sortreportby" value="alpha">Alpha
 				<INPUT type="radio" name="sortreportby" value="ddf">dDF
