@@ -1,6 +1,6 @@
 #! /pkg/python/bin/python
 
-import os, sys, cgi, sys, occam,time, string, traceback, pickle
+import os, sys, cgi, sys, occam, time, string, traceback, pickle
 from ocutils import ocUtils
 from time import clock
 from OpagCGI import OpagCGI
@@ -53,10 +53,9 @@ def printTop(template, textFormat):
 #
 #---- printTime ---- Print elapsed time
 #
-def printTime(startTime, textFormat):
-	now=time.time();
-	elapsed_t=now-startt
-	#elapsed = clock() - startTime;
+def printTime(textFormat):
+	now = time.time();
+	elapsed_t = now - startt
 	if textFormat:
 		 if elapsed_t>0:
                         print "Run time: %f seconds\n" % elapsed_t
@@ -248,6 +247,7 @@ def actionSearch(formFields):
 
 	reportSort = formFields.get("sortreportby", "")
 	searchSort = formFields.get("sortby", "")
+	ddfMethod = formFields.get("ddfmethod", "")
 
 	oc.setStartModel(formFields.get("model", "default"))
 
@@ -280,7 +280,7 @@ def actionSearch(formFields):
 			reportvars = reportvars + ", bp_cond_pct_dh"
 		reportvars = reportvars + ", bp_aic, bp_bic"	#********** Junghan : attach aic & bic
 	else:
-		reportvars = "Level$I, h, ddf, lr, alpha, information"
+		reportvars = "Level$I, h, ddf, ddf2, lr, alpha, information"
 		if oc.isDirected():
 			reportvars = reportvars + ", cond_pct_dh"
 		reportvars = reportvars + ", aic, bic"	#********** Junghan : attach aic & bic
@@ -294,6 +294,7 @@ def actionSearch(formFields):
 
 	oc.setReportSortName(reportSort)
  	oc.setSortName(searchSort)
+ 	oc.setDDFMethod(ddfMethod)
 	oc.setReportVariables(reportvars)
 
 	if textFormat:
@@ -396,8 +397,7 @@ textFormat = ""
 printOptions = ""
 calcExpectedDV = 0
 thispage = os.environ.get('SCRIPT_NAME', '')
-startTime = clock()
-startt=time.time()
+startt = time.time()
 
 # See if this is a batch run or a web server run
 argc = len(sys.argv)
@@ -445,7 +445,7 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
 	#		xfile = open('/tmp/except.log', 'w')
 	#		traceback.print_exc(file=xfile)
 	#		os.close(xfile)
-		printTime(startTime, textFormat)
+		printTime(textFormat)
 
 if not textFormat:
 	printBottom()
