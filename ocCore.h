@@ -255,6 +255,7 @@ public:
 	// variables. maxVarCount is the allocated size of indices.
 	int copyVariables(int *indices, int maxCount, int skip = -1);
 	int *getVariables();
+	int getDDFPortion();
 	int getIndependentVariables(int *indices, int maxCount);
 	int getDependentVariables(int *indices, int maxCount);
 	int copyMissingVariables(int *indices, int maxCount);
@@ -365,6 +366,7 @@ public:
 	void addRelation(ocRelation *relation, bool normalize=true);
 	int getRelations(ocRelation **rels, int maxRelations);
 	ocRelation *getRelation(int index);
+	bool containsRelation(ocRelation *relation);
 	int getRelationCount();
 	ocTable *getFitTable();
 	void setFitTable(ocTable *tbl);
@@ -444,6 +446,7 @@ private:
 #define ATTRIBUTE_T "t"
 #define ATTRIBUTE_DF "df"
 #define ATTRIBUTE_DDF "ddf"
+#define ATTRIBUTE_DDF2 "ddf2"
 #define ATTRIBUTE_DDF_IND "ddf_bot"
 #define ATTRIBUTE_FIT_H "fit_h"
 #define ATTRIBUTE_ALG_H "alg_h"
