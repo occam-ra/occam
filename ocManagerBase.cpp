@@ -18,9 +18,8 @@
 
 const int defaultRelSize = 10;
 
-#define LOG_PROJECTIONS
+//#define LOG_PROJECTIONS
 #ifdef LOG_PROJECTIONS
-
 static FILE *projfd = NULL;
 void logProjection(const char *name)
 {
@@ -28,14 +27,12 @@ void logProjection(const char *name)
   fprintf(projfd, "%s\n", name);
   fflush(projfd);
 }
-
 #else
-
 void logProjection(const char *name)
 {
 }
-
 #endif
+
 
 ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input)
 	: varList(vars), inputData(input), keysize(vars ? vars->getKeySize() : 0)
@@ -116,27 +113,27 @@ int ocManagerBase::calc_StateConst_sz(int varcount,int *varindices, int *statein
 	}
 	return size;
 }
-//int loop=0;
+
 //--add the constraints for a relation 
 int ocManagerBase::addConstraint(int varcount,int *varindices,int *stateindices,int* stateindices_c,ocKeySegment* start1,ocRelation *rel){
 	ocVariable *var;
 	int keysize = getKeySize();
 	int count=varcount-1;
 	int card=0;
-//loop++;
-//printf("loop is %d\n",loop);
-//if(loop==10)exit(1);
+	//loop++;
+	//printf("loop is %d\n",loop);
+	//if(loop==10)exit(1);
 	//get card
 	while(stateindices[count]!=DONT_CARE){	
 		count--;	
 		if(count<0)return 0;
 	}
-//printf("count is %d\n",count);
+	//printf("count is %d\n",count);
 start:
 	var=varList->getVariable(varindices[count]);
 	card=var->cardinality;
 	if(stateindices_c[count]==(card-1)){
-//printf("card is reached \n");
+		//printf("card is reached \n");
 		stateindices_c[count]=0x00;
 		count--;
 		while(stateindices[count]!=DONT_CARE){	
@@ -147,11 +144,11 @@ start:
 		goto start;
 	}else{
 		stateindices_c[count]++;
-//printf("stateindices %d and value %d \n",count,stateindices_c[count]);
+		//printf("stateindices %d and value %d \n",count,stateindices_c[count]);
 		ocKey::buildKey(start1,keysize,varList,varindices,stateindices_c,varcount);
 		rel->getStateConstraint()->addConstraint(start1);
 		addConstraint(varcount,varindices,stateindices,stateindices_c,start1,rel);  
-return 0;
+		return 0;
 	}
 		
 }
@@ -866,8 +863,10 @@ struct VarIntersect {
 	ocRelation *rel;
 	VarIntersect():startIndex(0), rel(NULL) {}
 };
+
 static VarIntersect *intersectArray = NULL;
 static long intersectMax = 2000;
+
 void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcessor *proc)
 {
 	int intersectCount = 0;
@@ -1058,6 +1057,7 @@ ocModel *ocManagerBase::makeModel(const char *name, bool makeProject)
 
 	return model;
 }
+
 #define MAXSTATENAME 10
 ocModel *ocManagerBase::makeSBModel(const char *name, bool makeProject)
 {
