@@ -58,6 +58,7 @@ void ocModel::copyRelations(ocModel &model, int skip1, int skip2)
 		if (skip1 != i && skip2 != i) addRelation(rel, false);
 	}
 }
+
 //state space array
 int * ocModel::get_indicesfromKey(ocKeySegment *key, ocVariableList *vars, int statespace,int **State_Sp_Arr, int *counter){
 	int varcount=vars->getVarCount();	
@@ -130,22 +131,22 @@ void ocModel::makeStructMatrix(int statespace,ocVariableList *vars ,int **State_
         }
 */
 /* NEW CODE added */
-        for(i=0; i<= const_count;i++){
-                State_Space_Arr1=new int[statespace];
-                structMatrix[i]=State_Space_Arr1;
+        for(i=0; i <= const_count; i++){
+                State_Space_Arr1 = new int[statespace];
+                structMatrix[i] = State_Space_Arr1;
         }
 //printf("count is: %d\n", count);
 //printf("State_Space is: %d\n", statespace);
 //exit(1);
-	for(i=0;i<statespace;i++){
-		for(int j=0;j<const_count;j++){
-			structMatrix[j][i]=0;
+	for(i=0; i < statespace; i++){
+		for(int j=0; j < const_count; j++){
+			structMatrix[j][i] = 0;
 		}
 		//the default constraint
-		structMatrix[const_count][i]=1;
+		structMatrix[const_count][i] = 1;
 	}
-	const_count=0;
-	int T_const_count=0;
+	const_count = 0;
+	int T_const_count = 0;
 	for (i = 0; i < count; i++) {
 		ocRelation *rel = getRelation(i);
  		if(rel == NULL){
@@ -162,32 +163,24 @@ void ocModel::makeStructMatrix(int statespace,ocVariableList *vars ,int **State_
                         printf("error happenned in file : ocModel.cpp after getConstraintCount\n");
                         exit(1);
                 }
-		for(int j=0;j<const_count;j++){
-			ocKeySegment* key=sc->getConstraint(j);	
+		for(int j=0; j < const_count; j++){
+			ocKeySegment* key = sc->getConstraint(j);	
 			 if(key == NULL)
                         {
                                 printf("error happenned in file : ocModel.cpp after getConstraints\n");
                                 exit(1);
                         }
 			int counter;
-			int *indices=get_indicesfromKey(key,vars,statespace,State_Sp_A,&counter);			
+			int *indices = get_indicesfromKey(key,vars,statespace,State_Sp_A,&counter);			
 			//printf("number of 1s in the constraint %d\n",counter);
-			for(int k=0;k<counter;k++){	
-				structMatrix[T_const_count+j][indices[k]]=1;
+			for(int k=0; k < counter; k++){	
+				structMatrix[T_const_count+j][indices[k]] = 1;
 			}
 			//printf("row for %d constraint in %d relation\n",j,i);
 				
 		}
-		T_const_count+=const_count;
+		T_const_count += const_count;
 	}
-		//printf("In make structmartix \n");
-	/*		for(int k=0;k<T_const_count+1;k++){
-			for(int l=0;l<statespace;l++){
-				printf("%d,",structMatrix[k][l]);
-			}
-			printf("\n");
-			}*/
-//exit(1);	
 }
 
 
@@ -244,6 +237,7 @@ void ocModel::addRelation(ocRelation *relation, bool normalize)
 
 
 int ocModel::getRelations(ocRelation **rels, int maxRelations)
+
 {
 	int count = (relationCount < maxRelations) ? relationCount : maxRelations;
 	memcpy(rels, relations, count*sizeof(ocRelation*));
@@ -254,6 +248,17 @@ int ocModel::getRelations(ocRelation **rels, int maxRelations)
 ocRelation *ocModel::getRelation(int index)
 {
 	return (index < relationCount) ? relations[index] : NULL;
+}
+
+
+// Returns true if this model contains the specified relation; false otherwise.
+bool ocModel::containsRelation(ocRelation *relation) {
+	for (int i = 0; i < relationCount; i++) {
+		//if (relation->compare(relations[i]) == 0)
+		if (relations[i]->contains(relation))
+			return true;
+	}
+	return false;
 }
 
 
