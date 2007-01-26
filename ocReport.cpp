@@ -24,6 +24,7 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_T, "T", "%12.4f"},
 {ATTRIBUTE_DF, "DF", "%14.0f"},
 {ATTRIBUTE_DDF, "dDF", "%14.0f"},
+{ATTRIBUTE_DDF2, "dDF2", "%14.0f"},
 {ATTRIBUTE_FIT_H, "H(IPF)", "%12.4f"},
 {ATTRIBUTE_ALG_H, "H(ALG)", "%12.4f"},
 {ATTRIBUTE_FIT_T, "T(IPF)", "%12.4f"},
@@ -326,6 +327,8 @@ void ocReport::print(FILE *fd)
 	else {
 		fprintf(fd, "</table>");
 	}
+
+	delete attrID;
 }
 
 void ocReport::print(int fd)
@@ -1015,7 +1018,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		// Print out the percentages for each of the DV states
 		temp_percent = 0.0;
 		for(int j=0; j < dv_card; j++) {
-			if ((input_key_freq[i] == 1) || (fit_key_prob[i] == 0)) temp_percent = 0.0;
+			if (fit_key_prob[i] == 0) temp_percent = 0.0;
 			else {
 				temp_percent = fit_prob[i][dv_order[j]] / fit_key_prob[i] * 100.0;
 				if(calcExpectedDV == true) {
@@ -1025,7 +1028,6 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			fprintf(fd, format_percent, temp_percent);	fprintf(fd, row_sep);
 		}
 		// Print the DV state of the best rule. If there was no input to base the rule on, use the default rule.
-		//if (input_key_freq[i] == 0) fprintf(fd, format_str, dv_label[input_default_dv]);
 		fprintf(fd, format_str, dv_label[fit_rule[i]]); 		fprintf(fd, row_sep);
 		// Number correct (of the input data, based on the rule from fit)
 		fprintf(fd, format_int, input_freq[i][fit_rule[i]]);		fprintf(fd, row_sep);
@@ -1137,7 +1139,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	fprintf(fd, row_start, "");
 	fprintf(fd, format_str, "");		fprintf(fd, row_sep);
 	fprintf(fd, format_str, "freq");	fprintf(fd, row_sep);
-	// Print the values for the DV states, above each column
+	// Print the values for the DV states, below each column
 	for(int i=0; i < dv_card; i++) {
 		fprintf(fd, "%s=", dv_var->abbrev);
 		fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
@@ -1196,13 +1198,32 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		fprintf(fd, footer);
 	}
 
-	delete key_str;
-	delete dv_order;
 	if(rel == NULL) {
 		for(int i=1; i < model->getRelationCount(); i++){
 			printConditional_DV(fd, model->getRelation(i), calcExpectedDV);
 		}
 	}
+
+	delete marginal;
+	delete dv_order;
+	delete temp_key_array;
+	delete index_sibs;
+	for(int i=0; i < dv_card; i++) {
+		delete dv_label[i];
+	}
+	if(test_sample_size > 0) {
+		for(int i=0; i < iv_statespace; i++) {
+			delete test_key[i], test_freq[i];
+		}
+	}
+	for(int i=0; i < iv_statespace; i++) {
+		delete fit_key[i], input_key[i], fit_prob[i], input_freq[i];
+	}
+	delete test_rule, test_key_freq, test_dv_freq, test_freq, test_key;
+	delete input_rule, input_key_freq, input_dv_freq, input_freq, input_key;
+	delete fit_dv_expected, fit_rule, fit_key_prob, fit_dv_prob, fit_prob, fit_key;
+	delete dv_label, key_str;
+	delete test_table, input_table;
 }
 
 
