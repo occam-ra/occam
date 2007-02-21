@@ -143,7 +143,7 @@ void ocTable::sumTuple(ocKeySegment *key, double value)
 double ocTable::getValue(long index)
 {
 	if (index < 0 || index >= tupleCount) return 0.0;
-	else return *(ValuePtr(data, keysize, index));
+	else return (double) *(ValuePtr(data, keysize, index));
 }
 
 /**
