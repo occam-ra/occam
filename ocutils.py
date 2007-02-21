@@ -27,7 +27,7 @@ class ocUtils:
 		else:			
 			self.__manager = occam.ocSBMManager()
 		self.__report = self.__manager.ocReport()
-		self.__DDFMethod = "new"
+		self.__DDFMethod = 0
 		self.__sortName = "ddf"
 		self.__reportSortName = ""
 		self.__sortDir = "ascending"
@@ -73,7 +73,10 @@ class ocUtils:
 	#-- Set control attributes
 	#
 	def setDDFMethod(self, DDFMethod):
-		self.__DDFMethod = DDFMethod
+		method = int(DDFMethod)
+		if method != 0 and method != 1:
+			method = 0
+		self.__DDFMethod = method
 
 	def setSortName(self, sortName):
 		self.__sortName = sortName
@@ -294,6 +297,11 @@ class ocUtils:
 			start = self.__manager.makeModel(self.__startModel, 1)
 
 		self.__manager.setRefModel(self.__refModel)
+		self.__manager.setDDFMethod(self.__DDFMethod)
+		if (self.__searchDir == "down"):
+			self.__manager.setSearchDirection(1)
+		else:
+			self.__manager.setSearchDirection(0)
 
 		if printOptions: self.printOptions(1)
 		self.__manager.printBasicStatistics()
