@@ -68,6 +68,13 @@ const double OC_COMPARE_EPSILON = 1e-8;
 	double computeExplainedInformation(ocModel *model);
 	double computeUnexplainedInformation(ocModel *model);
 	double computeDDF(ocModel *model);
+	void setDDFMethod(int method);
+
+	// Sets the direction in which search is occurring, which is mostly used for information.
+	// 0 = up, 1 = down.  This doesn't actually control the direction of search, but it's
+	// useful for determining other things, such as DDF.
+	void setSearchDirection(int dir);
+	int getSearchDirection() { return searchDirection; }
 
 	//-- flag to indicate whether to make projections on all relations
 	void setMakeProjection(bool proj) { projection = proj; }
@@ -126,24 +133,15 @@ const double OC_COMPARE_EPSILON = 1e-8;
 
 	//-- Get predicting variables, for a model of adependent system.
 	//-- The predicting variables are those in any relation other than
-	//-- the IV relation. Optionally the dependent variables can be
-	//-- included in this.
+	//-- the IV relation. Optionally the dependent variables can be included in this.
 	//-- the varindices arg is filled with the variable indices;
 	//-- it needs to have been allocated large enough.
 	void getPredictingVars(ocModel *model, int *varindices, int &varcount,
 			       bool includeDeps);
 
-        /************************************************
-        *       calculateAIC() by Junghan               *
-        *                                               *
-        ************************************************/
-        void calculateAicBic(ocModel *model,ocAttributeList *);
         void calculateBP_AicBic(ocModel *model, ocAttributeList *attrs);
 
 private:	// data
-	ocModel *topRef;
-	ocModel *bottomRef;
-	ocModel *refModel;
 	bool projection;
 	class ocSearchBase *search;
 	char *filterAttr;
@@ -151,10 +149,8 @@ private:	// data
 	char *sortAttr;
 	int sortDirection;
 	RelOp filterOp;
+	int searchDirection;
 	
-	/************************************************
-        *       for delta AIC & BIC     by Junghan      *
-        ************************************************/
         bool firstCome;
 	bool firstComeBP;
         double refer_AIC;
@@ -164,6 +160,7 @@ private:	// data
 
 	// Called by computeDDF to build a list of the relations that differ between two models.
 	void buildDDF(ocRelation *rel, ocModel *loModel, ocModel *diffModel, bool directed);
+	int DDFMethod;	// method to use for computing DDF. 0=new (default); 1=old
   };
  
  #endif
