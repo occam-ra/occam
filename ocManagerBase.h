@@ -112,9 +112,8 @@ public:
 
 	// Compute degrees of freedom of a model.  This involves computing degrees
 	// of freedom of the constituent relations, minus the first order overlaps,
-	// plus the second order overlaps,etc. This also computes entropy, though
-	// it isn't correct if the model contains loops. For models with loops, use
-	// IPF.
+	// plus the second order overlaps, etc. This also computes entropy, though
+	// it isn't correct if the model contains loops. For models with loops, use IPF.
 	void DFAndEntropy(ocModel *model);
 	
 	// Determine if the model has loops, and cache this fact for later use
@@ -133,6 +132,10 @@ public:
 
 	double compute_SB_DF(ocModel *model);
 
+	virtual ocModel *getTopRefModel() { return topRef; };
+	virtual ocModel *getBottomRefModel() { return bottomRef; };
+	virtual ocModel *getRefModel() { return refModel; };
+	virtual int getSearchDirection() = 0;
 	
 	int getKeySize() { return keysize; }
 	double getSampleSz(){return (double)sampleSize;}
@@ -177,6 +180,9 @@ public:
 	void dumpRelations();
 
 protected:
+	ocModel *topRef;
+	ocModel *bottomRef;
+	ocModel *refModel;
 	ocVariableList *varList;
 	int keysize;
 	int sampleSize;
