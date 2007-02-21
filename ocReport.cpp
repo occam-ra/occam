@@ -24,20 +24,19 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_T, "T", "%12.4f"},
 {ATTRIBUTE_DF, "DF", "%14.0f"},
 {ATTRIBUTE_DDF, "dDF", "%14.0f"},
-{ATTRIBUTE_DDF2, "dDF2", "%14.0f"},
 {ATTRIBUTE_FIT_H, "H(IPF)", "%12.4f"},
 {ATTRIBUTE_ALG_H, "H(ALG)", "%12.4f"},
 {ATTRIBUTE_FIT_T, "T(IPF)", "%12.4f"},
 {ATTRIBUTE_ALG_T, "T(ALG)", "%12.4f"},
-{ATTRIBUTE_LOOPS, "LOOPS", "%2.0f"},      // Junghan
-{ATTRIBUTE_EXPLAINED_I, "Inf", "%12.4f"},             // change name "Information" to "Inf"
-{ATTRIBUTE_AIC, "dAIC", "%12.4f"},                    // new
-{ATTRIBUTE_BIC, "dBIC", "%12.4f"},                            // new
-{ATTRIBUTE_BP_AIC, "dAIC(BP)", "%12.4f"},                       // new
-{ATTRIBUTE_BP_BIC, "dBIC(BP)", "%12.4f"},                       // new
-{ATTRIBUTE_PCT_CORRECT_DATA, "%C(Data)", "%12.4f"},       // change name % correct
-{ATTRIBUTE_PCT_CORRECT_TEST, "%C(Test)", "%12.4f"},       // change name % correct
-{ATTRIBUTE_BP_EXPLAINED_I, "Inf(BP)", "%12f"},          // change name "Information" to "Inf"
+{ATTRIBUTE_LOOPS, "LOOPS", "%2.0f"},
+{ATTRIBUTE_EXPLAINED_I, "Inf", "%12.4f"},
+{ATTRIBUTE_AIC, "dAIC", "%12.4f"},
+{ATTRIBUTE_BIC, "dBIC", "%12.4f"},
+{ATTRIBUTE_BP_AIC, "dAIC(BP)", "%12.4f"},
+{ATTRIBUTE_BP_BIC, "dBIC(BP)", "%12.4f"},
+{ATTRIBUTE_PCT_CORRECT_DATA, "%C(Data)", "%12.4f"},
+{ATTRIBUTE_PCT_CORRECT_TEST, "%C(Test)", "%12.4f"},
+{ATTRIBUTE_BP_EXPLAINED_I, "Inf(BP)", "%12f"},
 //*******************************************************************************
 {ATTRIBUTE_UNEXPLAINED_I, "Unexp Info", "%12.4f"},
 {ATTRIBUTE_T_FROM_H, "T(H)", "%12.4f"},
@@ -174,19 +173,17 @@ void ocReport::sort(class ocModel** models, long modelCount,
 	qsort(models, modelCount, sizeof(ocModel*), sortCompare);
 }
 
+
+// Print a report of the search results
 void ocReport::print(FILE *fd)
 {
-	//-- ignore separator style in HTML mode
-	int sepStyle = htmlMode ? 0 : separator;
-
-	//-- to speed things up, we make a list of the indices of the attribute descriptions
+	// To speed things up, we make a list of the indices of the attribute descriptions
 	int *attrID = new int[attrCount];
-	int a, d;
-	for (a = 0; a < attrCount; a++) {
+	for (int a = 0; a < attrCount; a++) {
 		attrID[a] = -1;
-		//-- find the attribute
+		// Find the attribute
 		const char *attrp = attrs[a];
-		for (d = 0; d < attrDescCount; d++) {
+		for (int d = 0; d < attrDescCount; d++) {
 			if (strcasecmp(attrp, attrDescriptions[d].name) == 0) {
 				attrID[a] = d;
 				break;
@@ -194,145 +191,196 @@ void ocReport::print(FILE *fd)
 		}
 	}
 	
-	const int cwid=15;
+	// Print out the search results for each model, with the header before and after
+	if (htmlMode) fprintf(fd, "<table border=0 cellpadding=0 cellspacing=0>\n");
+	printSearchHeader(fd, attrID);
+	for (int m = 0; m < modelCount; m++) {
+		printSearchRow(fd, models[m], attrID);
+	}
+	printSearchHeader(fd, attrID);
 
-	//-- print the header
-	if (sepStyle) fprintf(fd, "MODEL");
-	else fprintf(fd, "<table border=0 cellpadding=0 cellspacing=0><tr><th align=left>MODEL</th>"); 
-	int pad, tlen;
-	char titlebuf[1000];
-	for (a = 0; a < attrCount; a++) {
-		const char *title = attrID[a] >= 0 ? attrDescriptions[attrID[a]].title : attrs[a];
-		const char *pct = strchr(title, '$');
-		tlen = strlen(title);
-		if (pct) {
-			tlen = pct - title;
-			strncpy(titlebuf, title, tlen);
-			titlebuf[tlen] = '\0';
-			title = titlebuf;
+	// Loop through the models to find the best values for each measure of model quality
+	ocAttributeList *modelAttrs;
+	double bestBIC, bestAIC, bestInf_01, bestInf_05, bestInf_1, bestTest;
+	double tempBIC, tempAIC, tempAlpha, tempInf, tempTest;
+	bestBIC = bestAIC = bestInf_01 = bestInf_05 = bestInf_1 = bestTest = -100;
+
+	// Only show best info/alpha valuse when searching from the bottom.
+	bool showAlpha = false;
+	if ( (manager->getRefModel() == manager->getBottomRefModel()) || 
+	( (manager->getRefModel() != manager->getTopRefModel()) && manager->getSearchDirection() == 0) ) 
+		showAlpha = true;
+
+	// Only show percent correct on test data when it's present.
+	bool showPercentCorrect = false;
+	if (models[0]->getAttributeList()->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST) != -1.0) showPercentCorrect = true;
+
+	for (int m = 0; m < modelCount; m++) {
+		modelAttrs = models[m]->getAttributeList();
+		tempBIC   = modelAttrs->getAttribute(ATTRIBUTE_BIC);
+		tempAIC   = modelAttrs->getAttribute(ATTRIBUTE_AIC);
+		if (tempBIC > bestBIC) bestBIC = tempBIC;
+		if (tempAIC > bestAIC) bestAIC = tempAIC;
+		if (showAlpha) {
+			tempAlpha = modelAttrs->getAttribute(ATTRIBUTE_ALPHA);
+			tempInf   = modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I);
+			if ((tempAlpha < 0.01) && (tempInf > bestInf_01)) bestInf_01 = tempInf;
+			if ((tempAlpha < 0.05) && (tempInf > bestInf_05)) bestInf_05 = tempInf;
+			if ((tempAlpha < 0.1 ) && (tempInf > bestInf_1 )) bestInf_1  = tempInf;
 		}
-		int tlen = (pct == 0) ? strlen(title) : pct - title;
-		switch(sepStyle) {
-			case 0:
-				fprintf(fd, "<th width=100 align=left>%s</th>\n", title);
-				break;
-			case 1:
-				fprintf(fd, "\t%s", title);
-				break;
-			case 2:
-				fprintf(fd, ",%s", title);
-				break;
-			case 3:
-			default:
-				pad = cwid - tlen;
-				if (pad < 0) pad = 0;
-				if (a == 0) pad += cwid - 5;
-				fprintf(fd, "%*c%s", pad, ' ', title);
-				break;
+		if (showPercentCorrect) {
+			tempTest  = modelAttrs->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST);
+			if (tempTest > bestTest) bestTest = tempTest;
 		}
 	}
-	if (sepStyle) fprintf(fd, "\n");
-	else fprintf(fd, "</tr>\n");
+
+	// Now print out the best models for each of the various measures
+	if (!htmlMode) fprintf(fd, "\n\nBest Model(s) by dBIC:\n");
+	else fprintf(fd, "<tr><td colspan=8><br><br><b>Best Model(s) by dBIC:</b></td></tr>\n");
+	for (int m = 0; m < modelCount; m++) {
+		modelAttrs = models[m]->getAttributeList();
+		if (modelAttrs->getAttribute(ATTRIBUTE_BIC) != bestBIC) continue;
+		printSearchRow(fd, models[m], attrID);
+	}
+
+	if (!htmlMode) fprintf(fd, "Best Model(s) by dAIC:\n");
+	else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by dAIC:</b></td></tr>\n");
+	for (int m = 0; m < modelCount; m++) {
+		modelAttrs = models[m]->getAttributeList();
+		if (modelAttrs->getAttribute(ATTRIBUTE_AIC) != bestAIC) continue;
+		printSearchRow(fd, models[m], attrID);
+	}
+
+	if(showAlpha) {
+		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.01:\n");
+		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.01</b>:</td></tr>\n");
+		for (int m = 0; m < modelCount; m++) {
+			modelAttrs = models[m]->getAttributeList();
+			if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_01) continue;
+			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.01) continue;
+			printSearchRow(fd, models[m], attrID);
+		}
 	
-
-	//-- print a line for each model
-	int m;
-	char field[100];
-	const char *mname;
-	for (m = 0; m < modelCount; m++) {
-		ocAttributeList *modelAttrs = models[m]->getAttributeList();
-		mname = models[m]->getPrintName();
-		if (sepStyle) {
-			pad = cwid - strlen(mname);
-			if (pad < 0) pad = 1;
-			fprintf(fd, "%s%*c", mname, pad, ' ');
-		} else {
-			fprintf(fd, "<tr><td>%s</td>", mname);
+		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.05:\n");
+		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.05</b>:</td></tr>\n");
+		for (int m = 0; m < modelCount; m++) {
+			modelAttrs = models[m]->getAttributeList();
+			if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_05) continue;
+			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.05) continue;
+			printSearchRow(fd, models[m], attrID);
 		}
-		for (a = 0; a < attrCount; a++) {
-			const char *fmt = attrID[a] >= 0 ? attrDescriptions[attrID[a]].fmt : 0;
-			if (fmt == 0) {
-				//-- get format info from name, if present
-				const char *pct = strchr(attrs[a], '$');
-				fmt = (pct && toupper(*(pct+1)) == 'I') ? "%14.0f" : "%12f";
-			}
-			double attr = modelAttrs->getAttribute(attrs[a]);
-			//-- -1 means uninitialized, so don't print
-			if (attr == -1.0) field[0] = '\0';
-			else sprintf(field, fmt, attr);
-			switch(sepStyle) {
-			case 0:
-				fprintf(fd, "<td>%s</td>\n", field);
-				break;
-			case 1:
-				fprintf(fd, "\t");
-				fprintf(fd, field);
-				break;
-			case 2:
-				fprintf(fd, ",");
-				fprintf(fd, field);
-				break;
-			case 3:
-				pad = cwid - strlen(field);
-				fprintf(fd, "%*c", pad, ' ');
-				fprintf(fd, field);
-				break;
-			}
-		}
-		if (sepStyle) fprintf(fd, "\n");
-		else fprintf(fd, "</tr>\n");
-	}
-
-
-	//-- print the header AGAIN
-	if (sepStyle) fprintf(fd, "MODEL");
-	else fprintf(fd, "<tr><th align=left>MODEL</th>"); 
-	for (a = 0; a < attrCount; a++) {
-		const char *title = attrID[a] >= 0 ? attrDescriptions[attrID[a]].title : attrs[a];
-		const char *pct = strchr(title, '$');
-		tlen = strlen(title);
-		if (pct) {
-			tlen = pct - title;
-			strncpy(titlebuf, title, tlen);
-			titlebuf[tlen] = '\0';
-			title = titlebuf;
-		}
-		int tlen = (pct == 0) ? strlen(title) : pct - title;
-		switch(sepStyle) {
-			case 0:
-				fprintf(fd, "<th width=100 align=left>%s</th>\n", title);
-				break;
-			case 1:
-				fprintf(fd, "\t%s", title);
-				break;
-			case 2:
-				fprintf(fd, ",%s", title);
-				break;
-			case 3:
-			default:
-				pad = cwid - tlen;
-				if (pad < 0) pad = 0;
-				if (a == 0) pad += cwid - 5;
-				fprintf(fd, "%*c%s", pad, ' ', title);
-				break;
+	
+		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.1:\n");
+		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.1</b>:</td></tr>\n");
+		for (int m = 0; m < modelCount; m++) {
+			modelAttrs = models[m]->getAttributeList();
+			if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_1) continue;
+			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.1) continue;
+			printSearchRow(fd, models[m], attrID);
 		}
 	}
-	if (sepStyle) fprintf(fd, "\n");
-	else fprintf(fd, "</tr>\n");
 
+	if (showPercentCorrect) {
+		if (!htmlMode) fprintf(fd, "Best Model(s) by %%C(Test):\n");
+		else fprintf(fd, "<tr><td colspan=3><b>Best Model(s) by %%C(Test)</b>:</td></tr>\n");
+		for (int m = 0; m < modelCount; m++) {
+			modelAttrs = models[m]->getAttributeList();
+			if (modelAttrs->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST) != bestTest) continue;
+			printSearchRow(fd, models[m], attrID);
+		}
+	}
 
-	if (sepStyle) {
-		fprintf(fd, "\n");
-	}
-	else {
-		fprintf(fd, "</table>");
-	}
+	if (!htmlMode) fprintf(fd, "\n\n");
+	else fprintf(fd, "</table><br>\n");
 
 	delete attrID;
 }
 
-void ocReport::print(int fd)
-{
+
+// Print out the line of column headers for the search output report
+void ocReport::printSearchHeader(FILE *fd, int* attrID) {
+	int sepStyle = htmlMode ? 0 : separator;
+	if (sepStyle) fprintf(fd, "MODEL");
+	else fprintf(fd, "<tr><th align=left>MODEL</th>"); 
+	int pad, tlen;
+	const int cwid = 15;
+	char titlebuf[1000];
+	for (int a = 0; a < attrCount; a++) {
+		const char *title = (attrID[a] >= 0) ? attrDescriptions[attrID[a]].title : attrs[a];
+		const char *pct = strchr(title, '$');
+		tlen = strlen(title);
+		if (pct) {
+			tlen = pct - title;
+			strncpy(titlebuf, title, tlen);
+			titlebuf[tlen] = '\0';
+			title = titlebuf;
+		}
+		int tlen = (pct == 0) ? strlen(title) : pct - title;
+		switch(sepStyle) {
+			case 0:
+				fprintf(fd, "<th width=80 align=left>%s</th>\n", title); break;
+			case 1:
+				fprintf(fd, "\t%s", title); 	break;
+			case 2:
+				fprintf(fd, ",%s", title); 	break;
+			case 3:
+			default:
+				pad = cwid - tlen;
+				if (pad < 0) pad = 0;
+				if (a == 0) pad += cwid - 5;
+				fprintf(fd, "%*c%s", pad, ' ', title); break;
+		}
+	}
+	if (sepStyle) fprintf(fd, "\n");
+	else fprintf(fd, "</tr>\n");
+}
+
+
+// Print out a single row of the search report results
+void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID) {
+	ocAttributeList *modelAttrs = model->getAttributeList();
+	const char *mname = model->getPrintName();
+	int pad;
+	const int cwid = 15;
+	char field[100];
+	int sepStyle = htmlMode ? 0 : separator;
+	if (sepStyle) {
+		pad = cwid - strlen(mname);
+		if (pad < 0) pad = 1;
+		fprintf(fd, "%s%*c", mname, pad, ' ');
+	} else {
+		fprintf(fd, "<tr><td>%s</td>", mname);
+	}
+	for (int a = 0; a < attrCount; a++) {
+		const char *fmt = attrID[a] >= 0 ? attrDescriptions[attrID[a]].fmt : 0;
+		if (fmt == 0) {
+			// get format info from name, if present
+			const char *pct = strchr(attrs[a], '$');
+			fmt = (pct && toupper(*(pct+1)) == 'I') ? "%14.0f" : "%12f";
+		}
+		double attr = modelAttrs->getAttribute(attrs[a]);
+		// -1 means uninitialized, so don't print
+		if (attr == -1.0) field[0] = '\0';
+		else sprintf(field, fmt, attr);
+		switch(sepStyle) {
+		case 0:
+			fprintf(fd, "<td>%s</td>\n", field); 	break;
+		case 1:
+			fprintf(fd, "\t"); fprintf(fd, field); 	break;
+		case 2:
+			fprintf(fd, ","); fprintf(fd, field); 	break;
+		case 3:
+			pad = cwid - strlen(field); 	fprintf(fd, "%*c", pad, ' ');
+			fprintf(fd, field); 		break;
+		}
+	}
+	
+	if (!htmlMode) fprintf(fd, "\n");
+	else fprintf(fd, "</tr>\n");
+}
+
+
+void ocReport::print(int fd) {
 //	int fd2 = dup(fd);	// don't close old fd
 	FILE *f = fdopen(fd, "w");
 	print(f);
@@ -340,8 +388,8 @@ void ocReport::print(int fd)
 	fclose(f);
 }
 
-void ocReport::printResiduals(FILE *fd, ocModel *model)
-{
+
+void ocReport::printResiduals(FILE *fd, ocModel *model) {
 	ocTable *refData = manager->getInputData();
 	ocTable *table1 = manager->getFitTable();
 	ocVariableList *varlist = model->getRelation(0)->getVariableList();
@@ -368,9 +416,9 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 	int sepStyle = htmlMode ? 0 : separator;
 	switch(sepStyle) {
 	case 0:
-		header = "<table border =\"1\"><tr><th>Cell</th><th>Obs</th>><th>Exp</th><th>Res</th></tr>\n";
+		header = "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs</th><th>Exp</th><th>Res</th></tr>\n";
 		format = "<tr><td>%s</td><td>%6.3f</td><td>%6.3f</td><td>%6.3f</td></tr>\n";
-		footer = "</table>";
+		footer = "</table><br><br>";
 		break;
 	case 1:
 		header = "Cell\tObs\tExp\tRes\n";
@@ -392,8 +440,8 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 	ocKeySegment *refkey, *key;
 	double value, refvalue, res;
 
-	//-- walk through both lists. Missing values are zero.
-	//-- we don't print anything if missing in both lists.
+	// Walk through both lists. Missing values are zero.
+	// We don't print anything if missing in both lists.
 	index = 0; refindex = 0;
 	fprintf(fd, header);
 	for(;;) {
@@ -404,20 +452,15 @@ void ocReport::printResiduals(FILE *fd, ocModel *model)
 		key = table1->getKey(index);
 		compare = ocKey::compareKeys(refkey, key, keysize);
 
-		if (compare == 0) {
-			//-- matching keys; both values present
+		if (compare == 0) { 		// matching keys; both values present
 			refvalue = refData->getValue(refindex++);
 			value = table1->getValue(index++);
 			ocKey::keyToUserString(key, varlist, keystr);
-		}
-		else if (compare > 0) {
-			//-- ref value is zero
+		} else if (compare > 0) { 	// ref value is zero
 			refvalue = 0;
 			value = table1->getValue(index++);
 			ocKey::keyToUserString(key, varlist, keystr);
-		}
-		else {
-			//-- table value is zero
+		} else { 			// table value is zero
 			refvalue = refData->getValue(refindex++);
 			value = 0;
 			ocKey::keyToUserString(refkey, varlist, keystr);
@@ -508,23 +551,24 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	double dv_bin_value[dv_card];				// Contains the DV values for calculating expected values.
 
 	ocTable *input_table, *test_table;
+	long degrees = (long) ocDegreesOfFreedom(var_list);
 	// If we are working with a model, we use the input and test data directly.
 	if (rel == NULL) {
 		input_table = input_data;
 		test_table = test_data;
 	// Else, if we are working with a relation, make projections of the input and test tables.
 	} else {
-		input_table = new ocTable(key_size, ocDegreesOfFreedom(var_list) + 1);
+		input_table = new ocTable(key_size, degrees + 1);
 		manager->makeProjection(input_data, input_table, rel, 0);
 		if(test_sample_size > 0) {
-			test_table  = new ocTable(key_size, ocDegreesOfFreedom(var_list) + 1);
+			test_table  = new ocTable(key_size, degrees + 1);
 			manager->makeProjection(test_data,  test_table,  rel, 0);
 		}
 	}
 
 	char *key_str = new char[var_count + 1];		// Used to hold user-strings for keys in several places
 
-	int iv_statespace = ((long) ocDegreesOfFreedom(var_list) + 1) / dv_card;	// full statespace divided by cardinality of the DV
+	int iv_statespace = (degrees + 1) / dv_card;	// full statespace divided by cardinality of the DV
 	char **dv_label = new char*[dv_card];
 	ocKeySegment **fit_key = new ocKeySegment *[iv_statespace];
 	double **fit_prob = new double *[iv_statespace];
@@ -599,7 +643,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		}
 	}
 	
-	const char *header, *header2, *header_test, *header_sep, *header2_test1, *header2_test2, *header_end, *row_start, *footer;
+ 	const char *header, *header2, *header_test, *header_sep, *header2_test1, *header2_test2, *header_end, *row_start, *footer;
 	const char *format_percent, *format_str, *format_int;
 	const char *row0, *row1, *emphasis, *row_end, *row_sep, *line_sep, *blank_line;
 	format_percent = "%6.3f";
@@ -616,14 +660,14 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	int sep_style = htmlMode ? 0 : separator;
 	switch(sep_style) {
 	case 0:
-		header  = "<table border=0 cellpadding=0 cellspacing=0><tr><th>&nbsp;</th><th align=left colspan=3>Training Data</th>";
-		header_test = "<th> </th><th> </th><th> </th><th>|</th><th align=left colspan=2>Test Data</th>";
+ 		header  = "<table border=0 cellpadding=0 cellspacing=0><tr><th>&nbsp;</th><th align=left colspan=3>Training Data</th>";
+ 		header_test = "<th> </th><th> </th><th> </th><th>|</th><th align=left colspan=2>Test Data</th>";
 		header_sep = "<th> </th>";
-		header2 = "<tr><th>&nbsp;</th><th>&nbsp;</th><th colspan=2 class=r1>calc.&nbsp;q(DV|IV)</th>";
-		header2_test1 = "<th> </th><th> </th><th> </th><th>|</th><th> </th><th colspan=2 class=\"r1\">obs.&nbsp;p(DV|IV)</th>";
+ 		header2 = "<tr><th>&nbsp;</th><th>&nbsp;</th><th colspan=2 class=r1>calc.&nbsp;q(DV|IV)</th>";
+ 		header2_test1 = "<th> </th><th> </th><th> </th><th>|</th><th> </th><th colspan=2 class=\"r1\">obs.&nbsp;p(DV|IV)</th>";
 		header2_test2 = "<th colspan=2>%%correct</th>";
 		header_end = "</tr>\n";
-		row_start = "<tr class=\"%s\"><td align=right>";
+ 		row_start = "<tr class=\"%s\"><td align=right>";
 		row_sep = "</td><td align=right>";	
 		row_end     = "</td></tr>\n";
 		// These three are row styles, for white & grey background colors and bold text
@@ -635,30 +679,30 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		blank_line = "<br><br>\n";
 		break;
 	case 1:
-		header = "\tTraining Data\t ";
-		header_test = "\t \t \t \t|\tTest Data";
+ 		header = "\tTraining Data\t ";
+ 		header_test = "\t \t \t \t|\tTest Data";
 		header_sep = "\t ";
-		header2 = "\t\tcalc. q(DV|IV)\t ";
+ 		header2 = "\t\tcalc. q(DV|IV)\t ";
 		header2_test1 = "\t \t \t \t|\t \tobs. p(DV|IV)\t";
 		header2_test2 = "\t%%correct\t ";
 		header_end = "\n";
 		row_sep = "\t";
 		break;
 	case 2:
-		header = ",Training Data,";
-		header_test = ",,,,,|,Test Data";
+ 		header = ",Training Data,";
+ 		header_test = ",,,,,|,Test Data";
 		header_sep = ", ";
-		header2 = ",,calc. q(DV|IV),";
+ 		header2 = ",,calc. q(DV|IV),";
 		header2_test1 = ",,,,|,,obs. p(DV|IV),";
 		header2_test2 = ",%%correct,";
 		header_end = "\n";
 		row_sep = ",";
 		break;
 	case 3:
-		header = "     Training Data     ";
-		header_test = "                   |    Test Data";
+ 		header = "     Training Data     ";
+ 		header_test = "                   |    Test Data";
 		header_sep = "    ";
-		header2 = "                   calc. q(DV|IV)    ";
+ 		header2 = "                   calc. q(DV|IV)    ";
 		header2_test1 = "                 |      obs. p(DV|IV)    ";
 		header2_test2 = "%%correct    ";
 		header_end = "\n    ------------------------------------\n";
@@ -669,17 +713,24 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	if (htmlMode) fprintf(fd, blank_line);
 	fprintf(fd, line_sep);
 	fprintf(fd, blank_line);
+	if(rel == NULL)
+		iv_rel = model->getRelation(0);
+	else
+		iv_rel = rel;
+	int *ind_vars;
+	int iv_count = iv_rel->getIndependentVariables(ind_vars, iv_rel->getVariableCount());
 	if(rel == NULL) {
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s    \n", model->getPrintName());
-		iv_rel = model->getRelation(0);
 		if (htmlMode) fprintf(fd, "<br>\n");
 		fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
-		for(int i=0; i < iv_rel->getVariableCount(); i++) {
+		for(int i=0; i < iv_count; i++) {
 			if (i > 0) fprintf(fd, "; ");
 			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(i))->name);
 		}
 		fprintf(fd, ")");
 	} else {
+		// The iv_count is off by one for relations, as the DV seems to still get counted.
+		iv_count--;
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s    ", rel->getPrintName());
 	}
 	fprintf(fd, blank_line);
@@ -697,13 +748,14 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	if(test_sample_size > 0) {
 		test_table_size = test_table->getTupleCount();
 	}
-	int dv_value, best_i;
+	int dv_value, best_i, temp_return;
 
 	// Count up the total frequencies for each DV value in the reference data, for use in tie-breaking
 	for (int i=0; i < input_table_size; i++) {
 		temp_key = input_table->getKey(i);
-		ocKey::getKeyValue(temp_key, key_size, var_list, dv_index, &dv_value);
-		input_dv_freq[dv_value] += (int)(input_table->getValue(i) * sample_size);
+		dv_value = ocKey::getKeyValue(temp_key, key_size, var_list, dv_index);
+		temp_return = (int) (input_table->getValue(i) * sample_size);
+		input_dv_freq[dv_value] += temp_return;
 	}
 
 	// Find the most common DV value, for test data predictions when no input data exists.
@@ -715,6 +767,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	for (int i=0; i < iv_statespace; i++) {
 		fit_rule[i] = input_default_dv;
 	}
+
 
 	ocKeySegment *temp_key_array = new ocKeySegment[key_size];
 	// Loop till we have as many keys as the size of the IV statespace
@@ -751,7 +804,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			// Get the key for this sibling
 			ocKeySegment *temp_key = fit_table->getKey(index_sibs[i]);	
 			// Get the dv_value for the sibling
-			ocKey::getKeyValue(temp_key, key_size, var_list, dv_index, &dv_value);	
+			dv_value = ocKey::getKeyValue(temp_key, key_size, var_list, dv_index);
 			// Compute & store the conditional value for the sibling (in probability)
 			fit_prob[keys_found][dv_value] = fit_table->getValue(index_sibs[i]);
 			// Next keep track of what the best number correct is
@@ -776,6 +829,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		// And move on to the next key...
 		keys_found++;
 	}
+
 
 	// Sort out the input (reference) data
 	// Loop through all the input data
@@ -822,12 +876,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			// Sum up the total frequencies among the siblings
 			temp_value += input_table->getValue(index_sibs[i]);
 			ocKeySegment *temp_key = input_table->getKey(index_sibs[i]);
-			ocKey::getKeyValue(temp_key, key_size, var_list, dv_index, &dv_value);
+			dv_value = ocKey::getKeyValue(temp_key, key_size, var_list, dv_index);
 			input_freq[fit_index][dv_value] = (int)round(input_table->getValue(index_sibs[i]) * sample_size);
 		}
-
 		input_key_freq[fit_index] = (int)round(temp_value * sample_size);
-
 		input_counter++;
 	}
 
@@ -878,7 +930,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 				// Sum up the total frequencies among the siblings
 				temp_value += test_table->getValue(index_sibs[i]);
 				ocKeySegment *temp_key = test_table->getKey(index_sibs[i]);
-				ocKey::getKeyValue(temp_key, key_size, var_list, dv_index, &dv_value);
+				dv_value = ocKey::getKeyValue(temp_key, key_size, var_list, dv_index);
 				test_freq[fit_index][dv_value] = (int)round(test_table->getValue(index_sibs[i]) * test_sample_size);
 				if(i == 0) {
 					best_i = dv_value;
@@ -904,41 +956,32 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	fprintf(fd, header);
 	if(dv_card > 2) {
 		for(int i=2; i < dv_card; i++) {
-			fprintf(fd, header_sep);
-		}
-	}
+			fprintf(fd, header_sep); } }
 	if(calcExpectedDV == true) {	fprintf(fd, header_sep);	fprintf(fd, header_sep); }
-	if(test_sample_size > 0) {
-		fprintf(fd, header_test);
-	}
+	if(test_sample_size > 0) { fprintf(fd, header_test); }
 	fprintf(fd, header_end);
 
 	// Print the second header line
 	fprintf(fd, header2);
 	if(dv_card > 2) {
 		for(int i=2; i < dv_card; i++) {
-			fprintf(fd, header_sep);
-		}
-	}
+			fprintf(fd, header_sep); } }
 	if(calcExpectedDV == true) {	fprintf(fd, header_sep);	fprintf(fd, header_sep); }
 	if(test_sample_size > 0) {
 		fprintf(fd, header2_test1);
 		if(dv_card > 2) {
 			for(int i=2; i < dv_card; i++) {
-				fprintf(fd, header_sep);
-			}
-		}
-		fprintf(fd, header2_test2);
-	}
+				fprintf(fd, header_sep); } }
+		fprintf(fd, header2_test2); }
 	fprintf(fd, header_end);
 
 	fprintf(fd, row_start);
 	fprintf(fd, "IV");		fprintf(fd, row_sep);
 	fprintf(fd, "freq");		fprintf(fd, row_sep);
-	// Print the values for the DV states, above each column
-	for(int i=0; i < dv_card; i++) {
-		fprintf(fd, "%s=", dv_var->abbrev);
-		fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
+ 	// Print the values for the DV states, above each column
+ 	for(int i=0; i < dv_card; i++) {
+ 		fprintf(fd, "%s=", dv_var->abbrev);
+ 		fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
 	}
 	fprintf(fd, "rule");		fprintf(fd, row_sep);
 	fprintf(fd, "#correct");	fprintf(fd, row_sep);
@@ -1003,17 +1046,16 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	double temp_percent = 0.0;
 	// For each of the model's keys (ie, each row of the table)...
 	for(int i=0; i < iv_statespace; i++) {
-		ocKey::keyToUserString(fit_key[i], var_list, key_str);
 		if (input_key_freq[i] == 0) {
 			if (test_sample_size > 0) {
 				if (test_key_freq[i] == 0) { continue; }
 			} else { continue; }
 		}
-		// Print out the key (the "IV" column) and the frequency of that key.
+		ocKey::keyToUserString(fit_key[i], var_list, key_str);
 		// Also, switch the bgcolor of each row from grey to white, every other row. (If not in HTML, this does nothing.)
 		if (i % 2) fprintf(fd, row_start, row0);
 		else fprintf(fd, row_start, row1);
-		fprintf(fd, format_str, key_str);	 	fprintf(fd, row_sep);
+ 		fprintf(fd, format_str, key_str);	 	fprintf(fd, row_sep);
 		fprintf(fd, format_int, input_key_freq[i]);	fprintf(fd, row_sep);
 		// Print out the percentages for each of the DV states
 		temp_percent = 0.0;
@@ -1140,9 +1182,9 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	fprintf(fd, format_str, "");		fprintf(fd, row_sep);
 	fprintf(fd, format_str, "freq");	fprintf(fd, row_sep);
 	// Print the values for the DV states, below each column
-	for(int i=0; i < dv_card; i++) {
-		fprintf(fd, "%s=", dv_var->abbrev);
-		fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
+ 	for(int i=0; i < dv_card; i++) {
+ 		fprintf(fd, "%s=", dv_var->abbrev);
+ 		fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
 	}
 	fprintf(fd, "rule");		fprintf(fd, row_sep);
 	fprintf(fd, "#correct");	fprintf(fd, row_sep);
@@ -1204,26 +1246,27 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		}
 	}
 
-	delete marginal;
-	delete dv_order;
-	delete temp_key_array;
-	delete index_sibs;
+	delete[] marginal;		delete[] dv_order;
+	delete[] temp_key_array;	delete[] index_sibs;
 	for(int i=0; i < dv_card; i++) {
 		delete dv_label[i];
 	}
 	if(test_sample_size > 0) {
 		for(int i=0; i < iv_statespace; i++) {
-			delete test_key[i], test_freq[i];
+			delete test_key[i];	delete test_freq[i];
 		}
 	}
 	for(int i=0; i < iv_statespace; i++) {
-		delete fit_key[i], input_key[i], fit_prob[i], input_freq[i];
+		delete fit_key[i];	delete input_key[i];
+		delete fit_prob[i];	delete input_freq[i];
 	}
-	delete test_rule, test_key_freq, test_dv_freq, test_freq, test_key;
-	delete input_rule, input_key_freq, input_dv_freq, input_freq, input_key;
-	delete fit_dv_expected, fit_rule, fit_key_prob, fit_dv_prob, fit_prob, fit_key;
-	delete dv_label, key_str;
-	delete test_table, input_table;
+	delete[] test_rule;	delete[] test_key_freq;	delete[] test_dv_freq;	delete[] test_freq;
+	delete[] test_key;	delete[] input_rule;	delete[] input_key_freq;
+	delete[] input_dv_freq;	delete[] input_freq;	delete[] input_key;
+	delete[] fit_dv_expected;	delete[] fit_rule;	delete[] fit_key_prob;
+	delete[] fit_dv_prob;	delete[] fit_prob;	delete[] fit_key;
+	delete[] dv_label;	delete[] key_str;
+	delete test_table;	delete input_table;
 }
 
 
