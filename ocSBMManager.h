@@ -48,6 +48,8 @@ const double OC_COMPARE_EPSILON_1 = 1e-8;
 	ocModel *getTopRefModel() { return topRef; }
 	ocModel *getBottomRefModel() { return bottomRef; }
 	ocModel *getRefModel() { return refModel; }
+	// This is only a place-holder at this point.
+	int getSearchDirection() { return 0; }
 
 	//-- set ref model
 	ocModel *setRefModel(const char *name);
@@ -104,9 +106,6 @@ const double OC_COMPARE_EPSILON_1 = 1e-8;
 	void printFitReport(ocModel *model, FILE *fd);
 
 private:	// data
-	ocModel *topRef;
-	ocModel *bottomRef;
-	ocModel *refModel;
 	bool projection;
 	char *filterAttr;
 	double filterValue;
