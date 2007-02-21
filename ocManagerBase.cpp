@@ -37,6 +37,7 @@ void logProjection(const char *name)
 ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input)
 	: varList(vars), inputData(input), keysize(vars ? vars->getKeySize() : 0)
 {
+	topRef = bottomRef = refModel = NULL;
 	relCache = new ocRelCache;
 	modelCache = new ocModelCache;
 	sampleSize = 0;
