@@ -248,6 +248,7 @@ def actionSearch(formFields):
 	reportSort = formFields.get("sortreportby", "")
 	searchSort = formFields.get("sortby", "")
 	ddfMethod = formFields.get("ddfmethod", "")
+ 	oc.setDDFMethod(ddfMethod)
 
 	oc.setStartModel(formFields.get("model", "default"))
 
@@ -268,9 +269,6 @@ def actionSearch(formFields):
 
 	if formFields["evalmode"] == "bp":
 		reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
-                #********** Junghan
-                #**********  new bp_aic & bp_bic
-                reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
 		oc.setNoIPF(true)
  		if reportSort == "information": reportSort = "bp_information"
 		elif reportSort == "alpha": reportSort = "bp_alpha"
@@ -278,9 +276,9 @@ def actionSearch(formFields):
 		elif searchSort == "alpha": searchSort = "bp_alpha"
 		if oc.isDirected():
 			reportvars = reportvars + ", bp_cond_pct_dh"
-		reportvars = reportvars + ", bp_aic, bp_bic"	#********** Junghan : attach aic & bic
+		reportvars = reportvars + ", bp_aic, bp_bic"
 	else:
-		reportvars = "Level$I, h, ddf, ddf2, lr, alpha, information"
+		reportvars = "Level$I, h, ddf, lr, alpha, information"
 		if oc.isDirected():
 			reportvars = reportvars + ", cond_pct_dh"
 		reportvars = reportvars + ", aic, bic"	#********** Junghan : attach aic & bic
@@ -294,7 +292,6 @@ def actionSearch(formFields):
 
 	oc.setReportSortName(reportSort)
  	oc.setSortName(searchSort)
- 	oc.setDDFMethod(ddfMethod)
 	oc.setReportVariables(reportvars)
 
 	if textFormat:
