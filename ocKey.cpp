@@ -51,8 +51,7 @@ void ocKey::buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *v
 /**	
  * setKeyValue - set a single value in a key
  */
-void ocKey::setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars,
-		int index, int value)
+void ocKey::setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars, int index, int value)
 {
 	ocVariable *var = vars->getVariable(index);
 	int segment = var->segment;
@@ -64,16 +63,16 @@ void ocKey::setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *va
 /**	
  * getKeyValue - get a single value in a key
  */
-void ocKey::getKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars,
-		int index, int *value)
+int ocKey::getKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars, int index)
 {
 	int temp=0;
 	ocVariable *var = vars->getVariable(index);
 	int segment = var->segment;
 	ocKeySegment mask = var->mask;
 	temp = (key[segment] & mask); 
- 	*value=temp >> var->shift;
-	assert(*value == DONT_CARE || (*value >= 0 && *value < var->cardinality));
+ 	int value = temp >> var->shift;
+	assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
+	return value;
 }
 
 /**
