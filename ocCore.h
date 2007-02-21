@@ -81,14 +81,12 @@ public:
 		int *varindices, int *varvalues, int varcount);
 	
 	// build a key with a value for every variable.
-	static void buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
-		int *varvalues);
+	static void buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *vars, int *varvalues);
 		
 	// set a single value within a key. Value can be DONT_CARE or a legal variable value.
-	static void setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars,
-		int index, int value);
+	static void setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars, int index, int value);
 	// get a single value within a key. Value can be DONT_CARE or a legal variable value.
-	static void getKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars,int index, int* value);
+	static int getKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars, int index);
 
 		
 	// compare two keys, returning -1, 0, or 1 as the first is less than, equal to, or
@@ -98,8 +96,7 @@ public:
 	// copy key1 to key1
 	static int copyKey(ocKeySegment *key1, ocKeySegment *key2, int keysize);
 
-	static void buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars,
-		int *varindices, int varcount);
+	static void buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars, int *varindices, int varcount);
 
 	static void keyToString(ocKeySegment *key, ocVariableList *var, char *str);
 	static void keyToUserString(ocKeySegment *key, ocVariableList *var, char *str);
@@ -293,7 +290,6 @@ public:
 	
 	// see if one relation contains another
 	bool contains(const ocRelation *other);
-	//bool contains(const ocRelation *other) {return contains(*other);}
 	
 	// see if all variables are independent
 	bool isIndOnly();
@@ -446,7 +442,6 @@ private:
 #define ATTRIBUTE_T "t"
 #define ATTRIBUTE_DF "df"
 #define ATTRIBUTE_DDF "ddf"
-#define ATTRIBUTE_DDF2 "ddf2"
 #define ATTRIBUTE_DDF_IND "ddf_bot"
 #define ATTRIBUTE_FIT_H "fit_h"
 #define ATTRIBUTE_ALG_H "alg_h"
