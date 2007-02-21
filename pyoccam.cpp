@@ -413,6 +413,29 @@ DefinePyFunction(ocVBMManager, setSort)
 	return Py_None;
 }
 
+// void setDDFMethod(int method)
+DefinePyFunction(ocVBMManager, setDDFMethod)
+{
+	int meth;
+	PyArg_ParseTuple(args, "i", &meth);
+	ObjRef(self, ocVBMManager)->setDDFMethod(meth);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+// void setSearchDirection(int dir)
+// 0 = up, 1 = down
+DefinePyFunction(ocVBMManager, setSearchDirection)
+{
+	int dir;
+	PyArg_ParseTuple(args, "i", &dir);
+	ObjRef(self, ocVBMManager)->setSearchDirection(dir);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 // void printFitReport(ocModel *model)
 DefinePyFunction(ocVBMManager, printFitReport)
 {
@@ -595,6 +618,8 @@ static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, computePearsonStatistics),
 	PyMethodDef(ocVBMManager, computeDependentStatistics),
 	PyMethodDef(ocVBMManager, computeBPStatistics),
+	PyMethodDef(ocVBMManager, setDDFMethod),
+	PyMethodDef(ocVBMManager, setSearchDirection),
 	PyMethodDef(ocVBMManager, printFitReport),
 	PyMethodDef(ocVBMManager, getOption),
 	PyMethodDef(ocVBMManager, getOptionList),
