@@ -73,6 +73,8 @@ protected:
 	long modelCount, maxModelCount;
 	long attrCount;
 	int separator;
+	void printSearchHeader(FILE *fd, int* attrID);
+	void printSearchRow(FILE *fd, ocModel* model, int* attrID);
 };
 
 #endif
