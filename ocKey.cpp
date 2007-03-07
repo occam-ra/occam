@@ -164,7 +164,6 @@ void ocKey::keyToString(ocKeySegment *key, ocVariableList *vars, char *str)
 
 void ocKey::keyToUserString(ocKeySegment *key, ocVariableList *vars, char *str)
 {
-	const char *valchars = "0123456789ABCDEF";
 	int i;
 	int varcount = vars->getVarCount();
 	char *cp = str;
