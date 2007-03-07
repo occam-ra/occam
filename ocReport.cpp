@@ -474,7 +474,7 @@ void ocReport::printResiduals(FILE *fd, ocModel *model) {
 }
 
 
-static void orderIndices(char **stringArray, int len, int *order) {
+static void orderIndices(const char **stringArray, int len, int *order) {
 	//// Figure out the alphabetical order for an array of strings (such as the dv states)
 	// (This isn't the most effficient algorithm, but it's simple, and enough to sort a few string values.)
 	
@@ -539,7 +539,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	}
 	ocVariableList *var_list = manager->getVariableList();
 	if(!var_list->isDirected()){
-		printf("(DV calculation not possible for neutral systems.)\n");
+		fprintf(fd, "(DV calculation not possible for neutral systems.)\n");
 		return;
 	}
 
@@ -552,10 +552,12 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
 	ocTable *input_table, *test_table;
 	long degrees = (long) ocDegreesOfFreedom(var_list);
+	ocRelation *iv_rel;					// A ptr to the IV component of a model, or the relation itself
 	// If we are working with a model, we use the input and test data directly.
 	if (rel == NULL) {
 		input_table = input_data;
 		test_table = test_data;
+		iv_rel = model->getRelation(0);
 	// Else, if we are working with a relation, make projections of the input and test tables.
 	} else {
 		input_table = new ocTable(key_size, degrees + 1);
@@ -564,12 +566,13 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			test_table  = new ocTable(key_size, degrees + 1);
 			manager->makeProjection(test_data,  test_table,  rel, 0);
 		}
+		iv_rel = rel;
 	}
 
 	char *key_str = new char[var_count + 1];		// Used to hold user-strings for keys in several places
 
 	int iv_statespace = (degrees + 1) / dv_card;	// full statespace divided by cardinality of the DV
-	char **dv_label = new char*[dv_card];
+	const char **dv_label = (const char**)dv_var->valmap;
 	ocKeySegment **fit_key = new ocKeySegment *[iv_statespace];
 	double **fit_prob = new double *[iv_statespace];
 	double *fit_dv_prob = new double[dv_card];
@@ -580,7 +583,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	int **input_freq = new int *[iv_statespace];
 	int *input_dv_freq = new int[dv_card];
 	int *input_key_freq = new int[iv_statespace]; 
-	int *input_rule = new int[iv_statespace]; 	
+	//int *input_rule = new int[iv_statespace]; 	
 	ocKeySegment **test_key = new ocKeySegment *[iv_statespace];
 	int **test_freq = new int *[iv_statespace];
 	int *test_dv_freq = new int[dv_card];
@@ -626,12 +629,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		}
 	}
 	
-	char **map = dv_var->valmap;
 	for(int i=0; i < dv_card; i++) {
-		int len1 = strlen(map[i]);
-		dv_label[i] = new char[len1+1];
-		strncpy(dv_label[i], map[i], len1);	
-		dv_label[i][len1] = '\0';
 		fit_dv_prob[i] = 0.0;
 		input_dv_freq[i] = 0;
 		test_dv_freq[i] = 0;
@@ -643,95 +641,101 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		}
 	}
 	
- 	const char *header, *header2, *header_test, *header_sep, *header2_test1, *header2_test2, *header_end, *row_start, *footer;
-	const char *format_percent, *format_str, *format_int;
-	const char *row0, *row1, *emphasis, *row_end, *row_sep, *line_sep, *blank_line;
-	format_percent = "%6.3f";
-	format_str     = "%s";
-	format_int     = "%d";
-	footer = row0 = row1 = emphasis = "";
-	row_start = "%s";
-	row_end = "\n";
-	ocRelation *iv_rel;
-	line_sep = "\n-------------------------------------------------------------------------";
-	blank_line = "\n\n";
+	const char *new_line,  *blank_line;
+	if (htmlMode) {
+		new_line = "<br>\n";
+		blank_line = "<br><br>\n";
+	} else {
+		new_line = "\n";
+		blank_line = "\n\n";
+	}
+	
+	const char *block_start, *head_start, *head_sep, *head_end, *head_str1, *head_str2, *head_str3, *head_str4;
+ 	const char *row_start, *block_end, *row_start2, *row_start3, *row_end, *row_sep, *line_sep;
 
 	// Set appropriate format
 	int sep_style = htmlMode ? 0 : separator;
 	switch(sep_style) {
 	case 0:
- 		header  = "<table border=0 cellpadding=0 cellspacing=0><tr><th>&nbsp;</th><th align=left colspan=3>Training Data</th>";
- 		header_test = "<th> </th><th> </th><th> </th><th>|</th><th align=left colspan=2>Test Data</th>";
-		header_sep = "<th> </th>";
- 		header2 = "<tr><th>&nbsp;</th><th>&nbsp;</th><th colspan=2 class=r1>calc.&nbsp;q(DV|IV)</th>";
- 		header2_test1 = "<th> </th><th> </th><th> </th><th>|</th><th> </th><th colspan=2 class=\"r1\">obs.&nbsp;p(DV|IV)</th>";
-		header2_test2 = "<th colspan=2>%%correct</th>";
-		header_end = "</tr>\n";
- 		row_start = "<tr class=\"%s\"><td align=right>";
-		row_sep = "</td><td align=right>";	
+		block_start = "<table border=0 cellpadding=0 cellspacing=0>\n";
+		head_start  = "<tr><th>";
+		head_sep    = "</th><th>";
+		head_end    = "</th></tr>\n";
+		head_str1   = "</th><th colspan=2 class=r1>calc.&nbsp;q(DV|IV)";
+		head_str2   = "</th><th colspan=2 class=r1>obs.&nbsp;p(DV|IV)";
+		head_str3   = "</th><th colspan=2>%%correct";
+		head_str4   = "</th><th colspan=2>Test&nbsp;Data";
+ 		row_start   = "<tr><td align=right>";
+ 		row_start2  = "<tr class=r1><td align=right>";
+ 		row_start3  = "<tr class=em><td align=right>";
+		row_sep     = "</td><td align=right>";	
 		row_end     = "</td></tr>\n";
-		// These three are row styles, for white & grey background colors and bold text
-		row0 = "r0";
-		row1 = "r1";
-		emphasis = "em";
-		footer  = "</table><br>\n";
-		line_sep = "<hr>\n";
-		blank_line = "<br><br>\n";
+		block_end   = "</table><br>\n";
+		line_sep    = "<hr>\n";
 		break;
 	case 1:
- 		header = "\tTraining Data\t ";
- 		header_test = "\t \t \t \t|\tTest Data";
-		header_sep = "\t ";
- 		header2 = "\t\tcalc. q(DV|IV)\t ";
-		header2_test1 = "\t \t \t \t|\t \tobs. p(DV|IV)\t";
-		header2_test2 = "\t%%correct\t ";
-		header_end = "\n";
-		row_sep = "\t";
+		block_start = "";
+		head_start  = "";
+		head_sep    = "\t";
+		head_end    = "\n";
+		head_str1   = "\tcalc. q(DV|IV)\t";
+		head_str2   = "\tobs. p(DV|IV)\t";
+		head_str3   = "\t%%correct\t";
+		head_str4   = "\tTest Data\t";
+		row_start = row_start2 = row_start3 = "";
+		row_sep     = "\t";
+		row_end     = "\n";
+		block_end   = "\n";
+		line_sep    = "-------------------------------------------------------------------------\n";
 		break;
 	case 2:
- 		header = ",Training Data,";
- 		header_test = ",,,,,|,Test Data";
-		header_sep = ", ";
- 		header2 = ",,calc. q(DV|IV),";
-		header2_test1 = ",,,,|,,obs. p(DV|IV),";
-		header2_test2 = ",%%correct,";
-		header_end = "\n";
-		row_sep = ",";
+		block_start = "";
+		head_start  = "";
+		head_sep    = ",";
+		head_end    = "\n";
+		head_str1   = ",calc. q(DV|IV),";
+		head_str2   = ",obs. p(DV|IV),";
+		head_str3   = ",%%correct,";
+		head_str4   = ",Test Data,";
+		row_start = row_start2 = row_start3 = "";
+		row_sep     = ",";
+		row_end     = "\n";
+		block_end   = "\n";
+		line_sep    = "-------------------------------------------------------------------------\n";
 		break;
 	case 3:
- 		header = "     Training Data     ";
- 		header_test = "                   |    Test Data";
-		header_sep = "    ";
- 		header2 = "                   calc. q(DV|IV)    ";
-		header2_test1 = "                 |      obs. p(DV|IV)    ";
-		header2_test2 = "%%correct    ";
-		header_end = "\n    ------------------------------------\n";
-		row_sep = "  ";
+		block_start = "";
+		head_start  = "";
+		head_sep    = "    ";
+		head_end    = "\n";
+		head_str1   = "calc. q(DV|IV)";
+		head_str2   = "obs. p(DV|IV)";
+		head_str3   = "%%correct";
+		head_str4   = "Test Data";
+		row_start = row_start2 = row_start3 = "";
+		row_sep     = "    ";
+		row_end     = "\n";
+		block_end   = "\n";
+		line_sep    = "-------------------------------------------------------------------------\n";
 		break;
 	}
+	fprintf(fd, "%s%s%s", blank_line, line_sep, blank_line);
 
-	if (htmlMode) fprintf(fd, blank_line);
-	fprintf(fd, line_sep);
-	fprintf(fd, blank_line);
-	if(rel == NULL)
-		iv_rel = model->getRelation(0);
-	else
-		iv_rel = rel;
-	int *ind_vars;
-	int iv_count = iv_rel->getIndependentVariables(ind_vars, iv_rel->getVariableCount());
+	int *ind_vars = new int[var_count];
+	int iv_count = iv_rel->getIndependentVariables(ind_vars, var_count);
 	if(rel == NULL) {
-		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s    \n", model->getPrintName());
-		if (htmlMode) fprintf(fd, "<br>\n");
-		fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
-		for(int i=0; i < iv_count; i++) {
-			if (i > 0) fprintf(fd, "; ");
-			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(i))->name);
-		}
-		fprintf(fd, ")");
+		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s", model->getPrintName());
+		//fprintf(fd, new_line);
+		//fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
+		//for(int i=0; i < iv_count; i++) {
+			//if (i > 0) fprintf(fd, "; ");
+			//fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(i))->name);
+		//}
+		//fprintf(fd, ")");
 	} else {
 		// The iv_count is off by one for relations, as the DV seems to still get counted.
 		iv_count--;
-		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s    ", rel->getPrintName());
+		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s", rel->getPrintName());
 	}
 	fprintf(fd, blank_line);
 
@@ -948,67 +952,9 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	}
 
 
-	// Get an ordering for the dv values, so they can be displayed in ascending order.
 	int *dv_order = new int[dv_card];
+	// Get an ordering for the dv values, so they can be displayed in ascending order.
 	orderIndices(dv_label, dv_card, dv_order);
-
-	// Print the header rows for the output table
-	fprintf(fd, header);
-	if(dv_card > 2) {
-		for(int i=2; i < dv_card; i++) {
-			fprintf(fd, header_sep); } }
-	if(calcExpectedDV == true) {	fprintf(fd, header_sep);	fprintf(fd, header_sep); }
-	if(test_sample_size > 0) { fprintf(fd, header_test); }
-	fprintf(fd, header_end);
-
-	// Print the second header line
-	fprintf(fd, header2);
-	if(dv_card > 2) {
-		for(int i=2; i < dv_card; i++) {
-			fprintf(fd, header_sep); } }
-	if(calcExpectedDV == true) {	fprintf(fd, header_sep);	fprintf(fd, header_sep); }
-	if(test_sample_size > 0) {
-		fprintf(fd, header2_test1);
-		if(dv_card > 2) {
-			for(int i=2; i < dv_card; i++) {
-				fprintf(fd, header_sep); } }
-		fprintf(fd, header2_test2); }
-	fprintf(fd, header_end);
-
-	fprintf(fd, row_start);
-	fprintf(fd, "IV");		fprintf(fd, row_sep);
-	fprintf(fd, "freq");		fprintf(fd, row_sep);
- 	// Print the values for the DV states, above each column
- 	for(int i=0; i < dv_card; i++) {
- 		fprintf(fd, "%s=", dv_var->abbrev);
- 		fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
-	}
-	fprintf(fd, "rule");		fprintf(fd, row_sep);
-	fprintf(fd, "#correct");	fprintf(fd, row_sep);
-	fprintf(fd, "%%correct");
-	if(calcExpectedDV == true) {
-		fprintf(fd, row_sep);
-		fprintf(fd, "E(DV)");		fprintf(fd, row_sep);
-		fprintf(fd, "MSE");
-	}
-
-	if(test_sample_size > 0) {
-		fprintf(fd, row_sep);
-		fprintf(fd, "|");		fprintf(fd, row_sep);
-		fprintf(fd, "freq");		fprintf(fd, row_sep);
-		// Print the values for the DV states, above each column
-		for(int i=0; i < dv_card; i++) {
-			fprintf(fd, "%s=", dv_var->abbrev);
-			fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
-		}
-		fprintf(fd, "by rule");		fprintf(fd, row_sep);
-		fprintf(fd, "best");
-		if(calcExpectedDV == true) {
-			fprintf(fd, row_sep);
-			fprintf(fd, "MSE");
-		}
-	}
-	fprintf(fd, row_end);
 
 	// Compute marginals of DV states for the totals row
 	double *marginal = new double[dv_card];
@@ -1041,22 +987,83 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		}
 	}
 
+	int dv_ccount = 0;
+	char *dv_header = new char[100];
+	for(int i=0; i < dv_card; i++) {
+		dv_ccount += snprintf(dv_header + dv_ccount, 100 - dv_ccount, "%s=", dv_var->abbrev);
+		dv_ccount += snprintf(dv_header + dv_ccount, 100 - dv_ccount, "%s", dv_label[dv_order[i]]);
+		dv_ccount += snprintf(dv_header + dv_ccount, 100 - dv_ccount, row_sep);
+	}
+
+	// Header, Row 1
+	fprintf(fd, "%s%sIV", block_start, head_start);
+	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, "|%sData%s", head_sep, head_sep);
+	for(int i=0; i < dv_card; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, "|%sModel", head_sep);
+	for(int i=0; i < dv_card; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, "%s%s", head_sep, head_sep);
+	if(calcExpectedDV == true) fprintf(fd, "%s%s", head_sep, head_sep);
+	if(test_sample_size > 0)
+		fprintf(fd, "%s|%s%s%s", head_sep, head_str4, head_sep, head_sep);
+	fprintf(fd, head_end);
+
+	// Header, Row 2
+	fprintf(fd, "%s", head_start);
+	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, "|%s%s", head_sep, head_sep);
+	for(int i=0; i < dv_card; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, "|%s%s", head_str1, head_sep);
+	if(dv_card > 2)
+		for(int i=2; i < dv_card; i++)
+			fprintf(fd, head_sep);
+	fprintf(fd, "%s%s", head_sep, head_sep);
+	if(calcExpectedDV == true) fprintf(fd, "%s%s", head_sep, head_sep);
+	if(test_sample_size > 0) {
+		fprintf(fd, "%s|%s%s", head_sep, head_sep, head_str2);
+		if(dv_card > 2)
+			for(int i=2; i < dv_card; i++)
+				fprintf(fd, head_sep);
+		fprintf(fd, head_str3); }
+	fprintf(fd, head_end);
+
+	// Header, Row 3
+	fprintf(fd, "%s", row_start);
+	for(int i=0; i < iv_count; i++)
+		fprintf(fd, "%s%s", var_list->getVariable(iv_rel->getVariable(i))->abbrev, row_sep);
+	fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep, row_sep);
+	if(calcExpectedDV == true)
+		fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
+
+	if(test_sample_size > 0) {
+		fprintf(fd, "%s|%sfreq%s%sby rule%sbest", row_sep, row_sep, row_sep, dv_header, row_sep);
+		if(calcExpectedDV == true)
+			fprintf(fd, "%sMSE", row_sep);
+	}
+	fprintf(fd, row_end);
+
+	// Body of Table
 	double mean_squared_error = 0.0;
 	double total_test_error = 0.0;
 	double temp_percent = 0.0;
 	// For each of the model's keys (ie, each row of the table)...
 	for(int i=0; i < iv_statespace; i++) {
-		if (input_key_freq[i] == 0) {
-			if (test_sample_size > 0) {
+		if (input_key_freq[i] == 0) { if (test_sample_size > 0) {
 				if (test_key_freq[i] == 0) { continue; }
 			} else { continue; }
 		}
 		ocKey::keyToUserString(fit_key[i], var_list, key_str);
 		// Also, switch the bgcolor of each row from grey to white, every other row. (If not in HTML, this does nothing.)
-		if (i % 2) fprintf(fd, row_start, row0);
-		else fprintf(fd, row_start, row1);
- 		fprintf(fd, format_str, key_str);	 	fprintf(fd, row_sep);
-		fprintf(fd, format_int, input_key_freq[i]);	fprintf(fd, row_sep);
+		if (i % 2) fprintf(fd, row_start);
+		else fprintf(fd, row_start2);
+		// Print the states of the IV in separate columns
+		for (int j=0; j < iv_count; j++)
+			fprintf(fd, "%c%s", key_str[j], row_sep);
+		fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
+		// Print out the frequencies of the training data
+		for(int j=0; j < dv_card; j++)
+			fprintf(fd, "%d%s", input_freq[i][j], row_sep);
+		fprintf(fd, "|%s", row_sep);
 		// Print out the percentages for each of the DV states
 		temp_percent = 0.0;
 		for(int j=0; j < dv_card; j++) {
@@ -1067,19 +1074,18 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 					fit_dv_expected[i] += temp_percent / 100.0 * dv_bin_value[dv_order[j]];
 				}
 			}
-			fprintf(fd, format_percent, temp_percent);	fprintf(fd, row_sep);
+			fprintf(fd, "%6.3f%s", temp_percent, row_sep);
 		}
 		// Print the DV state of the best rule. If there was no input to base the rule on, use the default rule.
-		fprintf(fd, format_str, dv_label[fit_rule[i]]); 		fprintf(fd, row_sep);
+		fprintf(fd, "%s%s", dv_label[fit_rule[i]], row_sep);
 		// Number correct (of the input data, based on the rule from fit)
-		fprintf(fd, format_int, input_freq[i][fit_rule[i]]);		fprintf(fd, row_sep);
+		fprintf(fd, "%d%s", input_freq[i][fit_rule[i]], row_sep);
 		// Percent correct (of the input data, based on the rule from fit)
-		if (input_key_freq[i] == 0) fprintf(fd, format_percent, 0.0);
-		else fprintf(fd, format_percent, (double)input_freq[i][fit_rule[i]] / (double)input_key_freq[i] * 100.0);
+		if (input_key_freq[i] == 0) fprintf(fd, "%6.3f", 0.0);
+		else fprintf(fd, "%6.3f", (double)input_freq[i][fit_rule[i]] / (double)input_key_freq[i] * 100.0);
 		mean_squared_error = 0.0;
 		if(calcExpectedDV == true) {
-			fprintf(fd, row_sep);
-			fprintf(fd, format_percent, fit_dv_expected[i]);
+			fprintf(fd, "%s%6.3f", row_sep, fit_dv_expected[i]);
 			if (input_key_freq[i] > 0) {
 				for (int j=0; j < dv_card; j++) {
 					temp_percent = fit_dv_expected[i] - dv_bin_value[dv_order[j]];
@@ -1087,29 +1093,25 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 				}
 				mean_squared_error /= input_key_freq[i];
 			} else mean_squared_error = 0;
-			fprintf(fd, row_sep);
-			fprintf(fd, format_percent, mean_squared_error);
+			fprintf(fd, "%s%6.3f", row_sep, mean_squared_error);
 		}
 
 		// Print test results, if present
 		if(test_sample_size > 0) {
-			fprintf(fd, row_sep);
-			fprintf(fd, "|");
-			fprintf(fd, row_sep);
 			// Frequency in test data
-			fprintf(fd, format_int, test_key_freq[i]);
+			fprintf(fd, "%s|%s%d", row_sep, row_sep, test_key_freq[i]);
 			// Print out the percentages for each of the DV states
 			for(int j=0; j < dv_card; j++) {
 				fprintf(fd, row_sep);
-				if (test_key_freq[i] == 0) fprintf(fd, format_percent, 0.0);
-				else fprintf(fd, format_percent, (double)test_freq[i][dv_order[j]] / (double)test_key_freq[i] * 100.0);	
+				if (test_key_freq[i] == 0) fprintf(fd, "%6.3f", 0.0);
+				else fprintf(fd, "%6.3f", (double)test_freq[i][dv_order[j]] / (double)test_key_freq[i] * 100.0);	
 			}
 			fprintf(fd, row_sep);
-			if (test_key_freq[i] == 0) fprintf(fd, format_percent, 0.0);
-			else fprintf(fd, format_percent, (double)test_freq[i][fit_rule[i]] / (double)test_key_freq[i] * 100.0);
+			if (test_key_freq[i] == 0) fprintf(fd, "%6.3f", 0.0);
+			else fprintf(fd, "%6.3f", (double)test_freq[i][fit_rule[i]] / (double)test_key_freq[i] * 100.0);
 			fprintf(fd, row_sep);
-			if (test_key_freq[i] == 0) fprintf(fd, format_percent, 0.0);
-			else fprintf(fd, format_percent, (double)test_freq[i][test_rule[i]] / (double)test_key_freq[i] * 100.0);
+			if (test_key_freq[i] == 0) fprintf(fd, "%6.3f", 0.0);
+			else fprintf(fd, "%6.3f", (double)test_freq[i][test_rule[i]] / (double)test_key_freq[i] * 100.0);
 			mean_squared_error = 0.0;
 			if(calcExpectedDV == true) {
 				if (test_key_freq[i] > 0) {
@@ -1119,154 +1121,108 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 					}
 					mean_squared_error /= test_key_freq[i];
 				} else mean_squared_error = 0;
-				fprintf(fd, row_sep);
-				fprintf(fd, format_percent, mean_squared_error);
+				fprintf(fd, "%s%6.3f", row_sep, mean_squared_error);
 				total_test_error += mean_squared_error * test_key_freq[i];
 			}
 		}
 		fprintf(fd, row_end);
 	}
 
+	// Footer, Row 1 (totals)
 	double total_expected_value = 0.0;
-	// Print out the totals row.
-	fprintf(fd, row_start, emphasis);
-	fprintf(fd, format_str, "totals:");		fprintf(fd, row_sep);
-	fprintf(fd, format_int, (int)sample_size);	fprintf(fd, row_sep);
+	fprintf(fd, row_start3);
+	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", row_sep);
+	fprintf(fd, "|%s%d%s", row_sep, (int)sample_size, row_sep);
+	for(int j=0; j < dv_card; j++) {
+		fprintf(fd, "%d%s", input_dv_freq[j], row_sep);
+	}
+	fprintf(fd, "|%s", row_sep);
 	// Print the marginals for each DV state
 	for(int j=0; j < dv_card; j++) {
-		fprintf(fd, format_percent, marginal[dv_order[j]] * 100.0);		fprintf(fd, row_sep);
-		if(calcExpectedDV == true) {
+		fprintf(fd, "%6.3f%s", marginal[dv_order[j]] * 100.0, row_sep);
+		if(calcExpectedDV == true)
 			total_expected_value += marginal[dv_order[j]] * dv_bin_value[dv_order[j]];
-		}
 	}
-	fprintf(fd, row_sep);
-	fprintf(fd, format_int, total_correct);		fprintf(fd, row_sep);
-	fprintf(fd, format_percent, (double)total_correct / sample_size * 100.0);
+	fprintf(fd, "%s%d%s%6.3f", row_sep, total_correct, row_sep, (double)total_correct / sample_size * 100.0);
 	if(calcExpectedDV == true) {
-		fprintf(fd, row_sep);
-		fprintf(fd, format_percent, total_expected_value);
+		fprintf(fd, "%s%6.3f", row_sep, total_expected_value);
 		temp_percent = mean_squared_error = 0.0;
 		for(int j=0; j < dv_card; j++) {
 			temp_percent = total_expected_value - dv_bin_value[dv_order[j]];
 			mean_squared_error += temp_percent * temp_percent * (double)input_dv_freq[dv_order[j]];
 		}
 		mean_squared_error /= sample_size;
-		fprintf(fd, row_sep);
-		fprintf(fd, format_percent, mean_squared_error);
+		fprintf(fd, "%s%6.3f", row_sep, mean_squared_error);
 	}
 	double default_percent_on_test = 0.0;
 	double best_percent_on_test = 0.0;
 	double fit_percent_on_test = 0.0;
 	if(test_sample_size > 0) {
-		fprintf(fd, row_sep);
-		fprintf(fd, "|");					fprintf(fd, row_sep);
-		fprintf(fd, format_int, (int)test_sample_size);		fprintf(fd, row_sep);
+		fprintf(fd, "%s|%s%d%s", row_sep, row_sep, (int)test_sample_size, row_sep);
 		// Print the test marginals for each DV state
 		for(int j=0; j < dv_card; j++) {
 			temp_percent = (double)test_dv_freq[dv_order[j]] / test_sample_size * 100.0;
 			if (temp_percent > default_percent_on_test) default_percent_on_test = temp_percent;
-			fprintf(fd, format_percent, temp_percent);	fprintf(fd, row_sep);
+			fprintf(fd, "%6.3f%s", temp_percent, row_sep);
 		}
 		fit_percent_on_test = (double)test_by_fit_rule / test_sample_size * 100.0;
 		best_percent_on_test = (double)test_by_test_rule / test_sample_size * 100.0;
-		fprintf(fd, format_percent, fit_percent_on_test);	fprintf(fd, row_sep);
-		fprintf(fd, format_percent, best_percent_on_test);
-		if(calcExpectedDV == true) {
-			fprintf(fd, row_sep);
-			fprintf(fd, format_percent, total_test_error/test_sample_size);
-		}
+		fprintf(fd, "%6.3f%s%6.3f", fit_percent_on_test, row_sep, best_percent_on_test);
+		if(calcExpectedDV == true)
+			fprintf(fd, "%s%6.3f", row_sep, total_test_error/test_sample_size);
 	}
 	fprintf(fd, row_end);
-	// Print out a footer, since most tables will be long
-	fprintf(fd, row_start, "");
-	fprintf(fd, format_str, "");		fprintf(fd, row_sep);
-	fprintf(fd, format_str, "freq");	fprintf(fd, row_sep);
-	// Print the values for the DV states, below each column
- 	for(int i=0; i < dv_card; i++) {
- 		fprintf(fd, "%s=", dv_var->abbrev);
- 		fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
-	}
-	fprintf(fd, "rule");		fprintf(fd, row_sep);
-	fprintf(fd, "#correct");	fprintf(fd, row_sep);
-	fprintf(fd, "%%correct");
-	if(calcExpectedDV == true) {
-		fprintf(fd, row_sep);
-		fprintf(fd, "E(DV)");		fprintf(fd, row_sep);
-		fprintf(fd, "MSE");
-	}
+	// Footer, Row 2 (repeat of Header, Row 3)
+	fprintf(fd, row_start);
+	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", row_sep);
+	fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep, row_sep);
+	if(calcExpectedDV == true)
+		fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
 
 	if(test_sample_size > 0) {
-		fprintf(fd, row_sep);
-		fprintf(fd, "|");		fprintf(fd, row_sep);
-		fprintf(fd, "freq");		fprintf(fd, row_sep);
-		// Print the values for the DV states, above each column
-		for(int i=0; i < dv_card; i++) {
-			fprintf(fd, "%s=", dv_var->abbrev);
-			fprintf(fd, format_str, dv_label[dv_order[i]]);		fprintf(fd, row_sep);
-		}
-		fprintf(fd, "by rule");		fprintf(fd, row_sep);
-		fprintf(fd, "best");
-		if(calcExpectedDV == true) {
-			fprintf(fd, row_sep);
-			fprintf(fd, "MSE");
-		}
+		fprintf(fd, "%s|%sfreq%s%sby rule%sbest", row_sep, row_sep, row_sep, dv_header, row_sep);
+		if(calcExpectedDV == true)
+			fprintf(fd, "%sMSE", row_sep);
 	}
-	fprintf(fd, row_end);
-	fprintf(fd, footer);
+	fprintf(fd, "%s%s", row_end, block_end);
 
 	// Print out a summary of the performance on the test data, if present.
 	if(test_sample_size > 0) {
-		if (htmlMode) fprintf(fd, "<table cellpadding=0 cellspacing=0 border=0>");
-		else fprintf(fd, "\n");
-		fprintf(fd, row_start, "");
-		fprintf(fd, "Performance on Test Data");
-		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Default:");	fprintf(fd, row_sep);
-		fprintf(fd, "%6.3f%%", default_percent_on_test);	fprintf(fd, row_sep);	fprintf(fd, "correct");
-		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Model rule:");	fprintf(fd, row_sep);
-		fprintf(fd, "%6.3f%%", fit_percent_on_test);		fprintf(fd, row_sep);	fprintf(fd, "correct");
-		fprintf(fd, row_end);	fprintf(fd, row_start, "");
-		fprintf(fd, "Best possible:");	fprintf(fd, row_sep);
-		fprintf(fd, "%6.3f%%", best_percent_on_test);		fprintf(fd, row_sep);	fprintf(fd, "correct");
-		fprintf(fd, row_end);	fprintf(fd, row_start, "");
+		fprintf(fd, "%s%sPerformance on Test Data%s", block_start, row_start, row_end);
+		fprintf(fd, "%sDefault:%s%6.3f%%%scorrect%s", row_start, row_sep, default_percent_on_test, row_sep, row_end);
+		fprintf(fd, "%sModel rule:%s%6.3f%%%scorrect%s", row_start, row_sep, fit_percent_on_test, row_sep, row_end);
+		fprintf(fd, "%sBest possible:%s%6.3f%%%scorrect%s", row_start, row_sep, best_percent_on_test, row_sep, row_end);
 		temp_percent = best_percent_on_test - default_percent_on_test;
-		if ((temp_percent) != 0) {
+		if ((temp_percent) != 0)
 			temp_percent = (fit_percent_on_test - default_percent_on_test) / temp_percent * 100.0;
-		}
-		fprintf(fd, "Improvement by model:");	fprintf(fd, row_sep);
-		fprintf(fd, "%6.3f%%", temp_percent);
-		fprintf(fd, row_end);
-		fprintf(fd, footer);
+		fprintf(fd, "%sImprovement by model:%s%6.3f%%%s%s", row_start, row_sep, temp_percent, row_end, block_end);
 	}
 
+	// If this is the entire model, print tables for each of the component relations.
 	if(rel == NULL) {
 		for(int i=1; i < model->getRelationCount(); i++){
 			printConditional_DV(fd, model->getRelation(i), calcExpectedDV);
 		}
 	}
 
-	delete[] marginal;		delete[] dv_order;
+	delete[] dv_header;		 delete[] marginal;		delete[] dv_order;
 	delete[] temp_key_array;	delete[] index_sibs;
-	for(int i=0; i < dv_card; i++) {
-		delete dv_label[i];
-	}
 	if(test_sample_size > 0) {
 		for(int i=0; i < iv_statespace; i++) {
-			delete test_key[i];	delete test_freq[i];
+			delete[] test_key[i];	delete[] test_freq[i];
 		}
 	}
 	for(int i=0; i < iv_statespace; i++) {
-		delete fit_key[i];	delete input_key[i];
-		delete fit_prob[i];	delete input_freq[i];
+		delete[] fit_key[i];	delete[] input_key[i];
+		delete[] fit_prob[i];	delete[] input_freq[i];
 	}
-	delete[] test_rule;	delete[] test_key_freq;	delete[] test_dv_freq;	delete[] test_freq;
-	delete[] test_key;	delete[] input_rule;	delete[] input_key_freq;
-	delete[] input_dv_freq;	delete[] input_freq;	delete[] input_key;
-	delete[] fit_dv_expected;	delete[] fit_rule;	delete[] fit_key_prob;
-	delete[] fit_dv_prob;	delete[] fit_prob;	delete[] fit_key;
-	delete[] dv_label;	delete[] key_str;
-	delete test_table;	delete input_table;
+	delete[] test_rule;		delete[] test_key_freq;		delete[] test_dv_freq;	
+	delete[] test_freq;		delete[] test_key;		delete[] input_key_freq;
+	delete[] input_dv_freq;		delete[] input_freq;		delete[] input_key;
+	delete[] fit_dv_expected;	delete[] fit_rule;		delete[] fit_key_prob;
+	delete[] fit_dv_prob;		delete[] fit_prob;		delete[] fit_key;		delete[] key_str;
+	
+	return;
 }
 
 
