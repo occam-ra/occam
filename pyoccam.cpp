@@ -394,6 +394,7 @@ DefinePyFunction(ocVBMManager, setFilter)
 	return Py_None;
 }
 
+/* commented out because it is currently unused
 // void setSort(String attrName, String dir)
 DefinePyFunction(ocVBMManager, setSort)
 {
@@ -412,6 +413,7 @@ DefinePyFunction(ocVBMManager, setSort)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+*/
 
 // void setDDFMethod(int method)
 DefinePyFunction(ocVBMManager, setDDFMethod)
@@ -918,6 +920,7 @@ DefinePyFunction(ocSBMManager, setFilter)
         return Py_None;
 }
 
+/* commented out because it is currently unused
 // void setSort(String attrName, String dir)
 DefinePyFunction(ocSBMManager, setSort)
 {
@@ -936,6 +939,7 @@ DefinePyFunction(ocSBMManager, setSort)
         Py_INCREF(Py_None);
         return Py_None;
 }
+*/
 
 // void printFitReport(ocModel *model)
 DefinePyFunction(ocSBMManager, printFitReport)
@@ -1156,6 +1160,7 @@ static struct PyMethodDef ocRelation_methods[] = {
 
 /****** Basic Type Operations ******/
 
+/* commented out because it is currently unused
 static PocRelation *
 newPocRelation()
 {
@@ -1163,7 +1168,9 @@ newPocRelation()
 	self->obj = new ocRelation();
 	return self;
 }
+*/
 
+/* commented out because it is currently unused
 static void
 ocRelation_dealloc(PocRelation *self)
 {
@@ -1171,6 +1178,7 @@ ocRelation_dealloc(PocRelation *self)
 	//-- are generally borrowed from the cache
 	delete self;
 }
+*/
 
 PyObject *
 ocRelation_getattr(PyObject *self, char *name)
@@ -1316,6 +1324,7 @@ static struct PyMethodDef ocModel_methods[] = {
 
 /****** Basic Type Operations ******/
 
+/* commented out because it is currently unused
 static PocModel *
 newPocModel()
 {
@@ -1323,13 +1332,16 @@ newPocModel()
 	self->obj = new ocModel();
 	return self;
 }
+*/
 
+/* commented out because it is currently unused
 static void
 ocModel_dealloc(PocModel *self)
 {
 	//-- models are cached also
 	delete self;
 }
+*/
 
 PyObject *
 ocModel_getattr(PyObject *self, char *name)
@@ -1564,6 +1576,7 @@ static struct PyMethodDef ocReport_methods[] = {
 
 /****** Basic Type Operations ******/
 
+/* commented out because it is currently unused
 static void
 ocReport_dealloc(PocReport *self)
 {
@@ -1573,6 +1586,7 @@ ocReport_dealloc(PocReport *self)
 	delete self;
 	TRACE_FN("ocReport::dealloc", __LINE__, 0);
 }
+*/
 
 PyObject *
 ocReport_getattr(PyObject *self, char *name)
