@@ -9,6 +9,7 @@ from jobcontrol import JobControl
 VERSION = "3.2.20"
 
 false = 0; true = 1
+# perhaps we should do some check that this directory exists?
 datadir = "data"
 
 #
@@ -375,6 +376,7 @@ def getBatchControls():
 #
 def printBatchLog(email):
 	print "<P>"
+	# perhaps we should do some check that this directory exists?
 	file = "batchlogs/" + email
 	try:
 		f = open(file)
