@@ -392,6 +392,7 @@ class ocUtils:
 			self.__manager.setRefModel(self.__refModel)
 			model = self.__manager.makeModel(modelName, 1)
 			self.__manager.computeL2Statistics(model)
+			self.__manager.computeDFStatistics(model)
 			self.__manager.computeDependentStatistics(model)
 			self.__report.addModel(model)
 			self.__manager.printFitReport(model)
