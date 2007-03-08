@@ -280,14 +280,14 @@ void ocTable::reset(int keysize)
 void ocTable::dump(bool detail)
 {
 	double sum = 0;
-	printf("ocTable: tuples = %d\n", tupleCount);
+	printf("ocTable: tuples = %ld\n", tupleCount);
 	for (int i = 0; i < tupleCount; i++) {
 		ocKeySegment *key = getKey(i);
 		double value = getValue(i);
 		if (detail) {
 			printf("\t");
 			for (int k = 0; k < keysize; k++) {
-				printf("%08x ", key[k]);
+				printf("%08lx ", key[k]);
 			}
 			printf("%g\n", value);
 		}
