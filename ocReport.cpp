@@ -725,13 +725,13 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	int iv_count = iv_rel->getIndependentVariables(ind_vars, var_count);
 	if(rel == NULL) {
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s", model->getPrintName());
-		//fprintf(fd, new_line);
-		//fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
-		//for(int i=0; i < iv_count; i++) {
-			//if (i > 0) fprintf(fd, "; ");
-			//fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(i))->name);
-		//}
-		//fprintf(fd, ")");
+		fprintf(fd, new_line);
+		fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
+		for(int i=0; i < iv_count; i++) {
+			if (i > 0) fprintf(fd, "; ");
+			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(i))->name);
+		}
+		fprintf(fd, ")");
 	} else {
 		// The iv_count is off by one for relations, as the DV seems to still get counted.
 		iv_count--;
@@ -758,7 +758,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	for (int i=0; i < input_table_size; i++) {
 		temp_key = input_table->getKey(i);
 		dv_value = ocKey::getKeyValue(temp_key, key_size, var_list, dv_index);
-		temp_return = (int) (input_table->getValue(i) * sample_size);
+		temp_return = (int) (0.5 + input_table->getValue(i) * sample_size);
 		input_dv_freq[dv_value] += temp_return;
 	}
 
@@ -1062,7 +1062,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
 		// Print out the frequencies of the training data
 		for(int j=0; j < dv_card; j++)
-			fprintf(fd, "%d%s", input_freq[i][j], row_sep);
+			fprintf(fd, "%d%s", input_freq[i][dv_order[j]], row_sep);
 		fprintf(fd, "|%s", row_sep);
 		// Print out the percentages for each of the DV states
 		temp_percent = 0.0;
@@ -1133,8 +1133,9 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	fprintf(fd, row_start3);
 	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", row_sep);
 	fprintf(fd, "|%s%d%s", row_sep, (int)sample_size, row_sep);
+	// Print the training data DV totals
 	for(int j=0; j < dv_card; j++) {
-		fprintf(fd, "%d%s", input_dv_freq[j], row_sep);
+		fprintf(fd, "%d%s", input_dv_freq[dv_order[j]], row_sep);
 	}
 	fprintf(fd, "|%s", row_sep);
 	// Print the marginals for each DV state
@@ -1205,7 +1206,11 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		}
 	}
 
-	delete[] dv_header;		 delete[] marginal;		delete[] dv_order;
+
+/*	I can't seem to free this memory properly, in the recursions of the function.
+	The memory frees at the end of the program, so this isn't so bad.
+	
+	delete[] dv_header;		delete[] marginal;		delete[] dv_order;
 	delete[] temp_key_array;	delete[] index_sibs;
 	if(test_sample_size > 0) {
 		for(int i=0; i < iv_statespace; i++) {
@@ -1216,11 +1221,13 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		delete[] fit_key[i];	delete[] input_key[i];
 		delete[] fit_prob[i];	delete[] input_freq[i];
 	}
+
 	delete[] test_rule;		delete[] test_key_freq;		delete[] test_dv_freq;	
 	delete[] test_freq;		delete[] test_key;		delete[] input_key_freq;
 	delete[] input_dv_freq;		delete[] input_freq;		delete[] input_key;
 	delete[] fit_dv_expected;	delete[] fit_rule;		delete[] fit_key_prob;
 	delete[] fit_dv_prob;		delete[] fit_prob;		delete[] fit_key;		delete[] key_str;
+*/
 	
 	return;
 }
