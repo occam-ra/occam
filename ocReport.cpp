@@ -662,7 +662,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		head_sep    = "</th><th>";
 		head_end    = "</th></tr>\n";
 		head_str1   = "</th><th colspan=2 class=r1>calc.&nbsp;q(DV|IV)";
-		head_str2   = "</th><th colspan=2 class=r1>obs.&nbsp;p(DV|IV)";
+		head_str2   = "</th><th colspan=2 class=r1>obs.&nbsp;p(DV|IV)";  // used twice
 		head_str3   = "</th><th colspan=2>%%correct";
 		head_str4   = "</th><th colspan=2>Test&nbsp;Data";
  		row_start   = "<tr><td align=right>";
@@ -1011,8 +1011,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	// Header, Row 2
 	fprintf(fd, "%s", head_start);
 	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", head_sep);
-	fprintf(fd, "|%s%s", head_sep, head_sep);
-	for(int i=0; i < dv_card; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, "|%s%s%s", head_sep, head_str2, head_sep);
+	if(dv_card > 2)
+		for(int i=2; i < dv_card; i++)
+			fprintf(fd, head_sep);
 	fprintf(fd, "|%s%s", head_str1, head_sep);
 	if(dv_card > 2)
 		for(int i=2; i < dv_card; i++)
@@ -1060,9 +1062,9 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		for (int j=0; j < iv_count; j++)
 			fprintf(fd, "%c%s", key_str[j], row_sep);
 		fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
-		// Print out the frequencies of the training data
+		// Print out the conditional probabilities of the training data
 		for(int j=0; j < dv_card; j++)
-			fprintf(fd, "%d%s", input_freq[i][dv_order[j]], row_sep);
+			fprintf(fd, "%6.3f%s", (double)input_freq[i][dv_order[j]] / (double)input_key_freq[i] * 100.0, row_sep);
 		fprintf(fd, "|%s", row_sep);
 		// Print out the percentages for each of the DV states
 		temp_percent = 0.0;
@@ -1135,7 +1137,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	fprintf(fd, "|%s%d%s", row_sep, (int)sample_size, row_sep);
 	// Print the training data DV totals
 	for(int j=0; j < dv_card; j++) {
-		fprintf(fd, "%d%s", input_dv_freq[dv_order[j]], row_sep);
+		fprintf(fd, "%6.3f%s", (double)input_dv_freq[dv_order[j]] / sample_size * 100.0, row_sep);
 	}
 	fprintf(fd, "|%s", row_sep);
 	// Print the marginals for each DV state
