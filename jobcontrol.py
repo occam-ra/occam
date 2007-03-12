@@ -6,8 +6,9 @@ class JobControl:
 		pid = formFields.get("pid", 0)
 		if pid <> 0:
 			try:
-				os.kill(int(pid), 3)
-				print "<b>Job " + pid + " killed!</b><p>"
+				while 1:
+					os.kill(int(pid), signal.SIGKILL)
+					print "<b>Job " + pid + " killed!</b><p>"
 			except Exception, e:
 				print "<b>", e.args[1], ": kill of ", pid, " failed</b><p>"
 			except:
