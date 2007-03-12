@@ -475,8 +475,8 @@ bool ocVariableList::checkCardinalities()
 		int valuecount = 0;
 		while (map[valuecount] != NULL) valuecount++;
 		if (valuecount != cardinality) {
-			printf("Warning: input data cardinality for variable %s is %d, which doesnot match specified value %d\n",
-				vars[varindex].name, valuecount,cardinality);
+			printf("Error: input data cardinality for variable %s is %d, which does not match specified value %d.\n",
+				vars[varindex].name, valuecount, cardinality);
 			// result = false; // no longer fatal
 		}
 	}
