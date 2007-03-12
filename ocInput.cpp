@@ -19,9 +19,9 @@ struct LostVar{
         int all;  //flag to mark if all values are valid
         LostVar *next;
 };
+
 bool isLostVar(int i, LostVar ** varp, LostVar *lostvarp)
 {
-	int k;
         while(lostvarp !=NULL)
         {
                 if(lostvarp->num==i){
@@ -32,6 +32,7 @@ bool isLostVar(int i, LostVar ** varp, LostVar *lostvarp)
         }
         return false;
 }
+
 bool KeepVal(LostVar *lostvarpt,char * var){
         int i=0,k;
         while(lostvarpt->ValidList[i]!=NULL){
@@ -65,7 +66,6 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
         char var[MAXCARDINALITY];
         char newvalue[MAXLINE];
         bool keepval=true;
-        int var_val=0;
 	//printf("number of effective variable %d and df variable %d\n",varCount,varCountDF); //****
         if((values = new int[varCount])==NULL){ // values of the variables
                 printf("No memory available\n");
@@ -77,8 +77,6 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
                 exit(1);
         }
         int j=0;
-	int value1=0;
-	char cp1[MAXLINE];
 	int value=0;
 	int l=0;
         gotLine = ocOptions::getLine(fin, line, &lineno);
@@ -99,8 +97,9 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
        		                         	value = vars->getVarValueIndex(j,newvalue);
 						//printf("value is %d\n",value); //****
                                 		if (value < 0) {        // cardinality error
-		                                        printf("line %d, too many different values for variable %s\n",
+		                                        printf("Error in data, line %d: new value exceeds cardinality of variable %s.\n",
                				                                 lineno, vars->getVariable(j)->abbrev);
+							exit(1);
 		                                } else {
 							//printf("value being added");
                                                		 values[j] = value;
@@ -112,9 +111,10 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
        		                         	value = vars->getVarValueIndex(j,cp);
 						//printf("value is %d **\n",value); //****
                                 		if (value < 0) {        // cardinality error
-		                                        printf("line %d, too many different values for variable %s\n",
+		                                        printf("Error in data, line %d: new value exceeds cardinality of variable %s.\n",
                				                                 lineno, vars->getVariable(j)->abbrev);
-		                                }else {
+							exit(1);
+		                                } else {
                                                		 values[j] = value;
 		                                         indices[j] = j;
                                 		}
@@ -230,7 +230,6 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
         int flag_1=0;
         int index_card=0;
 	int loop=0;	
-	char cr;
 	char e[]="exclude";
 	int v=0;
 	int num_var_actual=0;
@@ -247,7 +246,7 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
                 num_var_df++;
 		loop++;
                 if (count < 4 || count > 5) {
-                        printf("Error in variable definition\n", vardef);
+                        printf("Error in variable definition: %s\n", vardef);
 			exit(1);
                 }else{
 			char *cp=rebin;
@@ -321,7 +320,6 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
                                         char number[MAXLINE];//a 10 digit long number
                                         char rest[MAXLINE];//space for 100 rest of the string
                                         int ind=0;
-                                        int validval=0;
                                         vars->markForNoUse();
                                         if(flag_1==0){
                                                 lostvarp1=new LostVar;//this might have some issues
@@ -517,7 +515,6 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
                                                 int flag_newval=0;
                                                 char * ch1=NULL;
 			
-                                                int num=0;
 						int ret=0;
                                                         while (*cp && isspace(*cp)) cp++;
                                                         ret=sscanf(cp,"%[^( ](%[^) ])%[^] ]",valp,rest_tok,rest_tok1);
@@ -611,9 +608,6 @@ int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdat
 	ocVariableList *varp=NULL;
 	ocTable *indatap=NULL;
 	ocTable *testdatap=NULL;
-	int lineno = 0;
-	void * nextp=NULL;
-        const char * val=NULL;
 	LostVar *lostvarp=NULL;
 	int dataLines = 0;
 	int testLines = 0;
