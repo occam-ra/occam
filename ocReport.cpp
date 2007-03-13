@@ -224,9 +224,9 @@ void ocReport::print(FILE *fd)
 		if (showAlpha) {
 			tempAlpha = modelAttrs->getAttribute(ATTRIBUTE_ALPHA);
 			tempInf   = modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I);
-			if ((tempAlpha < 0.01) && (tempInf > bestInf_01)) bestInf_01 = tempInf;
+//			if ((tempAlpha < 0.01) && (tempInf > bestInf_01)) bestInf_01 = tempInf;
 			if ((tempAlpha < 0.05) && (tempInf > bestInf_05)) bestInf_05 = tempInf;
-			if ((tempAlpha < 0.1 ) && (tempInf > bestInf_1 )) bestInf_1  = tempInf;
+//			if ((tempAlpha < 0.1 ) && (tempInf > bestInf_1 )) bestInf_1  = tempInf;
 		}
 		if (showPercentCorrect) {
 			tempTest  = modelAttrs->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST);
@@ -252,7 +252,7 @@ void ocReport::print(FILE *fd)
 	}
 
 	if(showAlpha) {
-		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.01:\n");
+/*		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.01:\n");
 		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.01</b>:</td></tr>\n");
 		for (int m = 0; m < modelCount; m++) {
 			modelAttrs = models[m]->getAttributeList();
@@ -260,6 +260,7 @@ void ocReport::print(FILE *fd)
 			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.01) continue;
 			printSearchRow(fd, models[m], attrID);
 		}
+*/
 	
 		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.05:\n");
 		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.05</b>:</td></tr>\n");
@@ -270,7 +271,7 @@ void ocReport::print(FILE *fd)
 			printSearchRow(fd, models[m], attrID);
 		}
 	
-		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.1:\n");
+/*		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.1:\n");
 		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.1</b>:</td></tr>\n");
 		for (int m = 0; m < modelCount; m++) {
 			modelAttrs = models[m]->getAttributeList();
@@ -278,6 +279,7 @@ void ocReport::print(FILE *fd)
 			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.1) continue;
 			printSearchRow(fd, models[m], attrID);
 		}
+*/
 	}
 
 	if (showPercentCorrect) {
@@ -588,7 +590,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	int **test_freq = new int *[iv_statespace];
 	int *test_dv_freq = new int[dv_card];
 	int *test_key_freq = new int[iv_statespace]; 
-	int *test_rule = new int[iv_statespace]; 	
+	int *test_rule = new int[iv_statespace]; 
 	
 	// Allocate space for keys and frequencies
 	ocKeySegment *temp_key;
@@ -758,7 +760,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	for (int i=0; i < input_table_size; i++) {
 		temp_key = input_table->getKey(i);
 		dv_value = ocKey::getKeyValue(temp_key, key_size, var_list, dv_index);
-		temp_return = (int) (0.5 + input_table->getValue(i) * sample_size);
+		temp_return = (int)round(input_table->getValue(i) * sample_size);
 		input_dv_freq[dv_value] += temp_return;
 	}
 
@@ -770,6 +772,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	}
 	for (int i=0; i < iv_statespace; i++) {
 		fit_rule[i] = input_default_dv;
+		test_rule[i] = input_default_dv;
 	}
 
 
@@ -986,6 +989,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			test_by_test_rule += test_freq[i][test_rule[i]];
 		}
 	}
+//	fprintf(fd, "<br>%s: return at %d<br>\n", __FUNCTION__, __LINE__); return;
 
 	int dv_ccount = 0;
 	char *dv_header = new char[100];
@@ -1063,11 +1067,16 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			fprintf(fd, "%c%s", key_str[j], row_sep);
 		fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
 		// Print out the conditional probabilities of the training data
-		for(int j=0; j < dv_card; j++)
-			fprintf(fd, "%6.3f%s", (double)input_freq[i][dv_order[j]] / (double)input_key_freq[i] * 100.0, row_sep);
+		temp_percent = 0.0;
+		for(int j=0; j < dv_card; j++) {
+			if (input_key_freq[i] == 0) temp_percent = 0.0;
+			else {
+				temp_percent = (double)input_freq[i][dv_order[j]] / (double)input_key_freq[i] * 100.0;
+			}
+			fprintf(fd, "%.3f%s", temp_percent, row_sep);
+		}
 		fprintf(fd, "|%s", row_sep);
 		// Print out the percentages for each of the DV states
-		temp_percent = 0.0;
 		for(int j=0; j < dv_card; j++) {
 			if (fit_key_prob[i] == 0) temp_percent = 0.0;
 			else {
@@ -1076,18 +1085,18 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 					fit_dv_expected[i] += temp_percent / 100.0 * dv_bin_value[dv_order[j]];
 				}
 			}
-			fprintf(fd, "%6.3f%s", temp_percent, row_sep);
+			fprintf(fd, "%.3f%s", temp_percent, row_sep);
 		}
 		// Print the DV state of the best rule. If there was no input to base the rule on, use the default rule.
 		fprintf(fd, "%s%s", dv_label[fit_rule[i]], row_sep);
 		// Number correct (of the input data, based on the rule from fit)
 		fprintf(fd, "%d%s", input_freq[i][fit_rule[i]], row_sep);
 		// Percent correct (of the input data, based on the rule from fit)
-		if (input_key_freq[i] == 0) fprintf(fd, "%6.3f", 0.0);
-		else fprintf(fd, "%6.3f", (double)input_freq[i][fit_rule[i]] / (double)input_key_freq[i] * 100.0);
+		if (input_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
+		else fprintf(fd, "%.3f", (double)input_freq[i][fit_rule[i]] / (double)input_key_freq[i] * 100.0);
 		mean_squared_error = 0.0;
 		if(calcExpectedDV == true) {
-			fprintf(fd, "%s%6.3f", row_sep, fit_dv_expected[i]);
+			fprintf(fd, "%s%.3f", row_sep, fit_dv_expected[i]);
 			if (input_key_freq[i] > 0) {
 				for (int j=0; j < dv_card; j++) {
 					temp_percent = fit_dv_expected[i] - dv_bin_value[dv_order[j]];
@@ -1095,7 +1104,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 				}
 				mean_squared_error /= input_key_freq[i];
 			} else mean_squared_error = 0;
-			fprintf(fd, "%s%6.3f", row_sep, mean_squared_error);
+			fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
 		}
 
 		// Print test results, if present
@@ -1105,15 +1114,15 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			// Print out the percentages for each of the DV states
 			for(int j=0; j < dv_card; j++) {
 				fprintf(fd, row_sep);
-				if (test_key_freq[i] == 0) fprintf(fd, "%6.3f", 0.0);
-				else fprintf(fd, "%6.3f", (double)test_freq[i][dv_order[j]] / (double)test_key_freq[i] * 100.0);	
+				if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
+				else fprintf(fd, "%.3f", (double)test_freq[i][dv_order[j]] / (double)test_key_freq[i] * 100.0);	
 			}
 			fprintf(fd, row_sep);
-			if (test_key_freq[i] == 0) fprintf(fd, "%6.3f", 0.0);
-			else fprintf(fd, "%6.3f", (double)test_freq[i][fit_rule[i]] / (double)test_key_freq[i] * 100.0);
+			if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
+			else fprintf(fd, "%.3f", (double)test_freq[i][fit_rule[i]] / (double)test_key_freq[i] * 100.0);
 			fprintf(fd, row_sep);
-			if (test_key_freq[i] == 0) fprintf(fd, "%6.3f", 0.0);
-			else fprintf(fd, "%6.3f", (double)test_freq[i][test_rule[i]] / (double)test_key_freq[i] * 100.0);
+			if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
+			else fprintf(fd, "%.3f", (double)test_freq[i][test_rule[i]] / (double)test_key_freq[i] * 100.0);
 			mean_squared_error = 0.0;
 			if(calcExpectedDV == true) {
 				if (test_key_freq[i] > 0) {
@@ -1123,7 +1132,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 					}
 					mean_squared_error /= test_key_freq[i];
 				} else mean_squared_error = 0;
-				fprintf(fd, "%s%6.3f", row_sep, mean_squared_error);
+				fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
 				total_test_error += mean_squared_error * test_key_freq[i];
 			}
 		}
@@ -1134,45 +1143,45 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	double total_expected_value = 0.0;
 	fprintf(fd, row_start3);
 	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", row_sep);
-	fprintf(fd, "|%s%d%s", row_sep, (int)sample_size, row_sep);
+	fprintf(fd, "|%s%d%s", row_sep, (int)round(sample_size), row_sep);
 	// Print the training data DV totals
 	for(int j=0; j < dv_card; j++) {
-		fprintf(fd, "%6.3f%s", (double)input_dv_freq[dv_order[j]] / sample_size * 100.0, row_sep);
+		fprintf(fd, "%.3f%s", (double)input_dv_freq[dv_order[j]] / sample_size * 100.0, row_sep);
 	}
 	fprintf(fd, "|%s", row_sep);
 	// Print the marginals for each DV state
 	for(int j=0; j < dv_card; j++) {
-		fprintf(fd, "%6.3f%s", marginal[dv_order[j]] * 100.0, row_sep);
+		fprintf(fd, "%.3f%s", marginal[dv_order[j]] * 100.0, row_sep);
 		if(calcExpectedDV == true)
 			total_expected_value += marginal[dv_order[j]] * dv_bin_value[dv_order[j]];
 	}
-	fprintf(fd, "%s%d%s%6.3f", row_sep, total_correct, row_sep, (double)total_correct / sample_size * 100.0);
+	fprintf(fd, "%s%d%s%.3f", row_sep, total_correct, row_sep, (double)total_correct / sample_size * 100.0);
 	if(calcExpectedDV == true) {
-		fprintf(fd, "%s%6.3f", row_sep, total_expected_value);
+		fprintf(fd, "%s%.3f", row_sep, total_expected_value);
 		temp_percent = mean_squared_error = 0.0;
 		for(int j=0; j < dv_card; j++) {
 			temp_percent = total_expected_value - dv_bin_value[dv_order[j]];
 			mean_squared_error += temp_percent * temp_percent * (double)input_dv_freq[dv_order[j]];
 		}
 		mean_squared_error /= sample_size;
-		fprintf(fd, "%s%6.3f", row_sep, mean_squared_error);
+		fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
 	}
 	double default_percent_on_test = 0.0;
 	double best_percent_on_test = 0.0;
 	double fit_percent_on_test = 0.0;
 	if(test_sample_size > 0) {
-		fprintf(fd, "%s|%s%d%s", row_sep, row_sep, (int)test_sample_size, row_sep);
+		fprintf(fd, "%s|%s%d%s", row_sep, row_sep, (int)round(test_sample_size), row_sep);
 		// Print the test marginals for each DV state
 		for(int j=0; j < dv_card; j++) {
 			temp_percent = (double)test_dv_freq[dv_order[j]] / test_sample_size * 100.0;
 			if (temp_percent > default_percent_on_test) default_percent_on_test = temp_percent;
-			fprintf(fd, "%6.3f%s", temp_percent, row_sep);
+			fprintf(fd, "%.3f%s", temp_percent, row_sep);
 		}
 		fit_percent_on_test = (double)test_by_fit_rule / test_sample_size * 100.0;
 		best_percent_on_test = (double)test_by_test_rule / test_sample_size * 100.0;
-		fprintf(fd, "%6.3f%s%6.3f", fit_percent_on_test, row_sep, best_percent_on_test);
+		fprintf(fd, "%.3f%s%.3f", fit_percent_on_test, row_sep, best_percent_on_test);
 		if(calcExpectedDV == true)
-			fprintf(fd, "%s%6.3f", row_sep, total_test_error/test_sample_size);
+			fprintf(fd, "%s%.3f", row_sep, total_test_error / test_sample_size);
 	}
 	fprintf(fd, row_end);
 	// Footer, Row 2 (repeat of Header, Row 3)
@@ -1192,13 +1201,13 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	// Print out a summary of the performance on the test data, if present.
 	if(test_sample_size > 0) {
 		fprintf(fd, "%s%sPerformance on Test Data%s", block_start, row_start, row_end);
-		fprintf(fd, "%sDefault:%s%6.3f%%%scorrect%s", row_start, row_sep, default_percent_on_test, row_sep, row_end);
-		fprintf(fd, "%sModel rule:%s%6.3f%%%scorrect%s", row_start, row_sep, fit_percent_on_test, row_sep, row_end);
-		fprintf(fd, "%sBest possible:%s%6.3f%%%scorrect%s", row_start, row_sep, best_percent_on_test, row_sep, row_end);
+		fprintf(fd, "%sDefault:%s%.3f%%%scorrect%s", row_start, row_sep, default_percent_on_test, row_sep, row_end);
+		fprintf(fd, "%sModel rule:%s%.3f%%%scorrect%s", row_start, row_sep, fit_percent_on_test, row_sep, row_end);
+		fprintf(fd, "%sBest possible:%s%.3f%%%scorrect%s", row_start, row_sep, best_percent_on_test, row_sep, row_end);
 		temp_percent = best_percent_on_test - default_percent_on_test;
 		if ((temp_percent) != 0)
 			temp_percent = (fit_percent_on_test - default_percent_on_test) / temp_percent * 100.0;
-		fprintf(fd, "%sImprovement by model:%s%6.3f%%%s%s", row_start, row_sep, temp_percent, row_end, block_end);
+		fprintf(fd, "%sImprovement by model:%s%.3f%%%s%s", row_start, row_sep, temp_percent, row_end, block_end);
 	}
 
 	// If this is the entire model, print tables for each of the component relations.
