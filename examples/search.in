@@ -1,26 +1,11 @@
-:verbose
-
 :action
 search
-
-:optimize
-information
-
-:sort
-alpha
-beta
-
-:limit
-10
 
 :nominal
 soft,3,1,a
 previous,2,1,b
 temp,2,1,c
 prefer,2,1,d
-
-:long-model
-soft,previous,temp,prefer
 
 :data
  1 1 1 1  19
