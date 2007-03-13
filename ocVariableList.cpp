@@ -160,7 +160,7 @@ int ocVariableList::markForNoUse()
 	//grow the mask if the variables are more than the mask can hold
 	const int GROWTH_FACTOR = 2;
         //printf(" variable %d marked for no use \n",varCountDF);
-	if (varCountDF >=maxVarMask*sizeof(long)*8) {
+	if (varCountDF >= maxVarMask * (int)sizeof(long) * 8) {
 		maskVars = (long*) growStorage(maskVars, maxVarMask*sizeof(long), GROWTH_FACTOR);
 		maxVarMask *= GROWTH_FACTOR;
 	}
@@ -250,9 +250,8 @@ void ocVariableList::dump()
 	printf("\tCard\tSeg\tSiz\tShft\tName\tAbb\tMask\n");
 	for (int i = 0; i < varCount; i++) {
 		ocVariable *v = vars + i;
-		printf("\t%d\t%d\t%d\t%d\t%s\t%s\t%08x\n", v->cardinality, v->segment,
-			v->size, v->shift, v->name,
-			v->abbrev, v->mask);
+		printf("\t%d\t%d\t%d\t%d\t%s\t%s\t%08lx\n", v->cardinality, v->segment,
+			v->size, v->shift, v->name, v->abbrev, v->mask);
 	}
 	printf("\n");
 }
@@ -458,8 +457,6 @@ int ocVariableList::getVarValueIndex(int varindex, const char *value)
 
 const char *ocVariableList::getVarValue(int varindex, int valueindex)
 {
-	int index = 0;
-	int cardinality = vars[varindex].cardinality;
 	char **map = vars[varindex].valmap;
 	const char *value = map[valueindex];
 	if (value) return value;
