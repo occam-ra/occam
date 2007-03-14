@@ -203,7 +203,9 @@ void ocReport::print(FILE *fd)
 	ocAttributeList *modelAttrs;
 	double bestBIC, bestAIC, bestInf_01, bestInf_05, bestInf_1, bestTest;
 	double tempBIC, tempAIC, tempAlpha, tempInf, tempTest;
-	bestBIC = bestAIC = bestInf_01 = bestInf_05 = bestInf_1 = bestTest = -100;
+	bestInf_01 = bestInf_05 = bestInf_1 = bestTest = -1.0e38;
+	bestBIC = models[0]->getAttributeList()->getAttribute(ATTRIBUTE_BIC);
+	bestAIC = models[0]->getAttributeList()->getAttribute(ATTRIBUTE_AIC);
 
 	// Only show best info/alpha valuse when searching from the bottom.
 	bool showAlpha = false;
