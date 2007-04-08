@@ -99,9 +99,9 @@ int *ocRelation::getVariables()
 
 // Used to compute the delta-DF between two models, by the method that counts relations.
 // The number returned is the product of all included variable's (cardinality - 1).
-int ocRelation::getDDFPortion()
+long long int ocRelation::getDDFPortion()
 {
-	int total = 1;
+	long int total = 1;
 	for(int i=0; i < varCount; i++) {
 		total = total * (varList->getVariable(vars[i])->cardinality - 1);
 	}
@@ -113,7 +113,7 @@ int ocRelation::getDDFPortion()
 int ocRelation::copyMissingVariables(int *indices, int maxCount)
 {
   int copycount = 0;
-  int i, j;
+  int i;
   int missing = 0;
   int nextPresent;
   for (i = 0; i < varCount; i++) {

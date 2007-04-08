@@ -301,7 +301,7 @@ double ocVBMManager::computeDDF(ocModel *model)
 	// With the list of individual relations by which the two models differ,
 	// we can now find the delta-DF.  Each relation contributes the product
 	// of all its variables' (cardinality - 1).
-	int ddf2 = 0;
+	long long int ddf2 = 0;
 	int rcount = diffModel->getRelationCount();
 	for (int i=0; i < rcount; i++) {
 		ddf2 += diffModel->getRelation(i)->getDDFPortion();
@@ -309,7 +309,7 @@ double ocVBMManager::computeDDF(ocModel *model)
 	delete diffModel;
 
 	attrs->setAttribute(ATTRIBUTE_DDF, ddf2);
-	return ddf2;
+	return (double)ddf2;
 }
 
 
@@ -492,7 +492,7 @@ void ocVBMManager::computeDependentStatistics(ocModel *model)
 	ocAttributeList *attrs = model->getAttributeList();
 	double indH = indAttrs->getAttribute(ATTRIBUTE_H);
 	double refH = computeH(bottomRef);
-	double refCondH = refH - indH;
+	//double refCondH = refH - indH;
 
 	double h = computeH(model);
 	double condH = h - indH;
@@ -708,7 +708,7 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 	// for these computations, we need an estimated H which is compatible
 	// with the Info-theoretic measures.
 	double refH = computeH(bottomRef);
-	double refCondH = refH - indH;
+	//double refCondH = refH - indH;
 
 	double condH = modelH - indH;
 
@@ -834,8 +834,8 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 		headerSep = "";
 	}
 	int cols = 3;
-	int labelwidth = 20;
-	int colwidth = 18;
+	//int labelwidth = 20;
+	//int colwidth = 18;
 	int row, col, rowlabel;
 	const char *label;
 	
@@ -916,7 +916,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	}
 	
 	//-- Print some general stuff
-	int cwid = 40;
+	//int cwid = 40;
 	const char *label;
 	double value;
 
@@ -937,16 +937,16 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
 	fprintf(fd, footer);
 	//-- print top and bottom reference tables
-	const char *topFields[] = {
-		"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
-		"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
-		"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
-	};
-	const char *bottomFields[] = {
-		"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
-		"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
-		"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
-	};
+	//const char *topFields[] = {
+		//"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
+		//"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
+		//"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
+	//};
+	//const char *bottomFields[] = {
+		//"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
+		//"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
+		//"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
+	//};
 	const char *topFields1[] = {
 		"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, 
 		"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, 
@@ -979,7 +979,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 void ocVBMManager::printBasicStatistics()
 {
 	const char *header, *beginLine, *endLine, *separator, *footer;
-	double h;
+	//double h;
 	if (ocReport::isHTMLMode()) {
 		header = "<br><br><table border=0 cellpadding=0 cellspacing=0>\n";
 		beginLine = "<tr><td>";

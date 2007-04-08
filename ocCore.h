@@ -252,7 +252,7 @@ public:
 	// variables. maxVarCount is the allocated size of indices.
 	int copyVariables(int *indices, int maxCount, int skip = -1);
 	int *getVariables();
-	int getDDFPortion();
+	long long int getDDFPortion();
 	int getIndependentVariables(int *indices, int maxCount);
 	int getDependentVariables(int *indices, int maxCount);
 	int copyMissingVariables(int *indices, int maxCount);
