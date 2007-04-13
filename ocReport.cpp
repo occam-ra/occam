@@ -727,18 +727,40 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
 	int *ind_vars = new int[var_count];
 	int iv_count = iv_rel->getIndependentVariables(ind_vars, var_count);
+	// Check that all the variables we're counting are IVs, not DVs.
+	int new_count = iv_count;
+	for (int i=0; i < iv_count; i++) {
+		if (var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->dv) new_count--;
+	}
+	iv_count = new_count;
+	//fprintf(fd, "IV count: %d, VarCount: %d%s", iv_count, var_count, new_line);
 	if(rel == NULL) {
+		// If the IV component doesn't contain all active IVs, quit with an error.
+		// (This error check would be better processed earlier on, preferably right after the input file has been read.)
+		if (iv_count != (var_count - 1)) {
+			fprintf(fd, "ERROR: Not all IVs present in the data are represented in the IV component.%s", new_line);
+			fprintf(fd, "The model includes IVs: ");
+			for(int i=0; i < iv_count; i++) {
+				fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->abbrev);
+			}
+			fprintf(fd, "%s", new_line);
+			fprintf(fd, " The data include IVs: ");
+			for(int i=0; i < (var_count-1); i++) {
+				fprintf(fd, "%s", var_list->getVariable(i)->abbrev);
+			}
+			fprintf(fd, "%s", blank_line);
+			fprintf(fd, "Either inactivate the missing variables in the data, or include them in the IV component.%s", blank_line);
+			exit(1);
+		}
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s", model->getPrintName());
 		fprintf(fd, new_line);
 		fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
 		for(int i=0; i < iv_count; i++) {
 			if (i > 0) fprintf(fd, "; ");
-			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(i))->name);
+			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->name);
 		}
 		fprintf(fd, ")");
 	} else {
-		// The iv_count is off by one for relations, as the DV seems to still get counted.
-		iv_count--;
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s", rel->getPrintName());
 	}
 	fprintf(fd, blank_line);
@@ -1221,7 +1243,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
 
 /*	I can't seem to free this memory properly, in the recursions of the function.
-	The memory frees at the end of the program, so this isn't so bad.
+	The memory frees at the end of the program, so this isn't so bad.  [JSF]
 	
 	delete[] dv_header;		delete[] marginal;		delete[] dv_order;
 	delete[] temp_key_array;	delete[] index_sibs;
