@@ -141,8 +141,8 @@ def getDataFile(formFields):
 def processFit(fn, model, oc):
 	global datafile, textFormat, printOptions
 
-
 	if textFormat:
+		print "<span class=mono>"
 		oc.setReportSeparator(ocUtils.COMMASEP)
 	else:
 		oc.setReportSeparator(ocUtils.HTMLFORMAT)
@@ -151,6 +151,9 @@ def processFit(fn, model, oc):
 		oc.setFitModel(model)
 	oc.setAction("fit")
 	oc.doAction(printOptions)
+
+	if textFormat:
+		print "</span>"
 
 #
 #---- processSBFit ---- Do state based fit operation
@@ -186,12 +189,7 @@ def actionFit(formFields):
 		return
 	model = formFields["model"]
 
-	if textFormat:
-		processFit(fn, model, oc)
-	else:
-		print "<span class=mono>"
-		processFit(fn, model, oc)
-		print "</span>"
+	processFit(fn, model, oc)
 
 #
 #---- actionSBFit ---- Report on Fit
