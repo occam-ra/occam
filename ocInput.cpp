@@ -182,22 +182,20 @@ void ocDefineVariables(ocOptions *options, ocVariableList *vars)
 	void *nextp = NULL;
 	const char *vardef;
 	int type, cardinality;
-	char name[MAXLINE], abbrev[MAXLINE];
+	char name[MAXLINE+1], abbrev[MAXLINE+1];
 	bool isdv, alldv = true;
 	while (options->getOptionString("nominal", &nextp, &vardef)) {
-		int count = sscanf(vardef, "%[^, \t],%d,%d,%s", name, &cardinality, &type, abbrev);
+		int count = sscanf(vardef, "%[^, \t],%d,%d%*[, \t]%s", name, &cardinality, &type, abbrev);
 		if (count != 4) {
-			fprintf(stderr, "Error in variable definition\n", vardef);
+			fprintf(stderr, "Error in variable definition: %s\n", vardef);
 		}
 		else {
 			
-			if(type !=0){  //Anjali
+			if(type !=0) {  //Anjali
 				isdv = type == 2;
 				alldv &= isdv;
-				vars->addVariable(name, abbrev, cardinality, isdv,false);
-			}
-			else   
-			{
+				vars->addVariable(name, abbrev, cardinality, isdv, false);
+			} else {
 				vars->markForNoUse();
 			}   //Anjali
 		}
@@ -223,8 +221,7 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
 	int type=0;
 	int  cardinality=0;
         //int sp_val=-1; //assuming negative values are not there in the table
-        char name[MAXLINE], abbrev[MAXLINE],rebinarray[MAXLINE], *rebin=rebinarray,
-	  rebin1[MAXLINE];
+        char name[MAXLINE], abbrev[MAXLINE], rebinarray[MAXLINE], *rebin = rebinarray, rebin1[MAXLINE];
         bool isdv, alldv = true;
         int num_var_df=0;
         int flag_1=0;
@@ -241,8 +238,12 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
                 //third case the rebin string present and ; present in that case
                 //variable needs to be kept and second case stuff
         while (options->getOptionString("nominal", &nextp, &vardef)) {
-		name[0]='\0';cardinality=0;type=0;abbrev[0]='\0';rebin[0]='\0';
-                int count = sscanf(vardef, "%[^, \t],%d,%d,%[^, \t],%[^\t ]", name, &cardinality, &type, abbrev,rebin);
+		name[0]='\0';
+		cardinality=0;
+		type=0;
+		abbrev[0]='\0';
+		rebin[0]='\0';
+                int count = sscanf(vardef, "%[^, \t],%d,%d%*[, \t]%[^, \t]%*[, \t]%[^\t ]", name, &cardinality, &type, abbrev, rebin);
                 num_var_df++;
 		loop++;
                 if (count < 4 || count > 5) {
