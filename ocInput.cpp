@@ -185,7 +185,8 @@ void ocDefineVariables(ocOptions *options, ocVariableList *vars)
 	char name[MAXLINE+1], abbrev[MAXLINE+1];
 	bool isdv, alldv = true;
 	while (options->getOptionString("nominal", &nextp, &vardef)) {
-		int count = sscanf(vardef, "%[^, \t],%d,%d%*[, \t]%s", name, &cardinality, &type, abbrev);
+		int count = sscanf(vardef, " %[^, \t] , %d , %d , %[A-Za-z]", name, &cardinality, &type, abbrev);
+		// Should probably check if the abbrev inlcudes numbers here, rather than just ignoring them
 		if (count != 4) {
 			fprintf(stderr, "Error in variable definition: %s\n", vardef);
 		}
@@ -222,6 +223,7 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
 	int  cardinality=0;
         //int sp_val=-1; //assuming negative values are not there in the table
         char name[MAXLINE], abbrev[MAXLINE], rebinarray[MAXLINE], *rebin = rebinarray, rebin1[MAXLINE];
+	char abbrev_temp[MAXLINE];
         bool isdv, alldv = true;
         int num_var_df=0;
         int flag_1=0;
@@ -243,17 +245,25 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
 		type=0;
 		abbrev[0]='\0';
 		rebin[0]='\0';
-                int count = sscanf(vardef, "%[^, \t],%d,%d%*[, \t]%[^, \t]%*[, \t]%[^\t ]", name, &cardinality, &type, abbrev, rebin);
+                int count = sscanf(vardef, " %[^, \t] , %d , %d , %s , %[^\t ]", name, &cardinality, &type, abbrev_temp, rebin);
+		// Should probably check if the abbrev inlcudes numbers here, rather than just ignoring them
                 num_var_df++;
 		loop++;
+
+		int count2 = sscanf(abbrev_temp, "%[A-Za-z]", abbrev);
+		if ( (count2 != 1) || (strcmp(abbrev, abbrev_temp) != 0) ) {
+			printf("Error in variable definition. Only letters may be used in the abbreviation: %s\n", vardef);
+			exit(1);
+		}
+
                 if (count < 4 || count > 5) {
                         printf("Error in variable definition: %s\n", vardef);
 			exit(1);
-                }else{
+                } else {
 			char *cp=rebin;
 			//printf("the string is %s\n",rebin);
 			while (*cp && isspace(*cp)) cp++;
-			if(((v=strncmp(cp,e,7))==0) && type!=0){
+			if(((v = strncmp(cp,e,7)) == 0) && type != 0) {
 				//************exclude case**************
                                 ocVariable *varpt=NULL;
 				char myvalue[100];
@@ -286,7 +296,7 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
 				varpt->exclude=new char[strlen(myvalue)+1];
 				strcpy(varpt->exclude,myvalue);
 			//	printf("exclude %s\n",varpt->exclude);
-			}else if(cp[0]!='\0' &&(cp[0]!='[') && type !=0){
+			} else if( (cp[0] != '\0') && (cp[0] != '[') && (type != 0) ) {
 				//****************************single value to be considered
 				//printf("the string to be kept %s for variable %s\n",cp,abbrev);
                                 vars->markForNoUse();
