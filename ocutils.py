@@ -97,15 +97,17 @@ class ocUtils:
 		self.__searchSortDir = sortDir
 
 	def setSearchWidth(self, searchWidth):
-		width = int(searchWidth)
+		width = int(round(float(searchWidth)))
 		if width <= 0:
-			raise AttributeError, "SearchWidth"
+			width = 1
+			#raise AttributeError, "SearchWidth"
 		self.__searchWidth = width
 
 	def setSearchLevels(self, searchLevels):
-		levels = int(searchLevels)
+		levels = int(round(float(searchLevels)))
 		if levels < 0:	# zero is OK here
-			raise AttributeError, "SearchLevels"
+			levels = 0
+			#raise AttributeError, "SearchLevels"
 		self.__searchLevels = levels
 
 	def setSearchDir(self, searchDir):
