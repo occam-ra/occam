@@ -250,7 +250,10 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
                 num_var_df++;
 		loop++;
 
-		int count2 = sscanf(abbrev_temp, "%[A-Za-z]", abbrev);
+		// *** We are temporarily allowing numbers in short names, for a project that Marty and Steve Shervais
+		// are working on.  They've been using them for a bit, so I'm backing this code out till they're done.
+		// Actually, I'm just adding 0-9 into the scan pattern.  Remove that part of it to return to letters only.
+		int count2 = sscanf(abbrev_temp, "%[A-Za-z0-9]", abbrev);
 		if ( (count2 != 1) || (strcmp(abbrev, abbrev_temp) != 0) ) {
 			printf("Error in variable definition. Only letters may be used in the abbreviation: %s\n", vardef);
 			exit(1);
