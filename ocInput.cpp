@@ -244,8 +244,9 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
 		cardinality=0;
 		type=0;
 		abbrev[0]='\0';
+		abbrev_temp[0]='\0';
 		rebin[0]='\0';
-                int count = sscanf(vardef, " %[^, \t] , %d , %d , %s , %[^\t ]", name, &cardinality, &type, abbrev_temp, rebin);
+                int count = sscanf(vardef, " %[^, \t] , %d , %d , %[^,] , %s", name, &cardinality, &type, abbrev, rebin);
 		// Should probably check if the abbrev inlcudes numbers here, rather than just ignoring them
                 num_var_df++;
 		loop++;
@@ -253,11 +254,11 @@ void ocRebinaDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lost
 		// *** We are temporarily allowing numbers in short names, for a project that Marty and Steve Shervais
 		// are working on.  They've been using them for a bit, so I'm backing this code out till they're done.
 		// Actually, I'm just adding 0-9 into the scan pattern.  Remove that part of it to return to letters only.
-		int count2 = sscanf(abbrev_temp, "%[A-Za-z0-9]", abbrev);
-		if ( (count2 != 1) || (strcmp(abbrev, abbrev_temp) != 0) ) {
-			printf("Error in variable definition. Only letters may be used in the abbreviation: %s\n", vardef);
-			exit(1);
-		}
+		//int count2 = sscanf(abbrev_temp, "%[A-Za-z0-9]", abbrev);
+		//if ( (count2 != 1) || (strcmp(abbrev, abbrev_temp) != 0) ) {
+			//printf("Error in variable definition. Only letters may be used in the abbreviation: %s\n", vardef);
+			//exit(1);
+		//}
 
                 if (count < 4 || count > 5) {
                         printf("Error in variable definition: %s\n", vardef);
