@@ -737,6 +737,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	if(rel == NULL) {
 		// If the IV component doesn't contain all active IVs, quit with an error.
 		// (This error check would be better processed earlier on, preferably right after the input file has been read.)
+/*
 		if (iv_count != (var_count - 1)) {
 			fprintf(fd, "ERROR: Not all IVs present in the data are represented in the IV component.%s", new_line);
 			fprintf(fd, "The model includes IVs: ");
@@ -752,6 +753,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			fprintf(fd, "Either inactivate the missing variables in the data, or include them in the IV component.%s", blank_line);
 			exit(1);
 		}
+*/
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s", model->getPrintName());
 		fprintf(fd, new_line);
 		fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
@@ -1078,7 +1080,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	double temp_percent = 0.0;
 	// For each of the model's keys (ie, each row of the table)...
 	for(int i=0; i < iv_statespace; i++) {
-		if (input_key_freq[i] == 0) { if (test_sample_size > 0) {
+		if (input_key_freq[i] == 0) {
+			if (test_sample_size > 0) {
 				if (test_key_freq[i] == 0) { continue; }
 			} else { continue; }
 		}
