@@ -9,8 +9,8 @@ class JobControl:
 				while 1:
 					os.kill(int(pid), signal.SIGKILL)
 					print "<b>Job " + pid + " killed!</b><p>"
-			except Exception, e:
-				print "<b>", e.args[1], ": kill of ", pid, " failed</b><p>"
+			except Exception, inst:
+				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed</b><p>"
 			except:
 				print "<b>Kill of " + pid + " failed</b><p>"
 			
