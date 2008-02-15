@@ -205,7 +205,7 @@ public:
 	//marks a particular variable as not be considered in the model
 	int markForNoUse();
 
-	//Anjal
+	//Anjali
         //get the new rebinning value for an old one
         int getnewvalue(int,char*,char*);
 
@@ -215,12 +215,11 @@ public:
 private:
 	ocVariable *vars;
 	int varCount;		// number of variables defined so far
-	int varCountDF;   //(Anjali) original no. of variables in data file, some may be marked for no use
+	int varCountDF;		//(Anjali) original no. of variables in data file, some may be marked for no use
 	int maxVarCount;	// max number of variables
-	int maxVarMask;     //(Anjali) max no. of longs being used for mask at any given time
+	int maxVarMask;		//(Anjali) max no. of longs being used for mask at any given time
 	int maxAbbrevLen;
-	long *maskVars;  //(Anjali) //this should store the positions of variables which are
-							//to be ignored
+	long *maskVars;		//(Anjali) //this should store the positions of variables which are to be ignored
 };
 
 
