@@ -573,7 +573,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		iv_rel = rel;
 	}
 
-	char *key_str = new char[var_count + 1];		// Used to hold user-strings for keys in several places
+	//char *key_str = new char[var_count + 1];		// Used to hold user-strings for keys in several places
 
 	int iv_statespace = (degrees + 1) / dv_card;	// full statespace divided by cardinality of the DV
 	const char **dv_label = (const char**)dv_var->valmap;
@@ -1025,6 +1025,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		dv_ccount += snprintf(dv_header + dv_ccount, 100 - dv_ccount, row_sep);
 	}
 
+	//var_list->dump();
+
 	// Header, Row 1
 	fprintf(fd, "%s%sIV", block_start, head_start);
 	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", head_sep);
@@ -1078,6 +1080,9 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	double mean_squared_error = 0.0;
 	double total_test_error = 0.0;
 	double temp_percent = 0.0;
+	int keyval;
+	int keysize = input_data->getKeySize();
+	const char *keyvalstr;
 	// For each of the model's keys (ie, each row of the table)...
 	for(int i=0; i < iv_statespace; i++) {
 		if (input_key_freq[i] == 0) {
@@ -1085,13 +1090,16 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 				if (test_key_freq[i] == 0) { continue; }
 			} else { continue; }
 		}
-		ocKey::keyToUserString(fit_key[i], var_list, key_str);
+		//ocKey::keyToUserString(fit_key[i], var_list, key_str);
 		// Also, switch the bgcolor of each row from grey to white, every other row. (If not in HTML, this does nothing.)
 		if (i % 2) fprintf(fd, row_start);
 		else fprintf(fd, row_start2);
 		// Print the states of the IV in separate columns
-		for (int j=0; j < iv_count; j++)
-			fprintf(fd, "%c%s", key_str[j], row_sep);
+		for (int j=0; j < iv_count; j++) {
+			keyval = ocKey::getKeyValue(fit_key[i], keysize, var_list, iv_rel->getVariable(j));
+			keyvalstr = var_list->getVarValue(iv_rel->getVariable(j), keyval);
+			fprintf(fd, "%s%s", keyvalstr, row_sep);
+		}
 		fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
 		// Print out the conditional probabilities of the training data
 		temp_percent = 0.0;
