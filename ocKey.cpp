@@ -21,9 +21,9 @@ void ocKey::buildKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
 	for (i = 0; i < varcount; i++) {
 		ocVariable *var = vars->getVariable(varindices[i]);
 		ocKeySegment mask = var->mask;
-		int value = varvalues[i];
+//		int value = varvalues[i];
 		int segment = var->segment;
-		assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
+//		assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
 		key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
 	}
 }
@@ -40,9 +40,9 @@ void ocKey::buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *v
 	for (i = 0; i < varcount; i++) {
 		ocVariable *var = vars->getVariable(i);
 		ocKeySegment mask = var->mask;
-		int value = varvalues[i];
+//		int value = varvalues[i];
 		int segment = var->segment;
-		assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
+//		assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
 		key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
 	}
 }
@@ -56,7 +56,7 @@ void ocKey::setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *va
 	ocVariable *var = vars->getVariable(index);
 	int segment = var->segment;
 	ocKeySegment mask = var->mask;
-	assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
+	//assert((value == DONT_CARE) || (value >= 0 && value < var->cardinality));
 	key[segment] = (key[segment] & ~mask) | ((value << var->shift) & mask);
 }
 
@@ -65,13 +65,12 @@ void ocKey::setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *va
  */
 int ocKey::getKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars, int index)
 {
-	int temp=0;
+	ocKeySegment temp = 0;
 	ocVariable *var = vars->getVariable(index);
 	int segment = var->segment;
-	ocKeySegment mask = var->mask;
-	temp = (key[segment] & mask); 
- 	int value = temp >> var->shift;
-	assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
+	temp = (key[segment] & var->mask); 
+	int value = temp >> var->shift;
+//	assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
 	return value;
 }
 
@@ -100,6 +99,7 @@ int ocKey::copyKey(ocKeySegment *key1, ocKeySegment *key2, int keysize)
 	for (i = 0; i < keysize; i++) {
 	  *(key2++) = *(key1++);
 	}
+	return 0;   // not sure what this return value was meant to do?
 }
 
 /**
