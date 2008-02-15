@@ -246,12 +246,16 @@ ocVariable *ocVariableList::getVariable(int index)
  */
 void ocVariableList::dump()
 {
-	printf("ocVariableList: varCount = %d, maxVarCount=%d\n", varCount, maxVarCount);
-	printf("\tCard\tSeg\tSiz\tShft\tName\tAbb\tMask\n");
+	printf("ocVariableList: varCount = %d, maxVarCount=%d\n<br>", varCount, maxVarCount);
+	printf("\tCard\tSeg\tSiz\tShft\tName\tAbb\tMask\n<br>");
 	for (int i = 0; i < varCount; i++) {
 		ocVariable *v = vars + i;
-		printf("\t%d\t%d\t%d\t%d\t%s\t%s\t%08lx\n", v->cardinality, v->segment,
+		printf("\t%d\t%d\t%d\t%d\t%s\t%s\t%08lx\t", v->cardinality, v->segment,
 			v->size, v->shift, v->name, v->abbrev, v->mask);
+		for(int j=0; j < v->cardinality; j++) {
+		    printf("%s\t", v->valmap[j]);
+		}
+		printf("\n<br>");
 	}
 	printf("\n");
 }
@@ -452,7 +456,7 @@ int ocVariableList::getVarValueIndex(int varindex, const char *value)
 		return index;
 	}
 	else
-		return -1;
+	return -1;
 }
 
 const char *ocVariableList::getVarValue(int varindex, int valueindex)
