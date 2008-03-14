@@ -6,7 +6,7 @@ from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 
-VERSION = "3.2.21"
+VERSION = "3.2.22"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
@@ -51,19 +51,18 @@ def printTop(template, textFormat):
 		template.set_template('header.html')
 	args = {'version':VERSION}
 	template.out(args)
+
 #
 #---- printTime ---- Print elapsed time
 #
 def printTime(textFormat):
 	now = time.time();
 	elapsed_t = now - startt
-	if textFormat:
-		 if elapsed_t>0:
+	if elapsed_t > 0:
+		if textFormat:
                         print "Run time: %f seconds\n" % elapsed_t
-	else:
-		if elapsed_t>0:
+		else:
                         print "<br>Run time: %f seconds</br>" % elapsed_t
-
 
 #
 #---- printBottom ---- Print bottom HTML part
@@ -131,8 +130,11 @@ def getDataFile(formFields):
 		outf.write(data)
 		outf.close()
 	except:
-		print "Error: problems reading data file %s" % datafile
-		traceback.print_exc(file=sys.stdout)
+		if getDataFileName(formFields, false) == "":
+			print "ERROR: No data file specified."
+		else:
+			print "ERROR: Problems reading data file %s." % datafile
+		sys.exit()
 	return datafile
 
 #
@@ -224,7 +226,6 @@ def actionSearch(formFields):
 	oc = ocUtils(man)
 	oc.initFromCommandLine(["",fn])
 	oc.setDataFile(formFields["datafilename"])
-
 	if not formFields.has_key("data") :
 		actionForm(form, "Missing form fields")
 		print "missing data"
@@ -280,7 +281,7 @@ def actionSearch(formFields):
 		reportvars = "Level$I, h, ddf, lr, alpha, information"
 		if oc.isDirected():
 			reportvars = reportvars + ", cond_pct_dh"
-		reportvars = reportvars + ", aic, bic"	#********** Junghan : attach aic & bic
+		reportvars = reportvars + ", aic, bic"
 			
 	if formFields.get("showbp", "") and formFields["evalmode"] <> "bp":
 		reportvars = reportvars + ", bp_t"
@@ -296,8 +297,7 @@ def actionSearch(formFields):
 	if textFormat:
 		oc.doAction(printOptions)
 	else:
-		print "<table>"
-		print "</table><hr><p>"
+		print "<hr><p>"
 		print "<div class=data>"
 		oc.doAction(printOptions)
 		print "</div>"
@@ -308,11 +308,14 @@ def actionShowLog(formFields):
 	email = formFields.get("email", "")
 	if email:
 		printBatchLog(email)
-#
+
 #---- actionError ---- print error on unknown action
 #
 def actionError():
-	print "<H1>Error: unknown action</H1>"
+	if textFormat:
+		print "Error: unknown action"
+	else:
+		print "<H1>Error: unknown action</H1>"
 
 #---- getFormFields ----
 def getFormFields(form):
@@ -420,8 +423,7 @@ if not formFields.has_key("data") and not formFields.has_key("email"):
 
 if formFields.has_key("action") and ( formFields.has_key("data") or formFields.has_key("email") ) :
 	
-# If this is running from web server, and batch mode requested, then
-# start a background task
+# If this is running from web server, and batch mode requested, then start a background task
 	if formFields.has_key("batchOutput") and formFields["batchOutput"]:
 		startBatch(formFields)
 	else:
@@ -436,13 +438,13 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
 				actionShowLog(formFields)
 			else:
 				actionError()
+			printTime(textFormat)
 		except:
-			print "ERROR99"
-			traceback.print_exc(file=sys.stdout)
+			pass
+#			traceback.print_exc(file=sys.stdout)
 	#		xfile = open('/tmp/except.log', 'w')
 	#		traceback.print_exc(file=xfile)
 	#		os.close(xfile)
-		printTime(textFormat)
 
 if not textFormat:
 	printBottom()
