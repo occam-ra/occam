@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <time.h>
 #include "ocWin32.h"
 
 ocVBMManager::ocVBMManager(ocVariableList *vars, ocTable *input):
@@ -203,10 +204,12 @@ ocModel *ocVBMManager::setRefModel(const char *name)
 double ocVBMManager::computeExplainedInformation(ocModel *model)
 {
 	ocAttributeList *attrs = model->getAttributeList();
+	double info = attrs->getAttribute(ATTRIBUTE_EXPLAINED_I);
+	if (info >= 0) return info;
 	double topH = topRef->getAttributeList()->getAttribute(ATTRIBUTE_H);
 	double botH = bottomRef->getAttributeList()->getAttribute(ATTRIBUTE_H);
 	double modelT = computeTransmission(model);
-	double info = (botH - topH - modelT) / (botH - topH);
+	info = (botH - topH - modelT) / (botH - topH);
 	// info is normalized but may not quite be between zero and 1 due to
 	// roundoff. Fix this here.
 	if (info <= 0.0) info = 0.0;
@@ -218,10 +221,12 @@ double ocVBMManager::computeExplainedInformation(ocModel *model)
 double ocVBMManager::computeUnexplainedInformation(ocModel *model)
 {
 	ocAttributeList *attrs = model->getAttributeList();
+	double info = attrs->getAttribute(ATTRIBUTE_UNEXPLAINED_I);
+	if (info >= 0) return info;
 	double topH = topRef->getAttributeList()->getAttribute(ATTRIBUTE_H);
 	double botH = bottomRef->getAttributeList()->getAttribute(ATTRIBUTE_H);
 	double modelT = computeTransmission(model);
-	double info = modelT / (botH - topH);
+	info = modelT / (botH - topH);
 	// info is normalized but may not quite be between zero and 1 due to
 	// roundoff. Fix this here.
 	if (info <= 0.0) info = 0.0;
@@ -233,22 +238,24 @@ double ocVBMManager::computeUnexplainedInformation(ocModel *model)
 void ocVBMManager::buildDDF(ocRelation *rel, ocModel *loModel, ocModel *diffModel, bool directed)
 {
 	// If this is a directed model, only consider relations that contain the DV
-	if(directed && rel->isIndOnly()) return;
+	if(directed && rel->isIndOnly()) { return; }
 	// If the loModel contains the relation, return
-	if(loModel->containsRelation(rel)) return;
+	if(loModel->containsRelation(rel)) { return; }
+
 	// If the difference list contains *exactly* this relation, return.
-	// These must be checked manually, rather than with containsRelation(), because the model is not normalized.
+	// These must be checked by comparing all relations, rather than with containsRelation(), because the model is not normalized.
 	// That is, the relations in diffModel may be child relations of other relations in the list/model.
 	int dcount = diffModel->getRelationCount();
-	for (int i=0; i < dcount; i++) {
-		if(rel->compare(diffModel->getRelation(i)) == 0) return;
+	for (int i=0; i < dcount; ++i) {
+		if(rel->compare(diffModel->getRelation(i)) == 0) { return; }
 	}
+
 	// So, the relation is not in the loModel. It's also not in diffModel, so we add it.
 	// The "false" flag says not to normalize: that is, don't combine this with any existing child/parent relations.
 	diffModel->addRelation(rel, false);
 	int vcount = rel->getVariableCount();
 	ocRelation *subRel;
-	for (int i=0; i < vcount; i++) {
+	for (int i=0; i < vcount; ++i) {
 		subRel = getChildRelation(rel, i, false);
 		buildDDF(subRel, loModel, diffModel, directed);
 	}
@@ -258,32 +265,66 @@ void ocVBMManager::buildDDF(ocRelation *rel, ocModel *loModel, ocModel *diffMode
 double ocVBMManager::computeDDF(ocModel *model)
 {
 	ocAttributeList *attrs = model->getAttributeList();
-	// This is the old method of computer delta-DF.
+	double ddf = attrs->getAttribute(ATTRIBUTE_DDF);
+	if (ddf >=0) return ddf;
+
+	if (model == refModel) {
+		attrs->setAttribute(ATTRIBUTE_DDF, 0);
+		return 0;
+	}
+	
+	// This is the old method of computing delta-DF.
 	// It looks simple here, but it is inaccurate with large statespaces.
 	if (DDFMethod == 1) {
-		double ddf = fabs(computeDF(refModel) - computeDF(model));
+		ddf = fabs(computeDF(refModel) - computeDF(model));
 		attrs->setAttribute(ATTRIBUTE_DDF, ddf);
 		return ddf;
 	}
 
 	// Alternate method for computing dDF, by adding up the DFs of the unshared relations.
+	ocModel *progen = model->getProgenitor();
+	double prog_ddf = -1;
+	int signFlip = 1;
+	if (progen != NULL) {
+		prog_ddf = progen->getAttributeList()->getAttribute(ATTRIBUTE_DDF);
+	}
+
 	ocModel *hiModel, *loModel;
-	// Compare model and refModel, to find which is higher up the lattice.
-	if (refModel == topRef) {
-		hiModel = refModel;
-		loModel = model;
-	} else if (refModel == bottomRef) {
-		hiModel = model;
-		loModel = refModel;
-	} else {
-		// If ref is not the top or bottom, it must be a custom starting model.
-		// In this case, we can use the search direction to tell which is higher on the model.
+	// If we know the progenitor, and its dDF, then we only need to compute the small step between them.
+	if (prog_ddf >= 0) {
+		// If search is up, the model is higher than its progenitor.
 		if (searchDirection == 0) {	// up
 			hiModel = model;
-			loModel = refModel;
+			loModel = progen;
+			// However, if the ref is the top, then DDF(model) is DDF(progen) minus the space between them.
+			if (refModel == topRef) signFlip = -1;
+		// If search is down, the model is always lower than its progenitor.
 		} else {			// down
+			hiModel = progen;
+			loModel = model;
+			// In this case, if the ref is the bottom, the difference will need to be subtracted instead of added.
+			if (refModel == bottomRef) signFlip = -1;
+		}
+	} else {
+		// Since we're not using the progenitor, set its dDF to zero.
+		prog_ddf = 0;
+		// Compare model and refModel, to find which is higher up the lattice.
+		if (refModel == topRef) {
 			hiModel = refModel;
 			loModel = model;
+		} else if (refModel == bottomRef) {
+			hiModel = model;
+			loModel = refModel;
+		} else {
+			// If ref is not the top or bottom, it must be a custom starting model.
+			// In this case, we can use the search direction to tell which is higher on the model.
+			if (searchDirection == 0) {	// up
+				hiModel = model;
+				loModel = refModel;
+			} else {			// down
+				hiModel = refModel;
+				loModel = model;
+			}
 		}
 	}
 	// Find all relations in the higher model not in the lower.
@@ -308,7 +349,11 @@ double ocVBMManager::computeDDF(ocModel *model)
 	}
 	delete diffModel;
 
-	attrs->setAttribute(ATTRIBUTE_DDF, ddf2);
+	// If ddf was figured from the progenitor, now add/subtract this to the ddf of the progenitor itself.
+	// If this was not from the progenitor, this has no effect.
+	ddf2 = ddf2 * signFlip + (long long int)prog_ddf;
+
+	attrs->setAttribute(ATTRIBUTE_DDF, (double)ddf2);
 	return (double)ddf2;
 }
 
@@ -377,27 +422,39 @@ void ocVBMManager::calculateBP_AicBic(ocModel *model, ocAttributeList *attrs)
 void ocVBMManager::computeL2Statistics(ocModel *model)
 {
 	ocAttributeList *attrs = model->getAttributeList();
-
 	//-- make sure the other attributes are there
 	//computeDFStatistics(model);
 	computeInformationStatistics(model);
 	//-- compute chi-squared statistics and related statistics. L2 = 2*n*sum(p(ln p/q)) = 2*n*ln(2)*T
-	int errcode;
 	// L2 (or dLR) is computed to always be positive
 	// The values that depend on it (BIC and AIC) have their signs corrected below
-	double refL2 = fabs(2.0 * M_LN2 * sampleSize * (computeTransmission(model) - computeTransmission(refModel)) );
+	double refL2 = attrs->getAttribute(ATTRIBUTE_LR);
+	if (refL2 < 0) {
+		refL2 = fabs(2.0 * M_LN2 * sampleSize * (computeTransmission(model) - computeTransmission(refModel)) );
+		attrs->setAttribute(ATTRIBUTE_LR, refL2);
+	}
+	
 	double refDDF = computeDDF(model);
 
-	double refL2Prob = csa(refL2, refDDF);
-	double critX2=0, refL2Power=0;
+	double refL2Prob = attrs->getAttribute(ATTRIBUTE_ALPHA);
+	if (refL2Prob < 0) {
+		refL2Prob = csa(refL2, refDDF);
+		attrs->setAttribute(ATTRIBUTE_ALPHA, refL2Prob);
+	}
 
-	errcode = 0;
-	double alpha;
-	if (!getOptionFloat("palpha", NULL, &alpha)) alpha = 0.0;
-	if (alpha > 0) critX2 = ppchi(alpha, refDDF, &errcode);
-	else critX2 = refL2;
-	if (errcode) printf("ppchi: errcode=%d\n", errcode);
-	refL2Power = 1.0 - chin2(critX2, refDDF, refL2, &errcode);
+	double refL2Power = attrs->getAttribute(ATTRIBUTE_BETA);
+	if (refL2Power < 0) {
+		refL2Power = 0;
+		double critX2 = 0;
+		int errcode = 0;
+		double alpha;
+		if (!getOptionFloat("palpha", NULL, &alpha)) alpha = 0.0;
+		if (alpha > 0) critX2 = ppchi(alpha, refDDF, &errcode);
+		else critX2 = refL2;
+		if (errcode) printf("ppchi: errcode=%d\n", errcode);
+		refL2Power = 1.0 - chin2(critX2, refDDF, refL2, &errcode);
+		attrs->setAttribute(ATTRIBUTE_BETA, refL2Power);
+	}
 
 	double dAIC = refL2 - 2.0 * computeDDF(model);
 	double dBIC = refL2 - log(sampleSize) * computeDDF(model);
@@ -411,11 +468,6 @@ void ocVBMManager::computeL2Statistics(ocModel *model)
 	}
 	attrs->setAttribute(ATTRIBUTE_AIC, dAIC);
 	attrs->setAttribute(ATTRIBUTE_BIC, dBIC);
-
-	// store these values
-	attrs->setAttribute(ATTRIBUTE_LR, refL2);
-	attrs->setAttribute(ATTRIBUTE_ALPHA, refL2Prob);
-	attrs->setAttribute(ATTRIBUTE_BETA, refL2Power);
 }
 
 
