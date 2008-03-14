@@ -41,13 +41,11 @@ const double OC_COMPARE_EPSILON = 1e-8;
 	//-- must have been preallocated, of size at least the number of variables in
 	//-- the relation (this is the number of children). Projections are created, if
 	//-- indicated
-	void makeAllChildRelations(ocRelation *rel, ocRelation **children,
-		bool makeProject = false);
+	void makeAllChildRelations(ocRelation *rel, ocRelation **children, bool makeProject = false);
 		
 	//-- make a child model of a given model, by removing a relation and then adding back
 	//-- in all its children
-	ocModel *makeChildModel(ocModel *model, int remove, bool* fromCache = 0,
-	  bool makeProject = false);
+	ocModel *makeChildModel(ocModel *model, int remove, bool* fromCache = 0, bool makeProject = false);
 	  
 	//-- make the top and bottom reference models, given a relation which represents
 	//-- the saturated model. This function also sets the default reference model based
