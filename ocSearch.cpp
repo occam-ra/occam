@@ -460,8 +460,8 @@ ocModel **ocSearchLooplessUp::search(ocModel *start)
 	
 	//-- only works for directed systems
 	if (!varList->isDirected()) {
-	  printf("<p>ERROR: upward loopless search not implemented for neutral systems<p>\n");
-	  return NULL;
+		printf("ERROR: upward loopless search not implemented for neutral systems.\n");
+		return NULL;
 	}
 
 	//-- determine which relation is the one containing only independent variables.
