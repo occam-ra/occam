@@ -169,8 +169,7 @@ DefinePyFunction(ocVBMManager, setSearchType)
 	mgr->setSearch(name);
 	if (mgr->getSearch() == NULL) { // invalid search method name
 		onError("undefined search type");
-	}
-	else {
+	} else {
 		Py_INCREF(Py_None);
 		return Py_None;
 	}
@@ -529,6 +528,18 @@ DefinePyFunction(ocVBMManager, deleteTablesFromCache)
 }
 
 
+// bool deleteModelFromCache(ocModel *model)
+DefinePyFunction(ocVBMManager, deleteModelFromCache)
+{
+	PyObject *Pmodel;
+	PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+	ocModel *model = ObjRef(Pmodel, ocModel);
+	if (model == NULL) onError("Model is NULL!");
+	bool success = ObjRef(self, ocVBMManager)->deleteModelFromCache(model);
+	return Py_BuildValue("i", success ? 1: 0);
+}
+
+
 //double getSampleSz()
 DefinePyFunction(ocVBMManager, getSampleSz)
 {
@@ -572,6 +583,7 @@ DefinePyFunction(ocVBMManager, computePercentCorrect)
 
 
 //long getMemUsage()
+// This memory usage function doesn't work on Mac OS X, and perhaps other platforms.
 DefinePyFunction(ocVBMManager, getMemUsage)
 {
   static char *oldBrk = 0;
@@ -630,6 +642,7 @@ static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, isDirected),
 	PyMethodDef(ocVBMManager, printOptions),
 	PyMethodDef(ocVBMManager, deleteTablesFromCache),
+	PyMethodDef(ocVBMManager, deleteModelFromCache),
 	PyMethodDef(ocVBMManager, getSampleSz),
 	PyMethodDef(ocVBMManager, printBasicStatistics),
 	PyMethodDef(ocVBMManager, computePercentCorrect),
@@ -771,6 +784,7 @@ DefinePyFunction(ocSBMManager, setRefModel)
         newModel->obj = ret;
         return Py_BuildValue("O", newModel);
 }
+
 // long computeDF(ocModel *model)
 DefinePyFunction(ocSBMManager, compute_SB_DF)
 {
@@ -1029,6 +1043,7 @@ DefinePyFunction(ocSBMManager, deleteTablesFromCache)
         Py_INCREF(Py_None);
         return Py_None;
 }
+
 //double getSampleSz()
 DefinePyFunction(ocSBMManager, getSampleSz)
 {
@@ -1304,6 +1319,18 @@ DefinePyFunction(ocModel, deleteRelationLinks)
 	return Py_None;
 }
 
+// void setProgenitor()
+DefinePyFunction(ocModel, setProgenitor)
+{
+        PyObject *Pmodel;
+        PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+        ocModel *progen = ObjRef(Pmodel, ocModel);
+	ocModel *model = ObjRef(self, ocModel);
+	model->setProgenitor(progen);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // void dump()
 DefinePyFunction(ocModel, dump)
 {
@@ -1312,14 +1339,16 @@ DefinePyFunction(ocModel, dump)
 	Py_INCREF(Py_None);
 	return Py_None;
 }
+
 static struct PyMethodDef ocModel_methods[] = {
 	PyMethodDef(ocModel, getRelation),
 	PyMethodDef(ocModel, get),
 	PyMethodDef(ocModel, deleteFitTable),
 	PyMethodDef(ocModel, deleteRelationLinks),
+	PyMethodDef(ocModel, setProgenitor),
 	PyMethodDef(ocModel, dump),
 	{NULL, NULL, 0}
-	};
+};
 
 
 /****** Basic Type Operations ******/
