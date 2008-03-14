@@ -17,30 +17,29 @@
 const long GROWTH_FACTOR = 2;
 
  
- /**
+ /*
   * ocTable - initialize the table. The given keysize and number of tuples are used
   * to allocate storage.  The max number of tuples can be changed after creation, but
   * the keysize cannot.
   *
-  * The data storage consists of {[keyseg 0]..[keyseg n][value]}..., in a continguous
+  * The data storage consists of {[keyseg 0]..[keyseg n][value]}..., in a contiguous
   * array. The macros below provide indexed access to this storage. Note that in order
   * for quicksort to work, the key must be first
   */
 
 #define TupleBytes (sizeof(ocTupleValue) + keysize * sizeof(ocKeySegment))
 
-static ocTupleValue *ValuePtr(void *data, int keysize, long index)
+static ocTupleValue *ValuePtr(void *data, int keysize, unsigned long long index)
 {
-	return ((ocTupleValue*) ( ((char*) data) + (keysize * sizeof(ocKeySegment)) + 
-		TupleBytes * (index) ));
+	return ((ocTupleValue*) ( ((char*) data) + (keysize * sizeof(ocKeySegment)) + TupleBytes * (index) ));
 }
 
-static ocKeySegment *KeyPtr(void *data, int keysize, long index)
+static ocKeySegment *KeyPtr(void *data, int keysize, unsigned long long index)
 {
 	return ((ocKeySegment*) ( ((char*) data) + TupleBytes * (index) ));
 }
 
-ocTable::ocTable(int keysz, long maxTuples, ocTable::TableType typ)
+ocTable::ocTable(int keysz, unsigned long long maxTuples, ocTable::TableType typ)
 {
  	keysize = keysz;
 	type = typ;
@@ -51,13 +50,12 @@ ocTable::ocTable(int keysz, long maxTuples, ocTable::TableType typ)
 
 ocTable::~ocTable()
 {
-	// delete storage
 	if (data) delete [] (char*)data;
 }
 
-long ocTable::size()
+unsigned long long ocTable::size()
 {
-  return TupleBytes * maxTupleCount + sizeof(ocTable);
+	return TupleBytes * maxTupleCount + sizeof(ocTable);
 }
 
 void ocTable::copy(const ocTable* from)
@@ -71,9 +69,8 @@ void ocTable::copy(const ocTable* from)
 }
 
 /**
- * addTuple - append a tuple to the table. The variable length key is
- * copied to the key store, and the value to the value store.  The
- * table is resized if needed.
+ * addTuple - append a tuple to the table. The variable length key is copied to the key store,
+ * and the value to the value store.  The table is resized if needed.
  */
 void ocTable::addTuple(ocKeySegment *key, double value)
 {
@@ -82,17 +79,17 @@ void ocTable::addTuple(ocKeySegment *key, double value)
 		maxTupleCount *= GROWTH_FACTOR;
 	}
 	ocKeySegment *keyptr = KeyPtr(data, keysize, tupleCount);
-	memcpy(keyptr, key, sizeof(ocKeySegment) * keysize);	// copy key
-	//-- for set relations, only values are 1 or zero
+	memcpy(keyptr, key, sizeof(ocKeySegment) * keysize);			// copy key
+	//-- for set relations, only values are 1 or 0
 	if (type == SET_TYPE && value != 0.0) value = 1.0;
-	*(ValuePtr(data, keysize, tupleCount)) = (ocTupleValue) value;						// copy value
+	*(ValuePtr(data, keysize, tupleCount)) = (ocTupleValue) value;		// copy value
 	tupleCount++;
 }
 
 /**
  * insertTuple - similar to addTuple, but inserts the tuple in sorted order.
  */
-void ocTable::insertTuple(ocKeySegment *key, double value, long index)
+void ocTable::insertTuple(ocKeySegment *key, double value, unsigned long long index)
 {
 	if (tupleCount >= maxTupleCount) {
 		data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
@@ -104,10 +101,11 @@ void ocTable::insertTuple(ocKeySegment *key, double value, long index)
 		long size = ((char*)KeyPtr(data, keysize, tupleCount)) - ((char*)KeyPtr(data, keysize, index));
 		memmove(dest, src, size);
 	}
+	// else?
 	
 	ocKeySegment *keyptr = KeyPtr(data, keysize, index);
 	memcpy(keyptr, key, sizeof(ocKeySegment) * keysize);	// copy key
-	//-- for set relations, only values are 1 or zero
+	//-- for set relations, only values are 1 or 0
 	if (type == SET_TYPE && value != 0.0) value = 1.0;
 	*(ValuePtr(data, keysize, index)) = (ocTupleValue) value;						// copy value
 	tupleCount++;
@@ -120,7 +118,7 @@ void ocTable::insertTuple(ocKeySegment *key, double value, long index)
  */
 void ocTable::sumTuple(ocKeySegment *key, double value)
 {
-	long index = indexOf(key, false);
+	unsigned long long index = indexOf(key, false);
 	//-- index is either the matching tuple, or the next higher one. So we have to
 	//-- test again.
 	if (index >= tupleCount || ocKey::compareKeys(KeyPtr(data, keysize, index), key, keysize) != 0) {
@@ -140,7 +138,7 @@ void ocTable::sumTuple(ocKeySegment *key, double value)
  * 0 as the value (a negative index by convention means the tuples does not exist in
  * the table, so zero is the correct return value).
  */
-double ocTable::getValue(long index)
+double ocTable::getValue(unsigned long long index)
 {
 	if (index < 0 || index >= tupleCount) return 0.0;
 	else return (double) *(ValuePtr(data, keysize, index));
@@ -149,7 +147,7 @@ double ocTable::getValue(long index)
 /**
  * setValue - set the value at the given index
  */
-void ocTable::setValue(long index, double value)
+void ocTable::setValue(unsigned long long index, double value)
 {
 	if (index < 0 || index >= tupleCount) return;
 	else *(ValuePtr(data, keysize, index)) = (ocTupleValue) value;
@@ -159,7 +157,7 @@ void ocTable::setValue(long index, double value)
 /**
  * getKey - similar to getValue
  */
-ocKeySegment *ocTable::getKey(long index)
+ocKeySegment *ocTable::getKey(unsigned long long index)
 {
 	if (index < 0 || index >= tupleCount) return 0;
 	else return KeyPtr(data, keysize, index);
@@ -168,46 +166,45 @@ ocKeySegment *ocTable::getKey(long index)
 /**
  * copyKey - copy the key into the caller's storage
  */
-void ocTable::copyKey(long index, ocKeySegment *key)
+void ocTable::copyKey(unsigned long long index, ocKeySegment *key)
 {
 	ocKeySegment *keyp = getKey(index);
 	memcpy(key, keyp, keysize*sizeof(ocKeySegment));
 }
 
 /**
- * indexOf - search the table for the given key, and return the index. Returns -1 if not
+ * indexOf - search the table for the given key, and return the index. Returns 0 if not
  * found. This function assumes the keys are sorted, and does a binary search.
  */
-long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
+unsigned long long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
 {
 	int compare;
-	long top = 0, bottom = tupleCount - 1;
-	if (bottom < 0) return matchOnly ? -1 : 0;	// empty table
+	if (tupleCount == 0) return matchOnly ? 0 : 0;	// empty table
+	unsigned long long top = 0, bottom = tupleCount - 1;
 	// handle ends of range first
 	compare = ocKey::compareKeys(KeyPtr(data, keysize, top), key, keysize);
-	if (compare > 0) return matchOnly ? -1 : 0;
+	if (compare > 0) return matchOnly ? 0 : 0;
 	else if (compare == 0) return top;
 	
 	compare = ocKey::compareKeys(KeyPtr(data, keysize, bottom), key, keysize);
-	if (compare < 0) return matchOnly ? -1 : tupleCount;
+	if (compare < 0) return matchOnly ? 0 : tupleCount;
 	else if (compare == 0) return bottom;
 	
 	// now loop until we either run out of room to search, or find a match.
 	// each iteration, the midpoint of the remaining range is checked, and
 	// then half the keys are discarded.
 	while (true) {
-		if (bottom - top <= 1) return matchOnly ? -1 : bottom;	// no range left to search
-		long mid = (bottom + top) / 2;
+		if (bottom - top <= 1) return matchOnly ? 0 : bottom;	// no range left to search
+		unsigned long long mid = (bottom + top) / 2;
 		compare = ocKey::compareKeys(KeyPtr(data, keysize, mid), key, keysize);
 		if (compare == 0) return mid;	// got a match
 		if (compare > 0) {	// search top half of range
 			bottom = mid;
-		}
-		else {	// search bottom half of range
+		} else {	// search bottom half of range
 			top = mid;
 		}
 	}
-	return -1;	// this is never reached
+	return 0;	// this is never reached
 }
 
 /**
@@ -220,6 +217,7 @@ static int sortCompare(const void *k1, const void *k2)
 {
 	return ocKey::compareKeys((ocKeySegment *)k1, (ocKeySegment *)k2, sortKeySize);
 }
+
 void ocTable::sort()
 {
 	sortKeySize = keysize;
@@ -232,8 +230,8 @@ void ocTable::sort()
 int ocTable::normalize()
 {
 	double denom = 0;
-	long count = getTupleCount();
-	long i;
+	unsigned long long count = getTupleCount();
+	unsigned long long i;
 	for (i = 0; i < count; i++) {
 		denom += getValue(i);
 	}
@@ -249,20 +247,20 @@ int ocTable::normalize()
 /**
  * getMaxValue - get the index of the tuple with the greatest value
  */
-long ocTable::getMaxValue()
+unsigned long long ocTable::getMaxValue()
 {
-  double maxv = 0;
-  int maxi = -1;
-  long count = getTupleCount();
-  long i;
-  for (i = 0; i < count; i++) {
-    double value = getValue(i);
-    if (value > maxv) {
-      maxv = value;
-      maxi = i;
-    }
-  }
-  return maxi;
+	double maxv = 0;
+	unsigned long long maxi = 0;
+	unsigned long long count = getTupleCount();
+	unsigned long long i;
+	for (i = 0; i < count; i++) {
+		double value = getValue(i);
+		if (value > maxv) {
+			maxv = value;
+			maxi = i;
+		}
+	}
+	return maxi;
 }
 
 /**
@@ -281,7 +279,7 @@ void ocTable::dump(bool detail)
 {
 	double sum = 0;
 	printf("ocTable: tuples = %ld\n", tupleCount);
-	for (int i = 0; i < tupleCount; i++) {
+	for (unsigned long long i = 0; i < tupleCount; i++) {
 		ocKeySegment *key = getKey(i);
 		double value = getValue(i);
 		if (detail) {
