@@ -1,0 +1,35 @@
+// Profiling
+
+// Profiling python code using the 'cProfile' module
+
+One way to do this:
+
+	% python -m cProfile -o 'test6.prof' basic.py test6.txt
+
+This runs a script using the cProfile module, sending cProfile's output to the file "test6.prof".
+The script executed is "basic.py", with the input parameter "test6.txt".
+Removing the "-o 'text6.prof'" will send cProfile's output to stdout.
+
+To analyze the output, use the python 'pstats' module.
+
+	% python
+	...
+	>>> import pstats
+	>>> p = pstats.Stats('test6.prof')
+	>>> p.strip_dirs().sort_stats(-1).print_stats()
+
+This will print the results of the profiling, with a default sort.
+Another option:
+
+	>>> p.strip_dirs().sort_stats('time').print_stats(20)
+
+This will print the results of the profiling, sorted by cumulative time, showing only the first 20 lines.
+
+	>>> p.print_callers(20)
+
+This will print the caller of each of the functions listed in the previous print (using the existing sort).
+See the pstats module for more options.
+
+
+
+
