@@ -4,6 +4,7 @@
 # such as processing old format occam files
 
 import os, sys, re, occam, random, time
+import resource
 #from time import clock
 totalgen=0
 totalkept=0
@@ -47,6 +48,8 @@ class ocUtils:
 		self.__BPStatistics = 0
 		self.__PercentCorrect = 0
 		self.__NoIPF = 0
+		self.totalgen = 0
+		self.totalkept = 0
 
 	#
 	#-- Read command line args and process input file
@@ -183,25 +186,22 @@ class ocUtils:
 		elif self.__sortName == "pct_correct_data":
 			self.__manager.computePercentCorrect(model)
 		# anything else, just compute everything we might need
-		elif self.__sortName != "random":
+		else:
 			self.__manager.computeL2Statistics(model)
 			self.__manager.computeDependentStatistics(model)
 
-	#
 	# this function generates the parents/children of the given model, and for
 	# any which haven't been seen before puts them into the newModel list
 	# this function also computes the LR statistics (H, LR, DF, etc.) as well
 	# as the dependent statistics (dH, %dH, etc.)
-	#
-
 	def processModel(self, level, newModels, model):
 		addCount = 0;
 		generatedModels = self.__manager.searchOneLevel(model)
 		for newModel in generatedModels :
 			if newModel.get("processed") <= 0.0 :
 				newModel.processed = 1.0
-				newModel.random = random.random()
 				newModel.level = level
+				newModel.setProgenitor(model)
 				self.computeSortStatistic(newModel)
 				pos = 0;
 				while pos < len(newModels) and pos < self.__searchWidth:
@@ -209,50 +209,46 @@ class ocUtils:
 					pos = pos + 1;
 				if pos < len(newModels):
 					newModels.insert(pos, newModel)
-				elif self.__searchWidth > 0 and len(newModels) < self.__searchWidth:
+#				elif self.__searchWidth > 0 and len(newModels) < self.__searchWidth:
+				else:
 					newModels.append(newModel)
 				addCount = addCount + 1;
 				newModel.deleteFitTable()	#recover fit table memory
 				newModel.deleteRelationLinks()	#recover relation link memory
 				# newModel.dump();
-				memUsed = self.__manager.getMemUsage();
+				#memUsed = self.__manager.getMemUsage();
 		return addCount
 
 			
-	#
-	# this function processes models from one level, and return models for the next level
-	# for each level, it prints the best model at that level as a progress indicator
-	#
-
-	def processLevel(self, level, oldModels):
-		global totalgen
-                global totalkept
+	# This function processes models from one level, and return models for the next level.
+	# For each level, it prints the best model at that level as a progress indicator.
+	def processLevel(self, level, oldModels, clear_cache_flag):
 		newModels = []
 		fullCount = 0;
 		for model in oldModels:
-	#		print '.',	# progress indicator
 			fullCount = fullCount + self.processModel(level, newModels, model)
 		#newModels.sort(self.__compareModels)
 		#fullCount = len(newModels)
-		if self.__searchWidth != 0:
-			newModels = newModels[0:self.__searchWidth]
+		tempCount = len(newModels)
+		delModels = newModels[self.__searchWidth:]
+		newModels = newModels[0:self.__searchWidth]
 		self.__manager.deleteTablesFromCache()
 		truncCount = len(newModels)
-		totalgen = fullCount+totalgen
-                totalkept = truncCount+totalkept
+		self.totalgen  = fullCount + self.totalgen
+                self.totalkept = truncCount + self.totalkept
 		memUsed = self.__manager.getMemUsage();
-		print '  %ld new models, %ld kept; %ld total models,' % (fullCount, truncCount, totalgen+1)
-		print '  %ld total kept; %ld kb memory used; ' % (totalkept+1, memUsed/1024)
-
-		# print self.__manager.printSizes();
+		print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (fullCount, truncCount, self.totalgen+1, self.totalkept+1, memUsed/1024),
+#		self.__manager.printSizes();
+		usage = resource.getrusage(resource.RUSAGE_SELF)
+#print 'utime: %f, stime: %f' % (usage[0], usage[1])
+		if clear_cache_flag:
+			for model in delModels:
+				self.__manager.deleteModelFromCache(model)
 		return newModels
 
 
-	#
-	# this function returns the name of the search strategy to use based on
+	# This function returns the name of the search strategy to use based on
 	# the searchMode and loopless settings above
-	#
-
 	def searchType(self):
 		if self.__searchDir == "up":
 			if self.__searchFilter == "loopless":
@@ -267,14 +263,41 @@ class ocUtils:
 			if self.__searchFilter == "loopless":
 				searchMode = "loopless-down"
 			elif self.__searchFilter == "disjoint":
+				# This mode is not implemented
 				searchMode = "disjoint-down"
 			elif self.__searchFilter == "chain":
+				# This mode is not implemented
 				searchMode = "chain-down"
 			else:
 				searchMode = "full-down"
 		return searchMode
 
+
 	def doSearch(self, printOptions):
+		if self.__manager.isDirected():
+		       	if self.__searchDir == "down":
+				if self.__searchFilter == "disjoint":
+					print 'ERROR: Directed Down Disjoint Search not yet implemented.'
+					raise sys.exit()
+				elif self.__searchFilter == "loopless":
+					print 'ERROR: Directed Down Loopless Search not yet implemented.'
+					raise sys.exit()
+				elif self.__searchFilter == "chain":
+					print 'ERROR: Directed Down Chain Search not yet implemented.'
+					raise sys.exit()
+		else:
+			if self.__searchDir == "up":
+				if self.__searchFilter == "loopless":
+					print 'ERROR: Neutral Up Loopless Search not yet implemented.'
+					raise sys.exit()
+			else:
+				if self.__searchFilter == "disjoint":
+					print 'ERROR: Neutral Down Disjoint Search not yet implemented.'
+					raise sys.exit()
+				elif self.__searchFilter == "chain":
+					print 'ERROR: Neutral Down Chain Search not yet implemented.'
+					raise sys.exit()
+
 		if self.__startModel == "":
 			self.__startModel = "default"
 
@@ -323,14 +346,10 @@ class ocUtils:
 			print "ERROR: UNDEFINED SEARCH TYPE " + self.searchType()
 			return
 
-		#
 		# process each level, up to the number of levels indicated. Each of the best models
 		# is added to the report generator for later output
-		#
-		if self.__HTMLFormat:
-			print "<br>Searching levels:<br>"
-		else:
-			print "Searching levels:"
+		if self.__HTMLFormat: print '<pre>'
+		print "Searching levels:"
 		start_time = time.time()
 		last_time = start_time
 		for i in xrange(1,self.__searchLevels+1):
@@ -338,18 +357,13 @@ class ocUtils:
 				print "Memory limit exceeded: stopping search"
 				break
 
-			print i,': ',	# progress indicator
-			newModels = self.processLevel(i, oldModels)
+			print i,':',	# progress indicator
+			newModels = self.processLevel(i, oldModels, i != self.__searchLevels)
 			current_time = time.time()
 			print '%.1f seconds, %.1f total' % (current_time - last_time, current_time - start_time)
 			last_time = current_time
-			if self.__HTMLFormat:
-				print "<br>"
-			else:
-				print ""
 			for model in newModels:
-				# make sure all statistics are calculated. This
-				# won't do anything if we did it already
+				# Make sure all statistics are calculated. This won't do anything if we did it already.
 				if not self.__NoIPF:
 					self.__manager.computeL2Statistics(model)
 					self.__manager.computeDependentStatistics(model)
@@ -364,15 +378,12 @@ class ocUtils:
 			# if the list is empty, stop. Also, only do one step for chain search
 			if self.__searchFilter == "chain" or len(oldModels) == 0:
 				break
-		if self.__HTMLFormat:
-			print "<br>"
-
+		if self.__HTMLFormat: print '</pre><br>'
+		else: print ""
 
 
 	def printReport(self):
-		#
 		# sort the report as requested, and print it.
-		#
 		if self.__reportSortName != "":
 			sortName = self.__reportSortName
 		else:
@@ -383,8 +394,6 @@ class ocUtils:
 		else:
 			self.__report.printReport()
 		#-- self.__manager.dumpRelations()
-		print "</pre>"
-	
 
 
 	def doFit(self,printOptions):
@@ -407,10 +416,14 @@ class ocUtils:
 			print
 
 	def doSBFit(self,printOptions):
-		#self.__manager.printBasicStatistics()
+#		self.__manager.printBasicStatistics()
+		if self.__HTMLFormat:
+			print "<br>"
+		else:
+			print 
 		if printOptions: self.printOptions(0);
 		for modelName in self.__fitModels:
-			print "Model: ", modelName
+#			print "Model: ", modelName
 			self.__manager.setRefModel(self.__refModel)
 			model = self.__manager.makeSBModel(modelName, 1)
 			self.__manager.computeL2Statistics(model)
@@ -420,7 +433,7 @@ class ocUtils:
 			sys.stdout.flush()
 			self.__manager.makeFitTable(model)
 			self.__report.printResiduals(model)
-			sys.stdout.flush()
+#			sys.stdout.flush()
 			print
 			print
 
@@ -471,7 +484,7 @@ class ocUtils:
 
 	def printOption(self,label, value):
 		if self.__HTMLFormat:
-			print "<TR><TD>" + label + "</TD><TD>" + str(value) + "</TD></TR>"
+			print "<tr><td>" + label + "</td><td>" + str(value) + "</td></tr>"
 		else:
 			print label + "," + str(value)
 
