@@ -24,15 +24,16 @@ ocRelation::ocRelation(ocVariableList *list, int size ,int keysz,int stateconsts
 	if(stateconstsz<=0){
 		stateConstraints = NULL;
 		states=NULL;
-	}else{
+	} else {
 		//needs a better keysize value........Anjali
-		states=new int[size];
-		stateConstraints=new ocStateConstraint(keysz,stateconstsz);
+		states = new int[size];
+		stateConstraints = new ocStateConstraint(keysz,stateconstsz);
 	}
 	mask = NULL;
 	hashNext = NULL;
-	attributeList = new ocAttributeList(8);
+	attributeList = new ocAttributeList(2);
 	printName = NULL;
+	indepOnly = -1;
 }
 
 ocRelation::~ocRelation()
@@ -245,12 +246,23 @@ bool ocRelation::contains(const ocRelation *other)
 // decomposed during search
 bool ocRelation::isIndOnly()
 {
-	int i;
-	for (i = 0; i < varCount; i++) {
-		int vid = getVariable(i);	// position of variable in relation
-		if (varList->getVariable(vid)->dv) return false;
+	if (indepOnly == 0) {
+		return false;
+	} else if (indepOnly == 1) {
+		return true;
+	} else {			// it hasn't been determined yet, so do it
+		int i;
+		int vid;
+		for (i = varCount-1; i >= 0; --i) {
+			vid = getVariable(i);	// position of variable in relation
+			if (varList->getVariable(vid)->dv) {
+				indepOnly = 0;
+				return false;
+			}
+		}
+		indepOnly = 1;
+		return true;
 	}
-	return true;
 }
 
 long ocRelation::getNC()
@@ -343,11 +355,12 @@ void ocRelation::buildMask()
 // dump data to stdout
 void ocRelation::dump()
 {
-	printf("Relation: %s\n", getPrintName());
+	printf("\tRelation: %s", getPrintName());
+	getAttributeList()->dump();
+	printf("\n");
 	if (getTable()) {
 		getTable()->dump(false);
 	}
-	getAttributeList()->dump();
 }
 
 
