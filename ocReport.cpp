@@ -165,8 +165,7 @@ void ocReport::sort(const char *attr, SortDir dir)
 	qsort(models, modelCount, sizeof(ocModel*), sortCompare);
 }
 
-void ocReport::sort(class ocModel** models, long modelCount,
-		const char *attr, SortDir dir)
+void ocReport::sort(class ocModel** models, long modelCount, const char *attr, SortDir dir)
 {
 	sortAttr = attr;
 	sortDir = dir;
@@ -201,9 +200,10 @@ void ocReport::print(FILE *fd)
 
 	// Loop through the models to find the best values for each measure of model quality
 	ocAttributeList *modelAttrs;
-	double bestBIC, bestAIC, bestInf_01, bestInf_05, bestInf_1, bestTest;
+	double bestBIC, bestAIC, bestAlpha, bestInf_05, bestTest;
 	double tempBIC, tempAIC, tempAlpha, tempInf, tempTest;
-	bestInf_01 = bestInf_05 = bestInf_1 = bestTest = -1.0e38;
+	bestInf_05 = bestTest = -1.0e38;
+	bestAlpha = 1;
 	bestBIC = models[0]->getAttributeList()->getAttribute(ATTRIBUTE_BIC);
 	bestAIC = models[0]->getAttributeList()->getAttribute(ATTRIBUTE_AIC);
 
@@ -226,9 +226,8 @@ void ocReport::print(FILE *fd)
 		if (showAlpha) {
 			tempAlpha = modelAttrs->getAttribute(ATTRIBUTE_ALPHA);
 			tempInf   = modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I);
-//			if ((tempAlpha < 0.01) && (tempInf > bestInf_01)) bestInf_01 = tempInf;
+			if (tempAlpha < bestAlpha) bestAlpha = tempAlpha;
 			if ((tempAlpha < 0.05) && (tempInf > bestInf_05)) bestInf_05 = tempInf;
-//			if ((tempAlpha < 0.1 ) && (tempInf > bestInf_1 )) bestInf_1  = tempInf;
 		}
 		if (showPercentCorrect) {
 			tempTest  = modelAttrs->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST);
@@ -254,34 +253,19 @@ void ocReport::print(FILE *fd)
 	}
 
 	if(showAlpha) {
-/*		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.01:\n");
-		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.01</b>:</td></tr>\n");
-		for (int m = 0; m < modelCount; m++) {
-			modelAttrs = models[m]->getAttributeList();
-			if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_01) continue;
-			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.01) continue;
-			printSearchRow(fd, models[m], attrID);
+		if (bestAlpha >= 0.05) {
+			if (!htmlMode) fprintf(fd, "(No Best Model by Information, since none have Alpha < 0.05.)\n");
+			else fprintf(fd,"<tr><td colspan=8><b>(No Best Model by Information, since none have Alpha < 0.05.)</b></td></tr>\n");
+		} else {
+			if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.05:\n");
+			else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.05</b>:</td></tr>\n");
+			for (int m = 0; m < modelCount; m++) {
+				modelAttrs = models[m]->getAttributeList();
+				if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_05) continue;
+				if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.05) continue;
+				printSearchRow(fd, models[m], attrID);
+			}
 		}
-*/
-	
-		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.05:\n");
-		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.05</b>:</td></tr>\n");
-		for (int m = 0; m < modelCount; m++) {
-			modelAttrs = models[m]->getAttributeList();
-			if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_05) continue;
-			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.05) continue;
-			printSearchRow(fd, models[m], attrID);
-		}
-	
-/*		if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with Alpha < 0.1:\n");
-		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.1</b>:</td></tr>\n");
-		for (int m = 0; m < modelCount; m++) {
-			modelAttrs = models[m]->getAttributeList();
-			if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_1) continue;
-			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.1) continue;
-			printSearchRow(fd, models[m], attrID);
-		}
-*/
 	}
 
 	if (showPercentCorrect) {
@@ -304,7 +288,7 @@ void ocReport::print(FILE *fd)
 // Print out the line of column headers for the search output report
 void ocReport::printSearchHeader(FILE *fd, int* attrID) {
 	int sepStyle = htmlMode ? 0 : separator;
-	if (sepStyle) fprintf(fd, "MODEL");
+	if (sepStyle) fprintf(fd, "MODEL          ");
 	else fprintf(fd, "<tr><th align=left>MODEL</th>"); 
 	int pad, tlen;
 	const int cwid = 15;
@@ -367,15 +351,15 @@ void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID) {
 		if (attr == -1.0) field[0] = '\0';
 		else sprintf(field, fmt, attr);
 		switch(sepStyle) {
-		case 0:
-			fprintf(fd, "<td>%s</td>\n", field); 	break;
-		case 1:
-			fprintf(fd, "\t"); fprintf(fd, field); 	break;
-		case 2:
-			fprintf(fd, ","); fprintf(fd, field); 	break;
-		case 3:
-			pad = cwid - strlen(field); 	fprintf(fd, "%*c", pad, ' ');
-			fprintf(fd, field); 		break;
+			case 0:
+				fprintf(fd, "<td>%s</td>\n", field); 	break;
+			case 1:
+				fprintf(fd, "\t"); fprintf(fd, field); 	break;
+			case 2:
+				fprintf(fd, ","); fprintf(fd, field); 	break;
+			case 3:
+				pad = cwid - strlen(field); 	fprintf(fd, "%*c", pad, ' ');
+				fprintf(fd, field); 		break;
 		}
 	}
 	
@@ -555,7 +539,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	double dv_bin_value[dv_card];				// Contains the DV values for calculating expected values.
 
 	ocTable *input_table, *test_table;
-	long degrees = (long) ocDegreesOfFreedom(var_list);
+	unsigned long long degrees = (unsigned long long) ocDegreesOfFreedom(var_list);
 	ocRelation *iv_rel;					// A ptr to the IV component of a model, or the relation itself
 	// If we are working with a model, we use the input and test data directly.
 	if (rel == NULL) {
@@ -575,7 +559,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
 	//char *key_str = new char[var_count + 1];		// Used to hold user-strings for keys in several places
 
-	int iv_statespace = (degrees + 1) / dv_card;	// full statespace divided by cardinality of the DV
+	int iv_statespace = ((int)degrees + 1) / dv_card;	// full statespace divided by cardinality of the DV
 	const char **dv_label = (const char**)dv_var->valmap;
 	ocKeySegment **fit_key = new ocKeySegment *[iv_statespace];
 	double **fit_prob = new double *[iv_statespace];
