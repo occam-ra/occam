@@ -93,14 +93,16 @@ public:
 
 	// delete projection tables from all relations in cache
 	virtual void deleteTablesFromCache();
+
+	// delete a model from the model cache
+	virtual bool deleteModelFromCache(ocModel *model);
 	
 	// make a fit table. This function uses the IPF algorithm. The fit table is
 	// linked to the model.  If the model already has a fit table, the function
 	// returns immediately. False is returned on any error
 	virtual bool makeFitTable(ocModel *model,int SB=0);
 	
-	// expand a single tuple into all values of all missing variables,
-	// recursively
+	// expand a single tuple into all values of all missing variables, recursively
 	void expandTuple(double tupleValue, ocKeySegment *key,
 			 int *missingVars, int missingCount,
 			 ocTable *outTable, int currentMissingVar);
@@ -187,7 +189,7 @@ protected:
 	int keysize;
 	int sampleSize;
 	int testSampleSize;
-	long stateSpaceSize;
+	unsigned long long stateSpaceSize;
 	ocTable *inputData;
 	ocTable *testData;
 	double inputH;
