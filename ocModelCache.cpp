@@ -63,7 +63,33 @@ bool ocModelCache::addModel(class ocModel *model)
 	hash[hashindex] = model;
 	return true;
 }
-	
+
+//-- deleteModel - deletes a model from the cache.
+//-- returns true if successful, false if not found.
+bool ocModelCache::deleteModel(class ocModel *model)
+{
+	if (model == NULL) return false;
+	int hashindex = hashcode(model->getPrintName(), MODELCACHE_HASHSIZE);
+	ocModel *rp = hash[hashindex];
+	ocModel *prev = NULL;
+	while (rp && (rp != model)) {
+		prev = rp;
+		rp = rp->getHashNext();
+	}
+	if (rp != NULL) {
+		if (rp == hash[hashindex]) {
+			hash[hashindex] = rp->getHashNext();
+		} else {
+			prev->setHashNext(rp->getHashNext());	
+		}
+//		printf("deleting: %s\n", model->getPrintName());
+		delete rp;
+		return true;
+	} else {
+		return false;
+	}
+}
+
 //-- findModel - find a Model in the cache.  Null is returned if the given
 //-- Model doesn't exist.
 class ocModel *ocModelCache::findModel(const char *name)
@@ -77,12 +103,12 @@ class ocModel *ocModelCache::findModel(const char *name)
 //-- dump - print out all Models in the cache
 void ocModelCache::dump()
 {
-	printf("DUMP MODELCACHE:\n");
+	printf("\nDump ModelCache:\n");
 	for (int i = 0; i < MODELCACHE_HASHSIZE; i++) {
 		if (hash[i]) {
 			printf ("hash chain [%d]:\n", i);
 			for (ocModel *model = hash[i]; model; model = model->getHashNext()) {
-			//	model->dump();
+				model->dump();
 			}
 		}
 	}
