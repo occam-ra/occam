@@ -10,37 +10,35 @@
 #ifdef LOG_MEMORY
 
 const char *memlog = "memusage.log";
-static FILE *mlogfd = NULL;
+static FILE *mlogfd = fopen(memlog, "w");
 
-void logMemory(void *old, long oldSize, long factor, const char *file, long line)
+void logMemory(void *old, unsigned long long oldSize, long factor, const char *file, long line)
 {
-  printf("%s[%ld] %ld\n", file, line, oldSize * factor);
-  fflush(stdout);
-
+	fprintf(mlogfd, "%s [%ld]: %lld %ld\n", file, line, oldSize, factor);
+	fflush(mlogfd);
 }
 
 #else
 
-void logMemory(void *old, long oldSize, long factor, const char *file, long line)
+void logMemory(void *old, unsigned long long oldSize, long factor, const char *file, long line)
 {
 }
 
 #endif
 
-void *_growStorage(void *old, long oldSize, long factor, const char *file, long line)
+void *_growStorage(void *old, unsigned long long oldSize, long factor, const char *file, long line)
 {
-  logMemory(old, oldSize, factor, file, line);
-  char *newp = new char[oldSize * factor];
-  //char *newp = (char*) malloc(oldSize * factor);
-  if (newp == NULL) {
-    printf("out of memory!\n");
-    return NULL;
-  }
-  memcpy(newp, old, oldSize);
-  delete [] ((char*)old);
-  //free(old);
-  return newp;
+	logMemory(old, oldSize, factor, file, line);
+	char *newp = new char[oldSize * factor];
+	if (newp == NULL) {
+		printf("out of memory!\n");
+		return NULL;
+	}
+	memcpy(newp, old, oldSize);
+	delete [] ((char*)old);
+	return newp;
 }
+
 
 //-- check variable lists to see if they are the same
 int ocCompareVariables(int varCount1, int *var1, int varCount2, int *var2)
