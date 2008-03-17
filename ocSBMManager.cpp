@@ -305,7 +305,7 @@ void ocSBMManager::computePearsonStatistics(ocModel *model)
 	int errcode;
 	double modelDF = compute_SB_DF(model);
 	double refDF = computeDF(refModel);
-	double refDDF = modelDF - refDF;
+	double refDDF = fabs(modelDF - refDF);
 	double refModelP2 = refP2 - modelP2;
 	double refP2Prob = csa(refModelP2, refDDF);
 
@@ -318,7 +318,7 @@ void ocSBMManager::computePearsonStatistics(ocModel *model)
 	else critX2 = modelP2;
 	if (errcode) printf("ppchi: errcode=%d\n", errcode);
 	refP2Power = 1.0 - chin2(critX2, refDDF, modelP2, &errcode);
-	if (errcode) printf("chin2: errcode=%d\n", errcode);
+	if (errcode) printf("chin2: errcode=%d, %.2f, %.2f\n", errcode, refDDF, modelP2);
 	//?? do something with these returned errors
 
 	attrs->setAttribute(ATTRIBUTE_P2, modelP2);
@@ -507,7 +507,7 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	//-- Print general report for a single model, similar to Fit in Occam2
 	const char *header, *beginLine, *endLine, *separator, *footer, *headerSep;
 	if (ocReport::isHTMLMode()) {
-		header = "<table border=0 cellpadding=0 cellspacing=0>\n";
+		header = "<br><hr><br><table border=0 cellpadding=0 cellspacing=0>\n";
 		beginLine = "<tr><td>";
 		separator = "</td><td>";
 		endLine = "</td></tr>\n";
@@ -556,7 +556,6 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 }
 void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
 {
-	//exit(1);
 	//-- Print general report for a single model, similar to Fit in Occam2
 	const char *header, *beginLine, *endLine, *separator, *footer;
 	const char *beginLine1, *endLine1, *separator1;
@@ -566,14 +565,14 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
 		separator = "</td><td>";
 		endLine = "</td></tr>\n";
 		footer = "</table>";
-		beginLine1 = "<tr><d>";
-		separator1 = "</d><d>";
-		endLine1 = "</d></tr>\n";
+		beginLine1 = "<tr><td>";
+		separator1 = "</td><td>";
+		endLine1 = "</td></tr>\n";
 		
 	}
 	else {
 		header = "";
-		beginLine =beginLine1= "    ";
+		beginLine = beginLine1 = "    ";
 		separator =separator1= ",";
 		endLine =endLine1= "\n";
 		footer = "\n";
@@ -581,8 +580,7 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
 	//printf("in print fit report\n");
 	bool directed = getVariableList()->isDirected();
 	fprintf(fd, header);
-	fprintf(fd, "%sModel%s%s%s", beginLine, separator, 
-		model->getPrintName(), separator);
+	fprintf(fd, "%sModel%s%s%s", beginLine, separator, model->getPrintName(), separator);
 	if (directed)
 		fprintf(fd, "Directed System%s", endLine);
 	else
@@ -614,22 +612,23 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
 	label = "Degrees of Freedom (DF):";
 	value = model->getAttributeList()->getAttribute("df");
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
+
 	label="Structure Matrix:";
 	fprintf(fd,"%s%s%s",beginLine,label,endLine);
 	int statespace,Total_const;
 	int **struct_matrix=model->get_structMatrix(&statespace,&Total_const);
 	for(int i=0;i<Total_const;i++){
-		fprintf(fd,beginLine1);
+		fprintf(fd, "%s%s%s%s", beginLine1, separator1, separator1, separator1);
 		for(int j=0;j<statespace;j++){
 			fprintf(fd,"%d %s",struct_matrix[i][j],separator1);
-		
 		}
-	fprintf(fd,"%s",endLine1);
+		fprintf(fd,"%s",endLine1);
 	}
+	//exit(2);
+
 	label = "Loops:";
 	//value = model->getAttributeList()->getAttribute("h");
-	fprintf(fd, "%s%s%s%s%s", beginLine, label, separator,
-		value > 0 ? "?" : "?", endLine);
+	fprintf(fd, "%s%s%s%s%s", beginLine, label, separator, value > 0 ? "?" : "?", endLine);
 	label = "Entropy(H):";
 	value = model->getAttributeList()->getAttribute("h");
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
@@ -658,8 +657,8 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
         computeDependentStatistics(model);
         computeL2Statistics(model);
         computePearsonStatistics(model);
-
 	printRefTable(model->getAttributeList(), fd, "TOP", topFields, 3);
+
 	model->getAttributeList()->reset();
         setRefModel("bottom");
         computeInformationStatistics(model);
