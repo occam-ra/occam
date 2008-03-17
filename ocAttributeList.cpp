@@ -17,8 +17,7 @@
  
 static int findName(const char **names, const char *name, int count)
 {
-	//-- if name contains "$", everything after that is formatting inof
-	//-- so don't compare that part.
+	//-- if name contains "$", everything after that is formatting info, so don't compare that part.
 	const char *cp = strchr(name, '$');
 	int len = (cp == 0) ? strlen(name) : cp - name;
 	char *name2 = new char[len+1];
@@ -27,8 +26,8 @@ static int findName(const char **names, const char *name, int count)
 	int match = -1;
 	for (int i = 0; i < count; i++) {
 		if (strcasecmp(name2, names[i]) == 0) {
-		  match = i;
-		  break;
+			match = i;
+			break;
 		}
 	}
 	delete [] name2;
@@ -49,15 +48,14 @@ ocAttributeList::~ocAttributeList()
 	if (values) delete [] values;
 }
 
-
 long ocAttributeList::size()
 {
-  return sizeof(ocAttributeList) * maxAttrCount * (sizeof(char*) + sizeof(double));
+	return sizeof(ocAttributeList) * maxAttrCount * (sizeof(char*) + sizeof(double));
 }
 
 void ocAttributeList::reset()
 {
-  attrCount = 0;
+	attrCount = 0;
 }
 
 void ocAttributeList::setAttribute(const char *name, double value)
@@ -106,8 +104,8 @@ double ocAttributeList::getAttributeByIndex(int index)
 void ocAttributeList::dump()
 {
 	if (attrCount == 0) return;
-	printf("\tAttributes:\n");
-	for (int i = 0; i < attrCount; i++) {
-		printf("\t\t%s:\t%lf\n", names[i], values[i]);
-	}
+	printf("\t\tAttributes: %d/%d", attrCount, maxAttrCount);
+	//for (int i = 0; i < attrCount; i++) {
+		//printf("\t%s: %lf", names[i], values[i]);
+	//}
 }
