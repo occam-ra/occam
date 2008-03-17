@@ -357,8 +357,7 @@ chic (double x2, double df)
 #define FALSE 0
 #define TRUE 1
 
-double
-chin2 (double x, double df, double theta, int *ifault)
+double chin2 (double x, double df, double theta, int *ifault)
 {
   int flag;
   int n;
