@@ -22,11 +22,12 @@ ocModel::ocModel(int size)
 	relationCount = 0;
 	relations = new ocRelation*[size];
 	fitTable = NULL;
-	attributeList = new ocAttributeList(8);
+	attributeList = new ocAttributeList(6);
 	printName = NULL;
 	hashNext = NULL;
+	progenitor = NULL;
 }
-	
+
 ocModel::~ocModel()
 {
 	// delete storage; this does not cascade to deleting the relations,
@@ -38,16 +39,16 @@ ocModel::~ocModel()
 
 long ocModel::size()
 {
-  long size = sizeof(ocModel) + maxRelationCount * sizeof(ocRelation*);
-  if (fitTable) size += fitTable->size();
-  if (attributeList) size += attributeList->size();
-  return size;
+	long size = sizeof(ocModel) + maxRelationCount * sizeof(ocRelation*);
+	if (fitTable) size += fitTable->size();
+	if (attributeList) size += attributeList->size();
+	return size;
 }
 
 void ocModel::deleteRelationLinks()
 {
-  //  delete relations;
-  //  relations = NULL;
+	//delete [] relations;
+	//relations = new ocRelation*[1];
 }
 
 void ocModel::copyRelations(ocModel &model, int skip1, int skip2)
@@ -253,7 +254,7 @@ ocRelation *ocModel::getRelation(int index)
 
 // Returns true if this model contains the specified relation; false otherwise.
 bool ocModel::containsRelation(ocRelation *relation) {
-	for (int i = 0; i < relationCount; i++) {
+	for (int i = relationCount -1; i >= 0; --i) {
 		//if (relation->compare(relations[i]) == 0)
 		if (relations[i]->contains(relation))
 			return true;
@@ -345,8 +346,19 @@ void ocModel::printStructMatrix(){
 
 void ocModel::dump()
 {
-	printf("Model: %s\n", getPrintName());
+	printf("\tModel: %s\n", getPrintName());
 	attributeList->dump();
 	printf("\n");
+	printf("\t\tSize: %d,\tRelCount: %d,\tMaxRel:%d", size(), getRelationCount(), maxRelationCount);
+        if (fitTable)
+		printf(",\tFitTable: %d", fitTable->size());
+//        if (attributeList)
+//	       	printf(",\tAttrList: %d", attributeList->size());
+	printf("\n");
+
 }
+
+
+
+
 
