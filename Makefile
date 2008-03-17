@@ -5,10 +5,12 @@ INCLUDES = ocCore.h \
 			_ocCore.h
 
 CC = gcc
-CFLAGS = -g
+CFLAGS = 
+#CFLAGS = -g 
 
 RANLIB = ranlib
-DEFS = -I. -DNDEBUG
+DEFS = -I.
+#DEFS = -I. -DNDEBUG
 #CPPFLAGS = -DTRACE_ON
 LDFLAGS = -lm -lstdc++
 
