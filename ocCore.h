@@ -20,48 +20,48 @@ class ocTable {
 public:
 	//-- table types
 	enum TableType {INFO_TYPE, SET_TYPE};
-	ocTable(int keysz, long maxTuples, TableType typ = INFO_TYPE);	// initialize the table and allocate tuple space
+	ocTable(int keysz, unsigned long long maxTuples, TableType typ = INFO_TYPE);	// initialize the table and allocate tuple space
 	~ocTable();
-	long size();
+	unsigned long long size();
 	
 	void copy(const ocTable *from);	// copy data table
 	
 	//-- add or sum tuples in the table.  These take into account the type of table
 	//-- (info theoretic or set theoretic)
 	void addTuple(ocKeySegment *key, double value);	// append to end
-	void insertTuple(ocKeySegment *key, double value, long index);	// insert in given spot
+	void insertTuple(ocKeySegment *key, double value, unsigned long long index);	// insert in given spot
 	void sumTuple(ocKeySegment *key, double value); // add (or) this value to matching tuple
 	
 	//-- key and value access functions	
-	double getValue(long index);
-	void setValue(long index, double value);
-	ocKeySegment *getKey(long index);
-	void copyKey(long index, ocKeySegment *key);
+	double getValue(unsigned long long index);
+	void setValue(unsigned long long index, double value);
+	ocKeySegment *getKey(unsigned long long index);
+	void copyKey(unsigned long long index, ocKeySegment *key);
 	
 	//-- find the given key. If matchOnly is true, -1 is returned on no match.
 	//-- if matchOnly is false, the position of the next higher tuple is returned
-	long indexOf(ocKeySegment *key, bool matchOnly = true);	//
-	long getTupleCount() { return tupleCount; }
+	unsigned long long indexOf(ocKeySegment *key, bool matchOnly = true);	//
+	unsigned long long getTupleCount() { return tupleCount; }
 	int getKeySize()	{ return keysize; }
 	
-	void sort();	// sort tuples by key
+	void sort();			// sort tuples by key
 	void reset(int keysize);	// reset table to empty, but reuse the storage
 	
 	// dump debug output
 	void dump(bool detail = false);
 	
-	// normalize information-theoretic table.  No effect for set-theoretic tables
+	// normalize information-theoretic table.  No effect for set-theoretic tables.
 	// if these are counts, then the return value is the sample size
 	int normalize();
 
 	// get index of maximum value
-	long getMaxValue();
+	unsigned long long getMaxValue();
 	
 private:
 	void* data;			// storage for all keys and values
 	int keysize;		// number of key segments in the key for each tuple
-	long tupleCount;	// number of tuples in the tuple array
-	long maxTupleCount;	// the total size of the data member, in terms of tuples
+	unsigned long long tupleCount;	// number of tuples in the tuple array
+	unsigned long long maxTupleCount;	// the total size of the data member, in terms of tuples
 	TableType type;			// one of INFO_TYPE, SET_TYPE
 };
 
@@ -343,6 +343,7 @@ private:
 	ocKeySegment *mask;		// mask has zero for variables in this rel, 1's elsewhere
 	class ocAttributeList *attributeList;
 	char *printName;
+	int indepOnly;		// remembers if relation is independent only
 };
 
 
@@ -380,6 +381,10 @@ public:
 	// set, get hash chain linkages
 	ocModel *getHashNext() { return hashNext; }
 	void setHashNext(ocModel *next) { hashNext = next; }
+
+	// set and get for progenitor model.  (The model from which this one was derived in a search.)
+	ocModel *getProgenitor() { return progenitor; }
+	void setProgenitor(ocModel *model) { progenitor = model; }
 	
 	// print out model info
 	void dump();
@@ -395,6 +400,7 @@ public:
 		return structMatrix;};
 private:
 	ocRelation **relations;
+	ocModel *progenitor;		// the model from which this one was derived in a search
 	int relationCount;
 	int maxRelationCount;
 	class ocTable *fitTable;
@@ -408,8 +414,7 @@ private:
 
 
 /**
- * ocAttributeList - assciated with models and relations, an attribute carries a name
- * and a numeric value.
+ * ocAttributeList - assciated with models and relations, an attribute carries a name and a numeric value.
 */
 class ocAttributeList {
 public:
@@ -419,7 +424,7 @@ public:
 	long size();
 	void reset();
 
-	// add an attribute. Names are not copied so the name argument must point to a
+	// Add an attribute. Names are not copied so the name argument must point to a
 	// permanent string. If an attribute by this name already exists, it is replaced.
 	void setAttribute(const char *name, double value);
 	double getAttribute(const char *name);
@@ -427,7 +432,7 @@ public:
 	int getAttributeCount();
 	double getAttributeByIndex(int index);
 	
-	// print out values
+	// Print out values
 	void dump();
 	
 private:
