@@ -6,7 +6,7 @@ from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 
-VERSION = "3.2.22"
+VERSION = "3.2.23"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
