@@ -357,11 +357,10 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel,int
 	return true;
 }
 
-bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inputData,
-				      ocRelation *indRel, ocRelation *depRel)
+bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inputData, ocRelation *indRel, ocRelation *depRel)
 {
 	//-- create the max projection data for the IV relation, used for computing percent correct.
-	//-- Two new tables are created. maxpqt contains a tuple for each distinct IV state,
+	//-- Two new tables are created. maxqt contains a tuple for each distinct IV state,
 	//-- and the q value from the qt table. maxpt contains a corresponding tuple for each distinct
 	//-- IV state, and the p value (from the input data).
 	//-- A pass is made through the the qt table, and for each tuple, it is checked against the
@@ -371,32 +370,32 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
 	//-- for the specific IV,DV state which corresponds to the greatest q value across the DV
 	//-- states for that IV state.
 	if (qt == NULL || maxpt == NULL || indRel == NULL || depRel == NULL) return false;
-	long count = qt->getTupleCount();
+	long long count = qt->getTupleCount();
 	ocTable *maxqt = new ocTable(keysize, count);
 	maxpt->reset(keysize);	// reset the output table
 	ocKeySegment *key = new ocKeySegment[keysize];
 	ocKeySegment *mask = indRel->getMask();
-	long i, k;
-	double totalP;
+	long long i, pindex, maxqindex, maxpindex;
+	int k;
+	double totalP, qvalue, pvalue, maxqvalue;
 	for (i = 0; i < count; i++) {
 		qt->copyKey(i, key);
-		double qvalue = qt->getValue(i);
-		long pindex = inputData->indexOf(key);
-		double pvalue = 0.0;
+		qvalue = qt->getValue(i);
+		pindex = inputData->indexOf(key);
+		pvalue = 0.0;
 		if (pindex >= 0) pvalue = inputData->getValue(pindex);
 		//-- set up key to match just IVs
 		for (k = 0; k < keysize; k++) key[k] |= mask[k];
-		long maxqindex = maxqt->indexOf(key);
-		long maxpindex = maxpt->indexOf(key);
+		maxqindex = maxqt->indexOf(key);
+		maxpindex = maxpt->indexOf(key);
 		if (maxqindex >= 0 && maxpindex >= 0) {
 			//-- we already saw this IV state; see if the q value is greater
-			double maxqvalue = maxqt->getValue(maxqindex);
+			maxqvalue = maxqt->getValue(maxqindex);
 			if (maxqvalue < qvalue) {
 				maxqt->setValue(maxqindex, qvalue);
 				maxpt->setValue(maxpindex, pvalue);
 			}
-		}
-		else {
+		} else {
 			//-- new IV state; add to both tables
 			//-- we have to call indexOf again to get the position, then
 			//-- do the insert
@@ -416,23 +415,25 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
 	count = inputData->getTupleCount();
 	ocTable *depTable = depRel->getTable();
 	ocKeySegment *dvmask = depRel->getMask();
-	long dvindex = depTable->getMaxValue();
+	long long dvindex = depTable->getMaxValue();
 	ocKeySegment *dvkey = depTable->getKey(dvindex);
+	long long idx, index;
+	double value;
 	for (i = 0; i < count; i++) {
-	  inputData->copyKey(i, key);
+		inputData->copyKey(i, key);
 	  
-	  for (k = 0; k < keysize; k++) key[k] |= dvmask[k];
-	  if (ocKey::compareKeys(dvkey, key, keysize) != 0) continue; //-- doesn't predict default value
+		for (k = 0; k < keysize; k++) key[k] |= dvmask[k];
+		if (ocKey::compareKeys(dvkey, key, keysize) != 0) continue; //-- doesn't predict default value
 
-	  inputData->copyKey(i, key);
-	  for (k = 0; k < keysize; k++) key[k] |= mask[k];
-	  long idx = maxpt->indexOf(key);
-	  if (idx >= 0) continue; //-- model predicts this; don't need default
+		inputData->copyKey(i, key);
+		for (k = 0; k < keysize; k++) key[k] |= mask[k];
+		idx = maxpt->indexOf(key);
+		if (idx >= 0) continue; //-- model predicts this; don't need default
 
-	  //-- add this entry to maxpt; default rule applies
-	  double value = inputData->getValue(i);
-	  long index = maxpt->indexOf(key, false);
-	  if (value > 0) maxpt->insertTuple(key, value, index);
+		//-- add this entry to maxpt; default rule applies
+		value = inputData->getValue(i);
+		index = maxpt->indexOf(key, false);
+		if (value > 0) maxpt->insertTuple(key, value, index);
 	}
 	maxpt->sort();
 	delete [] key;
