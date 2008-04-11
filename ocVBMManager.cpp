@@ -775,7 +775,7 @@ void ocVBMManager::computeBPStatistics(ocModel *model)
 void ocVBMManager::computePercentCorrect(ocModel *model)
 {
 	double total;
-	long count, i;
+	long long count, i;
 	ocRelation *indRel = getIndRelation();
 	ocRelation *depRel = getDepRelation();
 
@@ -785,38 +785,39 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 	((ocManagerBase*)this)->makeProjection(depRel);
 
 	//-- get default DV probability, which is the largest of the values in the dependent relation
-	makeFitTable(model);
+	if (!makeFitTable(model))
+		printf("ERROR\n");
 	ocTable *modelTable = fitTable1;
-	ocTable *maxTable = new ocTable(keysize, modelTable->getTupleCount());
-	maxTable = new ocTable(keysize, modelTable->getTupleCount());
-	makeMaxProjection(modelTable, maxTable, inputData, indRel, depRel);
+	ocTable *maxTable = new ocTable(modelTable->getKeySize(), modelTable->getTupleCount());
+	if (!makeMaxProjection(modelTable, maxTable, inputData, indRel, depRel))
+		printf("ERROR\n");
 	total = 0.0;
 	count = maxTable->getTupleCount();
 	for (i = 0; i < count; i++) {
-	  total += maxTable->getValue(i);
+		total += maxTable->getValue(i);
 	}
 	model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT_DATA, 100 * total);
 
 	if (testData) {
-	  //-- for test data, use projections involving only the predicting variables
-	  int maxCount = varList->getVarCount();
-	  int varindices[maxCount], varcount;
-	  getPredictingVars(model, varindices, varcount, false);
-	  ocRelation *predRelNoDV = getRelation(varindices, varcount);
-	  getPredictingVars(model, varindices, varcount, true);
-	  ocRelation *predRelWithDV = getRelation(varindices, varcount);
-	  ocTable *predModelTable = new ocTable(keysize, modelTable->getTupleCount());
-	  ocTable *predTestTable = new ocTable(keysize, modelTable->getTupleCount());
-	  ocManagerBase::makeProjection(modelTable, predModelTable, predRelWithDV);
-	  ocManagerBase::makeProjection(testData, predTestTable, predRelWithDV);
-	  maxTable->reset(keysize);
-	  makeMaxProjection(predModelTable, maxTable, predTestTable, predRelNoDV, depRel);
-	  total = 0.0;
-	  count = maxTable->getTupleCount();
-	  for (i = 0; i < count; i++) {
-	    total += maxTable->getValue(i);
-	  }
-	  model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT_TEST, 100 * total);
+		//-- for test data, use projections involving only the predicting variables
+		int maxCount = varList->getVarCount();
+		int varindices[maxCount], varcount;
+		getPredictingVars(model, varindices, varcount, false);
+		ocRelation *predRelNoDV = getRelation(varindices, varcount);
+		getPredictingVars(model, varindices, varcount, true);
+		ocRelation *predRelWithDV = getRelation(varindices, varcount);
+		ocTable *predModelTable = new ocTable(keysize, modelTable->getTupleCount());
+		ocTable *predTestTable = new ocTable(keysize, modelTable->getTupleCount());
+		ocManagerBase::makeProjection(modelTable, predModelTable, predRelWithDV);
+		ocManagerBase::makeProjection(testData, predTestTable, predRelWithDV);
+		maxTable->reset(keysize);
+		makeMaxProjection(predModelTable, maxTable, predTestTable, predRelNoDV, depRel);
+		total = 0.0;
+		count = maxTable->getTupleCount();
+		for (i = 0; i < count; i++) {
+			total += maxTable->getValue(i);
+		}
+		model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT_TEST, 100 * total);
 	}
 	delete maxTable;
 }
