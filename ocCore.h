@@ -20,28 +20,28 @@ class ocTable {
 public:
 	//-- table types
 	enum TableType {INFO_TYPE, SET_TYPE};
-	ocTable(int keysz, unsigned long long maxTuples, TableType typ = INFO_TYPE);	// initialize the table and allocate tuple space
+	ocTable(int keysz, long long maxTuples, TableType typ = INFO_TYPE);	// initialize the table and allocate tuple space
 	~ocTable();
-	unsigned long long size();
+	long long size();
 	
 	void copy(const ocTable *from);	// copy data table
 	
 	//-- add or sum tuples in the table.  These take into account the type of table
 	//-- (info theoretic or set theoretic)
 	void addTuple(ocKeySegment *key, double value);	// append to end
-	void insertTuple(ocKeySegment *key, double value, unsigned long long index);	// insert in given spot
+	void insertTuple(ocKeySegment *key, double value, long long index);	// insert in given spot
 	void sumTuple(ocKeySegment *key, double value); // add (or) this value to matching tuple
 	
 	//-- key and value access functions	
-	double getValue(unsigned long long index);
-	void setValue(unsigned long long index, double value);
-	ocKeySegment *getKey(unsigned long long index);
-	void copyKey(unsigned long long index, ocKeySegment *key);
+	double getValue(long long index);
+	void setValue(long long index, double value);
+	ocKeySegment *getKey(long long index);
+	void copyKey(long long index, ocKeySegment *key);
 	
 	//-- find the given key. If matchOnly is true, -1 is returned on no match.
 	//-- if matchOnly is false, the position of the next higher tuple is returned
-	unsigned long long indexOf(ocKeySegment *key, bool matchOnly = true);	//
-	unsigned long long getTupleCount() { return tupleCount; }
+	long long indexOf(ocKeySegment *key, bool matchOnly = true);	//
+	long long getTupleCount() { return tupleCount; }
 	int getKeySize()	{ return keysize; }
 	
 	void sort();			// sort tuples by key
@@ -55,13 +55,13 @@ public:
 	int normalize();
 
 	// get index of maximum value
-	unsigned long long getMaxValue();
+	long long getMaxValue();
 	
 private:
 	void* data;			// storage for all keys and values
 	int keysize;		// number of key segments in the key for each tuple
-	unsigned long long tupleCount;	// number of tuples in the tuple array
-	unsigned long long maxTupleCount;	// the total size of the data member, in terms of tuples
+	long long tupleCount;	// number of tuples in the tuple array
+	long long maxTupleCount;	// the total size of the data member, in terms of tuples
 	TableType type;			// one of INFO_TYPE, SET_TYPE
 };
 
