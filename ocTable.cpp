@@ -29,17 +29,17 @@ const long GROWTH_FACTOR = 2;
 
 #define TupleBytes (sizeof(ocTupleValue) + keysize * sizeof(ocKeySegment))
 
-static ocTupleValue *ValuePtr(void *data, int keysize, unsigned long long index)
+static ocTupleValue *ValuePtr(void *data, int keysize, long long index)
 {
 	return ((ocTupleValue*) ( ((char*) data) + (keysize * sizeof(ocKeySegment)) + TupleBytes * (index) ));
 }
 
-static ocKeySegment *KeyPtr(void *data, int keysize, unsigned long long index)
+static ocKeySegment *KeyPtr(void *data, int keysize, long long index)
 {
 	return ((ocKeySegment*) ( ((char*) data) + TupleBytes * (index) ));
 }
 
-ocTable::ocTable(int keysz, unsigned long long maxTuples, ocTable::TableType typ)
+ocTable::ocTable(int keysz, long long maxTuples, ocTable::TableType typ)
 {
  	keysize = keysz;
 	type = typ;
@@ -53,7 +53,7 @@ ocTable::~ocTable()
 	if (data) delete [] (char*)data;
 }
 
-unsigned long long ocTable::size()
+long long ocTable::size()
 {
 	return TupleBytes * maxTupleCount + sizeof(ocTable);
 }
@@ -89,7 +89,7 @@ void ocTable::addTuple(ocKeySegment *key, double value)
 /**
  * insertTuple - similar to addTuple, but inserts the tuple in sorted order.
  */
-void ocTable::insertTuple(ocKeySegment *key, double value, unsigned long long index)
+void ocTable::insertTuple(ocKeySegment *key, double value, long long index)
 {
 	if (tupleCount >= maxTupleCount) {
 		data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
@@ -118,7 +118,7 @@ void ocTable::insertTuple(ocKeySegment *key, double value, unsigned long long in
  */
 void ocTable::sumTuple(ocKeySegment *key, double value)
 {
-	unsigned long long index = indexOf(key, false);
+	long long index = indexOf(key, false);
 	//-- index is either the matching tuple, or the next higher one. So we have to
 	//-- test again.
 	if (index >= tupleCount || ocKey::compareKeys(KeyPtr(data, keysize, index), key, keysize) != 0) {
@@ -138,7 +138,7 @@ void ocTable::sumTuple(ocKeySegment *key, double value)
  * 0 as the value (a negative index by convention means the tuples does not exist in
  * the table, so zero is the correct return value).
  */
-double ocTable::getValue(unsigned long long index)
+double ocTable::getValue(long long index)
 {
 	if (index < 0 || index >= tupleCount) return 0.0;
 	else return (double) *(ValuePtr(data, keysize, index));
@@ -147,7 +147,7 @@ double ocTable::getValue(unsigned long long index)
 /**
  * setValue - set the value at the given index
  */
-void ocTable::setValue(unsigned long long index, double value)
+void ocTable::setValue(long long index, double value)
 {
 	if (index < 0 || index >= tupleCount) return;
 	else *(ValuePtr(data, keysize, index)) = (ocTupleValue) value;
@@ -157,7 +157,7 @@ void ocTable::setValue(unsigned long long index, double value)
 /**
  * getKey - similar to getValue
  */
-ocKeySegment *ocTable::getKey(unsigned long long index)
+ocKeySegment *ocTable::getKey(long long index)
 {
 	if (index < 0 || index >= tupleCount) return 0;
 	else return KeyPtr(data, keysize, index);
@@ -166,36 +166,36 @@ ocKeySegment *ocTable::getKey(unsigned long long index)
 /**
  * copyKey - copy the key into the caller's storage
  */
-void ocTable::copyKey(unsigned long long index, ocKeySegment *key)
+void ocTable::copyKey(long long index, ocKeySegment *key)
 {
 	ocKeySegment *keyp = getKey(index);
 	memcpy(key, keyp, keysize*sizeof(ocKeySegment));
 }
 
 /**
- * indexOf - search the table for the given key, and return the index. Returns 0 if not
+ * indexOf - search the table for the given key, and return the index. Returns -1 if not
  * found. This function assumes the keys are sorted, and does a binary search.
  */
-unsigned long long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
+long long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
 {
 	int compare;
-	if (tupleCount == 0) return matchOnly ? 0 : 0;	// empty table
-	unsigned long long top = 0, bottom = tupleCount - 1;
+	long long top = 0, bottom = tupleCount - 1;
+	if (bottom < 0) return matchOnly ? -1 : 0;	// empty table
 	// handle ends of range first
 	compare = ocKey::compareKeys(KeyPtr(data, keysize, top), key, keysize);
-	if (compare > 0) return matchOnly ? 0 : 0;
+	if (compare > 0) return matchOnly ? -1 : 0;
 	else if (compare == 0) return top;
 	
 	compare = ocKey::compareKeys(KeyPtr(data, keysize, bottom), key, keysize);
-	if (compare < 0) return matchOnly ? 0 : tupleCount;
+	if (compare < 0) return matchOnly ? -1 : tupleCount;
 	else if (compare == 0) return bottom;
 	
 	// now loop until we either run out of room to search, or find a match.
 	// each iteration, the midpoint of the remaining range is checked, and
 	// then half the keys are discarded.
 	while (true) {
-		if (bottom - top <= 1) return matchOnly ? 0 : bottom;	// no range left to search
-		unsigned long long mid = (bottom + top) / 2;
+		if (bottom - top <= 1) return matchOnly ? -1 : bottom;	// no range left to search
+		long long mid = (bottom + top) / 2;
 		compare = ocKey::compareKeys(KeyPtr(data, keysize, mid), key, keysize);
 		if (compare == 0) return mid;	// got a match
 		if (compare > 0) {	// search top half of range
@@ -204,7 +204,7 @@ unsigned long long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
 			top = mid;
 		}
 	}
-	return 0;	// this is never reached
+	return -1;	// this is never reached
 }
 
 /**
@@ -230,8 +230,8 @@ void ocTable::sort()
 int ocTable::normalize()
 {
 	double denom = 0;
-	unsigned long long count = getTupleCount();
-	unsigned long long i;
+	long long count = getTupleCount();
+	long long i;
 	for (i = 0; i < count; i++) {
 		denom += getValue(i);
 	}
@@ -247,12 +247,12 @@ int ocTable::normalize()
 /**
  * getMaxValue - get the index of the tuple with the greatest value
  */
-unsigned long long ocTable::getMaxValue()
+long long ocTable::getMaxValue()
 {
 	double maxv = 0;
-	unsigned long long maxi = 0;
-	unsigned long long count = getTupleCount();
-	unsigned long long i;
+	long long maxi = -1;
+	long long count = getTupleCount();
+	long long i;
 	for (i = 0; i < count; i++) {
 		double value = getValue(i);
 		if (value > maxv) {
@@ -279,7 +279,7 @@ void ocTable::dump(bool detail)
 {
 	double sum = 0;
 	printf("ocTable: tuples = %ld\n", tupleCount);
-	for (unsigned long long i = 0; i < tupleCount; i++) {
+	for (long long i = 0; i < tupleCount; i++) {
 		ocKeySegment *key = getKey(i);
 		double value = getValue(i);
 		if (detail) {
