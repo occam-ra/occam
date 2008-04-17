@@ -8,8 +8,8 @@
 import sys, os, string, smtplib, mimetools, MimeWriter, cStringIO
 
 def sendMessage(toaddr, msg):
-	server = smtplib.SMTP('mailhost.cecs.pdx.edu')
-	server.sendmail('occam@ignisys.com', toaddr, msg)
+	server = smtplib.SMTP('mailhost.pdx.edu')
+	server.sendmail('occam-feedback@lists.pdx.edu', toaddr, msg)
 	server.quit()
 
 def buildMessage(infile, filename):
