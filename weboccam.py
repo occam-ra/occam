@@ -348,7 +348,7 @@ def startBatch(formFields):
 
 	print "Process ID: ", os.getpid(), "<p>"
 
-	cmd = "nohup %s/occambatch %s %s %s %s &" % (dirname, sys.argv[0], ctlfilename, toaddress, csvname)
+	cmd = 'nohup "%s"/occambatch "%s" "%s" "%s" "%s" &' % (dirname, sys.argv[0], ctlfilename, toaddress, csvname)
 	print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
 	result = os.system(cmd)
 
