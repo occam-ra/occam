@@ -20,8 +20,7 @@ def buildMessage(infile, filename):
 	writer.startmultipartbody('mixed')
 	writer.flushheaders()
 	subpart = writer.nextpart()
-	pout = subpart.startbody('application/octet-stream', 
-		[('name', filename)])
+	pout = subpart.startbody('application/octet-stream', [('name', filename)])
 	line = infile.readline()
 	while line:
 		pout.write(line)
