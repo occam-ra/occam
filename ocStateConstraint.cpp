@@ -38,9 +38,8 @@ ocStateConstraint::~ocStateConstraint()
 void ocStateConstraint::addConstraint(ocKeySegment *key)
 {
 	const int FACTOR = 2;
-	if (constraintCount >= maxConstraintCount) {
-		constraints = (ocKeySegment*) growStorage(constraints,
-			keysize*maxConstraintCount*sizeof(ocKeySegment), FACTOR);
+	while (constraintCount >= maxConstraintCount) {
+		constraints = (ocKeySegment*) growStorage(constraints, keysize*maxConstraintCount*sizeof(ocKeySegment), FACTOR);
 		maxConstraintCount *= FACTOR;
 	}
 	ocKeySegment *addr = keyAddr(constraintCount);	// get the address of the next key

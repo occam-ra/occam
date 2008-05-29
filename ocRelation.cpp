@@ -56,9 +56,9 @@ long ocRelation::size()
 void ocRelation::addVariable(int varindex,int stateind)
 {
 	const int FACTOR = 2;
-	if (varCount >= maxVarCount) {
+	while (varCount >= maxVarCount) {
 		vars = (int*) growStorage(vars, maxVarCount*sizeof(int), FACTOR);
-		if(stateind>=0 || stateind==DONT_CARE){
+		if(stateind>=0 || stateind==DONT_CARE) {
 			states = (int*) growStorage(states, maxVarCount*sizeof(int), FACTOR);
 		}
 		maxVarCount *= FACTOR;

@@ -886,7 +886,7 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
 	//-- go through the relations in the model and create VarIntersect entries
 	for (int i = 0; i < count; i++) {
 		rel = model->getRelation(i);
-		if (intersectCount >= intersectMax) {
+		while (intersectCount >= intersectMax) {
 			intersectArray = (VarIntersect*) growStorage(intersectArray, sizeof(VarIntersect)*intersectMax, 2);
 			intersectMax *= 2;
 		}
@@ -918,9 +918,8 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
 				if(intersect(ip->rel, jp->rel, newvars, newcount))
 				{
 					//-- add this intersection term to the DF, and append to list
-					if (intersectCount >= intersectMax) {
-						intersectArray = (VarIntersect*) growStorage(intersectArray, 
-							sizeof(VarIntersect)*intersectMax, 2);
+					while (intersectCount >= intersectMax) {
+						intersectArray = (VarIntersect*) growStorage(intersectArray, sizeof(VarIntersect)*intersectMax, 2);
 						intersectMax *= 2;
 					}
 					VarIntersect *newp = intersectArray + (intersectCount++);

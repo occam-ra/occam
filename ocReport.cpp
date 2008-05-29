@@ -104,7 +104,7 @@ ocReport::~ocReport()
 void ocReport::addModel(class ocModel *model)
 {
 	const int FACTOR = 2;
-	if (modelCount >= maxModelCount) {
+	while (modelCount >= maxModelCount) {
 		models = (ocModel**) growStorage(models, maxModelCount*sizeof(ocModel*), FACTOR);
 		maxModelCount *= FACTOR;
 	}

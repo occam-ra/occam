@@ -74,7 +74,7 @@ void ocTable::copy(const ocTable* from)
  */
 void ocTable::addTuple(ocKeySegment *key, double value)
 {
-	if (tupleCount >= maxTupleCount) {
+	while (tupleCount >= maxTupleCount) {
 		data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
 		maxTupleCount *= GROWTH_FACTOR;
 	}
@@ -91,7 +91,7 @@ void ocTable::addTuple(ocKeySegment *key, double value)
  */
 void ocTable::insertTuple(ocKeySegment *key, double value, long long index)
 {
-	if (tupleCount >= maxTupleCount) {
+	while (tupleCount >= maxTupleCount) {
 		data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
 		maxTupleCount *= GROWTH_FACTOR;
 	}

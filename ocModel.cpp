@@ -210,7 +210,7 @@ void ocModel::addRelation(ocRelation *relation, bool normalize)
 			}
 		}
 		//-- grow storage if needed
-		if (relationCount >= maxRelationCount) {
+		while (relationCount >= maxRelationCount) {
 			relations = (ocRelation**) growStorage(relations, maxRelationCount*sizeof(ocRelation*), FACTOR);
 			maxRelationCount *= FACTOR;
 		}
@@ -228,7 +228,7 @@ void ocModel::addRelation(ocRelation *relation, bool normalize)
 		//-- if we know a priori the relations are normalized and in order,
 		//-- we can skip all this stuff.
 				
-		if (relationCount >= maxRelationCount) {
+		while (relationCount >= maxRelationCount) {
 			relations = (ocRelation**) growStorage(relations, maxRelationCount*sizeof(ocRelation*), FACTOR);
 			maxRelationCount *= FACTOR;
 		}
