@@ -4,36 +4,169 @@
 	<title>Occam3</title>
 </head>
 <body>
+<table id="PSUPage" cellspacing="0" cellpadding="0" border="0">
+<tbody>
+<tr valign="top">
+
+<!-- body -->
+<td id="PSUBody">
+<!-- psu header -->
+<!-- version 1.3 05 Jun 2007 -->
+<!-- WARNING: CHANGES TO THIS FILE ARE NOT ALLOWED -->
+
+<style type="text/css">
+#PSUBrandingBackground {background:#6A7F10;}
+#PSUBranding {background:#6A7F10 url(http://webdev.pdx.edu/images/header/PSUGreen.gif) no-repeat; height:75px; width:878px;}
+#PSULogo {vertical-align:top;}
+#PSULogo a:hover {border:none;}
+#PSULogo img {height:75px; width:340px;}
+#PSUHeader {font-family:verdana,helvetica,arial,sans-serif; padding:8px 12px 0 0; text-align:right; vertical-align:top;}
+#PSUHeaderLinks {color:#FFFFFF; font-size:.6em; font-weight:bold; margin:0 26px 0 0;}
+#PSUHeaderLinks a {color:#FFFFFF; margin:0 6px; text-decoration:none;}
+#PSUHeaderLinks a:hover {text-decoration:underline;}
+#PSUSearch {margin:8px 0 0 0;}
+#PSUSearch form {margin:0;}
+#PSUSearchText {min-width:155px;}
+#PSUSearchSubmit {color:#FFFFFF; margin:0 0 -7px 2px;}
+#PSUSearchLinks {color:#FFFFFF; font-size:.6em; font-weight:bold; margin:5px 30px 0 0; text-transform:uppercase;}
+#PSUSearchLinks a {color:#FFFFFF; text-decoration:none;}
+#PSUSearchLinks a:hover {text-decoration:underline;}
+#PSUPortalBackground {background:#6A7F10; border-bottom:#72694D 1px solid; border-top:#77901B 1px solid;}
+#PSUPortal {background:#6A7F10; width:878px;}
+#PSUPortalLinks {color:#FFFFFF; font-family:verdana,helvetica,arial,sans-serif; font-size:.65em; font-weight:bold; text-align:center; text-transform:uppercase;}
+#PSUPortalLinks a {color:#FFFFFF; margin:0 8px; text-decoration:none;}
+#PSUPortalLinks a:hover {text-decoration:underline;}
+#PSUQuicklist {text-align:right; vertical-align:middle;}
+#PSUPortalBackground form {margin:0;}
+#PSUQuicklistSelect {background:#6A7F10; color:#FFFFFF; font-size:.9em; min-height:21px;}
+#PSUQuicklistSubmit {color:#FFFFFF; padding:0 0 0 6px; width:35px;}
+</style>
+
+<!-- psu branding -->
+<div id="PSUBrandingBackground">
+<table border="0" cellpadding="0" cellspacing="0" id="PSUBranding" width="100%">
+<tbody>
+<tr>
+<td id="PSULogo"><a href="http://www.pdx.edu/" title="Portland State University | Home"><img alt="" border="0" src="http://webdev.pdx.edu/images/spacer.gif" /></a></td>
+<td id="PSUHeader">
+    <div id="PSUHeaderLinks"><a href="http://www.pdx.edu/contact.html" title="Contact Portland State University">Contact PSU</a> | <a href="http://www.pdx.edu/faqs/13717/" title="Frequently-Asked Questions about Portland State University">PSU FAQs</a></div>
+        <div id="PSUSearch">
+        <form id="SearchPSU" name="SearchPSU" method="get" action="http://www.google.com/u/pdx">
+	        <input type="hidden" name="domains" value="pdx.edu" />
+	        <input type="hidden" name="sitesearch" value="pdx.edu" />
+	        <input id="PSUSearchText" name="q" type="text" value="search PSU" tabindex="1" onfocus="javascript:SearchPSU.PSUSearchText.value=''" />
+	        <input alt="go" id="PSUSearchSubmit" name="sa" src="http://webdev.pdx.edu/images/PSUSearchSubmit.gif" type="image" value="submit" />
+        </form>
+	</div>
+        <div id="PSUSearchLinks"><a href="http://www.google.com/u/pdx" title="Search Portland State University">Search</a></div>
+</td>
+</tr>
+</tbody>
+</table>
+
+</div>
+<!-- /psu branding -->
+
+<!-- psu portal -->
+<div id="PSUPortalBackground">
+	<form action="#" id="PSUQuicklistForm" name="PSUQuicklistForm">
+	<table border="0" cellpadding="0" cellspacing="0" id="PSUPortal" width="100%">
+	<tbody>
+		<tr>
+		<td id="PSUPortalLinks"><a href="http://www.pdx.edu/prospects.html" title="Portland State for Future Students">future students</a> <a href="http://www.pdx.edu/students.html" title="Portland State for Current Students">current students</a> <a href="http://www.pdx.edu/colleagues.html" title="Portland State for Faculty + Staff">faculty + staff</a> <a href="http://www.pdx.edu/friends.html" title="Portland State for Alumni + Friends">Alumni + Friends</a></td>
+
+		<td id="PSUQuicklist">
+		    <select id="PSUQuicklistSelect" name="PSUQuicklistSelect" onchange="document.location.href=document.PSUQuicklistForm.PSUQuicklistSelect.options[document.PSUQuicklistForm.PSUQuicklistSelect.selectedIndex].value">
+		            <option value="#" selected="selected">I want to...</option>
+		            <option value="http://banweb.pdx.edu/">access my records</option>
+		            <option value="http://www.pdx.edu/admissions/">apply to PSU</option>
+		            <option value="http://www.portlandstatebookstore.com/">buy books</option>
+		            <option value="https://webmail.pdx.edu/">check e-mail</option>
+
+		            <option value="http://www.pdx.edu/registration/class_schedule.html">find a class</option>
+		            <option value="http://www.pdx.edu/employment.html">find a job</option>
+		            <option value="http://www.pdx.edu/contact.html">find a person/office</option>
+		            <option value="http://www.pdx.edu/campus.html">get maps/directions</option>
+		            <option value="http://www.pdx.edu/registration/transcripts.html">get transcripts</option>
+		            <option value="http://www.pdx.edu/giving/plans.html">give to PSU</option>
+
+		            <option value="https://banweb.pdx.edu/pls/oprd/twbkwbis.P_GenMenu?name=homepage">make a payment</option>
+		            <option value="http://www.pdx.edu/registration/register.html">register for classes</option>
+		            <option value="http://www.pdx.edu/registration/calendar.html">see the calendar</option>
+		            <option value="http://www.pdx.edu/registration/tuition.html">see tuition &amp; fees</option>
+		            <option value="http://psuonline.pdx.edu/">use course tool
+		            <option value="http://www.pdx.edu/admissions/visit.html">visit PSU</option>
+		        </select>
+
+		</td>
+<td id="PSUQuicklistSubmit">
+	    <input type="image" value="submit" src="http://webdev.pdx.edu/images/PSUQuicklistSubmit.gif" />
+</td>
+</tr>
+</tbody>
+</table>
+</form>
+</div>
+<!-- /psu portal -->
+<!-- /psu header -->
+
+<div id="PSUContentBackground">
+<div id="PSUContent">
+<table id="Occam" width="100%" cellspacing="0" cellpadding="0" border="0">
+<tbody>
+<tr>
+<td id="PSUColumnMain">
 <img src="occam_logo.jpg">
 <br>
-<div style="float: left; width: 300">
-Occam is a Discrete Multivariate Modeling (DMM) tool based on the methodology of
+<div style="float: left; width: 400">
+<p>Occam is a Discrete Multivariate Modeling (DMM) tool based on the methodology of
 Reconstructability Analysis (RA). Its typical usage is for analysis of problems involving large
 numbers of discrete variables. <i>Models</i> are developed which consist of one or more <i>components</i>,
 which are then evaluated for their fit and statistical significance. Occam can search the lattice of
-all possible models, or can do detailed analysis on a specific model.
-<p>
-In <i>Variable Based Modeling (VBM)</i>, model components are collections of variables. In
-<i>State Based Modeling (SBM)</i>, components identify one or more specific states or substates.
-<p>
-Occam provides a web-based interface, which allows uploading a data file, performing analysis, and viewing
-or downloading results.
+all possible models, or can do detailed analysis on a specific model.</p>
+<p>In <i>Variable Based Modeling (VBM)</i>, model components are collections of variables. In
+<i>State Based Modeling (SBM)</i>, components identify one or more specific states or substates.</p>
+<p>Occam provides a web-based interface, which allows uploading a data file, performing analysis, and viewing
+or downloading results.</p>
 </div>
 <div style="float: left; width: 400">
 <ul>
 	<li><a href="weboccam.cgi">Run Occam</a>
-	<li>For basic operation instructions, please see the manual.
+	<li>For basic operation instructions, please see the manual:
 		<a href="http://www.sysc.pdx.edu/download/papers/woccaman.pdf">PDF</a>
-	<li>Sample data files: you can download these to local files on your computer, then
-		upload the file via the Occam Web interface.
-		<br><a href="examples/search.in">Neutral System</a>
-		<br><a href="examples/searchd.in">Directed System</a>
-	<li>In case Occam is not operational on this server, an older version can be accessed
-		<a href="http://www.sysc.pdx.edu/~kwillett/weboccam.cgi">here</a>.
+	<li>Sample data files. You can download these to local files on your computer, then
+		upload them via the Occam Web interface.
+		<br><a href="examples/search.in">A Neutral System</a>
+		<br><a href="examples/searchd.in">A Directed System</a>
+<!--	<li>In case Occam is not operational on this server, an older version can be accessed
+		<a href="http://www.sysc.pdx.edu/~kwillett/weboccam.cgi">here</a>.-->
+	<li>Links:
+		<br>Dr. Zwick's <a href="http://www.pdx.edu/sysc/research_dmm.html">DMM Research Page</a>
+		<br><a href="http://www.pdx.edu/sysc/">Systems Science Graduate Program</a>
+		<br><a href="https://www.lists.pdx.edu/lists/listinfo/occam-users/">Occam-users mailing list (discussion)</a>
+		<br><a href="https://www.lists.pdx.edu/lists/listinfo/occam-news/">Occam-news mailing list (announcements)</a>
 	<li>Contacts:
-		<br><a href="mailto:zwick@pdx.edu">Dr. Martin Zwick, System Science</a>
-		<br><a href="mailto:kwillett@ignisys.com">Ken Willett, Ignis Systems Corp., Developer</a>
+		<br><a href="mailto:occam-feedback@lists.pdx.edu">Occam feedback email address</a>
+		<br><a href="mailto:zwick@pdx.edu">Dr. Martin Zwick, Systems Science</a>
+		<br><a href="mailto:jfusion@pdx.edu">Joe Fusion, Graduate Assistant, Systems Science</a>
+<!--		<br><a href="mailto:kwillett@ignisys.com">Ken Willett, Ignis Systems Corp., Developer</a>-->
 </ul>
 </div>
+</td></tr></tbody></table>
+</div></div>
+<div style="clear: both">
+<!-- psu footer -->
+<!-- version 1.3 05 Jun 2007 -->
+<!-- WARNING: CHANGES TO THIS FILE ARE NOT ALLOWED -->
+<div id="PSUFooterBackground">
+<div id="PSUFooter"><a href="http://www.pdx.edu/giving/plans.html" title="Giving at Portland State">Give to PSU</a> | <a href="http://www.pdx.edu/faqs/13717/" title="Frequently-Asked Questions about Portland State">PSU FAQs</a> | <a href="http://www.pdx.edu/contact.html" title="Contact Portland State">Contact PSU</a> | <a href="http://www.pdx.edu/contact.html" title="Find People at Portland State">Find People</a> | <a href="http://www.pdx.edu/campus.html" title="Getting Around at Portland State">Maps/Directions</a> | <a href="http://www.pdx.edu/sitemap/" title="Portland State Sitemap">PSU Sitemap</a> | <a href="http://www.pdx.edu/copyright.html" title="Portland State Copyright Information">&copy; 2007</a></div>
+</div>
+<!-- /psu footer -->
+</div>
+</td>
+<td id="PSUMarginRight"><img alt="" border="0" src="http://www.pdx.edu/lib/img/PSUMarginRight.png" width="72" /></td>
+</tr>
+</tbody>
+</table>
 </body>
 </html>
