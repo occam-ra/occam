@@ -1,11 +1,11 @@
 <FORM method="POST" target="_blank" enctype="multipart/form-data">
-	<TABLE class="form" width="700">
-		<TR class="form">
+	<TABLE class="form" width="100%">
+		<TR>
 			<TD colspan="3" align="center" class="formtitle">
 				General Settings
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				Data File:
 			</TD>
@@ -13,7 +13,7 @@
 				<INPUT type="file" name="data">
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				Starting Model:
 			</TD>
@@ -21,7 +21,7 @@
 				<INPUT name="model" value="{model}">
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 	 	 	<TD>
 			 	Composition Method:
 			</TD>
@@ -30,7 +30,7 @@
 				<INPUT type="radio" name="evalmode" value="bp">Back Projection (Fourier)
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				Reference Model:
 			</TD>
@@ -46,16 +46,16 @@
 			</TD>
 		</TR>
 		<TR>
-			<TD colspan="99">
+			<TD colspan="3">
 				<HR>
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD colspan="3" align="center" class="formtitle">
 				Search Settings
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				Models to Consider:
 			</TD>
@@ -70,7 +70,7 @@
 				<INPUT type="radio" name="searchtype" value="chain">Chain
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				Search Direction:
 			</TD>
@@ -83,7 +83,7 @@
 				<INPUT type="radio" name="searchdir" value="down">Down
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				During Search, Sort By:
 			</TD>
@@ -95,7 +95,7 @@
 				<INPUT type="radio" name="sortby" value="aic">AIC
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				When Searching, Prefer:
 			</TD>
@@ -105,13 +105,13 @@
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="searchsortdir" value="ascending">Smaller Values</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				Search Width:<br>(models to keep at each level)</TD>
 			<TD>
 				<INPUT type="text" size="4" name="searchwidth" value="3"></TD>
 		</TR>	
-		<TR class="form">
+		<TR>
 			<TD>
 				Search Levels:
 			</TD>
@@ -124,16 +124,16 @@
 				<input type="radio" name="ddfmethod" value="1">Old method</TD>
 		</TR>
 		<TR>
-			<TD colspan="99">
+			<TD colspan="3">
 				<HR>
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD colspan="3" align="center" class="formtitle">
 				Report Settings
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				In Report, Sort By:
 			</TD>
@@ -147,7 +147,7 @@
 				<INPUT type="radio" name="sortreportby" value="aic">AIC
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				In Report, Sort:
 			</TD>
@@ -174,17 +174,17 @@
 			 	<INPUT type="checkbox" name="showpct" value="yes">Percent Correct
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD colspan="2">
 				<INPUT type="checkbox" name='format' value='y'>Return data in spreadsheet format
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD colspan="2">
 				<INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings
 			</TD>
 		</TR>
-		<TR class="form">
+		<TR>
 			<TD>
 				Run in Background, Email Results To:
 			</TD>
