@@ -5,6 +5,7 @@ from ocutils import ocUtils
 from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
+#import urllib2
 
 VERSION = "3.2.23"
 
@@ -68,10 +69,13 @@ def printTime(textFormat):
 #---- printBottom ---- Print bottom HTML part
 #
 def printBottom():
-	print """
-	</body>
-	</html>
-	"""
+	template.set_template('footer.html')
+#footf = urllib2.urlopen("http://webdev.pdx.edu/includes/footer_psu.inc")
+#PSU_footer = footf.read()
+#footf.close()
+#args = {'PSU_footer': PSU_footer}
+	args = {}
+	template.out(args)
 
 #
 #---- printForm ---- Print the data input form
@@ -144,9 +148,9 @@ def processFit(fn, model, oc):
 	global datafile, textFormat, printOptions
 
 	if textFormat:
-		print "<span class=mono>"
 		oc.setReportSeparator(ocUtils.COMMASEP)
 	else:
+		print '<div class="data">'
 		oc.setReportSeparator(ocUtils.HTMLFORMAT)
 
 	if model <> "":
@@ -154,7 +158,7 @@ def processFit(fn, model, oc):
 	oc.setAction("fit")
 	oc.doAction(printOptions)
 
-	if textFormat:
+	if not textFormat:
 		print "</span>"
 
 #
@@ -349,8 +353,8 @@ def startBatch(formFields):
 	print "Process ID: ", os.getpid(), "<p>"
 
 	cmd = 'nohup "%s"/occambatch "%s" "%s" "%s" "%s" &' % (dirname, sys.argv[0], ctlfilename, toaddress, csvname)
-	print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
 	result = os.system(cmd)
+	print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
 
 
 #
