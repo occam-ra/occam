@@ -34,6 +34,7 @@ void *_growStorage(void *old, unsigned long long oldSize, long factor, const cha
 		printf("out of memory!\n");
 		return NULL;
 	}
+	memset(newp, 0, oldSize * factor);
 	memcpy(newp, old, oldSize);
 	delete [] ((char*)old);
 	return newp;
