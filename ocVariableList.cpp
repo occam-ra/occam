@@ -35,19 +35,23 @@ static void normalizeCase(char *cp)
 	}
 }
 
-ocVariableList::ocVariableList(int maxvars)
+ocVariableList::ocVariableList(int maxVars)
 {
-  const int MAX_MASK = 100;  // (kenw) max number of variables is 3200
-	maxVarCount = maxvars;
+	//const int MAX_MASK = 4;  // max number of variables = this * (bits in a long)
+	maxVarCount = maxVars;
 	varCount = 0;
         varCountDF=0;
-	vars = new ocVariable[maxvars];
+	vars = new ocVariable[maxVars];
 	maxAbbrevLen = 0;
 	//Anjali
-	maxVarMask = MAX_MASK;
-	maskVars = new long[MAX_MASK];
-	for (int i = 0; i < MAX_MASK; i++)
-	  maskVars[i]=0;
+	//maxVarMask = MAX_MASK;
+	//maskVars = new long[MAX_MASK];
+	//for (int i = 0; i < MAX_MASK; i++)
+		//maskVars[i]=0;
+	noUseMaskSize = maxVars;
+	noUseMask = new bool[noUseMaskSize];
+	for (int i = 0; i < noUseMaskSize; i++)
+		noUseMask[i] = false;
 }
 
 
@@ -62,20 +66,21 @@ ocVariableList::~ocVariableList()
 	if (vars) delete vars;
 }
 
+
 long ocVariableList::size()
 {
   return maxVarCount * sizeof(ocVariable) + sizeof(ocVariableList);
 }
 
+
 /*
  * addVariable - add a new variable to the end of the list.  Grow the list
  * storage, if needed
  */
-int ocVariableList::addVariable(const char *name, const char *abbrev, int cardinality,
-	bool dv, bool rebin,int old_card)
+int ocVariableList::addVariable(const char *name, const char *abbrev, int cardinality, bool dv, bool rebin, int old_card)
 {
 	const int GROWTH_FACTOR = 2;
-	if (varCount >= maxVarCount) {
+	while (varCount >= maxVarCount) {
 		vars = (ocVariable*) growStorage(vars, maxVarCount*sizeof(ocVariable), GROWTH_FACTOR);
 		maxVarCount *= GROWTH_FACTOR;
 	}
@@ -107,15 +112,13 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
 	if (varp == vars) {
 		varp->segment = 0;
 		varp->shift = KEY_SEGMENT_BITS - varp->size;
-	}
-	else {
+	} else {
 	//-- see if key will fit in the last segment of the key
 		ocVariable *lastp = varp - 1;	// previous entry
 		if (lastp->shift >= varp->size) {
 			varp->segment = lastp->segment;
 			varp->shift = lastp->shift - varp->size;
-		}
-		else {	// add a new segment
+		} else {	// add a new segment
 			varp->segment = lastp->segment + 1;
 			varp->shift = KEY_SEGMENT_BITS - varp->size;
 		}
@@ -138,16 +141,18 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
 int ocVariableList::good(int varCounter)
 {
 
-	int word = varCounter/(sizeof(long)*8);
-	int pos  = varCounter%(sizeof(long)*8);
-	long mask = 1<<pos;
-	long bad=maskVars[word] & mask;
-	if(bad) {
-		return 0;
-	}
-	else
-		return 1;
+	//int word = varCounter / (sizeof(long)*8);
+	//int pos  = varCounter % (sizeof(long)*8);
+	//long mask = 1 << pos;
+	//long bad = maskVars[word] & mask;
+	//if(bad) {
+		//return 0;
+	//}
+	//else
+		//return 1;
+	return !(noUseMask[varCounter]);
 }
+
 
 //Anjali
 /*
@@ -156,27 +161,23 @@ int ocVariableList::good(int varCounter)
  */
 int ocVariableList::markForNoUse()
 {
-
 	//grow the mask if the variables are more than the mask can hold
 	const int GROWTH_FACTOR = 2;
-        //printf(" variable %d marked for no use \n",varCountDF);
-	if (varCountDF >= maxVarMask * (int)sizeof(long) * 8) {
-		maskVars = (long*) growStorage(maskVars, maxVarMask*sizeof(long), GROWTH_FACTOR);
-		maxVarMask *= GROWTH_FACTOR;
+	while (varCountDF >= noUseMaskSize) {
+		noUseMask = (bool*) growStorage(noUseMask, noUseMaskSize*sizeof(bool), GROWTH_FACTOR);
+		noUseMaskSize *= GROWTH_FACTOR;
 	}
 		
-	//long *maskVarsp = maskVars + (varCountDF++);
-	//set the bit in the mask corresponding to the varaible that needs to be ignored
-    int word = varCountDF/(sizeof(long)*8);
-	int pos  = varCountDF%(sizeof(long)*8);
-	long mask = 1<<pos;
-	maskVars[word]=maskVars[word] | mask;
-
+	noUseMask[varCountDF] = true;
+	//printf("... marking %d as no use. %d\n", varCountDF, (int)noUseMask[varCountDF]);
+	//for (int i = 0; i < noUseMaskSize; i++)
+		//noUseMask[i] ? printf("1") : printf("0");
+	//printf("\n");
 	varCountDF++;
 	return 0;
 }
 
-/*this function returns the new binning value for an old one for a given variable
+/* This function returns the new binning value for an old one for a given variable
 */
 int ocVariableList::getnewvalue(int index,char * old_value,char*new_value){
         int i=0,k;
@@ -246,18 +247,21 @@ ocVariable *ocVariableList::getVariable(int index)
  */
 void ocVariableList::dump()
 {
-	printf("ocVariableList: varCount = %d, maxVarCount=%d\n<br>", varCount, maxVarCount);
-	printf("\tCard\tSeg\tSiz\tShft\tName\tAbb\tMask\n<br>");
+	printf("ocVariableList: varCount = %d, maxVarCount=%d\n", varCount, maxVarCount);
+	printf("\tCard\tSeg\tSiz\tShft\tName\t\tAbb\tMask\n");
 	for (int i = 0; i < varCount; i++) {
 		ocVariable *v = vars + i;
-		printf("\t%d\t%d\t%d\t%d\t%s\t%s\t%08lx\t", v->cardinality, v->segment,
-			v->size, v->shift, v->name, v->abbrev, v->mask);
+		printf("\t%d\t%d\t%d\t%d\t%8s\t%s\t%016lx\t", v->cardinality, v->segment, v->size, v->shift, v->name, v->abbrev, v->mask);
 		for(int j=0; j < v->cardinality; j++) {
 		    printf("%s\t", v->valmap[j]);
 		}
-		printf("\n<br>");
+		printf("\n");
 	}
 	printf("\n");
+	for (int i = 0; i < noUseMaskSize; i++)
+		noUseMask[i] ? printf("1") : printf("0");
+	printf("\n");
+//	printf("%d %d %d\n", sizeof(int), sizeof(long), sizeof(long long));
 }
 
 /**
