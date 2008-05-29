@@ -198,7 +198,7 @@ public:
 	void dump();
 
 	//Anjali
-	//checks whether this variable has to be dropped since its type is 0 or is  it good 
+	//checks whether this variable has to be dropped since its type is 0 or is it good 
 	int good(int i);
 
 	//Anjali
@@ -217,9 +217,11 @@ private:
 	int varCount;		// number of variables defined so far
 	int varCountDF;		//(Anjali) original no. of variables in data file, some may be marked for no use
 	int maxVarCount;	// max number of variables
-	int maxVarMask;		//(Anjali) max no. of longs being used for mask at any given time
 	int maxAbbrevLen;
-	long *maskVars;		//(Anjali) //this should store the positions of variables which are to be ignored
+	//int maxVarMask;		//(Anjali) max no. of longs being used for mask at any given time
+	//long *maskVars;		//(Anjali) this should store the positions of variables which are to be ignored
+	int noUseMaskSize;
+	bool *noUseMask;
 };
 
 
