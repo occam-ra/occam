@@ -409,8 +409,7 @@ ocModel **ocSearchLooplessDown::search(ocModel *start)
 			ocRelation *rel;
 			for (relNumber = 0; relNumber < relcount; relNumber++) {
 				rel = start->getRelation(relNumber);
-				if (ocContainsVariables(
-					rel->getVariableCount(), rel->getVariables(),2, pair))
+				if (ocContainsVariables( rel->getVariableCount(), rel->getVariables(), 2, pair))
 				{
 					if (++includeCount > 1) break;	//pair in more than one relation
 					includeID = relNumber;
