@@ -67,7 +67,7 @@ void ocAttributeList::setAttribute(const char *name, double value)
 	int index = findName(names, name, attrCount);
 	if (index >= 0) values[index] = value;
 	else {
-		if (attrCount >= maxAttrCount) {
+		while (attrCount >= maxAttrCount) {
 			names = (const char **) growStorage(names, maxAttrCount*sizeof(char*), FACTOR);
 			values = (double*) growStorage(values, maxAttrCount*sizeof(double), FACTOR);
 			maxAttrCount *=	FACTOR;
