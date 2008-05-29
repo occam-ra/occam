@@ -17,7 +17,7 @@ class JobControl:
 
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
-		print "<table>"
+		print "<table class=\"form\">"
 		procfd = os.popen("ps -f")
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
