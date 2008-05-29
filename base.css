@@ -1,16 +1,60 @@
+#PSUPage { height:100%; width:950px; }
+#PSUBody { background:#6A7F10 none repeat scroll 0%; }
+#PSUContentBackground {background:#FFFFFF; padding:1px 0 0 0;}
+#PSUContent {background:#FFFFFF; font-size:.8em; height:100%; padding:1.5em; min-width:828px;}
+#PSUMarginRight { background:#E7E8E4 url(http://www.pdx.edu/lib/img/PSUMarginRight.png) repeat-y scroll 0%; width:72px; }
+#PSUColumnMain {vertical-align:top; width:100%;}
+#PSUBrandingBackground {background:#6A7F10;}
+#PSUBranding {background:#6A7F10 url(http://webdev.pdx.edu/images/header/PSUGreen.gif) no-repeat; height:75px; width:878px;}
+#PSULogo {vertical-align:top;}
+#PSULogo a:hover {border:none;}
+#PSULogo img {height:75px; width:340px;}
+#PSUHeader {font-family:verdana,helvetica,arial,sans-serif; padding:8px 12px 0 0; text-align:right; vertical-align:top;}
+#PSUFooterBackground {background:#6A7F10;}
+#PSUFooter {background:#6A7F10; color:#FFFFFF; font-family:verdana,helvetica,arial,sans-serif; font-size:.7em; padding: 10px 20px; text-align:left; width:838px;}
+#PSUFooter a {color:#FFFFFF; text-decoration:none;}
+#PSUFooter a:hover {text-decoration:underline;}
 
-BODY {
+
+html {height:100%;}
+body {background:#E7E8E4; font-family:verdana,helvetica,arial,sans-serif; margin:0; height:100%;}
+
+#Occam {
 background-color: #ffffff;
 color: #000000;
-font-family: Courier;
-font-size: 9pt;
+font-size: 1em;
+height:100%; 
 }
 
+TABLE {
+}
+
+.form {
+background-color: #e0e0ff;
+font-size: 1em;
+font-family: Verdana, Helvetica, Arial, sans-serif;
+}
+
+.form TR TH, .form TR TD {
+padding: 2px 6px 3px;
+}
+
+.formtitle {
+background-color: #e0e0ff;
+font-family: Verdana, Helvetica, Arial, sans-serif;
+font-weight: bold;
+}
+
+.data {
+font-family: Courier, monospace;
+}
+
+/*
 P {
 font-size: 9pt;
-}
+}*/
 
-TH, TD {
+.data TH, .data TD {
 font-size: 9pt;
 padding-left: 6px;
 padding-right: 6px;
@@ -18,24 +62,8 @@ padding-top: 2px;
 padding-bottom: 3px;
 }
 
-LI {
+/*LI {
 margin: 4px;
-}
-
-.form {
-background-color: #e0e0ff;
-font-family: Verdana, Helvetica, Arial, sans-serif;
-font-size: xx-small;
-}
-
-.formtitle {
-background-color: #e0e0ff;
-font-family: Verdana, Helvetica, Arial, sans-serif;
-font-size: small;
-font-weight: bold;
-}
-
-TABLE {
 }
 
 .mono {
@@ -44,16 +72,21 @@ color: #000000;
 font-family: Courier, monospace;
 font-size: 9pt;
 }
+*/
 
-TR.r0 TD, TD.r0, TH.r0 {
+.data pre {
+	margin-left: 10px;
+	margin-top: 15px;
+}
+
+.data TR.r0 TD, .data TD.r0, .data TH.r0 {
 background-color: #ffffff;
 }
 
-TR.r1 TD, TD.r1, TH.r1 {
+.data TR.r1 TD, .data TD.r1, .data TH.r1 {
 background-color: #e0e0e0;
 }
 
-TR.em TD, TD.em, TH.em {
+.data TR.em TD, .data TD.em, .data TH.em {
 font-weight: bold;
 }
-
