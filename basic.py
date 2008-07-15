@@ -1,27 +1,37 @@
 #! /usr/bin/python
 import pdb
-import os, sys, occam
+import sys, os
+sys.path.append("/www")
+import occam
 
 import resource
 resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 
 from ocutils import ocUtils
 
+
+
+# This section of the script allows you to specify the most frequently changed options from the command line.
+# The width, levels and filter are determined here, to be used by the rest of the script below.
 if len(sys.argv) < 2:
 	print 'No data file specified.'
+	print 'Usage: %s datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]' % sys.argv[0]
 	sys.exit()
 
 if len(sys.argv) >= 4:
 	swidth = sys.argv[2]
 	slevels = sys.argv[3]
 else:
-	swidth = 3;
-	slevels = 7;
+	swidth = 3;		# default width to search
+	slevels = 7;		# default levels
 
 if len(sys.argv) >= 5:
 	filter = sys.argv[4]
 else:
-	filter = "loopless"
+	filter = "loopless"	# default search filter
+
+
+
 
 util = ocUtils("VB")			# create a variable-based manager
 util.initFromCommandLine(sys.argv[0:2])	# initialize with the data file
