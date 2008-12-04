@@ -87,7 +87,7 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
 	ocVariable *varp = vars + (varCount++);
 	varCountDF++;
 	strncpy(varp->name, name, MAXNAMELEN); varp->name[MAXNAMELEN] = '\0';
-	strncpy(varp->abbrev, abbrev, MAXABBREVLEN); varp->name[MAXABBREVLEN] = '\0';
+	strncpy(varp->abbrev, abbrev, MAXABBREVLEN); varp->abbrev[MAXABBREVLEN] = '\0';
 	normalizeCase(varp->abbrev);
 	varp->cardinality = cardinality;
 	varp->dv = dv;
@@ -140,16 +140,6 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
  */
 int ocVariableList::good(int varCounter)
 {
-
-	//int word = varCounter / (sizeof(long)*8);
-	//int pos  = varCounter % (sizeof(long)*8);
-	//long mask = 1 << pos;
-	//long bad = maskVars[word] & mask;
-	//if(bad) {
-		//return 0;
-	//}
-	//else
-		//return 1;
 	return !(noUseMask[varCounter]);
 }
 
@@ -267,7 +257,7 @@ void ocVariableList::dump()
 /**
  * Generate a printable variable list, given a list of variable indices
  */
-void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars1,int *states)
+void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars1, int *states)
 {
 	int i;
 	char *cp = str;
@@ -290,7 +280,6 @@ void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars
 				strncpy(cp, map[stateID], maxlength);
 				maxlength -= len1;
 				cp += len1;
-				
 			}
 			
 		}
@@ -330,7 +319,7 @@ int ocVariableList::getPrintLength(int count, int *vars, bool state_b)
  */
 bool ocVariableList::isDirected()
 {
-	for (int i = 0; i < varCount; i++) {
+	for (int i = varCount - 1; i >= 0; i--) {
 		if (vars[i].dv) return true;
 	}
 	return false;
@@ -338,7 +327,7 @@ bool ocVariableList::isDirected()
 
 int ocVariableList::getDV()
 {
-	for (int i = 0; i < varCount; i++) {
+	for (int i = varCount - 1; i >= 0; i--) {
 		if (vars[i].dv) return i;
 	}
 	return -1;
