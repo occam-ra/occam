@@ -10,7 +10,7 @@
 				Data File:
 			</TD>
 			<TD colspan="4">
-				<INPUT type="file" name="data">
+				<INPUT type="file" name="data" size="50">
 			</TD>
 		</TR>
 		<TR>
@@ -18,7 +18,7 @@
 				Starting Model:
 			</TD>
 			<TD>
-				<INPUT name="model" value="{model}">
+				<INPUT type="text" name="model" value="{model}" size="50">
 			</TD>
 		</TR>
 		<TR>
@@ -35,7 +35,6 @@
 				Reference Model:
 			</TD>
 			<TD>
-				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" checked name="refmodel" value="default">Default
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="refmodel" value="top">Top
@@ -60,7 +59,6 @@
 				Models to Consider:
 			</TD>
 			<TD>
-				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="searchtype" value="all">All
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" checked name="searchtype" value="loopless">Loopless
@@ -75,7 +73,6 @@
 				Search Direction:
 			</TD>
 			<TD>
-				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" checked name="searchdir" value="default">Default
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="searchdir" value="up">Up
@@ -100,7 +97,6 @@
 				When Searching, Prefer:
 			</TD>
 			<TD>
-				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" checked name="searchsortdir" value="descending">Larger Values
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="searchsortdir" value="ascending">Smaller Values</TD>
@@ -152,7 +148,6 @@
 				In Report, Sort:
 			</TD>
 			<TD>
-				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" checked name="sortdir" value="descending">Descending
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="sortdir" value="ascending">Ascending
@@ -185,11 +180,16 @@
 			</TD>
 		</TR>
 		<TR>
+			<TD colspan="2">
+				<INPUT type="checkbox" name='inversenotation' value='y'>Use inverse notation for models
+			</TD>
+		</TR>
+		<TR>
 			<TD>
 				Run in Background, Email Results To:
 			</TD>
 			<TD>
-				<INPUT name="batchOutput">
+				<INPUT type="text" name="batchOutput" size="40">
 			</TD>
 			<TD>
 				<INPUT type="SUBMIT" value="Send">
