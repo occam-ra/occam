@@ -6,6 +6,7 @@
 # 2 filename
 
 import sys, os, string, smtplib, mimetools, MimeWriter, cStringIO
+import socket
 
 def sendMessage(toaddr, msg):
 	server = smtplib.SMTP('mailhost.pdx.edu')
@@ -15,10 +16,14 @@ def sendMessage(toaddr, msg):
 def buildMessage(infile, filename):
 	outfd = cStringIO.StringIO()
 	writer = MimeWriter.MimeWriter(outfd)
-	writer.addheader('Subject', 'Occam Results')
+	writer.addheader('Subject', 'Occam Results: ' + filename)
 	writer.flushheaders();
 	writer.startmultipartbody('mixed')
 	writer.flushheaders()
+	subpart = writer.nextpart()
+	pout = subpart.startbody('text/plain')
+	pout.write('Occam result file ' + filename + ' is attached.\n')
+	pout.write('Sent from server ' + socket.gethostname() + '.\n')
 	subpart = writer.nextpart()
 	pout = subpart.startbody('application/octet-stream', [('name', filename)])
 	line = infile.readline()
