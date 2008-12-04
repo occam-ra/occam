@@ -3,7 +3,7 @@
 # Set PYTHONHOME based on pkg installation. The python package must be made
 # visible to your shell first
 
-PYTHONHOME=/pkg/python
+PYTHONHOME=/usr/bin/python
 export PYTHONHOME
 
 # This can be changed to use a different script.
