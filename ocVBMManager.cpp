@@ -26,7 +26,8 @@ ocVBMManager::ocVBMManager(ocVariableList *vars, ocTable *input):
 	filterValue = 0.0;
 	sortAttr = NULL;
 	sortDirection = 0;
-	searchDirection =0;
+	searchDirection = 0;
+	useInverseNotation = 0;
 	DDFMethod = 0;
 
         firstCome = true;
@@ -48,7 +49,8 @@ ocVBMManager::ocVBMManager():
 	filterValue = 0.0;
 	sortAttr = NULL;
 	sortDirection = 0;
-	searchDirection =0;
+	searchDirection = 0;
+	useInverseNotation = 0;
 	DDFMethod = 0;
 
         firstCome = true;
@@ -94,6 +96,7 @@ void ocVBMManager::makeAllChildRelations(ocRelation *rel, ocRelation **children,
 	delete varindices;
 }
 
+
 ocModel *ocVBMManager::makeChildModel(ocModel *model, int remove, bool *fromCache, bool makeProject)
 {
 	ocModel *newModel = new ocModel(varList->getVarCount());
@@ -109,8 +112,7 @@ ocModel *ocVBMManager::makeChildModel(ocModel *model, int remove, bool *fromCach
 				newModel->addRelation(children[j]);
 			}
 			delete children;
-		}
-		else {
+		} else {
 			newModel->addRelation(rel);
 		}
 	}
@@ -121,12 +123,12 @@ ocModel *ocVBMManager::makeChildModel(ocModel *model, int remove, bool *fromCach
 		delete newModel;
 		newModel = cacheModel;
 		if (fromCache) *fromCache = true;
-	}
-	else {
+	} else {
 		if (fromCache) *fromCache = false;
 	}
 	return newModel;
 }
+
 
 void ocVBMManager::makeReferenceModels(ocRelation *top)
 {
@@ -370,6 +372,11 @@ void ocVBMManager::setSearchDirection(int dir) {
 	else searchDirection = 0;
 }
 
+void ocVBMManager::setUseInverseNotation(int flag) {
+	if (flag == 1) useInverseNotation = 1;
+	else useInverseNotation = 0;
+}
+
 void ocVBMManager::setSearch(const char *name)
 {
 	if (search) { 	delete search; 	search = NULL; 	}
@@ -507,29 +514,6 @@ void ocVBMManager::computePearsonStatistics(ocModel *model)
 	attrs->setAttribute(ATTRIBUTE_P2_BETA, refP2Power);
 }
 	
-ocRelation *ocVBMManager::getIndRelation()
-{
-	if (!getVariableList()->isDirected()) return NULL;	// can only do this for directed models
-	int i;
-	for (i = 0; i < bottomRef->getRelationCount(); i++) {
-		ocRelation *indRel = bottomRef->getRelation(i);
-		if (indRel->isIndOnly()) return indRel;	// this is the one.
-	}
-	return NULL;
-}
-
-ocRelation *ocVBMManager::getDepRelation()
-{
-  //-- this function takes advantage of the fact that the bottom model has only two relations;
-  //-- one is the IV relation, the other is the DV
-	if (!getVariableList()->isDirected()) return NULL;	// can only do this for directed models
-	int i;
-	for (i = 0; i < bottomRef->getRelationCount(); i++) {
-		ocRelation *indRel = bottomRef->getRelation(i);
-		if (!indRel->isIndOnly()) return indRel;	// this is the one.
-	}
-	return NULL;
-}
 
 void ocVBMManager::computeDependentStatistics(ocModel *model)
 {
@@ -784,13 +768,24 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 
 	((ocManagerBase*)this)->makeProjection(depRel);
 
-	//-- get default DV probability, which is the largest of the values in the dependent relation
 	if (!makeFitTable(model))
 		printf("ERROR\n");
 	ocTable *modelTable = fitTable1;
 	ocTable *maxTable = new ocTable(modelTable->getKeySize(), modelTable->getTupleCount());
-	if (!makeMaxProjection(modelTable, maxTable, inputData, indRel, depRel))
-		printf("ERROR\n");
+
+	int maxCount = varList->getVarCount();
+	int varindices[maxCount], varcount;
+	getPredictingVars(model, varindices, varcount, false);
+	ocRelation *predRelNoDV = getRelation(varindices, varcount);
+	getPredictingVars(model, varindices, varcount, true);
+	ocRelation *predRelWithDV = getRelation(varindices, varcount);
+	ocTable *predModelTable = new ocTable(keysize, modelTable->getTupleCount());
+
+	ocTable *predInputTable = new ocTable(keysize, modelTable->getTupleCount());
+	ocManagerBase::makeProjection(modelTable, predModelTable, predRelWithDV);
+	ocManagerBase::makeProjection(inputData, predInputTable, predRelWithDV);
+	makeMaxProjection(predModelTable, maxTable, predInputTable, predRelNoDV, depRel);
+
 	total = 0.0;
 	count = maxTable->getTupleCount();
 	for (i = 0; i < count; i++) {
@@ -800,15 +795,7 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 
 	if (testData) {
 		//-- for test data, use projections involving only the predicting variables
-		int maxCount = varList->getVarCount();
-		int varindices[maxCount], varcount;
-		getPredictingVars(model, varindices, varcount, false);
-		ocRelation *predRelNoDV = getRelation(varindices, varcount);
-		getPredictingVars(model, varindices, varcount, true);
-		ocRelation *predRelWithDV = getRelation(varindices, varcount);
-		ocTable *predModelTable = new ocTable(keysize, modelTable->getTupleCount());
-		ocTable *predTestTable = new ocTable(keysize, modelTable->getTupleCount());
-		ocManagerBase::makeProjection(modelTable, predModelTable, predRelWithDV);
+		ocTable *predTestTable = new ocTable(keysize, testData->getTupleCount());
 		ocManagerBase::makeProjection(testData, predTestTable, predRelWithDV);
 		maxTable->reset(keysize);
 		makeMaxProjection(predModelTable, maxTable, predTestTable, predRelNoDV, depRel);
@@ -818,8 +805,10 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 			total += maxTable->getValue(i);
 		}
 		model->getAttributeList()->setAttribute(ATTRIBUTE_PCT_CORRECT_TEST, 100 * total);
+		delete predTestTable;
 	}
 	delete maxTable;
+	delete predModelTable, predInputTable;
 }
 
 void ocVBMManager::setFilter(const char *attrname, double attrvalue, RelOp op)
@@ -958,7 +947,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 				fprintf(fd, "Model Component: ");
 			fprintf(fd, separator);
 		}
-		for (j = 0; j <rel->getVariableCount(); j++) {
+		for (j = 0; j < rel->getVariableCount(); j++) {
 			const char *varname = getVariableList()->getVariable(rel->getVariable(j))->name;
 			if (j > 0) fprintf(fd, "; ");
 			fprintf(fd, varname);
@@ -1039,8 +1028,7 @@ void ocVBMManager::printBasicStatistics()
 		separator = "</td><td>";
 		endLine = "</td></tr>\n";
 		footer = "</table>";
-	}
-	else {
+	} else {
 		header = "";
 		beginLine = "    ";
 		separator = ",";
@@ -1050,42 +1038,33 @@ void ocVBMManager::printBasicStatistics()
 	bool directed = getVariableList()->isDirected();
 	printf("%s\n", header);
 	double topH = computeH(topRef);
-	double stateSpace = computeDF(getTopRefModel())+1;
+	double stateSpace = computeDF(getTopRefModel()) + 1;
         double sampleSz1 = getSampleSz();
-	printf("%s%s%s%lg%s\n", beginLine, "State Space Size", separator, stateSpace, endLine);
-	printf("%s%s%s%lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
-	printf("%s%s%s%lg%s\n", beginLine, "H(data)", separator, topH, endLine);
+	printf("%s%s%s%8lg%s\n", beginLine, "State Space Size", separator, stateSpace, endLine);
+	printf("%s%s%s%8lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
+	printf("%s%s%s%8lg%s\n", beginLine, "H(data)", separator, topH, endLine);
 	if (directed) {
 		double depH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_DEP_H);
 		double indH = topRef->getRelation(0)->getAttributeList()->getAttribute(ATTRIBUTE_IND_H);
-		printf("%s%s%s%lg%s\n", beginLine, "H(IV)", separator, indH, endLine);
-		printf("%s%s%s%lg%s\n", beginLine, "H(DV)", separator, depH, endLine);
+		printf("%s%s%s%8lg%s\n", beginLine, "H(IV)", separator, indH, endLine);
+		printf("%s%s%s%8lg%s\n", beginLine, "H(DV)", separator, depH, endLine);
+		printf("%s%s%s%8lg%s\n", beginLine, "T(IV:DV)", separator, indH + depH - topH, endLine);
+		printf("%sIVs in use (%d)%s", beginLine, getVariableList()->getVarCount() - 1, separator);
+		for (int i=0; i < getVariableList()->getVarCount(); i++) {
+			if (!getVariableList()->getVariable(i)->dv)
+				printf("%s", getVariableList()->getVariable(i)->abbrev);
+		}
+		printf("%s\n", endLine);
+		printf("%sDV%s%s%s\n", beginLine, separator, getVariableList()->getVariable(getVariableList()->getDV())->abbrev, endLine);
+		// DV: Z
+	} else {
+		printf("%sVariables in use (%d)%s", beginLine, getVariableList()->getVarCount(), separator);
+		for (int i=0; i < getVariableList()->getVarCount(); i++) {
+			printf("%s", getVariableList()->getVariable(i)->abbrev);
+		}
+		printf("%s\n", endLine);
 	}
 	printf("%s\n", footer);
 }
 
-void ocVBMManager::getPredictingVars(ocModel *model,
-				      int *varindices, 
-				      int &varcount,
-				      bool includeDeps)
-{
-  ocRelation *indRel = getIndRelation();
-  ocVariableList *vars = getVariableList();
-  varcount = 0;
-  for (int r = 0; r < model->getRelationCount(); r++) {
-    ocRelation *rel = model->getRelation(r);
-    if (rel != indRel) {
-      for (int iv = 0; iv < rel->getVariableCount(); iv++) {
-	int varid = rel->getVariable(iv);
-	if (vars->getVariable(varid)->dv && !includeDeps) continue;
-	for (int jv = 0; jv < varcount; jv++) {
-	  if (varid == varindices[jv]) {
-	    varid = -1;
-	    break;
-	  }
-	}
-	if (varid >= 0) varindices[varcount++] = varid;
-      }
-    }
-  }
-}
+
