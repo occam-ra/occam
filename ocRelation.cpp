@@ -14,16 +14,16 @@
  #include <string.h>
  
  
-ocRelation::ocRelation(ocVariableList *list, int size ,int keysz,int stateconstsz)
+ocRelation::ocRelation(ocVariableList *list, int size, int keysz, int stateconstsz)
 {
 	varList = list;
 	maxVarCount = size;
 	varCount = 0;
 	vars = new int[size];
 	table = NULL;
-	if(stateconstsz<=0){
+	if(stateconstsz <= 0) {
 		stateConstraints = NULL;
-		states=NULL;
+		states = NULL;
 	} else {
 		//needs a better keysize value........Anjali
 		states = new int[size];
@@ -33,6 +33,7 @@ ocRelation::ocRelation(ocVariableList *list, int size ,int keysz,int stateconsts
 	hashNext = NULL;
 	attributeList = new ocAttributeList(2);
 	printName = NULL;
+	inverseName = NULL;
 	indepOnly = -1;
 }
 
@@ -113,24 +114,24 @@ long long int ocRelation::getDDFPortion()
 // this function assumes the indices are sorted
 int ocRelation::copyMissingVariables(int *indices, int maxCount)
 {
-  int copycount = 0;
-  int i;
-  int missing = 0;
-  int nextPresent;
-  for (i = 0; i < varCount; i++) {
-    nextPresent = vars[i];
-    while (missing < nextPresent) {
-      if (copycount >= maxCount) break;
-      *(indices++) = missing++;
-      copycount++;
-    }
-    missing = nextPresent + 1;
-  }
-  while (missing < maxCount) {
-      *(indices++) = missing++;
-      copycount++;
-  }
-  return copycount;
+	int copycount = 0;
+	int i;
+	int missing = 0;
+	int nextPresent;
+	for (i = 0; i < varCount; i++) {
+		nextPresent = vars[i];
+		while (missing < nextPresent) {
+			if (copycount >= maxCount) break;
+			*(indices++) = missing++;
+			copycount++;
+		}
+		missing = nextPresent + 1;
+	}
+	while (missing < maxCount) {
+		*(indices++) = missing++;
+		copycount++;
+	}
+	return copycount;
 }
 
 int ocRelation::getIndependentVariables(int *indices, int maxCount)
@@ -234,16 +235,14 @@ int ocRelation::compare(const ocRelation *other)
 }
 
 
-// see if one relation contains another. This algorithm assumes the relations
-// are sorted
+// see if one relation contains another. This algorithm assumes the relations are sorted
 bool ocRelation::contains(const ocRelation *other)
 {
 	return ocContainsVariables(varCount, vars, other->varCount, other->vars);
 }
 
 
-// see if all variables are independent variables. These relations are not
-// decomposed during search
+// see if all variables are independent variables. These relations are not decomposed during search
 bool ocRelation::isIndOnly()
 {
 	if (indepOnly == 0) {
@@ -301,23 +300,52 @@ void ocRelation::sort()
 	qsort(vars, varCount, sizeof(int), sortCompare);
 }
 
-const char* ocRelation::getPrintName()
+const char* ocRelation::getPrintName(int useInverse)
 {
-	if (printName == NULL) {
-		int maxlength=0;
-		if(stateConstraints!=NULL)
-			maxlength = varList->getPrintLength(varCount, vars,true);
-		else
-				
-			maxlength = varList->getPrintLength(varCount, vars);
-		if (maxlength < 40) maxlength = 40;	//??String allocation bug?
-		printName = new char[maxlength+1];
-		if(states==NULL)
-			varList->getPrintName(printName, maxlength, varCount, vars);
-		else
-			varList->getPrintName(printName, maxlength, varCount, vars,states);
+	if (useInverse == 0 || states != NULL) {
+		if (printName == NULL) {
+			int maxlength = 0;
+			if(stateConstraints != NULL)
+				maxlength = varList->getPrintLength(varCount, vars, true);
+			else
+				maxlength = varList->getPrintLength(varCount, vars);
+			if (maxlength < 40) maxlength = 40;	//??String allocation bug?
+			printName = new char[maxlength+1];
+			if (states == NULL)
+				varList->getPrintName(printName, maxlength, varCount, vars);
+			else
+				varList->getPrintName(printName, maxlength, varCount, vars, states);
+		}
+		return printName;
+	} else {
+		if (inverseName == NULL) {
+			int *local_vars;
+			int local_count;
+			int maxlength = 0;
+			// make int list to get missing vars
+			local_vars = new int[varList->getVarCount()];
+			// copy missing vars
+			local_count = copyMissingVariables(local_vars, varList->getVarCount());
+			maxlength = varList->getPrintLength(local_count, local_vars);
+			if (maxlength < 40) maxlength = 40;	//??String allocation bug?
+			inverseName = new char[maxlength+1];
+			char *local_name = inverseName + 1;
+			varList->getPrintName(local_name, maxlength, local_count, local_vars);
+
+			// For inverse notation, add 2 for brackets, plus the length of the DV abbrev
+			if (useInverse == 1) maxlength += 2 + strlen(varList->getVariable(varList->getDV())->abbrev);
+			char *cp = inverseName;
+			*cp = '[';
+			cp += strlen(inverseName);
+			*cp = ']';
+			cp++;
+			const char *dv = varList->getVariable(varList->getDV())->abbrev;
+			strcpy(cp, dv);
+			cp += strlen(dv);
+			*cp = '\0';
+		}
+		return inverseName;
 	}
-	return printName;
 }
 	
 double ocRelation::getMatchingTupleValue(ocKeySegment *key)

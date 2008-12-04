@@ -24,6 +24,7 @@ ocModel::ocModel(int size)
 	fitTable = NULL;
 	attributeList = new ocAttributeList(6);
 	printName = NULL;
+	inverseName = NULL;
 	hashNext = NULL;
 	progenitor = NULL;
 }
@@ -190,6 +191,8 @@ void ocModel::addRelation(ocRelation *relation, bool normalize)
 {
 	const int FACTOR=2;
 	int i, j;
+
+	if(relation == NULL) return;
 	
 	//-- if normalize, compare this relation to existing relations
 	if (normalize) {
@@ -288,28 +291,28 @@ void ocModel::deleteFitTable()
 	}
 }
 
-const char * ocModel::getPrintName()
+const char * ocModel::getPrintName(int useInverse)
 {
 	int i, len = 0;
 	const char *name;
 	bool isDirected = relations[0]->getVariableList()->isDirected();
 	int indOnlyRel = -1;
-	if (printName == NULL) {
+	if (isDirected && relationCount == 1) useInverse = 0;
+	if ( (printName == NULL && useInverse == 0) || (inverseName == NULL && useInverse == 1) ) {
 		for (i = 0; i < relationCount; i++) {
 			const char *name;
 			//-- for directed systems, figure out which relation is the indOnly one
 			if (isDirected && relations[i]->isIndOnly()) {
 				indOnlyRel = i;
 				name = "IV";
-			}
-			else {
-				name  = relations[i]->getPrintName();
+			} else {
+				name  = relations[i]->getPrintName(useInverse);
 			}
 			len += strlen(name) + 1;
 		}
 		if (len < 40) len = 40;	//??String allocation bug?
-		printName = new char[len+1];
-		char *cp = printName;
+		char *tempName = new char[len+1];
+		char *cp = tempName;
 		*cp = '\0';
 		
 		//-- format the name. For directed systems put the string IV: first, 
@@ -321,14 +324,17 @@ const char * ocModel::getPrintName()
 		for (i = 0; i < relationCount; i++) {	
 			if (i == indOnlyRel) continue;
 			// if the string isn't empty, put in a colon separator
-			if (cp != printName) *(cp++) = ':';
-			name = relations[i]->getPrintName();
+			if (cp != tempName) *(cp++) = ':';
+			name = relations[i]->getPrintName(useInverse);
 			strcpy(cp, name);
 			cp += strlen(name);
 		}
 		*cp = '\0';
+		if (useInverse == 0) printName = tempName;
+		else inverseName = tempName;
 	}
-	return printName;
+	if (useInverse == 0) return printName;
+	else return inverseName;
 }
 
 void ocModel::printStructMatrix(){
