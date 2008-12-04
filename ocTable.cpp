@@ -46,6 +46,7 @@ ocTable::ocTable(int keysz, long long maxTuples, ocTable::TableType typ)
 	maxTupleCount = maxTuples;
 	tupleCount = 0;
 	data = new char[TupleBytes * maxTuples];
+	memset(data, 0, TupleBytes * maxTuples * sizeof(char));
 }
 
 ocTable::~ocTable()
@@ -119,12 +120,10 @@ void ocTable::insertTuple(ocKeySegment *key, double value, long long index)
 void ocTable::sumTuple(ocKeySegment *key, double value)
 {
 	long long index = indexOf(key, false);
-	//-- index is either the matching tuple, or the next higher one. So we have to
-	//-- test again.
+	//-- index is either the matching tuple, or the next higher one. So we have to test again.
 	if (index >= tupleCount || ocKey::compareKeys(KeyPtr(data, keysize, index), key, keysize) != 0) {
 		insertTuple(key, value, index);
-	}
-	else {
+	} else {
 		ocTupleValue *valuep = ValuePtr(data, keysize, index);
 		value += *valuep;
 		if (type == SET_TYPE && value != 0.0) value = 1.0;
@@ -149,7 +148,7 @@ double ocTable::getValue(long long index)
  */
 void ocTable::setValue(long long index, double value)
 {
-	if (index < 0 || index >= tupleCount) return;
+	if ((index < 0) || (index >= tupleCount)) return;
 	else *(ValuePtr(data, keysize, index)) = (ocTupleValue) value;
 }
 
@@ -230,12 +229,11 @@ void ocTable::sort()
 int ocTable::normalize()
 {
 	double denom = 0;
-	long long count = getTupleCount();
 	long long i;
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < tupleCount; i++) {
 		denom += getValue(i);
 	}
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < tupleCount; i++) {
 		setValue(i, (getValue(i)/denom));
 	}
 	//-- if the data was already normalized, then not much will have happened.
@@ -244,24 +242,6 @@ int ocTable::normalize()
 	else return (int) denom;
 }
 
-/**
- * getMaxValue - get the index of the tuple with the greatest value
- */
-long long ocTable::getMaxValue()
-{
-	double maxv = 0;
-	long long maxi = -1;
-	long long count = getTupleCount();
-	long long i;
-	for (i = 0; i < count; i++) {
-		double value = getValue(i);
-		if (value > maxv) {
-			maxv = value;
-			maxi = i;
-		}
-	}
-	return maxi;
-}
 
 /**
  * reset - reset table to empty
@@ -270,7 +250,7 @@ void ocTable::reset(int keysize)
 {
 	this->tupleCount = 0;
 	this->keysize = keysize;
-}
+} 
 
 /**
  * dump() - dump debug output
@@ -278,19 +258,19 @@ void ocTable::reset(int keysize)
 void ocTable::dump(bool detail)
 {
 	double sum = 0;
-	printf("ocTable: tuples = %ld\n", tupleCount);
+	printf("ocTable: tuples = %ld\n<br>", tupleCount);
 	for (long long i = 0; i < tupleCount; i++) {
 		ocKeySegment *key = getKey(i);
 		double value = getValue(i);
 		if (detail) {
-			printf("\t");
+			printf("\t%d. ", i);
 			for (int k = 0; k < keysize; k++) {
 				printf("%08lx ", key[k]);
 			}
-			printf("%g\n", value);
+			printf("%g\n<br>", value);
 		}
 		sum += value;
 	}
-	printf("p total (should be 1.00): %lg\n", sum);
+	printf("p total (should be 1.00): %lg\n<br>", sum);
 }
 
