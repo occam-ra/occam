@@ -194,7 +194,7 @@ void ocReport::print(FILE *fd)
 	if (htmlMode) fprintf(fd, "<table border=0 cellpadding=0 cellspacing=0>\n");
 	printSearchHeader(fd, attrID);
 	for (int m = 0; m < modelCount; m++) {
-		printSearchRow(fd, models[m], attrID);
+		printSearchRow(fd, models[m], attrID, m % 2);
 	}
 	printSearchHeader(fd, attrID);
 
@@ -220,8 +220,8 @@ void ocReport::print(FILE *fd)
 	for (int m = 0; m < modelCount; m++) {
 		modelAttrs = models[m]->getAttributeList();
 		tempBIC   = modelAttrs->getAttribute(ATTRIBUTE_BIC);
-		tempAIC   = modelAttrs->getAttribute(ATTRIBUTE_AIC);
 		if (tempBIC > bestBIC) bestBIC = tempBIC;
+		tempAIC   = modelAttrs->getAttribute(ATTRIBUTE_AIC);
 		if (tempAIC > bestAIC) bestAIC = tempAIC;
 		if (showAlpha) {
 			tempAlpha = modelAttrs->getAttribute(ATTRIBUTE_ALPHA);
@@ -241,7 +241,7 @@ void ocReport::print(FILE *fd)
 	for (int m = 0; m < modelCount; m++) {
 		modelAttrs = models[m]->getAttributeList();
 		if (modelAttrs->getAttribute(ATTRIBUTE_BIC) != bestBIC) continue;
-		printSearchRow(fd, models[m], attrID);
+		printSearchRow(fd, models[m], attrID, 0);
 	}
 
 	if (!htmlMode) fprintf(fd, "Best Model(s) by dAIC:\n");
@@ -249,7 +249,7 @@ void ocReport::print(FILE *fd)
 	for (int m = 0; m < modelCount; m++) {
 		modelAttrs = models[m]->getAttributeList();
 		if (modelAttrs->getAttribute(ATTRIBUTE_AIC) != bestAIC) continue;
-		printSearchRow(fd, models[m], attrID);
+		printSearchRow(fd, models[m], attrID, 0);
 	}
 
 	if(showAlpha) {
@@ -263,7 +263,7 @@ void ocReport::print(FILE *fd)
 				modelAttrs = models[m]->getAttributeList();
 				if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_05) continue;
 				if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.05) continue;
-				printSearchRow(fd, models[m], attrID);
+				printSearchRow(fd, models[m], attrID, 0);
 			}
 		}
 	}
@@ -274,7 +274,7 @@ void ocReport::print(FILE *fd)
 		for (int m = 0; m < modelCount; m++) {
 			modelAttrs = models[m]->getAttributeList();
 			if (modelAttrs->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST) != bestTest) continue;
-			printSearchRow(fd, models[m], attrID);
+			printSearchRow(fd, models[m], attrID, 0);
 		}
 	}
 
@@ -325,9 +325,9 @@ void ocReport::printSearchHeader(FILE *fd, int* attrID) {
 
 
 // Print out a single row of the search report results
-void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID) {
+void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID, bool isOddRow) {
 	ocAttributeList *modelAttrs = model->getAttributeList();
-	const char *mname = model->getPrintName();
+	const char *mname = model->getPrintName(manager->getUseInverseNotation());
 	int pad;
 	const int cwid = 15;
 	char field[100];
@@ -337,7 +337,10 @@ void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID) {
 		if (pad < 0) pad = 1;
 		fprintf(fd, "%s%*c", mname, pad, ' ');
 	} else {
-		fprintf(fd, "<tr><td>%s</td>", mname);
+		if (isOddRow)
+			fprintf(fd, "<tr class=r1><td>%s</td>", mname);
+		else
+			fprintf(fd, "<tr><td>%s</td>", mname);
 	}
 	for (int a = 0; a < attrCount; a++) {
 		const char *fmt = attrID[a] >= 0 ? attrDescriptions[attrID[a]].fmt : 0;
@@ -514,17 +517,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	ocTable *input_data = manager->getInputData();
 	ocTable *test_data = manager->getTestData();
 	ocTable *fit_table;
-	// If we are working with just a model, use that fit table.  Otherwise get the relation's table.
-	if (rel == NULL)
-		fit_table = manager->getFitTable();
-	else
-		fit_table = rel->getTable();
 	double sample_size = manager->getSampleSz();
 	double test_sample_size = manager->getTestSampleSize();
-	if (fit_table == NULL) {
-		fprintf(fd, "Error: no fitted table computed.\n");
-		return;
-	}
 	ocVariableList *var_list = manager->getVariableList();
 	if(!var_list->isDirected()){
 		fprintf(fd, "(DV calculation not possible for neutral systems.)\n");
@@ -541,23 +535,32 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	ocTable *input_table, *test_table;
 	unsigned long long degrees = (unsigned long long) ocDegreesOfFreedom(var_list);
 	ocRelation *iv_rel;					// A ptr to the IV component of a model, or the relation itself
-	// If we are working with a model, we use the input and test data directly.
+	
+	input_table = new ocTable(key_size, input_data->getTupleCount());
+	if(test_sample_size > 0) test_table = new ocTable(key_size, test_data->getTupleCount());
 	if (rel == NULL) {
-		input_table = input_data;
-		test_table = test_data;
-		iv_rel = model->getRelation(0);
+		ocTable* orig_table = manager->getFitTable();
+		if (orig_table == NULL) {
+			fprintf(fd, "Error: no fitted table computed.\n");
+			return;
+		}
+		int var_indices[var_count], return_count;
+		manager->getPredictingVars(model, var_indices, return_count, true);
+		ocRelation *predRelWithDV = manager->getRelation(var_indices, return_count);
+
+		fit_table = new ocTable(key_size, orig_table->getTupleCount());
+		manager->makeProjection(orig_table, fit_table, predRelWithDV);
+		manager->makeProjection(input_data, input_table, predRelWithDV);
+		if(test_sample_size > 0) manager->makeProjection(test_data, test_table, predRelWithDV);
+		//iv_rel = model->getRelation(0);
+		iv_rel = predRelWithDV;
 	// Else, if we are working with a relation, make projections of the input and test tables.
 	} else {
-		input_table = new ocTable(key_size, degrees + 1);
-		manager->makeProjection(input_data, input_table, rel, 0);
-		if(test_sample_size > 0) {
-			test_table  = new ocTable(key_size, degrees + 1);
-			manager->makeProjection(test_data,  test_table,  rel, 0);
-		}
+		fit_table = rel->getTable();
+		manager->makeProjection(input_data, input_table, rel);
+		if(test_sample_size > 0)  manager->makeProjection(test_data,  test_table,  rel);
 		iv_rel = rel;
 	}
-
-	//char *key_str = new char[var_count + 1];		// Used to hold user-strings for keys in several places
 
 	int iv_statespace = ((int)degrees + 1) / dv_card;	// full statespace divided by cardinality of the DV
 	const char **dv_label = (const char**)dv_var->valmap;
@@ -717,27 +720,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		if (var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->dv) new_count--;
 	}
 	iv_count = new_count;
-	//fprintf(fd, "IV count: %d, VarCount: %d%s", iv_count, var_count, new_line);
 	if(rel == NULL) {
-		// If the IV component doesn't contain all active IVs, quit with an error.
-		// (This error check would be better processed earlier on, preferably right after the input file has been read.)
-/*
-		if (iv_count != (var_count - 1)) {
-			fprintf(fd, "ERROR: Not all IVs present in the data are represented in the IV component.%s", new_line);
-			fprintf(fd, "The model includes IVs: ");
-			for(int i=0; i < iv_count; i++) {
-				fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->abbrev);
-			}
-			fprintf(fd, "%s", new_line);
-			fprintf(fd, " The data include IVs: ");
-			for(int i=0; i < (var_count-1); i++) {
-				fprintf(fd, "%s", var_list->getVariable(i)->abbrev);
-			}
-			fprintf(fd, "%s", blank_line);
-			fprintf(fd, "Either inactivate the missing variables in the data, or include them in the IV component.%s", blank_line);
-			exit(1);
-		}
-*/
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s", model->getPrintName());
 		fprintf(fd, new_line);
 		fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
@@ -766,7 +749,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	}
 	int dv_value, best_i, temp_return;
 
-	// Count up the total frequencies for each DV value in the reference data, for use in tie-breaking
+	// Count up the total frequencies for each DV value in the reference data, for the output table.
 	for (int i=0; i < input_table_size; i++) {
 		temp_key = input_table->getKey(i);
 		dv_value = ocKey::getKeyValue(temp_key, key_size, var_list, dv_index);
@@ -775,11 +758,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	}
 
 	// Find the most common DV value, for test data predictions when no input data exists.
-	int input_default_dv = 0;
-	for (int i=0; i < dv_card; i++) {
-		if(input_dv_freq[i] > input_dv_freq[input_default_dv])
-			input_default_dv = i;
-	}
+	int input_default_dv = manager->getDefaultDVIndex();
+
 	for (int i=0; i < iv_statespace; i++) {
 		fit_rule[i] = input_default_dv;
 		test_rule[i] = input_default_dv;
@@ -787,7 +767,9 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
 
 	ocKeySegment *temp_key_array = new ocKeySegment[key_size];
-	// Loop till we have as many keys as the size of the IV statespace
+	double f1, f2;
+	double precision = 1.0e10;
+	// Loop till we have as many keys as the size of the IV statespace (at most)
 	while (keys_found < iv_statespace) {
 		// Also break the loop if index exceeds the tupleCount for the table
 		if (index >= fit_table_size) break;
@@ -828,14 +810,17 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			// (ie, if this is the first sib, it's the best.  After that, compare & keep the best.)
 			if(i == 0) {
 				best_i = dv_value;
-			} else {		
-				if(fit_prob[keys_found][dv_value] > fit_prob[keys_found][best_i]) {
+			} else {
+				// Probabilities are rounded so checks for gt/lt/eq are not skewed by the imprecision in floating point numbers.
+				f1 = round(fit_prob[keys_found][dv_value] * precision);
+				f2 = round(fit_prob[keys_found][best_i] * precision);
+				if (f1 > f2) {
 					best_i = dv_value;
 				// If there is a tie, break it by choosing the DV state that was most common in the input data.
-				} else if(fit_prob[keys_found][dv_value] == fit_prob[keys_found][best_i]) {
-					if(input_dv_freq[best_i] < input_dv_freq[dv_value]) {
+				// If there is a tie in frequency, break it alphabetically, using the actual DV values.
+				} else if (fabs(f1 - f2) < 1) {
+					if (manager->getDVOrder(best_i) > manager->getDVOrder(dv_value))
 						best_i = dv_value;
-					}	
 				}
 			}
 		}
@@ -952,6 +937,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 				if(i == 0) {
 					best_i = dv_value;
 				} else {
+					// Note: tie-breaking doesn't matter here, since we are only concerned with finding the best frequency possible,
+					// not with the specific rule that results in that frequency.
 					if(test_freq[fit_index][dv_value] > test_freq[fit_index][best_i]) {
 						best_i = dv_value;
 					}
@@ -999,7 +986,6 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 			test_by_test_rule += test_freq[i][test_rule[i]];
 		}
 	}
-//	fprintf(fd, "<br>%s: return at %d<br>\n", __FUNCTION__, __LINE__); return;
 
 	int dv_ccount = 0;
 	char *dv_header = new char[100];
@@ -1009,7 +995,6 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		dv_ccount += snprintf(dv_header + dv_ccount, 100 - dv_ccount, row_sep);
 	}
 
-	//var_list->dump();
 
 	// Header, Row 1
 	fprintf(fd, "%s%sIV", block_start, head_start);
@@ -1074,7 +1059,6 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 				if (test_key_freq[i] == 0) { continue; }
 			} else { continue; }
 		}
-		//ocKey::keyToUserString(fit_key[i], var_list, key_str);
 		// Also, switch the bgcolor of each row from grey to white, every other row. (If not in HTML, this does nothing.)
 		if (i % 2) fprintf(fd, row_start);
 		else fprintf(fd, row_start2);
@@ -1174,7 +1158,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		if(calcExpectedDV == true)
 			total_expected_value += marginal[dv_order[j]] * dv_bin_value[dv_order[j]];
 	}
-	fprintf(fd, "%s%d%s%.3f", row_sep, total_correct, row_sep, (double)total_correct / sample_size * 100.0);
+	fprintf(fd, "%s%s%d%s%.3f", dv_var->valmap[input_default_dv], row_sep, total_correct, row_sep, (double)total_correct / sample_size * 100.0);
 	if(calcExpectedDV == true) {
 		fprintf(fd, "%s%.3f", row_sep, total_expected_value);
 		temp_percent = mean_squared_error = 0.0;
@@ -1230,7 +1214,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	}
 
 	// If this is the entire model, print tables for each of the component relations.
-	if(rel == NULL) {
+	if ((rel == NULL) && (model->getRelationCount() > 2)) {
 		for(int i=1; i < model->getRelationCount(); i++){
 			printConditional_DV(fd, model->getRelation(i), calcExpectedDV);
 		}
