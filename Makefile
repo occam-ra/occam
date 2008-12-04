@@ -5,7 +5,7 @@ INCLUDES = ocCore.h \
 			_ocCore.h
 
 CC = gcc
-CFLAGS = 
+CFLAGS = -w -Wall -g -pg
 #CFLAGS = -g 
 
 RANLIB = ranlib
@@ -15,12 +15,8 @@ DEFS = -I.
 LDFLAGS = -lm -lstdc++
 
 
-PY_INCLUDE = /usr/include/python2.3
-#PY_INCLUDE = ../Python-2.1.1/Include
-#SWIG = swig -python -c++
-#PY_WRAPPER = occam_wrap.cpp
+PY_INCLUDE = /usr/include/python2.5
 PY_WRAPPER = pyoccam.cpp
-#PY_DEF = occam.i
 PY_OCCAM = occam.so
 
 LIB = liboccam3.a
@@ -50,19 +46,16 @@ EXPORTFILES = occam.so ocutils.py weboccam.py basic.py occam3 occambatch occamma
 	footer.html index.html jobcontrol.py SBfitform.html weboccam.cgi
 
 AR = ar
-COMPILE = $(CC) $(DEFS) $(CPPFLAGS) $(CFLAGS)
-CCLD = $(CC)
-LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
-
-TAR = tar
-GZIP_ENV = --best
+COMPILE = $(CC) $(DEFS) $(CFLAGS)
+#CCLD = $(CC)
+#LINK = $(CCLD) $(AM_CFLAGS) $(CFLAGS) $(LDFLAGS) -o $@
 
 install: all export
 all: $(LIB) $(PY_OCCAM)
 
 export:
 	cp $(EXPORTFILES) ../html
-	cp $(EXPORTFILES) install
+#	cp $(EXPORTFILES) install
 
 .SUFFIXES:
 .SUFFIXES: .cpp .o
