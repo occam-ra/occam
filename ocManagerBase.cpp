@@ -359,11 +359,9 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
 	int k;
 	double totalP, qvalue, pvalue, maxqvalue;
 	int qdv, pdv, maxdv;
-	char *keystr = new char[20];
 	int defaultDV = getDefaultDVIndex();
 	for (i = 0; i < count; i++) {
 		qt->copyKey(i, key);
-		ocKey::keyToUserString(key, varList, keystr);
 		qvalue = qt->getValue(i);
 		pindex = inputData->indexOf(key);
 		pvalue = 0.0;
