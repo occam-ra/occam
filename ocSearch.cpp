@@ -10,6 +10,7 @@
 #include "ocSearch.h"
 #include "ocModelCache.h"
 #include "_ocCore.h"
+#include "ocMath.h"
 #include <assert.h>
 
 //----- Full search down through the lattice -----
@@ -384,57 +385,110 @@ ocModel **ocSearchFullUp::search(ocModel *start)
  */
 ocModel **ocSearchLooplessDown::search(ocModel *start)
 {
-	int varcount = manager->getVariableList()->getVarCount();
-	int relcount = start->getRelationCount();
-	int maxChildren = varcount * (varcount - 1);
-	int i, j;
-		
-	//-- worst case - need a list with a slot for each pair of variables
-	//-- plus one for null termination of list
-	ocModel **models = new ocModel *[maxChildren + 1];
-	ocModel *model;
-	int slot = 0;
-	memset(models, 0, (maxChildren+1) * sizeof(ocModel*));
-	
-	//-- consider each pair of variables
-	for (i = 0; i < varcount-1; i++) {
-		for (j = i+1; j < varcount; j++) {
-			//-- construct a variable list for this pair, and check for containment
-			int pair[2];
-			int includeCount = 0;
-			int includeID;
-			int relNumber;
-			pair[0] = i;
-			pair[1] = j;
-			ocRelation *rel;
-			for (relNumber = 0; relNumber < relcount; relNumber++) {
-				rel = start->getRelation(relNumber);
-				if (ocContainsVariables( rel->getVariableCount(), rel->getVariables(), 2, pair))
-				{
-					if (++includeCount > 1) break;	//pair in more than one relation
-					includeID = relNumber;
-				}
-			}
-			//-- did we get a hit? If so, construct the child model
-			if (includeCount == 1) {
-				model = new ocModel(relcount + 1);
-				model->copyRelations(*start, includeID);
-				rel = start->getRelation(includeID);
-				model->addRelation(manager->getChildRelation(rel, rel->findVariable(i)));
-				model->addRelation(manager->getChildRelation(rel, rel->findVariable(j)));
-
-				//-- put in cache, or use the cached one if already there
-				ocModelCache *cache = manager->getModelCache();
-				if (!cache->addModel(model)) {
-					ocModel *cachedModel = cache->findModel(model->getPrintName());
-					delete model;
-					model = cachedModel;
-				}				
-				if (manager->applyFilter(model)) models[slot++] = model;
+	ocVariableList *varList = manager->getVariableList();
+	int varcount = varList->getVarCount();
+	bool isDirected = varList->isDirected();
+	int relCount = start->getRelationCount();
+	if (isDirected) {
+		int dvIndex = varList->getDV();
+		// must have one relation with all vars; or one of IVs and one with DV plus some IVs
+		if ((relCount > 2) || (relCount < 1))
+			return NULL;
+		ocRelation *rel, *ivRel;
+		if (relCount == 1) {
+			if (start != manager->getTopRefModel())
+				return NULL;
+			rel = start->getRelation(0);
+			ivRel = manager->getChildRelation(rel, dvIndex);
+		} else {
+			rel = start->getRelation(1);
+			ivRel = start->getRelation(0);
+			if (rel->isIndOnly()) {
+				rel = start->getRelation(0);
+				ivRel = start->getRelation(1);
 			}
 		}
+		if (rel->isIndOnly() || !ivRel->isIndOnly()) return NULL;
+		int activeIVs = rel->getVariableCount() - 1;
+		if (activeIVs == 0) return NULL;
+		int indices[activeIVs];
+		if (rel->getIndependentVariables(indices, activeIVs) != activeIVs)
+			return NULL;
+		// allocate space for that many models
+		ocModel **models = new ocModel *[activeIVs + 1];
+		memset(models, 0, (activeIVs + 1) * sizeof(ocModel*));
+		ocRelation *newRel;
+		ocModel *model;
+		int slot = 0;
+		// for each IV
+		for (int i=0; i < activeIVs; i++) {
+			// create a child relation minus that IV
+			newRel = manager->getChildRelation(rel, indices[i]);
+			// create a model with the IV-only relation, and the new relation
+			model = new ocModel(2);
+			model->addRelation(ivRel);
+			model->addRelation(newRel);
+			// put in cache, or use the cached one if already there
+			ocModelCache *cache = manager->getModelCache();
+			if (!cache->addModel(model)) {
+				ocModel *cachedModel = cache->findModel(model->getPrintName());
+				delete model;
+				model = cachedModel;
+			}				
+			if (manager->applyFilter(model)) models[slot++] = model;
+		}
+		return models;
+	} else {
+		int maxChildren = varcount * (varcount - 1);
+		int i, j;
+			
+		//-- worst case - need a list with a slot for each pair of variables
+		//-- plus one for null termination of list
+		ocModel **models = new ocModel *[maxChildren + 1];
+		memset(models, 0, (maxChildren+1) * sizeof(ocModel*));
+		ocModel *model;
+		int slot = 0;
+		
+		//-- consider each pair of variables
+		for (i = 0; i < varcount-1; i++) {
+			for (j = i+1; j < varcount; j++) {
+				//-- construct a variable list for this pair, and check for containment
+				int pair[2];
+				int includeCount = 0;
+				int includeID;
+				int relNumber;
+				pair[0] = i;
+				pair[1] = j;
+				ocRelation *rel;
+				for (relNumber = 0; relNumber < relCount; relNumber++) {
+					rel = start->getRelation(relNumber);
+					if (ocContainsVariables( rel->getVariableCount(), rel->getVariables(), 2, pair))
+					{
+						if (++includeCount > 1) break;	//pair in more than one relation
+						includeID = relNumber;
+					}
+				}
+				//-- did we get a hit? If so, construct the child model
+				if (includeCount == 1) {
+					model = new ocModel(relCount + 1);
+					model->copyRelations(*start, includeID);
+					rel = start->getRelation(includeID);
+					model->addRelation(manager->getChildRelation(rel, rel->findVariable(i)));
+					model->addRelation(manager->getChildRelation(rel, rel->findVariable(j)));
+	
+					//-- put in cache, or use the cached one if already there
+					ocModelCache *cache = manager->getModelCache();
+					if (!cache->addModel(model)) {
+						ocModel *cachedModel = cache->findModel(model->getPrintName());
+						delete model;
+						model = cachedModel;
+					}				
+					if (manager->applyFilter(model)) models[slot++] = model;
+				}
+			}
+		}
+		return models;
 	}
-	return models;
 }
 
 //----- Bottom-up search through loopless models -----
