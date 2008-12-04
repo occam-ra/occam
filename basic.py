@@ -1,8 +1,9 @@
 #! /usr/bin/python
 import pdb
-import sys, os
+import os, sys
 sys.path.append("/www")
 import occam
+import time
 
 import resource
 resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
@@ -22,18 +23,19 @@ if len(sys.argv) >= 4:
 	swidth = sys.argv[2]
 	slevels = sys.argv[3]
 else:
-	swidth = 3;		# default width to search
-	slevels = 7;		# default levels
+	swidth = 3;
+	slevels = 7;
 
 if len(sys.argv) >= 5:
 	filter = sys.argv[4]
 else:
-	filter = "loopless"	# default search filter
+	filter = "loopless"
 
 
 
 
 util = ocUtils("VB")			# create a variable-based manager
+t1 = time.time()
 util.initFromCommandLine(sys.argv[0:2])	# initialize with the data file
 
 #------------- Main script ---------------
@@ -54,7 +56,8 @@ util.initFromCommandLine(sys.argv[0:2])	# initialize with the data file
 #util.setReportVariables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
 #util.setNoIPF(1)
 # For ref=bottom, use something like this:
-util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic")
+#util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic")
+util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, pct_correct_data, pct_correct_test")
 
 # Set the start model for search [top, bottom, default, a specific model].
 # Skip this to use the model set in the data file.
@@ -64,15 +67,17 @@ util.setRefModel("default")
 
 # Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
 util.setSearchFilter(filter)
-#util.setSearchDir("up")
+util.setSearchDir("up")
 # Set the model attribute on which sorting is done is done.  This controls the selection
 # of "best models" during search. It can also control reporting (see setReportSortName, below).
-util.setSortName("information")
+util.setSortName("bic")
 # Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
 util.setSearchSortDir("descending")
 # Set the search width & number of levels.
 util.setSearchWidth(swidth)
 util.setSearchLevels(slevels)
+
+util.setUseInverseNotation(0)
 
 # Set the model attribute for sorting the report, if it is different from the attribute used during search.
 # Generally this isn't needed.
@@ -88,9 +93,12 @@ util.setAction("search")
 # Set separator between report fields.  [1=tab, 2=comma, 3=space fill, 4=HTML]
 util.setReportSeparator(3)
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
+t2 = time.time()
 util.doAction(0)
+t3 = time.time()
 
-
+print "start:  %8f" % (t2 - t1)
+print "search: %8f" % (t3 - t2)
 
 
 
