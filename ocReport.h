@@ -74,7 +74,7 @@ protected:
 	long attrCount;
 	int separator;
 	void printSearchHeader(FILE *fd, int* attrID);
-	void printSearchRow(FILE *fd, ocModel* model, int* attrID);
+	void printSearchRow(FILE *fd, ocModel* model, int* attrID, bool isOddRow);
 };
 
 #endif
