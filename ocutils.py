@@ -5,6 +5,7 @@
 
 import os, sys, re, occam, random, time
 import resource
+import heapq
 #from time import clock
 totalgen=0
 totalkept=0
@@ -33,8 +34,8 @@ class ocUtils:
 		self.__reportSortName = ""
 		self.__sortDir = "ascending"
 		self.__searchSortDir = "ascending"
-		self.__searchWidth = 1
-		self.__searchLevels = 5
+		self.__searchWidth = 3
+		self.__searchLevels = 7
 		self.__searchDir = "default"
 		self.__searchFilter = "all"
 		self.__startModel = "default"
@@ -45,6 +46,7 @@ class ocUtils:
 		self.__calcExpectedDV = 0
 		self.__report.setSeparator(ocUtils.SPACESEP)	# align columns using spaces
 		self.__HTMLFormat = 0
+		self.__useInverseNotation = 0
 		self.__BPStatistics = 0
 		self.__PercentCorrect = 0
 		self.__NoIPF = 0
@@ -72,6 +74,12 @@ class ocUtils:
 		occam.setHTMLMode(format == ocUtils.HTMLFORMAT)
 		self.__report.setSeparator(format)
 		self.__HTMLFormat = (format == ocUtils.HTMLFORMAT)
+
+	def setUseInverseNotation(self, useFlag):
+		flag = int(useFlag)
+		if flag != 0 and flag != 1:
+			flag = 0
+		self.__useInverseNotation = flag
 	#
 	#-- Set control attributes
 	#
@@ -189,12 +197,12 @@ class ocUtils:
 		else:
 			self.__manager.computeL2Statistics(model)
 			self.__manager.computeDependentStatistics(model)
-
+ 
 	# this function generates the parents/children of the given model, and for
 	# any which haven't been seen before puts them into the newModel list
 	# this function also computes the LR statistics (H, LR, DF, etc.) as well
 	# as the dependent statistics (dH, %dH, etc.)
-	def processModel(self, level, newModels, model):
+	def processModel(self, level, newModelsHeap, model):
 		addCount = 0;
 		generatedModels = self.__manager.searchOneLevel(model)
 		for newModel in generatedModels :
@@ -203,48 +211,39 @@ class ocUtils:
 				newModel.level = level
 				newModel.setProgenitor(model)
 				self.computeSortStatistic(newModel)
-				pos = 0;
-				while pos < len(newModels) and pos < self.__searchWidth:
-					if self.__compareModels(newModel, newModels[pos]) <= 0: break
-					pos = pos + 1;
-				if pos < len(newModels):
-					newModels.insert(pos, newModel)
-#				elif self.__searchWidth > 0 and len(newModels) < self.__searchWidth:
-				else:
-					newModels.append(newModel)
+				# decorate model with a key for sorting, & push onto heap
+				key = newModel.get(self.__sortName)
+				if self.__searchSortDir == "descending":
+					key = -key;
+				heapq.heappush(newModelsHeap, (key , newModel))
 				addCount = addCount + 1;
 				newModel.deleteFitTable()	#recover fit table memory
 				newModel.deleteRelationLinks()	#recover relation link memory
-				# newModel.dump();
-				#memUsed = self.__manager.getMemUsage();
 		return addCount
 
 			
 	# This function processes models from one level, and return models for the next level.
 	# For each level, it prints the best model at that level as a progress indicator.
 	def processLevel(self, level, oldModels, clear_cache_flag):
-		newModels = []
+		# start a new heap
+		newModelsHeap = []
 		fullCount = 0;
 		for model in oldModels:
-			fullCount = fullCount + self.processModel(level, newModels, model)
-		#newModels.sort(self.__compareModels)
-		#fullCount = len(newModels)
-		tempCount = len(newModels)
-		delModels = newModels[self.__searchWidth:]
-		newModels = newModels[0:self.__searchWidth]
+			fullCount = fullCount + self.processModel(level, newModelsHeap, model)
+		# if searchWidth < heapsize, pop off searchWidth and add to bestModels
+		bestModels = []
+		while ( (len(bestModels) < self.__searchWidth) and (len(newModelsHeap) > 0) ):
+			bestModels.append(heapq.heappop(newModelsHeap)[1])
 		self.__manager.deleteTablesFromCache()
-		truncCount = len(newModels)
+		truncCount = len(bestModels)
 		self.totalgen  = fullCount + self.totalgen
                 self.totalkept = truncCount + self.totalkept
 		memUsed = self.__manager.getMemUsage();
 		print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (fullCount, truncCount, self.totalgen+1, self.totalkept+1, memUsed/1024),
-#		self.__manager.printSizes();
-		usage = resource.getrusage(resource.RUSAGE_SELF)
-#print 'utime: %f, stime: %f' % (usage[0], usage[1])
 		if clear_cache_flag:
-			for model in delModels:
-				self.__manager.deleteModelFromCache(model)
-		return newModels
+			for item in newModelsHeap:
+				self.__manager.deleteModelFromCache(item[1])
+		return bestModels
 
 
 	# This function returns the name of the search strategy to use based on
@@ -278,9 +277,6 @@ class ocUtils:
 		       	if self.__searchDir == "down":
 				if self.__searchFilter == "disjoint":
 					print 'ERROR: Directed Down Disjoint Search not yet implemented.'
-					raise sys.exit()
-				elif self.__searchFilter == "loopless":
-					print 'ERROR: Directed Down Loopless Search not yet implemented.'
 					raise sys.exit()
 				elif self.__searchFilter == "chain":
 					print 'ERROR: Directed Down Chain Search not yet implemented.'
@@ -323,6 +319,7 @@ class ocUtils:
 
 		self.__manager.setRefModel(self.__refModel)
 		self.__manager.setDDFMethod(self.__DDFMethod)
+		self.__manager.setUseInverseNotation(self.__useInverseNotation)
 		if (self.__searchDir == "down"):
 			self.__manager.setSearchDirection(1)
 		else:
@@ -397,8 +394,8 @@ class ocUtils:
 
 
 	def doFit(self,printOptions):
-		self.__manager.printBasicStatistics()
 		if printOptions: self.printOptions(0);
+		self.__manager.printBasicStatistics()
 		for modelName in self.__fitModels:
 			self.__manager.setRefModel(self.__refModel)
 			model = self.__manager.makeModel(modelName, 1)
