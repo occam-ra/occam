@@ -14,6 +14,7 @@ static FILE *mlogfd = fopen(memlog, "w");
 
 void logMemory(void *old, unsigned long long oldSize, long factor, const char *file, long line)
 {
+	if (mlogfd == NULL) return;
 	fprintf(mlogfd, "%s [%ld]: %lld %ld\n", file, line, oldSize, factor);
 	fflush(mlogfd);
 }
