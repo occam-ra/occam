@@ -2,9 +2,10 @@
  */
 #include "ocMath.h"
 #include <math.h>
+#include "ocCore.h"
+#include "_ocCore.h"
 #include <stdio.h>
 #include <string.h>
-#include "_ocCore.h"
 #include "ocWin32.h"
 
 //-- very small probabilities are considered zero, to avoid underflow
@@ -14,10 +15,11 @@ const double PROB_MIN = 1e-36;
 double ocEntropy(ocTable *p)
 {
 	double h = 0.0;
-	long count = p->getTupleCount();
-	for (long i = 0; i < count; i++) {
-		double pi = p->getValue(i);
-		if (pi > PROB_MIN) h -= pi * log(pi);
+	long long count = p->getTupleCount();
+	double pv;
+	for (long long i = 0; i < count; ++i) {
+		pv = p->getValue(i);
+		if (pv > PROB_MIN) h -= pv * log(pv);
 	}
 	h /= log(2.0);	// convert h to log2 rather than ln
 	return h;
@@ -29,13 +31,13 @@ double ocTransmission(ocTable *p, ocTable *q)
 	// To prevent underflow errors, probabilities
 	// less than PROB_MIN are considered zero.
 	double h = 0.0;
-	long count = p->getTupleCount();
-	for (long i = 0; i < count; i++) {
-		double pi = p->getValue(i);
-		ocKeySegment *pi_key = p->getKey(i);
-		long qi_index = q->indexOf(pi_key);	// find matching entry in q
+	long long count = p->getTupleCount();
+	for (long long i = 0; i < count; i++) {
+		double pv = p->getValue(i);
+		ocKeySegment *pv_key = p->getKey(i);
+		long long qi_index = q->indexOf(pv_key);	// find matching entry in q
 		double qi = qi_index >= 0 ? q->getValue(qi_index) : 0.0;
-		if (qi > PROB_MIN && pi > PROB_MIN) h += pi * log(pi/qi);
+		if (qi > PROB_MIN && pv > PROB_MIN) h += pv * log(pv/qi);
 	}
 	h /= log(2.0);	// convert h to log2 rather than ln
 	return h;
