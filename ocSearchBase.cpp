@@ -34,8 +34,7 @@ ocModel **ocSearchBase::search(ocModel *start)
 	return NULL;	// should never be called
 }
 
-ocSearchBase* ocSearchFactory::getSearchMethod(ocVBMManager *mgr,
-	const char *name, bool proj)
+ocSearchBase* ocSearchFactory::getSearchMethod(ocVBMManager *mgr, const char *name, bool proj)
 {
 	ocSearchBase *search = NULL;
 	ocSearchType *type;
