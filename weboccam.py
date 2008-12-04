@@ -1,13 +1,15 @@
 #! /pkg/python/bin/python
 
 import os, sys, cgi, sys, occam, time, string, traceback, pickle
+import cgitb; cgitb.enable()
+
 from ocutils import ocUtils
 from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 #import urllib2
 
-VERSION = "3.2.23"
+VERSION = "3.2.24"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
@@ -230,6 +232,7 @@ def actionSearch(formFields):
 	oc = ocUtils(man)
 	oc.initFromCommandLine(["",fn])
 	oc.setDataFile(formFields["datafilename"])
+	# unused error? this should get caught by getDataFile() above
 	if not formFields.has_key("data") :
 		actionForm(form, "Missing form fields")
 		print "missing data"
@@ -253,6 +256,9 @@ def actionSearch(formFields):
 	searchSort = formFields.get("sortby", "")
 	ddfMethod = formFields.get("ddfmethod", "")
  	oc.setDDFMethod(ddfMethod)
+	inverseFlag = formFields.get("inversenotation", "")
+	if inverseFlag:
+		oc.setUseInverseNotation(1)
 
 	oc.setStartModel(formFields.get("model", "default"))
 
@@ -363,6 +369,7 @@ def startBatch(formFields):
 def getWebControls():
 	formFields = getFormFields(cgi.FieldStorage())
 	return formFields
+
 #
 #---- getBatchControls ----
 #
@@ -422,12 +429,14 @@ if formFields.has_key("calcExpectedDV"):
 
 printTop(template, textFormat)
 
+# If this is not an output page, or reporting a batch job, then print the header form
 if not formFields.has_key("data") and not formFields.has_key("email"):
 	actionForm(formFields, None)
 
+# If there is an action, and either data or an email address, proceed
 if formFields.has_key("action") and ( formFields.has_key("data") or formFields.has_key("email") ) :
 	
-# If this is running from web server, and batch mode requested, then start a background task
+	# If this is running from web server, and batch mode requested, then start a background task
 	if formFields.has_key("batchOutput") and formFields["batchOutput"]:
 		startBatch(formFields)
 	else:
