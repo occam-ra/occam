@@ -138,6 +138,7 @@ public:
 	virtual ocModel *getBottomRefModel() { return bottomRef; };
 	virtual ocModel *getRefModel() { return refModel; };
 	virtual int getSearchDirection() = 0;
+	virtual int getUseInverseNotation() { return useInverseNotation; };
 	
 	int getKeySize() { return keysize; }
 	double getSampleSz(){return (double)sampleSize;}
@@ -147,6 +148,12 @@ public:
 	class ocModelCache *getModelCache() { return modelCache; }
 	class ocTable *getInputData() { return inputData; }
 	class ocTable *getTestData() { return testData; }
+	int getDefaultDVIndex();
+	int getDVOrder(int index);
+	void createDVOrder();
+	void getPredictingVars(ocModel *model, int *varindices, int &varcount, bool includeDeps);
+	ocRelation *getDepRelation();
+	ocRelation *getIndRelation();
 
 	//-- generate a model, given the name. This assumes "." as variable separator and
 	//-- ":" as relation separator. Optionally the data projection can be created.
@@ -201,6 +208,8 @@ protected:
 	ocTable *projTable;
 	int **State_Space_Arr;
 	int dataLines;
+	int *DVOrder;
+	int useInverseNotation;
 };
  
  #endif
