@@ -74,6 +74,9 @@ const double OC_COMPARE_EPSILON = 1e-8;
 	void setSearchDirection(int dir);
 	int getSearchDirection() { return searchDirection; }
 
+	void setUseInverseNotation(int flag);
+	int getUseInverseNotation() { return useInverseNotation; }
+
 	//-- flag to indicate whether to make projections on all relations
 	void setMakeProjection(bool proj) { projection = proj; }
 	bool makeProjection() { return projection; }
@@ -82,12 +85,6 @@ const double OC_COMPARE_EPSILON = 1e-8;
 	class ocSearchBase *getSearch() { return search; }
 	void setSearch(const char *name);
 
-	//-- get the IV relation (directed systems only)
-	ocRelation *getIndRelation();
-	
-	//-- get the DV relation (directed systems only)
-	ocRelation *getDepRelation();
-	
 	//-- compute basic informational statistics
 	void computeInformationStatistics(ocModel *model);
 
@@ -134,8 +131,6 @@ const double OC_COMPARE_EPSILON = 1e-8;
 	//-- the IV relation. Optionally the dependent variables can be included in this.
 	//-- the varindices arg is filled with the variable indices;
 	//-- it needs to have been allocated large enough.
-	void getPredictingVars(ocModel *model, int *varindices, int &varcount,
-			       bool includeDeps);
 
         void calculateBP_AicBic(ocModel *model, ocAttributeList *attrs);
 
@@ -148,6 +143,7 @@ private:	// data
 	int sortDirection;
 	RelOp filterOp;
 	int searchDirection;
+	int useInverseNotation;
 	
         bool firstCome;
 	bool firstComeBP;
