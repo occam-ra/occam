@@ -53,9 +53,6 @@ public:
 	// normalize information-theoretic table.  No effect for set-theoretic tables.
 	// if these are counts, then the return value is the sample size
 	int normalize();
-
-	// get index of maximum value
-	long long getMaxValue();
 	
 private:
 	void* data;			// storage for all keys and values
@@ -132,7 +129,7 @@ struct ocVariable {	// internal use only - see ocVariableList
 	int size;		// number of bits (log2 of (cardinality+1))
 	bool dv;		// is it a dependent variable?
 	ocKeySegment mask;	// a bitmask of 1's in the bit positions for this variable
-	char name[MAXNAMELEN+1]; 	// long name of variable (max 32 chars
+	char name[MAXNAMELEN+1]; 	// long name of variable (max 32 chars)
 	char abbrev[MAXABBREVLEN+1];	// abbreviated name for variable
 	char* valmap[MAXCARDINALITY];	// maps input file values to nominal values
 	bool rebin; //is rebinning required for this variable
@@ -149,7 +146,7 @@ public:
 	long size();
 	
 	//-- addVariable - add a variable, and return the index
-	int addVariable(const char *name, const char *abbrev, int cardinality, bool dv = false,bool rebin=false,int old_card=-1);
+	int addVariable(const char *name, const char *abbrev, int cardinality, bool dv = false, bool rebin=false, int old_card=-1);
 	
 	//-- get the required minimum size for keys, based on all defined variables
 	int getKeySize();
@@ -164,8 +161,8 @@ public:
 	int getVarCountDF() { return varCountDF; }
 
 	//-- generate printable variable list (copied to str, max=maxlength)	
-	void getPrintName(char *str, int maxlength, int count, int *vars,int *state=0);
-	int getPrintLength(int count, int *vars,bool state_b=false);
+	void getPrintName(char *str, int maxlength, int count, int *vars, int *state=0);
+	int getPrintLength(int count, int *vars, bool state_b=false);
 	
 	//-- see if this is a directed system
 	bool isDirected();
@@ -193,7 +190,6 @@ public:
 	//-- check cardinalities of variables against the data, after input
 	bool checkCardinalities();
 
-	
 	//-- dump debug output
 	void dump();
 
@@ -208,9 +204,6 @@ public:
 	//Anjali
         //get the new rebinning value for an old one
         int getnewvalue(int,char*,char*);
-
-
-
 			
 private:
 	ocVariable *vars;
@@ -319,7 +312,7 @@ public:
 	class ocAttributeList *getAttributeList() { return attributeList; }
 	
 	// get a printable name for the relation, using the variable abbreviations
-	const char *getPrintName();
+	const char *getPrintName(int useInverse=0);
 	
 	// get a tuple value from the projection table, which matches the key passed in.
 	// the key may contain don't cares but must have actual values for all the variables
@@ -345,6 +338,7 @@ private:
 	ocKeySegment *mask;		// mask has zero for variables in this rel, 1's elsewhere
 	class ocAttributeList *attributeList;
 	char *printName;
+	char *inverseName;
 	int indepOnly;		// remembers if relation is independent only
 };
 
@@ -378,7 +372,7 @@ public:
 	class ocAttributeList *getAttributeList() { return attributeList; }
 
 	// get a printable name for the relation, using the variable abbreviations
-	const char *getPrintName();
+	const char *getPrintName(int useInverse=0);
 	
 	// set, get hash chain linkages
 	ocModel *getHashNext() { return hashNext; }
@@ -409,6 +403,7 @@ private:
 	class ocAttributeList *attributeList;
 	ocModel *hashNext;
 	char *printName;
+	char *inverseName;
 	int **structMatrix;
 	int Total_constraints;
 	int State_Space_sz;
