@@ -139,7 +139,7 @@ DefinePyFunction(ocVBMManager, searchOneLevel)
 
 	ocModel **model;
 	long count = 0;
-	//-- count them models
+	//-- count the models
 	if (models) for (model = models; *model; model++) count++;
 
 	//-- sort them if sort was requested
@@ -361,10 +361,10 @@ DefinePyFunction(ocVBMManager, makeModel)
 	PyArg_ParseTuple(args, "si", &name, &makeProject);
 	bMakeProject = makeProject != 0;
 	ocModel *ret = ObjRef(self, ocVBMManager)->makeModel(name, bMakeProject);
-	if (ret == NULL){
-                onError("invalid model name");
-               exit(1);
-       }
+	if (ret == NULL) {
+		onError("invalid model name");
+		exit(1);
+	}
 	PocModel *newModel = ObjNew(ocModel);
 	newModel->obj = ret;
 	return Py_BuildValue("O", newModel);
@@ -420,6 +420,17 @@ DefinePyFunction(ocVBMManager, setDDFMethod)
 	int meth;
 	PyArg_ParseTuple(args, "i", &meth);
 	ObjRef(self, ocVBMManager)->setDDFMethod(meth);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
+// void setUseInverseNotation(int method)
+DefinePyFunction(ocVBMManager, setUseInverseNotation)
+{
+	int flag;
+	PyArg_ParseTuple(args, "i", &flag);
+	ObjRef(self, ocVBMManager)->setUseInverseNotation(flag);
 	Py_INCREF(Py_None);
 	return Py_None;
 }
@@ -633,6 +644,7 @@ static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, computeDependentStatistics),
 	PyMethodDef(ocVBMManager, computeBPStatistics),
 	PyMethodDef(ocVBMManager, setDDFMethod),
+	PyMethodDef(ocVBMManager, setUseInverseNotation),
 	PyMethodDef(ocVBMManager, setSearchDirection),
 	PyMethodDef(ocVBMManager, printFitReport),
 	PyMethodDef(ocVBMManager, getOption),
