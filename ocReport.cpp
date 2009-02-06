@@ -270,7 +270,7 @@ void ocReport::print(FILE *fd)
 
 	if (showPercentCorrect) {
 		if (!htmlMode) fprintf(fd, "Best Model(s) by %%C(Test):\n");
-		else fprintf(fd, "<tr><td colspan=3><b>Best Model(s) by %%C(Test)</b>:</td></tr>\n");
+		else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by %%C(Test)</b>:</td></tr>\n");
 		for (int m = 0; m < modelCount; m++) {
 			modelAttrs = models[m]->getAttributeList();
 			if (modelAttrs->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST) != bestTest) continue;
@@ -1177,9 +1177,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		// Print the test marginals for each DV state
 		for(int j=0; j < dv_card; j++) {
 			temp_percent = (double)test_dv_freq[dv_order[j]] / test_sample_size * 100.0;
-			if (temp_percent > default_percent_on_test) default_percent_on_test = temp_percent;
+			//if (temp_percent > default_percent_on_test) default_percent_on_test = temp_percent;
 			fprintf(fd, "%.3f%s", temp_percent, row_sep);
 		}
+		default_percent_on_test = (double)test_dv_freq[input_default_dv] / test_sample_size * 100.0;
 		fit_percent_on_test = (double)test_by_fit_rule / test_sample_size * 100.0;
 		best_percent_on_test = (double)test_by_test_rule / test_sample_size * 100.0;
 		fprintf(fd, "%.3f%s%.3f", fit_percent_on_test, row_sep, best_percent_on_test);
@@ -1204,7 +1205,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	// Print out a summary of the performance on the test data, if present.
 	if(test_sample_size > 0) {
 		fprintf(fd, "%s%sPerformance on Test Data%s", block_start, row_start, row_end);
-		fprintf(fd, "%sDefault:%s%.3f%%%scorrect%s", row_start, row_sep, default_percent_on_test, row_sep, row_end);
+		fprintf(fd, "%sDefault rule:%s%.3f%%%scorrect%s", row_start, row_sep, default_percent_on_test, row_sep, row_end);
 		fprintf(fd, "%sModel rule:%s%.3f%%%scorrect%s", row_start, row_sep, fit_percent_on_test, row_sep, row_end);
 		fprintf(fd, "%sBest possible:%s%.3f%%%scorrect%s", row_start, row_sep, best_percent_on_test, row_sep, row_end);
 		temp_percent = best_percent_on_test - default_percent_on_test;
