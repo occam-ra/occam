@@ -642,7 +642,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	}
 	
 	const char *block_start, *head_start, *head_sep, *head_end, *head_str1, *head_str2, *head_str3, *head_str4;
- 	const char *row_start, *block_end, *row_start2, *row_start3, *row_end, *row_sep, *line_sep;
+ 	const char *row_start, *block_end, *row_start2, *row_start3, *row_end, *row_sep, *row_sep2, *line_sep;
 
 	// Set appropriate format
 	int sep_style = htmlMode ? 0 : separator;
@@ -660,6 +660,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
  		row_start2  = "<tr class=r1><td align=right>";
  		row_start3  = "<tr class=em><td align=right>";
 		row_sep     = "</td><td align=right>";	
+		row_sep2    = "</td><td align=left>";	
 		row_end     = "</td></tr>\n";
 		block_end   = "</table><br>\n";
 		line_sep    = "<hr>\n";
@@ -674,7 +675,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		head_str3   = "\t%%correct\t";
 		head_str4   = "\tTest Data\t";
 		row_start = row_start2 = row_start3 = "";
-		row_sep     = "\t";
+		row_sep = row_sep2 = "\t";
 		row_end     = "\n";
 		block_end   = "\n";
 		line_sep    = "-------------------------------------------------------------------------\n";
@@ -689,7 +690,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		head_str3   = ",%%correct,";
 		head_str4   = ",Test Data,";
 		row_start = row_start2 = row_start3 = "";
-		row_sep     = ",";
+		row_sep = row_sep2 = ",";
 		row_end     = "\n";
 		block_end   = "\n";
 		line_sep    = "-------------------------------------------------------------------------\n";
@@ -704,7 +705,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		head_str3   = "%%correct";
 		head_str4   = "Test Data";
 		row_start = row_start2 = row_start3 = "";
-		row_sep     = "    ";
+		row_sep = row_sep2 = "    ";
 		row_end     = "\n";
 		block_end   = "\n";
 		line_sep    = "-------------------------------------------------------------------------\n";
@@ -1205,13 +1206,13 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	// Print out a summary of the performance on the test data, if present.
 	if(test_sample_size > 0) {
 		fprintf(fd, "%s%sPerformance on Test Data%s", block_start, row_start, row_end);
-		fprintf(fd, "%sDefault rule:%s%.3f%%%scorrect%s", row_start, row_sep, default_percent_on_test, row_sep, row_end);
-		fprintf(fd, "%sModel rule:%s%.3f%%%scorrect%s", row_start, row_sep, fit_percent_on_test, row_sep, row_end);
-		fprintf(fd, "%sBest possible:%s%.3f%%%scorrect%s", row_start, row_sep, best_percent_on_test, row_sep, row_end);
+		fprintf(fd, "%sDefault rule:%s%.3f%%%scorrect (using rule from the independence model of the training data)%s", row_start, row_sep, default_percent_on_test, row_sep2, row_end);
+		fprintf(fd, "%sModel rule:%s%.3f%%%scorrect%s", row_start, row_sep, fit_percent_on_test, row_sep2, row_end);
+		fprintf(fd, "%sBest possible:%s%.3f%%%scorrect (using rules optimal for the test data)%s", row_start, row_sep, best_percent_on_test, row_sep2, row_end);
 		temp_percent = best_percent_on_test - default_percent_on_test;
 		if ((temp_percent) != 0)
 			temp_percent = (fit_percent_on_test - default_percent_on_test) / temp_percent * 100.0;
-		fprintf(fd, "%sImprovement by model:%s%.3f%%%s%s", row_start, row_sep, temp_percent, row_end, block_end);
+		fprintf(fd, "%sImprovement by model:%s%.3f%%%s(Model - Default) / (Best - Default)%s%s", row_start, row_sep, temp_percent, row_sep2, row_end, block_end);
 	}
 
 	// If this is the entire model, print tables for each of the component relations.
