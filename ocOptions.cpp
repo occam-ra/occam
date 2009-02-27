@@ -319,8 +319,22 @@ bool ocOptions::setOptions(int argc, char **argv)
 
 bool ocOptions::getLine(FILE *fd, char *line, int *lineno)
 {
+	int count;
+	char current;
 	while(true) {
-		if (fgets(line, MAXLINE, fd)) {
+		count = 0;
+		while ( (count + 1) <= MAXLINE ) {
+			current = (char) fgetc(fd);
+			if ( (count == 0) && feof(fd) ) break;
+			if ( (current == '\r') || (current == '\n') || feof(fd) ) {
+				line[count++] = '\n';
+				break;
+			} else {
+				line[count++] = current;
+			}
+		}
+		if (count > 0) {
+			line[count++] = '\0';
 			(*lineno)++;
 			trim(line);
 			if (line[0] == '\0') continue;	// skip blank lines, comments
