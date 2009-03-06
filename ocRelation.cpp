@@ -140,7 +140,7 @@ int ocRelation::getIndependentVariables(int *indices, int maxCount)
 	pos = 0;
 	for (i = 0; i < varCount; i++) {
 		if (pos >= maxCount) break;
-		if (!varList->getVariable(i)->dv) indices[pos++] = i;
+		if (!varList->getVariable(vars[i])->dv) indices[pos++] = i;
 	}
 	return pos;
 }
@@ -151,7 +151,7 @@ int ocRelation::getDependentVariables(int *indices, int maxCount)
 	pos = 0;
 	for (i = 0; i < varCount; i++) {
 		if (pos >= maxCount) break;
-		if (varList->getVariable(i)->dv) indices[pos++] = i;
+		if (varList->getVariable(vars[i])->dv) indices[pos++] = i;
 	}
 	return pos;
 }
@@ -389,6 +389,7 @@ void ocRelation::dump()
 	if (getTable()) {
 		getTable()->dump(false);
 	}
+	varList->dump();
 }
 
 
