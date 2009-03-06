@@ -724,7 +724,11 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	if(rel == NULL) {
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s", model->getPrintName());
 		fprintf(fd, new_line);
-		fprintf(fd, "IV order: %s (", iv_rel->getPrintName());
+		fprintf(fd, "IV order: ");
+		for(int i=0; i < iv_count; i++) {
+			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->abbrev);
+		}
+		fprintf(fd, " (");
 		for(int i=0; i < iv_count; i++) {
 			if (i > 0) fprintf(fd, "; ");
 			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->name);
@@ -1034,7 +1038,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	// Header, Row 3
 	fprintf(fd, "%s", row_start);
 	for(int i=0; i < iv_count; i++)
-		fprintf(fd, "%s%s", var_list->getVariable(iv_rel->getVariable(i))->abbrev, row_sep);
+		fprintf(fd, "%s%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->abbrev, row_sep);
 	fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep, row_sep);
 	if(calcExpectedDV == true)
 		fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
@@ -1065,8 +1069,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		else fprintf(fd, row_start2);
 		// Print the states of the IV in separate columns
 		for (int j=0; j < iv_count; j++) {
-			keyval = ocKey::getKeyValue(fit_key[i], keysize, var_list, iv_rel->getVariable(j));
-			keyvalstr = var_list->getVarValue(iv_rel->getVariable(j), keyval);
+			keyval = ocKey::getKeyValue(fit_key[i], keysize, var_list, iv_rel->getVariable(ind_vars[j]));
+			keyvalstr = var_list->getVarValue(iv_rel->getVariable(ind_vars[j]), keyval);
 			fprintf(fd, "%s%s", keyvalstr, row_sep);
 		}
 		fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
