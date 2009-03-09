@@ -6,9 +6,11 @@ class JobControl:
 		pid = formFields.get("pid", 0)
 		if pid <> 0:
 			try:
-				while 1:
-					os.kill(int(pid), signal.SIGKILL)
-					print "<b>Job " + pid + " killed!</b><p>"
+				#while 1:
+					#os.kill(int(pid), signal.SIGKILL)
+				cmd = 'kill -9 %d' % (int(pid))
+				os.system(cmd)
+				print "<b>Job " + pid + " killed!</b><p>"
 			except Exception, inst:
 				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed</b><p>"
 			except:
@@ -22,7 +24,7 @@ class JobControl:
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
 		for proc in procs:
-			if string.find(proc, "occam") >= 0:
+			if (string.find(proc, "occam") >= 0):
 				print "<tr>"
 				fields = re.split("[ \t]+", proc, 7)
 				for fieldID in fieldIDs:
