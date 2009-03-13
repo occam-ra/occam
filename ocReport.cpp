@@ -58,6 +58,8 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_P2_ALPHA, "P2 Alpha", "%12.4f"},
 {ATTRIBUTE_P2_BETA, "P2 Beta", "%12.4f"},
 {ATTRIBUTE_LR, "dLR", "%12.4f"},
+{ATTRIBUTE_INCR_ALPHA, "Inc.Alpha", "%12.4f"},
+{ATTRIBUTE_PROG_ID, "Prog.", "%14.0f"},
 {ATTRIBUTE_ALPHA, "Alpha", "%12.4f"},
 {ATTRIBUTE_BETA, "Beta", "%12.4f"},
 {ATTRIBUTE_BP_T, "T(BP)", "%12.4f"},
@@ -533,7 +535,6 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	double dv_bin_value[dv_card];				// Contains the DV values for calculating expected values.
 
 	ocTable *input_table, *test_table;
-	unsigned long long degrees = (unsigned long long) ocDegreesOfFreedom(var_list);
 	ocRelation *iv_rel;					// A ptr to the IV component of a model, or the relation itself
 	
 	input_table = new ocTable(key_size, input_data->getTupleCount());
@@ -562,7 +563,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		iv_rel = rel;
 	}
 
-	int iv_statespace = ((int)degrees + 1) / dv_card;	// full statespace divided by cardinality of the DV
+	int iv_statespace = ((int)manager->computeDF(iv_rel) + 1) / dv_card;	// iv_rel statespace divided by cardinality of the DV
 	const char **dv_label = (const char**)dv_var->valmap;
 	ocKeySegment **fit_key = new ocKeySegment *[iv_statespace];
 	double **fit_prob = new double *[iv_statespace];
@@ -716,22 +717,22 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	int *ind_vars = new int[var_count];
 	int iv_count = iv_rel->getIndependentVariables(ind_vars, var_count);
 	// Check that all the variables we're counting are IVs, not DVs.
-	int new_count = iv_count;
-	for (int i=0; i < iv_count; i++) {
-		if (var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->dv) new_count--;
-	}
-	iv_count = new_count;
+	//int new_count = iv_count;
+	//for (int i=0; i < iv_count; i++) {
+		//if (var_list->getVariable(ind_vars[i])->dv) new_count--;
+	//}
+	//iv_count = new_count;
 	if(rel == NULL) {
 		fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s", model->getPrintName());
 		fprintf(fd, new_line);
 		fprintf(fd, "IV order: ");
 		for(int i=0; i < iv_count; i++) {
-			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->abbrev);
+			fprintf(fd, "%s", var_list->getVariable(ind_vars[i])->abbrev);
 		}
 		fprintf(fd, " (");
 		for(int i=0; i < iv_count; i++) {
 			if (i > 0) fprintf(fd, "; ");
-			fprintf(fd, "%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->name);
+			fprintf(fd, "%s", var_list->getVariable(ind_vars[i])->name);
 		}
 		fprintf(fd, ")");
 	} else {
@@ -1038,7 +1039,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	// Header, Row 3
 	fprintf(fd, "%s", row_start);
 	for(int i=0; i < iv_count; i++)
-		fprintf(fd, "%s%s", var_list->getVariable(iv_rel->getVariable(ind_vars[i]))->abbrev, row_sep);
+		fprintf(fd, "%s%s", var_list->getVariable(ind_vars[i])->abbrev, row_sep);
 	fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep, row_sep);
 	if(calcExpectedDV == true)
 		fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
@@ -1069,8 +1070,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		else fprintf(fd, row_start2);
 		// Print the states of the IV in separate columns
 		for (int j=0; j < iv_count; j++) {
-			keyval = ocKey::getKeyValue(fit_key[i], keysize, var_list, iv_rel->getVariable(ind_vars[j]));
-			keyvalstr = var_list->getVarValue(iv_rel->getVariable(ind_vars[j]), keyval);
+			keyval = ocKey::getKeyValue(fit_key[i], keysize, var_list, ind_vars[j]);
+			keyvalstr = var_list->getVarValue(ind_vars[j], keyval);
 			fprintf(fd, "%s%s", keyvalstr, row_sep);
 		}
 		fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
@@ -1221,7 +1222,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
 	// If this is the entire model, print tables for each of the component relations.
 	if ((rel == NULL) && (model->getRelationCount() > 2)) {
-		for(int i=1; i < model->getRelationCount(); i++){
+		for(int i=0; i < model->getRelationCount(); i++){
+			if (model->getRelation(i)->isIndOnly()) continue;
 			printConditional_DV(fd, model->getRelation(i), calcExpectedDV);
 		}
 	}
