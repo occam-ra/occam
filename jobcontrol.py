@@ -6,10 +6,7 @@ class JobControl:
 		pid = formFields.get("pid", 0)
 		if pid <> 0:
 			try:
-				#while 1:
-					#os.kill(int(pid), signal.SIGKILL)
-				cmd = 'kill -9 %d' % (int(pid))
-				os.system(cmd)
+				os.system('kill -9 %d' % (int(pid)))
 				print "<b>Job " + pid + " killed!</b><p>"
 			except Exception, inst:
 				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed</b><p>"
@@ -19,18 +16,18 @@ class JobControl:
 
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
-		print "<table class=\"form\">"
+		print "<table class='form'>"
 		procfd = os.popen("ps -f")
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
 		for proc in procs:
-			if (string.find(proc, "occam") >= 0):
+			if string.find(proc, "occam") >= 0:
 				print "<tr>"
 				fields = re.split("[ \t]+", proc, 7)
 				for fieldID in fieldIDs:
 					field = fields[fieldID]
 					print "<td>", field, "</td>"
-				print "<td><a href=\"weboccam.cgi?action=jobcontrol&pid=" + fields[1] + "\">kill</a></td>"
+				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
 				print "</tr>"
 		print "</table>"
 
