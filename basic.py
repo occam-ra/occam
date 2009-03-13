@@ -1,7 +1,7 @@
 #! /usr/bin/python
 import pdb
 import os, sys
-sys.path.append("/www")
+#sys.path.append("/www")
 import occam
 import time
 
@@ -50,48 +50,53 @@ util.initFromCommandLine(sys.argv[0:2])	# initialize with the data file
 # (Note that the Pearson statistics aren't computed by default because they are expensive.)
 # To force a particular attribute to be printed as an integer, append "$I" to the name (e.g., Level$I)
 
-# Set report names, from the list above. If omitted, the list is set based on whether the ref model
-# is top or bottom.  List is separated by commas, and provided as a single text string.
-# For ref=top, this is a good list:
-#util.setReportVariables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
-#util.setNoIPF(1)
-# For ref=bottom, use something like this:
-#util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic")
-util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, pct_correct_data, pct_correct_test")
+# Set separator between report fields.  [1=tab, 2=comma, 3=space fill, 4=HTML]
+util.setReportSeparator(3)
 
-# Set the start model for search [top, bottom, default, a specific model].
-# Skip this to use the model set in the data file.
-util.setStartModel("default")
-# Set the ref model [top, bottom, default, a specific model].
-util.setRefModel("default")
+# Set the sorting direction for reporting.
+util.setSortDir("descending")
 
-# Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
-util.setSearchFilter(filter)
-util.setSearchDir("up")
-# Set the model attribute on which sorting is done is done.  This controls the selection
-# of "best models" during search. It can also control reporting (see setReportSortName, below).
-util.setSortName("bic")
-# Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
-util.setSearchSortDir("descending")
 # Set the search width & number of levels.
 util.setSearchWidth(swidth)
 util.setSearchLevels(slevels)
 
 util.setUseInverseNotation(0)
 
-# Set the model attribute for sorting the report, if it is different from the attribute used during search.
-# Generally this isn't needed.
-#util.setReportSortName("bic")
-# Set the sorting direction for reporting.
-util.setSortDir("descending")
+# Set the start model for search [top, bottom, default, a specific model].
+# Skip this to use the model set in the data file.
+util.setStartModel("bottom")
 
-# Set model for fit.  Skip this to set it from the data file.
-#util.setFitModel("ABC:CD")
+# Set the ref model [top, bottom, default, a specific model].
+util.setRefModel("default")
+
+# Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
+util.setSearchSortDir("descending")
+# Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
+util.setSearchDir("up")
+util.setSearchFilter(filter)
+
 # Set the action [fit, search].  Skip this to set it from the data file.
 util.setAction("search")
 
-# Set separator between report fields.  [1=tab, 2=comma, 3=space fill, 4=HTML]
-util.setReportSeparator(3)
+# Set the model attribute for sorting the report, if it is different from the attribute used during search.
+# Generally this isn't needed.
+util.setReportSortName("bic")
+
+# Set the model attribute on which sorting is done is done.  This controls the selection
+# of "best models" during search. It can also control reporting (see setReportSortName, below).
+util.setSortName("information")
+
+util.setDDFMethod(0)
+
+# Set report names, from the list above. If omitted, the list is set based on whether the ref model
+# is top or bottom.  List is separated by commas, and provided as a single text string.
+# For ref=top, this is a good list:
+#util.setReportVariables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
+#util.setNoIPF(1)
+# For ref=bottom, use something like this:
+#util.setReportVariables("Level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
+util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, pct_correct_data")
+
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
 util.doAction(0)
