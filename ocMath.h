@@ -3,6 +3,7 @@
 #ifndef OCMATH_H
 #define OCMATH_H
 
+#include <float.h>
 #include "ocCore.h"
 
 /**
