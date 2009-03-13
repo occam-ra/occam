@@ -5,9 +5,6 @@
 
 #include "ocCore.h"
 #include "ocManagerBase.h"
-
-//-- constant used for equality comparison on filtering. 
-const double OC_COMPARE_EPSILON = 1e-8;
  
 
 /**
@@ -93,6 +90,8 @@ const double OC_COMPARE_EPSILON = 1e-8;
 
 	//-- compute log likelihood statistics
 	void computeL2Statistics(ocModel *model);
+
+	void computeIncrementalAlpha(ocModel *model);
 	
 	//-- compute Pearson statistics
 	void computePearsonStatistics(ocModel *model);
