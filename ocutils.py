@@ -37,7 +37,7 @@ class ocUtils:
 		self.__searchWidth = 3
 		self.__searchLevels = 7
 		self.__searchDir = "default"
-		self.__searchFilter = "all"
+		self.__searchFilter = "loopless"
 		self.__startModel = "default"
 		self.__refModel = "default"
 		self.__fitModels = []
@@ -49,9 +49,11 @@ class ocUtils:
 		self.__useInverseNotation = 0
 		self.__BPStatistics = 0
 		self.__PercentCorrect = 0
+		self.__IncrementalAlpha = 0
 		self.__NoIPF = 0
 		self.totalgen = 0
 		self.totalkept = 0
+		self.__nextID = 0
 
 	#
 	#-- Read command line args and process input file
@@ -69,6 +71,8 @@ class ocUtils:
 			self.__BPStatistics = 1
 		if re.search('pct_correct', reportAttributes):
 			self.__PercentCorrect = 1
+		if re.search('incr_alpha', reportAttributes):
+			self.__IncrementalAlpha = 1
 
 	def setReportSeparator(self, format):
 		occam.setHTMLMode(format == ocUtils.HTMLFORMAT)
@@ -223,7 +227,6 @@ class ocUtils:
 
 			
 	# This function processes models from one level, and return models for the next level.
-	# For each level, it prints the best model at that level as a progress indicator.
 	def processLevel(self, level, oldModels, clear_cache_flag):
 		# start a new heap
 		newModelsHeap = []
@@ -318,7 +321,6 @@ class ocUtils:
 			start = self.__manager.makeModel(self.__startModel, 1)
 
 		self.__manager.setRefModel(self.__refModel)
-		self.__manager.setDDFMethod(self.__DDFMethod)
 		self.__manager.setUseInverseNotation(self.__useInverseNotation)
 		if (self.__searchDir == "down"):
 			self.__manager.setSearchDirection(1)
@@ -333,8 +335,12 @@ class ocUtils:
 			self.__manager.computeBPStatistics(start)
 		if self.__PercentCorrect:
 			self.__manager.computePercentCorrect(start)
+		if self.__IncrementalAlpha:
+			self.__manager.computeIncrementalAlpha(start)
 		start.level = 0
 		self.__report.addModel(start)
+		self.__nextID = 1
+		start.setID(self.__nextID)
 		oldModels = [start]
 
 		try:
@@ -368,6 +374,10 @@ class ocUtils:
 					self.__manager.computeBPStatistics(model)
 				if self.__PercentCorrect:
 					self.__manager.computePercentCorrect(model)
+				if self.__IncrementalAlpha:
+					self.__manager.computeIncrementalAlpha(model)
+				self.__nextID = self.__nextID + 1
+				model.setID(self.__nextID)
 
 				self.__report.addModel(model)
 			oldModels = newModels
@@ -406,31 +416,25 @@ class ocUtils:
 			self.__manager.printFitReport(model)
 			self.__manager.makeFitTable(model)
 			self.__report.printResiduals(model)
-			sys.stdout.flush()
 			self.__report.printConditional_DV(model, self.__calcExpectedDV)
-			sys.stdout.flush()
 			print
 			print
 
 	def doSBFit(self,printOptions):
-#		self.__manager.printBasicStatistics()
 		if self.__HTMLFormat:
 			print "<br>"
 		else:
 			print 
 		if printOptions: self.printOptions(0);
 		for modelName in self.__fitModels:
-#			print "Model: ", modelName
 			self.__manager.setRefModel(self.__refModel)
 			model = self.__manager.makeSBModel(modelName, 1)
 			self.__manager.computeL2Statistics(model)
 			self.__manager.computeDependentStatistics(model)
 			self.__report.addModel(model)
 			self.__manager.printFitReport(model)
-			sys.stdout.flush()
 			self.__manager.makeFitTable(model)
 			self.__report.printResiduals(model)
-#			sys.stdout.flush()
 			print
 			print
 
@@ -465,6 +469,7 @@ class ocUtils:
 		if not self.__manager.isDirected() and self.__refModel == "default":
 			self.__refModel = "top"
 
+		self.__manager.setDDFMethod(self.__DDFMethod)
 		option = self.__action
 		if option == "search":
 			self.doSearch(printOptions)
