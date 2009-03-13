@@ -473,8 +473,8 @@ ocModel **ocSearchLooplessDown::search(ocModel *start)
 					model = new ocModel(relCount + 1);
 					model->copyRelations(*start, includeID);
 					rel = start->getRelation(includeID);
-					model->addRelation(manager->getChildRelation(rel, rel->findVariable(i)));
-					model->addRelation(manager->getChildRelation(rel, rel->findVariable(j)));
+					model->addRelation(manager->getChildRelation(rel, i));
+					model->addRelation(manager->getChildRelation(rel, j));
 	
 					//-- put in cache, or use the cached one if already there
 					ocModelCache *cache = manager->getModelCache();
