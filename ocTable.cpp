@@ -140,7 +140,7 @@ void ocTable::sumTuple(ocKeySegment *key, double value)
 double ocTable::getValue(long long index)
 {
 	if (index < 0 || index >= tupleCount) return 0.0;
-	else return (double) *(ValuePtr(data, keysize, index));
+	return (double) *(ValuePtr(data, keysize, index));
 }
 
 /**
@@ -226,7 +226,7 @@ void ocTable::sort()
 /**
  * normalize - normalize values to sum to 1.0
  */
-int ocTable::normalize()
+double ocTable::normalize()
 {
 	double denom = 0;
 	long long i;
@@ -238,8 +238,9 @@ int ocTable::normalize()
 	}
 	//-- if the data was already normalized, then not much will have happened.
 	//-- but in that case there is no sample size info, so return 1.
-	if (denom < 1.5) return 1;
-	else return (int) denom;
+	//if (denom < 1.5) return 1;
+	//else return denom;
+	return denom;
 }
 
 
@@ -258,7 +259,7 @@ void ocTable::reset(int keysize)
 void ocTable::dump(bool detail)
 {
 	double sum = 0;
-	printf("ocTable: tuples = %ld\n<br>", tupleCount);
+	printf("ocTable: tuples = %ld\n", tupleCount);
 	for (long long i = 0; i < tupleCount; i++) {
 		ocKeySegment *key = getKey(i);
 		double value = getValue(i);
@@ -267,10 +268,10 @@ void ocTable::dump(bool detail)
 			for (int k = 0; k < keysize; k++) {
 				printf("%08lx ", key[k]);
 			}
-			printf("%g\n<br>", value);
+			printf("%g\n", value);
 		}
 		sum += value;
 	}
-	printf("p total (should be 1.00): %lg\n<br>", sum);
+	printf("p total (should be 1.00): %lg\n", sum);
 }
 
