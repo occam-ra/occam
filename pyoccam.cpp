@@ -352,6 +352,18 @@ DefinePyFunction(ocVBMManager, computeBPStatistics)
 	return Py_None;
 }
 
+// void computeIncrementalAlpha(ocModel *model)
+DefinePyFunction(ocVBMManager, computeIncrementalAlpha)
+{
+	PyObject *Pmodel;
+	PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+	ocModel *model = ObjRef(Pmodel, ocModel);
+	if (model == NULL) onError("Model is NULL!");
+	ObjRef(self, ocVBMManager)->computeIncrementalAlpha(model);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // ocModel *makeModel(String name, bool makeProject)
 DefinePyFunction(ocVBMManager, makeModel)
 {
@@ -643,6 +655,7 @@ static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, computePearsonStatistics),
 	PyMethodDef(ocVBMManager, computeDependentStatistics),
 	PyMethodDef(ocVBMManager, computeBPStatistics),
+	PyMethodDef(ocVBMManager, computeIncrementalAlpha),
 	PyMethodDef(ocVBMManager, setDDFMethod),
 	PyMethodDef(ocVBMManager, setUseInverseNotation),
 	PyMethodDef(ocVBMManager, setSearchDirection),
@@ -909,8 +922,7 @@ DefinePyFunction(ocSBMManager, makeSBModel)
         bool bMakeProject;
         PyArg_ParseTuple(args, "si", &name, &makeProject);
         bMakeProject = makeProject != 0;
-        ocModel *ret = ObjRef(self, ocSBMManager)->makeSBModel(name, 
-bMakeProject);
+        ocModel *ret = ObjRef(self, ocSBMManager)->makeSBModel(name, bMakeProject);
         if (ret == NULL){
                 onError("invalid model name");
                exit(1);
@@ -1331,7 +1343,7 @@ DefinePyFunction(ocModel, deleteRelationLinks)
 	return Py_None;
 }
 
-// void setProgenitor()
+// void setProgenitor(ocModel* )
 DefinePyFunction(ocModel, setProgenitor)
 {
         PyObject *Pmodel;
@@ -1341,6 +1353,28 @@ DefinePyFunction(ocModel, setProgenitor)
 	model->setProgenitor(progen);
 	Py_INCREF(Py_None);
 	return Py_None;
+}
+
+// ocModel *getProgenitor()
+DefinePyFunction(ocModel, getProgenitor)
+{
+	PocModel *model;
+	PyArg_ParseTuple(args, "");
+	model = ObjNew(ocModel);
+	model->obj = ObjRef(self, ocModel)->getProgenitor();
+	Py_INCREF((PyObject*)model);
+	return (PyObject*) model;
+}
+
+// void setID()
+DefinePyFunction(ocModel, setID)
+{
+        int ID;
+        PyArg_ParseTuple(args, "i", &ID);
+	ocModel *model = ObjRef(self, ocModel);
+	model->setID(ID);
+        Py_INCREF(Py_None);
+        return Py_None;
 }
 
 // void dump()
@@ -1358,6 +1392,8 @@ static struct PyMethodDef ocModel_methods[] = {
 	PyMethodDef(ocModel, deleteFitTable),
 	PyMethodDef(ocModel, deleteRelationLinks),
 	PyMethodDef(ocModel, setProgenitor),
+	PyMethodDef(ocModel, getProgenitor),
+	PyMethodDef(ocModel, setID),
 	PyMethodDef(ocModel, dump),
 	{NULL, NULL, 0}
 };
