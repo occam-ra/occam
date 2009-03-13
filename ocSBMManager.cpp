@@ -53,7 +53,6 @@ bool ocSBMManager::initFromCommandLine(int argc, char **argv)
 		int i;
 		for (i = 0; i < varCount; i++) top->addVariable(i);	// all vars in saturated model
 		top->setTable(inputData);
-//printf("in state Base manager\n");
 		makeReferenceModels(top);
 	}
 	return true;
@@ -298,8 +297,8 @@ void ocSBMManager::computePearsonStatistics(ocModel *model)
 
 	modelFitTable->copy(fitTable1);
 	makeFitTable(bottomRef);
-	double modelP2 = ocPearsonChiSquared(inputData, modelFitTable, sampleSize);
-	double refP2 = ocPearsonChiSquared(inputData, fitTable1, sampleSize);
+	double modelP2 = ocPearsonChiSquared(inputData, modelFitTable, (long)round(sampleSize));
+	double refP2 = ocPearsonChiSquared(inputData, fitTable1, (long)round(sampleSize));
 	ocAttributeList *attrs = model->getAttributeList();
 
 	int errcode;
@@ -486,7 +485,7 @@ bool ocSBMManager::applyFilter(ocModel *model)
 	case LESSTHAN:
 		return val < filterValue;
 	case EQUALS:
-		return fabs(val - filterValue) < OC_COMPARE_EPSILON;
+		return fabs(val - filterValue) < DBL_EPSILON;
 	case GREATERTHAN:
 		return val > filterValue;
 	default:
@@ -605,7 +604,7 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
 	double value;
 
 	label = "Sample size:";
-	fprintf(fd, "%s%s%s%d%s", beginLine, label, separator, sampleSize, endLine);
+	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, sampleSize, endLine);
 	label = "Number of cells:";
 	value = topRef->getAttributeList()->getAttribute("df") + 1;
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
