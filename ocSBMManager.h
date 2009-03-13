@@ -6,9 +6,6 @@
 #include "ocCore.h"
 #include "ocManagerBase.h"
 
-//-- constant used for equality comparison on filtering. 
-const double OC_COMPARE_EPSILON_1 = 1e-8;
- 
 
 /**
  * ocManagerBase - implements base functionality of an ocManager.  This class is the
