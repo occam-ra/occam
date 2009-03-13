@@ -91,7 +91,7 @@ void ocVBMManager::makeAllChildRelations(ocRelation *rel, ocRelation **children,
 	int order = rel->getVariableCount();
 	int *varindices = new int[order];
 	for (int r = order-1; r >= 0; r--) {
-		children[r] = getChildRelation(rel, r, makeProject);
+		children[r] = getChildRelation(rel, rel->getVariable(r), makeProject);
 	}
 	delete varindices;
 }
@@ -251,14 +251,13 @@ void ocVBMManager::buildDDF(ocRelation *rel, ocModel *loModel, ocModel *diffMode
 	for (int i=0; i < dcount; ++i) {
 		if(rel->compare(diffModel->getRelation(i)) == 0) { return; }
 	}
-
 	// So, the relation is not in the loModel. It's also not in diffModel, so we add it.
 	// The "false" flag says not to normalize: that is, don't combine this with any existing child/parent relations.
 	diffModel->addRelation(rel, false);
 	int vcount = rel->getVariableCount();
 	ocRelation *subRel;
 	for (int i=0; i < vcount; ++i) {
-		subRel = getChildRelation(rel, i, false);
+		subRel = getChildRelation(rel, rel->getVariable(i), false);
 		buildDDF(subRel, loModel, diffModel, directed);
 	}
 	return;
@@ -274,13 +273,17 @@ double ocVBMManager::computeDDF(ocModel *model)
 		attrs->setAttribute(ATTRIBUTE_DDF, 0);
 		return 0;
 	}
-	
+
 	// This is the old method of computing delta-DF.
 	// It looks simple here, but it is inaccurate with large statespaces.
-	if (DDFMethod == 1) {
+	if ( (DDFMethod == 1) || (attrs->getAttribute(ATTRIBUTE_DF) >= 0) ){
 		ddf = fabs(computeDF(refModel) - computeDF(model));
-		attrs->setAttribute(ATTRIBUTE_DDF, ddf);
-		return ddf;
+		// if we have a good value for dDF now, we're done
+		if (ddf > .5) {
+			attrs->setAttribute(ATTRIBUTE_DDF, ddf);
+			return ddf;
+		}
+		// else if ref - mod ~= 0, try the incremental method
 	}
 
 	// Alternate method for computing dDF, by adding up the DFs of the unshared relations.
@@ -340,7 +343,6 @@ double ocVBMManager::computeDDF(ocModel *model)
 		ocRelation *hiRel = hiModel->getRelation(i);
 		buildDDF(hiRel, loModel, diffModel, directed);
 	}
-
 	// With the list of individual relations by which the two models differ,
 	// we can now find the delta-DF.  Each relation contributes the product
 	// of all its variables' (cardinality - 1).
@@ -430,7 +432,6 @@ void ocVBMManager::computeL2Statistics(ocModel *model)
 {
 	ocAttributeList *attrs = model->getAttributeList();
 	//-- make sure the other attributes are there
-	//computeDFStatistics(model);
 	computeInformationStatistics(model);
 	//-- compute chi-squared statistics and related statistics. L2 = 2*n*sum(p(ln p/q)) = 2*n*ln(2)*T
 	// L2 (or dLR) is computed to always be positive
@@ -478,6 +479,40 @@ void ocVBMManager::computeL2Statistics(ocModel *model)
 }
 
 
+void ocVBMManager::computeIncrementalAlpha(ocModel *model)
+{
+	ocAttributeList *attrs = model->getAttributeList();
+	double refL2 = attrs->getAttribute(ATTRIBUTE_LR);
+	double refDDF = computeDDF(model);
+	double incr_alpha = attrs->getAttribute(ATTRIBUTE_INCR_ALPHA);
+	double prog_id;
+	if (incr_alpha < 0) {
+//		if (model == refModel) {
+//			incr_alpha = 0;
+//			prog_id = 0;
+//		} else {
+			ocModel *progen = model->getProgenitor();
+			if (progen == NULL) {
+				prog_id = 0;
+				incr_alpha = 0;
+			} else {
+				prog_id = (double) progen->getID();
+				double prog_ddf = progen->getAttributeList()->getAttribute(ATTRIBUTE_DDF);
+				double prog_lr = progen->getAttributeList()->getAttribute(ATTRIBUTE_LR);
+				incr_alpha = csa(fabs(prog_lr - refL2), fabs(prog_ddf - refDDF));
+			//} else {
+				//printf("computeL2Statistics(): progenitor not found for model %s.\n", model->getPrintName());
+				//exit(1);
+			}
+		//}
+		attrs->setAttribute(ATTRIBUTE_INCR_ALPHA, incr_alpha);
+		attrs->setAttribute(ATTRIBUTE_PROG_ID, prog_id);
+	}
+
+
+}
+
+
 void ocVBMManager::computePearsonStatistics(ocModel *model)
 {
 	//-- these statistics require a full contingency table, so make
@@ -487,8 +522,8 @@ void ocVBMManager::computePearsonStatistics(ocModel *model)
 	ocTable *modelFitTable = new ocTable(keysize, fitTable1->getTupleCount());
 	modelFitTable->copy(fitTable1);
 	makeFitTable(bottomRef);
-	double modelP2 = ocPearsonChiSquared(inputData, modelFitTable, sampleSize);
-	double refP2 = ocPearsonChiSquared(inputData, fitTable1, sampleSize);
+	double modelP2 = ocPearsonChiSquared(inputData, modelFitTable, (long)round(sampleSize));
+	double refP2 = ocPearsonChiSquared(inputData, fitTable1, (long)round(sampleSize));
 	ocAttributeList *attrs = model->getAttributeList();
 
 	int errcode;
@@ -798,6 +833,8 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 		ocTable *predTestTable = new ocTable(keysize, testData->getTupleCount());
 		ocManagerBase::makeProjection(testData, predTestTable, predRelWithDV);
 		maxTable->reset(keysize);
+		//predModelTable->dump(1);
+		//predTestTable->dump(1);
 		makeMaxProjection(predModelTable, maxTable, predTestTable, predRelNoDV, depRel);
 		total = 0.0;
 		count = maxTable->getTupleCount();
@@ -836,7 +873,7 @@ bool ocVBMManager::applyFilter(ocModel *model)
 	case LESSTHAN:
 		return val < filterValue;
 	case EQUALS:
-		return fabs(val - filterValue) < OC_COMPARE_EPSILON;
+		return fabs(val - filterValue) < DBL_EPSILON;
 	case GREATERTHAN:
 		return val > filterValue;
 	default:
@@ -851,8 +888,7 @@ void ocVBMManager::setSortAttr(const char *name)
 	strcpy(sortAttr, name);
 }
 
-static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
-	const char **strings, int rows)
+static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref, const char **strings, int rows)
 {
 	//-- Print general report for a single model, similar to Fit in Occam2
 	const char *line_sep, *header, *beginLine, *endLine, *separator, *footer, *headerSep;
@@ -876,8 +912,6 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 		headerSep = "";
 	}
 	int cols = 3;
-	//int labelwidth = 20;
-	//int colwidth = 18;
 	int row, col, rowlabel;
 	const char *label;
 	
@@ -888,8 +922,6 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	fprintf(fd, "%s%s%s%s", beginLine, separator, label, separator);
 	label = "Prob. (Alpha)";
 	fprintf(fd, "%s%s", label, endLine);
-	//label = "Power (Beta)";
-	//fprintf(fd, "%s%s", label, endLine);
 	
 	fprintf(fd, headerSep);
 	for (row = 0; row < rows; row++) {
@@ -907,6 +939,8 @@ static void printRefTable(ocAttributeList *attrs, FILE *fd, const char *ref,
 	fprintf(fd, footer);
 	
 }
+
+
 void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 {
 	//-- Print general report for a single model, similar to Fit in Occam2
@@ -958,7 +992,6 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	}
 	
 	//-- Print some general stuff
-	//int cwid = 40;
 	const char *label;
 	double value;
 
@@ -979,16 +1012,6 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
 	fprintf(fd, footer);
 	//-- print top and bottom reference tables
-	//const char *topFields[] = {
-		//"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
-		//"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
-		//"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
-	//};
-	//const char *bottomFields[] = {
-		//"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
-		//"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
-		//"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
-	//};
 	const char *topFields1[] = {
 		"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, 
 		"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, 
