@@ -52,7 +52,7 @@ public:
 	
 	// normalize information-theoretic table.  No effect for set-theoretic tables.
 	// if these are counts, then the return value is the sample size
-	int normalize();
+	double normalize();
 	
 private:
 	void* data;			// storage for all keys and values
@@ -382,6 +382,9 @@ public:
 	ocModel *getProgenitor() { return progenitor; }
 	void setProgenitor(ocModel *model) { progenitor = model; }
 	
+	int getID() { return ID; }
+	void setID(int number) { ID = number; }
+	
 	// print out model info
 	void dump();
 	
@@ -397,6 +400,7 @@ public:
 private:
 	ocRelation **relations;
 	ocModel *progenitor;		// the model from which this one was derived in a search
+	int ID;			// ID of the model in a search list
 	int relationCount;
 	int maxRelationCount;
 	class ocTable *fitTable;
@@ -491,6 +495,8 @@ private:
 #define ATTRIBUTE_BETA_SAT "beta_top"
 #define ATTRIBUTE_ALPHA "alpha"
 #define ATTRIBUTE_BETA "beta"
+#define ATTRIBUTE_INCR_ALPHA "incr_alpha"
+#define ATTRIBUTE_PROG_ID "prog_id"
 #define ATTRIBUTE_MAX_REL_WIDTH "max_rel_width"
 #define ATTRIBUTE_MIN_REL_WIDTH "min_rel_width"
 #define ATTRIBUTE_BP_T "bp_t"

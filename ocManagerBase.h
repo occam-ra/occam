@@ -65,7 +65,7 @@ public:
 	virtual ocRelation *getRelation(int *varindices, int varcount, bool makeProject = false,int *stateindices =0);
 
 	// get a relation just like the given relation, but with the given variable removed.
-	// (skip is the position within the relation, not the variable id).
+	// (skip is the variable id in the master variable list).
 	virtual ocRelation *getChildRelation(ocRelation *rel, int skip, bool makeProject = false);
 	
  	// make a projection.  This creates an ocTable, and installs it as the table for the
@@ -141,9 +141,9 @@ public:
 	virtual int getUseInverseNotation() { return useInverseNotation; };
 	
 	int getKeySize() { return keysize; }
-	double getSampleSz(){return (double)sampleSize;}
-	double getTestSampleSize(){return (double)testSampleSize;}
-	ocVariableList *getVariableList() { return varList;}
+	double getSampleSz() { return sampleSize; }
+	double getTestSampleSize() { return testSampleSize; }
+	ocVariableList *getVariableList() { return varList; }
 	class ocRelCache *getRelCache() { return relCache; }
 	class ocModelCache *getModelCache() { return modelCache; }
 	class ocTable *getInputData() { return inputData; }
@@ -194,8 +194,8 @@ protected:
 	ocModel *refModel;
 	ocVariableList *varList;
 	int keysize;
-	int sampleSize;
-	int testSampleSize;
+	double sampleSize;
+	double testSampleSize;
 	unsigned long long stateSpaceSize;
 	ocTable *inputData;
 	ocTable *testData;
