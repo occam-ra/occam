@@ -1,6 +1,6 @@
 #! /pkg/python/bin/python
 
-import os, sys, cgi, sys, occam, time, string, traceback, pickle
+import os, sys, cgi, sys, occam, time, string, traceback, pickle, zipfile
 import cgitb; cgitb.enable()
 
 from ocutils import ocUtils
@@ -21,12 +21,7 @@ datadir = "data"
 def getDataFileName(formFields, trim=false):
 	# extract the file name (minus directory) and seed the download dialog with it
 	# we have to handle both forward and backward slashes here.
-	datafile = formFields['datafilename']
-	if string.find(datafile, "\\") >= 0:
-		datapath = string.split(datafile, "\\")
-	else:
-		datapath = string.split(datafile, "/")
-	datafile = datapath[len(datapath)-1]
+	datafile = os.path.basename(formFields['datafilename'])
 	if trim:
 		datafile = os.path.splitext(datafile)[0]
 	return datafile
@@ -72,10 +67,6 @@ def printTime(textFormat):
 #
 def printBottom():
 	template.set_template('footer.html')
-#footf = urllib2.urlopen("http://webdev.pdx.edu/includes/footer_psu.inc")
-#PSU_footer = footf.read()
-#footf.close()
-#args = {'PSU_footer': PSU_footer}
 	args = {}
 	template.out(args)
 
@@ -129,7 +120,7 @@ def actionForm(form, errorText):
 #---- getDataFile ---- get the posted data and store to temp file
 #
 def getDataFile(formFields):
-	datafile = datadir + "/" + getDataFileName(formFields, false)
+	datafile = os.path.join(datadir, getDataFileName(formFields, false))
 	try:
 		outf = open(datafile, "w")
 		data = formFields["data"]
@@ -141,6 +132,24 @@ def getDataFile(formFields):
 		else:
 			print "ERROR: Problems reading data file %s." % datafile
 		sys.exit()
+	# If it appears to be a zipfile, unzip it
+	if os.path.splitext(datafile)[1] == ".zip":
+		zipdata = zipfile.ZipFile(datafile)
+		# ignore any directories or files in them, such as those OSX likes to make
+		ilist = [item for item in zipdata.infolist() if item.filename.find("/") == -1]
+		# make sure there is only one file left
+		if len(ilist) != 1:
+			print "ERROR: Zip file can only contain one data file. (It appears to contain %d.)" % len(ilist)
+			sys.exit()
+		# try to extract the file
+		try:
+			datafile = os.path.join(datadir, ilist[0].filename)
+			outf = open(datafile, "w")
+			outf.write(zipdata.read(ilist[0].filename))
+			outf.close()
+		except:
+			print "ERROR: Extracting zip file failed."
+			sys.exit()
 	return datafile
 
 #
@@ -191,6 +200,7 @@ def actionFit(formFields):
 	oc.initFromCommandLine(["",fn])
 	oc.setDataFile(formFields["datafilename"])
 	oc.setCalcExpectedDV(calcExpectedDV)
+	oc.setDDFMethod(1)
 
 	if not formFields.has_key("data") or not formFields.has_key("model") :
 		actionNone(formFields, "Missing form fields")
@@ -231,7 +241,10 @@ def actionSearch(formFields):
 	man="VB"
 	oc = ocUtils(man)
 	oc.initFromCommandLine(["",fn])
-	oc.setDataFile(formFields["datafilename"])
+	if formFields["datafilename"] != os.path.split(fn)[1]:
+		oc.setDataFile(os.path.split(fn)[1] + " (from " + formFields["datafilename"] + ")")
+	else:
+		oc.setDataFile(formFields["datafilename"])
 	# unused error? this should get caught by getDataFile() above
 	if not formFields.has_key("data") :
 		actionForm(form, "Missing form fields")
@@ -254,8 +267,8 @@ def actionSearch(formFields):
 
 	reportSort = formFields.get("sortreportby", "")
 	searchSort = formFields.get("sortby", "")
-	ddfMethod = formFields.get("ddfmethod", "")
- 	oc.setDDFMethod(ddfMethod)
+#ddfMethod = formFields.get("ddfmethod", "")
+#oc.setDDFMethod(ddfMethod)
 	inverseFlag = formFields.get("inversenotation", "")
 	if inverseFlag:
 		oc.setUseInverseNotation(1)
@@ -292,6 +305,9 @@ def actionSearch(formFields):
 		if oc.isDirected():
 			reportvars = reportvars + ", cond_pct_dh"
 		reportvars = reportvars + ", aic, bic"
+
+	if formFields.get("showincr_a", ""):
+		reportvars = reportvars + ", incr_alpha, prog_id"
 			
 	if formFields.get("showbp", "") and formFields["evalmode"] <> "bp":
 		reportvars = reportvars + ", bp_t"
@@ -346,19 +362,20 @@ def getFormFields(form):
 # script as a command line job
 #
 def startBatch(formFields):
-	ctlfilename = datadir + '/' + getDataFileName(formFields, true) + '.ctl'
+	ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
 	csvname = getDataFileName(formFields, true) + '.csv'
 	datafilename = getDataFileName(formFields, false)
 	toaddress =  formFields["batchOutput"]
 	f = open(ctlfilename, 'w', 0777)
 	pickle.dump(formFields, f)
 	f.close()
-	dirname = os.path.dirname(sys.argv[0])
-	if not dirname: dirname = "."
+	appname = os.path.dirname(sys.argv[0])
+	if not appname: appname = "."
+	appname = os.path.join(appname, "occambatch")
 
-	print "Process ID: ", os.getpid(), "<p>"
+	print "Process ID:", os.getpid(), "<p>"
 
-	cmd = 'nohup "%s"/occambatch "%s" "%s" "%s" "%s" &' % (dirname, sys.argv[0], ctlfilename, toaddress, csvname)
+	cmd = 'nohup "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname)
 	result = os.system(cmd)
 	print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
 
@@ -389,7 +406,7 @@ def getBatchControls():
 def printBatchLog(email):
 	print "<P>"
 	# perhaps we should do some check that this directory exists?
-	file = "batchlogs/" + email
+	file = os.path.join("batchlogs", email)
 	try:
 		f = open(file)
 		logcontents = f.readlines()
@@ -454,10 +471,6 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
 			printTime(textFormat)
 		except:
 			pass
-#			traceback.print_exc(file=sys.stdout)
-	#		xfile = open('/tmp/except.log', 'w')
-	#		traceback.print_exc(file=xfile)
-	#		os.close(xfile)
 
 if not textFormat:
 	printBottom()
