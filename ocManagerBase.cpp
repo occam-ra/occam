@@ -453,8 +453,12 @@ static ocVariable *sort_dv_var;
 int sortDV(const void *d1, const void *d2) {
 	int a = *(int*)d1;
 	int b = *(int*)d2;
-	if (sort_freq[a] > sort_freq[b]) return -1;
-	if (sort_freq[a] < sort_freq[b]) return 1;
+	// Would prefer to use DBL_EPSILON here, but the frequencies we get for DV values (from the bottom reference)
+	// are not precise enough for some reason.
+	if (fabs(sort_freq[a] - sort_freq[b]) < 1e-10) { return strcmp(sort_dv_var->valmap[a], sort_dv_var->valmap[b]); }
+	if (sort_freq[a] > sort_freq[b]) { return -1; }
+	if (sort_freq[a] < sort_freq[b]) { return 1; }
+	// Put this again, just in case.
 	return strcmp(sort_dv_var->valmap[a], sort_dv_var->valmap[b]);
 }
 
@@ -479,8 +483,7 @@ void ocManagerBase::createDVOrder() {
 	}
 	sort_freq = new double[dv_card];
 	for (k = 0; k < depTable->getTupleCount(); ++k) {
-		// The multiply & round serve to avoid problems with comparing floating point numbers.
-		sort_freq[ocKey::getKeyValue(depTable->getKey(k), keysize, varList, varList->getDV())] = round(depTable->getValue(k) / DBL_EPSILON);
+		sort_freq[ocKey::getKeyValue(depTable->getKey(k), keysize, varList, varList->getDV())] = depTable->getValue(k);
 	}
 	for (int i = 0; i < dv_card; ++i) DVOrder[i] = i;
 	qsort(DVOrder, dv_card, sizeof(int), sortDV);
