@@ -21,7 +21,13 @@ datadir = "data"
 def getDataFileName(formFields, trim=false):
 	# extract the file name (minus directory) and seed the download dialog with it
 	# we have to handle both forward and backward slashes here.
-	datafile = os.path.basename(formFields['datafilename'])
+        datafile = formFields['datafilename']
+        if string.find(datafile, "\\") >= 0:
+                datapath = string.split(datafile, "\\")
+        else:
+                datapath = string.split(datafile, "/")
+        datafile = datapath[len(datapath)-1]
+	#datafile = os.path.basename(formFields['datafilename'])
 	if trim:
 		datafile = os.path.splitext(datafile)[0]
 	return datafile
