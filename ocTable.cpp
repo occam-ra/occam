@@ -178,23 +178,25 @@ void ocTable::copyKey(long long index, ocKeySegment *key)
 long long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
 {
 	int compare;
-	long long top = 0, bottom = tupleCount - 1;
+	long long top = 0;
+	long long bottom = tupleCount - 1;
 	if (bottom < 0) return matchOnly ? -1 : 0;	// empty table
-	// handle ends of range first
+
+	// Handle ends of range first
 	compare = ocKey::compareKeys(KeyPtr(data, keysize, top), key, keysize);
-	if (compare > 0) return matchOnly ? -1 : 0;
-	else if (compare == 0) return top;
+	if (compare == 0) return top;
+	else if (compare > 0) return matchOnly ? -1 : 0;
 	
 	compare = ocKey::compareKeys(KeyPtr(data, keysize, bottom), key, keysize);
-	if (compare < 0) return matchOnly ? -1 : tupleCount;
-	else if (compare == 0) return bottom;
+	if (compare == 0) return bottom;
+	else if (compare < 0) return matchOnly ? -1 : tupleCount;
 	
-	// now loop until we either run out of room to search, or find a match.
-	// each iteration, the midpoint of the remaining range is checked, and
+	if ((bottom - top) <= 1) return matchOnly ? -1 : bottom;	// no range left to search
+	long long mid = bottom / 2;
+	// Now loop until we either run out of room to search, or find a match.
+	// Each iteration, the midpoint of the remaining range is checked, and
 	// then half the keys are discarded.
 	while (true) {
-		if (bottom - top <= 1) return matchOnly ? -1 : bottom;	// no range left to search
-		long long mid = (bottom + top) / 2;
 		compare = ocKey::compareKeys(KeyPtr(data, keysize, mid), key, keysize);
 		if (compare == 0) return mid;	// got a match
 		if (compare > 0) {	// search top half of range
@@ -202,6 +204,8 @@ long long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
 		} else {	// search bottom half of range
 			top = mid;
 		}
+		if ((bottom - top) <= 1) return matchOnly ? -1 : bottom;	// no range left to search
+		mid = (bottom + top) / 2;
 	}
 	return -1;	// this is never reached
 }
