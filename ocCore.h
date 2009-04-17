@@ -90,7 +90,7 @@ public:
 	// greater than the second (lexically).
 	static int compareKeys(ocKeySegment *key1, ocKeySegment *key2, int keysize);
 
-	// copy key1 to key1
+	// copy key1 to key2
 	static int copyKey(ocKeySegment *key1, ocKeySegment *key2, int keysize);
 
 	static void buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars, int *varindices, int varcount);
@@ -496,6 +496,7 @@ private:
 #define ATTRIBUTE_ALPHA "alpha"
 #define ATTRIBUTE_BETA "beta"
 #define ATTRIBUTE_INCR_ALPHA "incr_alpha"
+#define ATTRIBUTE_INCR_ALPHA_05 "incr_alpha_05"
 #define ATTRIBUTE_PROG_ID "prog_id"
 #define ATTRIBUTE_MAX_REL_WIDTH "max_rel_width"
 #define ATTRIBUTE_MIN_REL_WIDTH "min_rel_width"
