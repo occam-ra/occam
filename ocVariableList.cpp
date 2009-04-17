@@ -74,8 +74,7 @@ long ocVariableList::size()
 
 
 /*
- * addVariable - add a new variable to the end of the list.  Grow the list
- * storage, if needed
+ * addVariable - add a new variable to the end of the list.  Grow the list storage, if needed
  */
 int ocVariableList::addVariable(const char *name, const char *abbrev, int cardinality, bool dv, bool rebin, int old_card)
 {
@@ -86,6 +85,10 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
 	}
 	ocVariable *varp = vars + (varCount++);
 	varCountDF++;
+	while (varCountDF > noUseMaskSize) {
+                noUseMask = (bool*) growStorage(noUseMask, noUseMaskSize*sizeof(bool), GROWTH_FACTOR);
+                noUseMaskSize *= GROWTH_FACTOR;
+	}
 	strncpy(varp->name, name, MAXNAMELEN); varp->name[MAXNAMELEN] = '\0';
 	strncpy(varp->abbrev, abbrev, MAXABBREVLEN); varp->abbrev[MAXABBREVLEN] = '\0';
 	normalizeCase(varp->abbrev);
@@ -133,18 +136,17 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
 }
 
 
-//Anjali
 /*
  * good - checks if the variables value have to be just ignored since it is marked as of 
  * type 0. Returns 0 if the variable is marked (that is to be ignored), return 1 for good.
  */
 int ocVariableList::good(int varCounter)
 {
+	if (varCounter >= noUseMaskSize) return 1;
 	return !(noUseMask[varCounter]);
 }
 
 
-//Anjali
 /*
  * markForNoUse - mark in a mask if this variable needs to be ignored
  * grow mask size, if needed also increment varCountDF
@@ -157,12 +159,7 @@ int ocVariableList::markForNoUse()
 		noUseMask = (bool*) growStorage(noUseMask, noUseMaskSize*sizeof(bool), GROWTH_FACTOR);
 		noUseMaskSize *= GROWTH_FACTOR;
 	}
-		
 	noUseMask[varCountDF] = true;
-	//printf("... marking %d as no use. %d\n", varCountDF, (int)noUseMask[varCountDF]);
-	//for (int i = 0; i < noUseMaskSize; i++)
-		//noUseMask[i] ? printf("1") : printf("0");
-	//printf("\n");
 	varCountDF++;
 	return 0;
 }
@@ -192,12 +189,10 @@ int ocVariableList::getnewvalue(int index,char * old_value,char*new_value){
                 if(value_new==NULL)break;
                 if((k=strcmp(value_old,myvalue))==0){
 			strcpy(new_value,value_new);
-		//	printf("old value %s,new value %s\n",value_old,new_value);
 			return 1;
 		}
                 else if((k=strcmp(value_old,"*"))==0){
 			strcpy(new_value,value_new);
-		//	printf("old value %s,new value %s\n",value_old,new_value);
 			return 1;
                 }
                 i++;
@@ -206,10 +201,6 @@ int ocVariableList::getnewvalue(int index,char * old_value,char*new_value){
         }
         return -1;
 }
-
-
-
-
 
 
 /**
