@@ -62,6 +62,7 @@
 	//-- these are used.
 	double computeExplainedInformation(ocModel *model);
 	double computeUnexplainedInformation(ocModel *model);
+	double computeLR(ocModel *model);
 	double computeDDF(ocModel *model);
 	void setDDFMethod(int method);
 
@@ -91,7 +92,11 @@
 	//-- compute log likelihood statistics
 	void computeL2Statistics(ocModel *model);
 
+	//-- computes the incremental alpha relative to a model's progenitor
 	void computeIncrementalAlpha(ocModel *model);
+
+	//-- compares a new progenitor to an existing one, so the best is kept
+	void compareProgenitors(ocModel *model, ocModel *newProgen);
 	
 	//-- compute Pearson statistics
 	void computePearsonStatistics(ocModel *model);
