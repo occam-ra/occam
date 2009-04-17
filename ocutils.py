@@ -223,6 +223,11 @@ class ocUtils:
 				addCount = addCount + 1;
 				newModel.deleteFitTable()	#recover fit table memory
 				newModel.deleteRelationLinks()	#recover relation link memory
+			else:
+				if self.__IncrementalAlpha:
+					# this model has been made already, but this progenitor might lead to a better Incr.Alpha
+					# so we ask the manager to check on that, and save the best progenitor
+					self.__manager.compareProgenitors(newModel, model)
 		return addCount
 
 			
