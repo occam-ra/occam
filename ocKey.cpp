@@ -21,9 +21,7 @@ void ocKey::buildKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
 	for (i = 0; i < varcount; i++) {
 		ocVariable *var = vars->getVariable(varindices[i]);
 		ocKeySegment mask = var->mask;
-//		int value = varvalues[i];
 		int segment = var->segment;
-//		assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
 		key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
 	}
 }
@@ -40,9 +38,7 @@ void ocKey::buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *v
 	for (i = 0; i < varcount; i++) {
 		ocVariable *var = vars->getVariable(i);
 		ocKeySegment mask = var->mask;
-//		int value = varvalues[i];
 		int segment = var->segment;
-//		assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
 		key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
 	}
 }
@@ -56,7 +52,6 @@ void ocKey::setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *va
 	ocVariable *var = vars->getVariable(index);
 	int segment = var->segment;
 	ocKeySegment mask = var->mask;
-	//assert((value == DONT_CARE) || (value >= 0 && value < var->cardinality));
 	key[segment] = (key[segment] & ~mask) | ((value << var->shift) & mask);
 }
 
@@ -70,7 +65,6 @@ int ocKey::getKeyValue(ocKeySegment *key, int keysize, class ocVariableList *var
 	int segment = var->segment;
 	temp = (key[segment] & var->mask); 
 	int value = temp >> var->shift;
-//	assert(value == DONT_CARE || (value >= 0 && value < var->cardinality));
 	return value;
 }
 
@@ -81,10 +75,14 @@ int ocKey::compareKeys(ocKeySegment *key1, ocKeySegment *key2, int keysize)
 {
 	int i;
 	for (i = 0; i < keysize; i++) {
-		if (*key1 < *key2) return -1;
-		if (*key1 > *key2) return 1;
-		// equal so far...
-		key1++; key2++;
+		if (*key1 == *key2) {
+			key1++;
+			key2++;
+		} else if (*key1 < *key2) {
+			return -1;
+		} else { //(*key1 > *key2)
+			return 1;
+		}
 	}
 	return 0;
 }
