@@ -77,8 +77,7 @@ public:
  	virtual bool makeProjection(ocRelation *rel,int SB=0);
 
 	// make a projection of table t1 into t2 (empty), based on the variable
-	// list contained in the given relation. This is used as one step of
-	// the IPF algorithm.
+	// list contained in the given relation. This is used as one step of the IPF algorithm.
 	virtual bool makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel, int SB=0);
 	
 	// make a "maxProjection" of one table into another. This creates a partial
@@ -97,19 +96,19 @@ public:
 	// delete a model from the model cache
 	virtual bool deleteModelFromCache(ocModel *model);
 	
-	// make a fit table. This function uses the IPF algorithm. The fit table is
+	// Make a fit table. This function uses the IPF algorithm. The fit table is
 	// linked to the model.  If the model already has a fit table, the function
-	// returns immediately. False is returned on any error
+	// returns immediately. False is returned on any error.
 	virtual bool makeFitTable(ocModel *model,int SB=0);
 	
-	// expand a single tuple into all values of all missing variables, recursively
+	// Expand a single tuple into all values of all missing variables, recursively
 	void expandTuple(double tupleValue, ocKeySegment *key,
 			 int *missingVars, int missingCount,
 			 ocTable *outTable, int currentMissingVar);
 
 	void makeOrthoExpansion(ocRelation *rel, ocTable *table);
 
-	// process relations and intersections, as need for DF and H computation
+	// Process relations and intersections, as need for DF and H computation
 	void doIntersectionProcessing(ocModel *model, ocIntersectProcessor *proc);
 
 	// Compute degrees of freedom of a model.  This involves computing degrees
