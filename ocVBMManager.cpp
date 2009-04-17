@@ -263,6 +263,19 @@ void ocVBMManager::buildDDF(ocRelation *rel, ocModel *loModel, ocModel *diffMode
 	return;
 }
 
+
+double ocVBMManager::computeLR(ocModel *model)
+{
+	ocAttributeList *attrs = model->getAttributeList();
+        double lr = attrs->getAttribute(ATTRIBUTE_LR);
+        if (lr < 0) {
+                lr = fabs(2.0 * M_LN2 * sampleSize * (computeTransmission(model) - computeTransmission(refModel)) );
+                attrs->setAttribute(ATTRIBUTE_LR, lr);
+        }
+	return lr;
+}
+
+
 double ocVBMManager::computeDDF(ocModel *model)
 {
 	ocAttributeList *attrs = model->getAttributeList();
@@ -436,12 +449,7 @@ void ocVBMManager::computeL2Statistics(ocModel *model)
 	//-- compute chi-squared statistics and related statistics. L2 = 2*n*sum(p(ln p/q)) = 2*n*ln(2)*T
 	// L2 (or dLR) is computed to always be positive
 	// The values that depend on it (BIC and AIC) have their signs corrected below
-	double refL2 = attrs->getAttribute(ATTRIBUTE_LR);
-	if (refL2 < 0) {
-		refL2 = fabs(2.0 * M_LN2 * sampleSize * (computeTransmission(model) - computeTransmission(refModel)) );
-		attrs->setAttribute(ATTRIBUTE_LR, refL2);
-	}
-	
+	double refL2 = computeLR(model);
 	double refDDF = computeDDF(model);
 
 	double refL2Prob = attrs->getAttribute(ATTRIBUTE_ALPHA);
@@ -481,35 +489,69 @@ void ocVBMManager::computeL2Statistics(ocModel *model)
 
 void ocVBMManager::computeIncrementalAlpha(ocModel *model)
 {
+	if (model == NULL) return;
 	ocAttributeList *attrs = model->getAttributeList();
-	double refL2 = attrs->getAttribute(ATTRIBUTE_LR);
-	double refDDF = computeDDF(model);
 	double incr_alpha = attrs->getAttribute(ATTRIBUTE_INCR_ALPHA);
-	double prog_id;
 	if (incr_alpha < 0) {
-//		if (model == refModel) {
-//			incr_alpha = 0;
-//			prog_id = 0;
-//		} else {
-			ocModel *progen = model->getProgenitor();
-			if (progen == NULL) {
-				prog_id = 0;
-				incr_alpha = 0;
+		double refL2 = computeLR(model);
+		double refDDF = computeDDF(model);
+		double prog_id;
+		double incr_alpha_05;	// To test if all steps to a model have had incr_alpha < 0.05
+		ocModel *progen = model->getProgenitor();
+		if (progen == NULL) {
+			prog_id = 0;
+			incr_alpha = 0;
+			incr_alpha_05 = 1;
+		} else {
+			prog_id = (double) progen->getID();
+			double prog_ddf = computeDDF(progen);
+			double prog_lr = computeLR(progen);
+			incr_alpha = csa(fabs(prog_lr - refL2), fabs(prog_ddf - refDDF));
+			if ( (incr_alpha < 0.05) && (progen->getAttributeList()->getAttribute(ATTRIBUTE_INCR_ALPHA_05) == 1) ) {
+				incr_alpha_05 = 1;
 			} else {
-				prog_id = (double) progen->getID();
-				double prog_ddf = progen->getAttributeList()->getAttribute(ATTRIBUTE_DDF);
-				double prog_lr = progen->getAttributeList()->getAttribute(ATTRIBUTE_LR);
-				incr_alpha = csa(fabs(prog_lr - refL2), fabs(prog_ddf - refDDF));
-			//} else {
-				//printf("computeL2Statistics(): progenitor not found for model %s.\n", model->getPrintName());
-				//exit(1);
+				incr_alpha_05 = 0;
 			}
-		//}
+		}
 		attrs->setAttribute(ATTRIBUTE_INCR_ALPHA, incr_alpha);
 		attrs->setAttribute(ATTRIBUTE_PROG_ID, prog_id);
+		attrs->setAttribute(ATTRIBUTE_INCR_ALPHA_05, incr_alpha_05);
 	}
+}
 
 
+void ocVBMManager::compareProgenitors(ocModel *model, ocModel *newProgen)
+{
+	if ( (model == NULL) || (newProgen == NULL) ) return;
+	ocModel *oldProgen = model->getProgenitor();
+	if (oldProgen == NULL) {
+		model->setProgenitor(newProgen);
+		return;
+	}
+	// compute and save old IA, then new IA
+	ocAttributeList *attrs = model->getAttributeList();
+	computeIncrementalAlpha(model);
+	double old_IA = attrs->getAttribute(ATTRIBUTE_INCR_ALPHA);
+
+	model->setProgenitor(newProgen);
+	attrs->setAttribute(ATTRIBUTE_INCR_ALPHA, -1);
+	attrs->setAttribute(ATTRIBUTE_PROG_ID, -1);
+	computeIncrementalAlpha(model);
+	double new_IA = attrs->getAttribute(ATTRIBUTE_INCR_ALPHA);
+
+	// The new progen is now in place. If it's better than (or good as) the old, keep it and return.
+	// Otherwise, put the old one back.
+	// searchDirection: 0=up, 1=down.  When searching up, prefer small incr.alpha;  when down, large.
+	// If the reference is the top (or is a custom start model above these ones), then prefer large alpha.
+	if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == 1))) {
+		if (old_IA <= new_IA) return;
+	} else {
+		if (old_IA >= new_IA) return;
+	}
+	model->setProgenitor(oldProgen);
+	attrs->setAttribute(ATTRIBUTE_INCR_ALPHA, -1);
+	attrs->setAttribute(ATTRIBUTE_PROG_ID, -1);
+	computeIncrementalAlpha(model);
 }
 
 
@@ -833,8 +875,6 @@ void ocVBMManager::computePercentCorrect(ocModel *model)
 		ocTable *predTestTable = new ocTable(keysize, testData->getTupleCount());
 		ocManagerBase::makeProjection(testData, predTestTable, predRelWithDV);
 		maxTable->reset(keysize);
-		//predModelTable->dump(1);
-		//predTestTable->dump(1);
 		makeMaxProjection(predModelTable, maxTable, predTestTable, predRelNoDV, depRel);
 		total = 0.0;
 		count = maxTable->getTupleCount();
