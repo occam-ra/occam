@@ -5,7 +5,7 @@ INCLUDES = ocCore.h \
 			_ocCore.h
 
 CC = gcc
-CFLAGS = -w -Wall -g -pg
+CFLAGS = -w -Wall -O2 #-g -pg
 #CFLAGS = -g 
 
 RANLIB = ranlib
