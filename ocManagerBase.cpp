@@ -75,11 +75,6 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
 	}
 	sampleSize = input->normalize();
 	if (test) testSampleSize = test->normalize();
-	//-- DEBUG
-	// options->write(stdout);
-	// vars->dump();
-	//input->dump(true);
-	//test->dump(true);
 	
 	varList = vars;
 	inputData = input;
@@ -99,7 +94,6 @@ ocManagerBase::~ocManagerBase()
 //this function calculates the number of state constraints imposed by a particular relation which
 //has variables as are present in the varindices list and state constraints as present in the
 // stateindices list, a state value of -1 implies a dontcare value 
-
 int ocManagerBase::calc_StateConst_sz(int varcount,int *varindices, int *stateindices){
 	int size=1;
 	ocVariable *var;
@@ -227,7 +221,6 @@ bool ocManagerBase::makeProjection(ocRelation *rel, int SB)
 	//-- create the projection data for a given relation. Go through
 	//-- the inputData, and for each tuple, sum it into the table for the relation.
 	const long START_SIZE = 256;
-	double totalP = 0;
 
 	if (rel->getTable()) return true;	// table already computed
 	logProjection(rel->getPrintName());
@@ -245,7 +238,6 @@ bool ocManagerBase::makeProjection(ocRelation *rel, int SB)
 		if(SB==0){
 			for (k = 0; k < keysize; k++) key[k] |= mask[k];
 			table->sumTuple(key, value);
-			totalP += value;
 		}else{
 			ocKeySegment *dont_care_k=new ocKeySegment[keysize];	
 			for (k = 0; k < keysize; k++) dont_care_k[k] = DONT_CARE;
@@ -271,7 +263,6 @@ bool ocManagerBase::makeProjection(ocRelation *rel, int SB)
 			}else if(is_match==1){
 				table->sumTuple(key, value);
 			}
-			totalP += value;
 			delete dont_care_k;
 		}
 	}
@@ -292,7 +283,6 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel, in
 	ocKeySegment *key = new ocKeySegment[keysize];
 	ocKeySegment *mask = rel->getMask();
 	long i, k;
-	double totalP;
 	for (i = 0; i < count; i++) {
 		int is_match=1;
 		t1->copyKey(i, key);
@@ -302,7 +292,6 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel, in
 		if(SB==0) {
 			for (k = 0; k < keysize; k++) key[k] |= mask[k];
 			t2->sumTuple(key, value);
-			totalP += value;
 		} else {
 			ocKeySegment *dont_care_k=new ocKeySegment[keysize];	
 			for (k = 0; k < keysize; k++) dont_care_k[k] = DONT_CARE;
@@ -328,7 +317,6 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel, in
 			}else if(is_match==1){
 				t2->sumTuple(key, value);
 			}
-			totalP += value;
 			delete dont_care_k;
 		}
 	}
@@ -358,7 +346,7 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
 	ocKeySegment *mask = indRel->getMask();
 	long long i, pindex, maxqindex, maxpindex, dvindex;
 	int k;
-	double totalP, qvalue, pvalue, maxqvalue;
+	double qvalue, pvalue, maxqvalue;
 	int qdv, pdv, maxdv;
 	int defaultDV = getDefaultDVIndex();
 	for (i = 0; i < count; i++) {
@@ -598,8 +586,9 @@ bool ocManagerBase::makeFitTable(ocModel *model, int SB)
 	fitTable2->reset(keysize);
 	projTable->reset(keysize);
 	ocKeySegment *key = new ocKeySegment[keysize];
-	int i, j, k;
-	double error = 0, totalP = 0.0;
+	int i, k;
+	long long j;
+	double error = 0;
 
 	// for state-based modelling
 	ocKeySegment *dont_care_k = new ocKeySegment[keysize];	
@@ -651,7 +640,6 @@ bool ocManagerBase::makeFitTable(ocModel *model, int SB)
 		  // to setting it to zero, but conserves space).
 		  long tupleCount = fitTable1->getTupleCount();
 		  fitTable2->reset(keysize);
-		  totalP = 0.0;
 		  for (i = 0; i < tupleCount; i++) {
 		    double newValue = 0.0;
 		    fitTable1->copyKey(i, key);
@@ -672,9 +660,8 @@ bool ocManagerBase::makeFitTable(ocModel *model, int SB)
 			else error = fmax(error, relvalue);
 		      }
 		    } else {
-		      //printf("came to the else case Sb is %d ****\n",SB);
 		      if(SB==1){
-			//then probably its the remainder probabilty
+			//then probably it's the remainder probabilty
 			j = relp->indexOf(dont_care_k);
 			double relvalue = relp->getValue(j);
 			if (relvalue > 0.0) {
@@ -694,7 +681,6 @@ bool ocManagerBase::makeFitTable(ocModel *model, int SB)
 		    if (newValue > 0) {
 		      fitTable1->copyKey(i, key);
 		      fitTable2->addTuple(key, newValue);
-		      totalP += newValue;
 		    }
 		  }
 		  // swap fitTable1 and fitTable2 for next pass
@@ -763,6 +749,7 @@ void ocManagerBase::makeOrthoExpansion(ocRelation *rel, ocTable *outTable)
   outTable->normalize();
 }
 
+
 bool ocManagerBase::hasLoops(ocModel *model)
 {	
 	bool loops;
@@ -777,6 +764,7 @@ bool ocManagerBase::hasLoops(ocModel *model)
 	}
 	return loops;
 }
+
 
 double ocManagerBase::computeDF(ocRelation *rel)	// degrees of freedom
 {
