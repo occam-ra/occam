@@ -59,6 +59,7 @@ static attrDesc attrDescriptions[] = {
 {ATTRIBUTE_P2_BETA, "P2 Beta", "%12.4f"},
 {ATTRIBUTE_LR, "dLR", "%12.4f"},
 {ATTRIBUTE_INCR_ALPHA, "Inc.Alpha", "%12.4f"},
+{ATTRIBUTE_INCR_ALPHA_05, "Inc.A.<0.05", "%1.0f"},
 {ATTRIBUTE_PROG_ID, "Prog.", "%14.0f"},
 {ATTRIBUTE_ALPHA, "Alpha", "%12.4f"},
 {ATTRIBUTE_BETA, "Beta", "%12.4f"},
@@ -76,6 +77,7 @@ static attrDesc attrDescriptions[] = {
 bool ocReport::htmlMode = false;
 
 int attrDescCount = sizeof(attrDescriptions) / sizeof(attrDesc);
+static int searchDir;
 
 static void deleteStringTable(char **table, long stringCount)
 {
@@ -87,6 +89,7 @@ static void deleteStringTable(char **table, long stringCount)
 ocReport::ocReport(class ocManagerBase *mgr)
 {
 	manager = mgr;
+	searchDir = -1;
 	maxModelCount = 100;
 	models = new ocModel*[maxModelCount];
 	memset(models, 0, 100*sizeof(ocModel*));
@@ -143,6 +146,8 @@ void ocReport::setAttributes(const char *attrlist)
 
 //-- support routines for quicksort. The static variables
 //-- are used to communicate between the sort and compare routines
+// The "levelPref" variable is used to sub-sort during a search,
+// preferring to keep the models sorted in the order of the search.
 static const char *sortAttr;
 static ocReport::SortDir sortDir;
 static int sortCompare(const void *k1, const void *k2)
@@ -151,11 +156,18 @@ static int sortCompare(const void *k1, const void *k2)
 	ocModel *m2 = *((ocModel**) k2);
 	double a1 = m1->getAttributeList()->getAttribute(sortAttr);
 	double a2 = m2->getAttributeList()->getAttribute(sortAttr);
-	if (sortDir == ocReport::DESCENDING) {
-		return (a1 > a2) ? -1 : (a1 < a2) ? 1 : 0;
+	double l1 = m1->getAttributeList()->getAttribute("Level");
+	double l2 = m2->getAttributeList()->getAttribute("Level");
+	int levelPref = 0;
+	if (searchDir == 0) {
+		levelPref = (l1 > l2) ? -1 : (l1 < l2) ? 1 : 0;
+	} else if (searchDir == 1) {
+		levelPref = (l1 < l2) ? -1 : (l1 > l2) ? 1 : 0;
 	}
-	else {
-		return (a1 < a2) ? -1 : (a1 > a2) ? 1 : 0;
+	if (sortDir == ocReport::DESCENDING) {
+		return (a1 > a2) ? -1 : (a1 < a2) ? 1 : levelPref;
+	} else {
+		return (a1 < a2) ? -1 : (a1 > a2) ? 1 : levelPref;
 	}
 }
 
@@ -164,6 +176,7 @@ void ocReport::sort(const char *attr, SortDir dir)
 {
 	sortAttr = attr;
 	sortDir = dir;
+	searchDir = manager->getSearchDirection();
 	qsort(models, modelCount, sizeof(ocModel*), sortCompare);
 }
 
@@ -192,6 +205,29 @@ void ocReport::print(FILE *fd)
 		}
 	}
 	
+	// Create a mapping for IDs so they are listed in order.
+	int idOrder[modelCount+1];
+	idOrder[0] = 0;
+	if (manager->getSearchDirection() == 1) {
+		for (int m = 0; m < modelCount; m++) {
+			idOrder[models[m]->getID()] = m + 1;
+			models[m]->setID(m + 1);
+		}
+	} else {
+		for (int m = 0; m < modelCount; m++) {
+			idOrder[models[m]->getID()] = modelCount - m;	
+			models[m]->setID(modelCount - m);
+		}
+	}
+	// If progenitors are being tracked, map the progenitor values too.
+	if (models[0]->getAttributeList()->getAttribute(ATTRIBUTE_PROG_ID) != -1.0) {
+		ocAttributeList *attrs;
+		for (int m = 0; m < modelCount; m++) {
+			attrs = models[m]->getAttributeList();
+			attrs->setAttribute(ATTRIBUTE_PROG_ID, (double)idOrder[(int)attrs->getAttribute(ATTRIBUTE_PROG_ID)]);
+		}
+	}
+	
 	// Print out the search results for each model, with the header before and after
 	if (htmlMode) fprintf(fd, "<table border=0 cellpadding=0 cellspacing=0>\n");
 	printSearchHeader(fd, attrID);
@@ -202,18 +238,24 @@ void ocReport::print(FILE *fd)
 
 	// Loop through the models to find the best values for each measure of model quality
 	ocAttributeList *modelAttrs;
-	double bestBIC, bestAIC, bestAlpha, bestInf_05, bestTest;
-	double tempBIC, tempAIC, tempAlpha, tempInf, tempTest;
-	bestInf_05 = bestTest = -1.0e38;
-	bestAlpha = 1;
+	double bestBIC, bestAIC, bestInfoAlpha, bestInfoIncr, bestTest;
+	double tempBIC, tempAIC, tempInf, tempTest;
+	bestInfoAlpha = bestInfoIncr = bestTest = -1.0e38;
 	bestBIC = models[0]->getAttributeList()->getAttribute(ATTRIBUTE_BIC);
 	bestAIC = models[0]->getAttributeList()->getAttribute(ATTRIBUTE_AIC);
 
-	// Only show best info/alpha valuse when searching from the bottom.
+	// Only show best info/alpha values when searching from the bottom.
+	bool checkAlpha = false;
 	bool showAlpha = false;
 	if ( (manager->getRefModel() == manager->getBottomRefModel()) || 
-	( (manager->getRefModel() != manager->getTopRefModel()) && manager->getSearchDirection() == 0) ) 
-		showAlpha = true;
+		( (manager->getRefModel() != manager->getTopRefModel()) && manager->getSearchDirection() == 0) ) {
+		checkAlpha = true;
+	}
+	bool checkIncr = false;
+	bool showIncr = false;
+	if ( (manager->getSearchDirection() == 0) && (models[0]->getAttributeList()->getAttribute(ATTRIBUTE_INCR_ALPHA) != -1) ) {
+		checkIncr = true;
+	}
 
 	// Only show percent correct on test data when it's present.
 	bool showPercentCorrect = false;
@@ -225,11 +267,18 @@ void ocReport::print(FILE *fd)
 		if (tempBIC > bestBIC) bestBIC = tempBIC;
 		tempAIC   = modelAttrs->getAttribute(ATTRIBUTE_AIC);
 		if (tempAIC > bestAIC) bestAIC = tempAIC;
-		if (showAlpha) {
-			tempAlpha = modelAttrs->getAttribute(ATTRIBUTE_ALPHA);
-			tempInf   = modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I);
-			if (tempAlpha < bestAlpha) bestAlpha = tempAlpha;
-			if ((tempAlpha < 0.05) && (tempInf > bestInf_05)) bestInf_05 = tempInf;
+		tempInf = modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I);
+		if (checkAlpha) {
+			if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) < 0.05) {
+				showAlpha = true;
+				if (tempInf > bestInfoAlpha) bestInfoAlpha = tempInf;
+			}
+		}
+		if (checkIncr) {
+			showIncr = true;
+			if (modelAttrs->getAttribute(ATTRIBUTE_INCR_ALPHA_05) == 1) {
+				if (tempInf > bestInfoIncr) bestInfoIncr = tempInf;
+			}
 		}
 		if (showPercentCorrect) {
 			tempTest  = modelAttrs->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST);
@@ -254,8 +303,8 @@ void ocReport::print(FILE *fd)
 		printSearchRow(fd, models[m], attrID, 0);
 	}
 
-	if(showAlpha) {
-		if (bestAlpha >= 0.05) {
+	if(checkAlpha) {
+		if (!showAlpha) {
 			if (!htmlMode) fprintf(fd, "(No Best Model by Information, since none have Alpha < 0.05.)\n");
 			else fprintf(fd,"<tr><td colspan=8><b>(No Best Model by Information, since none have Alpha < 0.05.)</b></td></tr>\n");
 		} else {
@@ -263,8 +312,20 @@ void ocReport::print(FILE *fd)
 			else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.05</b>:</td></tr>\n");
 			for (int m = 0; m < modelCount; m++) {
 				modelAttrs = models[m]->getAttributeList();
-				if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInf_05) continue;
+				if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInfoAlpha) continue;
 				if (modelAttrs->getAttribute(ATTRIBUTE_ALPHA) > 0.05) continue;
+				printSearchRow(fd, models[m], attrID, 0);
+			}
+		}
+	}
+	if(checkIncr) {
+		if (showIncr) {
+			if (!htmlMode) fprintf(fd, "Best Model(s) by Information, with all Inc. Alpha < 0.05:\n");
+			else fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with all Inc. Alpha < 0.05</b>:</td></tr>\n");
+			for (int m = 0; m < modelCount; m++) {
+				modelAttrs = models[m]->getAttributeList();
+				if (modelAttrs->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInfoIncr) continue;
+				if (modelAttrs->getAttribute(ATTRIBUTE_INCR_ALPHA_05) != 1) continue;
 				printSearchRow(fd, models[m], attrID, 0);
 			}
 		}
@@ -290,8 +351,16 @@ void ocReport::print(FILE *fd)
 // Print out the line of column headers for the search output report
 void ocReport::printSearchHeader(FILE *fd, int* attrID) {
 	int sepStyle = htmlMode ? 0 : separator;
-	if (sepStyle) fprintf(fd, "MODEL          ");
-	else fprintf(fd, "<tr><th align=left>MODEL</th>"); 
+	switch(sepStyle) {
+		case 0:
+			fprintf(fd, "<tr><th align=left>ID</th><th align=left>MODEL</th>"); break;
+		case 2:
+			fprintf(fd, "ID,MODEL"); break;
+		case 1:
+		case 3:
+		default:
+			fprintf(fd, "  ID  MODEL          ");
+	}
 	int pad, tlen;
 	const int cwid = 15;
 	char titlebuf[1000];
@@ -330,19 +399,28 @@ void ocReport::printSearchHeader(FILE *fd, int* attrID) {
 void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID, bool isOddRow) {
 	ocAttributeList *modelAttrs = model->getAttributeList();
 	const char *mname = model->getPrintName(manager->getUseInverseNotation());
+	int ID = model->getID();
 	int pad;
 	const int cwid = 15;
 	char field[100];
 	int sepStyle = htmlMode ? 0 : separator;
-	if (sepStyle) {
-		pad = cwid - strlen(mname);
-		if (pad < 0) pad = 1;
-		fprintf(fd, "%s%*c", mname, pad, ' ');
-	} else {
-		if (isOddRow)
-			fprintf(fd, "<tr class=r1><td>%s</td>", mname);
-		else
-			fprintf(fd, "<tr><td>%s</td>", mname);
+	switch(sepStyle) {
+		case 0:
+			if (isOddRow)
+				fprintf(fd, "<tr class=r1><td>%d</td><td>%s</td>", ID, mname);
+			else
+				fprintf(fd, "<tr><td>%d</td><td>%s</td>", ID, mname);
+			break;
+		case 2:
+			fprintf(fd, "%d,%s", ID, mname);
+			break;
+		case 1:
+		case 3:
+		default:
+			pad = cwid - strlen(mname);
+			if (pad < 0) pad = 1;
+			fprintf(fd, "%4d  %s%*c", ID, mname, pad, ' ');
+			break;
 	}
 	for (int a = 0; a < attrCount; a++) {
 		const char *fmt = attrID[a] >= 0 ? attrDescriptions[attrID[a]].fmt : 0;
