@@ -27,6 +27,7 @@ ocModel::ocModel(int size)
 	inverseName = NULL;
 	hashNext = NULL;
 	progenitor = NULL;
+	ID = 0;
 }
 
 ocModel::~ocModel()
@@ -358,6 +359,9 @@ void ocModel::dump()
 	printf("\t\tSize: %d,\tRelCount: %d,\tMaxRel:%d", size(), getRelationCount(), maxRelationCount);
         if (fitTable)
 		printf(",\tFitTable: %d", fitTable->size());
+	for (int i = 0; i < relationCount; i++) {
+		relations[i]->dump();
+	}
 //        if (attributeList)
 //	       	printf(",\tAttrList: %d", attributeList->size());
 	printf("\n");
