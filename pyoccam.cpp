@@ -364,6 +364,20 @@ DefinePyFunction(ocVBMManager, computeIncrementalAlpha)
 	return Py_None;
 }
 
+// void compareProgenitors(ocModel *model, ocModel *newProgen)
+DefinePyFunction(ocVBMManager, compareProgenitors)
+{
+	PyObject *Pmodel, *Pprogen;
+	PyArg_ParseTuple(args, "O!O!", &TocModel, &Pmodel, &TocModel, &Pprogen);
+	ocModel *model = ObjRef(Pmodel, ocModel);
+	ocModel *progen = ObjRef(Pprogen, ocModel);
+	if (model == NULL) onError("Model is NULL.");
+	if (progen == NULL) onError("Progen is NULL.");
+	ObjRef(self, ocVBMManager)->compareProgenitors(model, progen);
+	Py_INCREF(Py_None);
+	return Py_None;
+}
+
 // ocModel *makeModel(String name, bool makeProject)
 DefinePyFunction(ocVBMManager, makeModel)
 {
@@ -656,6 +670,7 @@ static struct PyMethodDef ocVBMManager_methods[] = {
 	PyMethodDef(ocVBMManager, computeDependentStatistics),
 	PyMethodDef(ocVBMManager, computeBPStatistics),
 	PyMethodDef(ocVBMManager, computeIncrementalAlpha),
+	PyMethodDef(ocVBMManager, compareProgenitors),
 	PyMethodDef(ocVBMManager, setDDFMethod),
 	PyMethodDef(ocVBMManager, setUseInverseNotation),
 	PyMethodDef(ocVBMManager, setSearchDirection),
