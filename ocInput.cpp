@@ -87,13 +87,11 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
         while (gotLine) {
                 char *cp = line;
 		l++;
-		//printf("line %d: %s\n", lineno, cp);
                 for (int i = 0; i < varCountDF; i++) { //Anjali
 			newvalue[0]='\0';
                         if(vars->good(i)) {       //Anjali
                                 if( (vars->getVariable(j)->rebin == true) || (vars->getVariable(j)->exclude != NULL) ){
                                 	vars->getnewvalue(j,cp,newvalue);
-					//if(newvalue[0]!='\0')printf("new value %s for old value %s",newvalue,cp); //****
 					if(newvalue[0]!='\0'){
        		                         	value = vars->getVarValueIndex(j,newvalue);
                                 		if (value < 0) {        // cardinality error
@@ -109,7 +107,6 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
        		                       	value = vars->getVarValueIndex(j,cp);
                                 	if (value < 0) {        // cardinality error
 		                                printf("Error in data, Line %d: new value exceeds cardinality of variable #%d: %s.\n", lineno, i, vars->getVariable(j)->abbrev);
-						//vars->dump();
 						exit(1);
 		                        } else {
 						values[j] = value;
@@ -117,7 +114,6 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
                                 	}
 				}
                                 while (*cp && !isspace(*cp)) cp++;
-				//printf("x: %s\n", cp);
                                 while (*cp && isspace(*cp)) cp++;       // now at next value
                 		j++;
                         } else {  //Anjali
@@ -139,7 +135,6 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
 					}
 				}
                                 while (*cp && !isspace(*cp)) cp++;
-				//printf("-: %s\n", cp);
                                 while (*cp && isspace(*cp)) cp++;       // now at next value
                         } //Anjali
                 }
@@ -184,9 +179,7 @@ void ocDefineVariables(ocOptions *options, ocVariableList *vars) {
 		// Should probably check if the abbrev inlcudes numbers here, rather than just ignoring them
 		if (count != 4) {
 			fprintf(stderr, "Error in variable definition: %s\n", vardef);
-		}
-		else {
-			
+		} else {
 			if(type !=0) {  //Anjali
 				isdv = type == 2;
 				alldv &= isdv;
@@ -205,9 +198,9 @@ void ocDefineVariables(ocOptions *options, ocVariableList *vars) {
 //this function is called instead of ocDefineVar if rebinning is required 
 //needs to be made elegant
 void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostvarp){
-        //-- variable def is "name,cardinality,type,abbrev"
-        //-- types are 1=iv,  2=dv,0=variable diregarded. Note that neutral
-        //systems may have all variables dv,
+        //-- Variable def is "name, cardinality, type, abbrev"
+        //-- Types are 1=iv, 2=dv, 0=variable disregarded.
+	//-- Note that neutral systems may have all variables dv,
         //-- and we want them marked as iv, so there is a second pass below.
         
         void *nextp = NULL;
@@ -226,14 +219,11 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
 	char e[]="exclude";
 	int v=0;
 	int num_var_actual=0;
-//	printf("Note : For variables marked for no use rebinning parameters will not be considered \n");
 
-                //Three cases, either rebin string not present in that case do
-                //normal stuff,else rebin string present and ; not present
-                //in that case variable is not kept (marked for no use)
-                //third case the rebin string present and ; present in that case
-                //variable needs to be kept and second case stuff
-        while (options->getOptionString("nominal", &nextp, &vardef)) {
+	// Three cases: First, rebin string not present, so do normal stuff.  Second case, rebin string present and ';' not present,
+	// so variable is not kept (marked for no use).  Third case, the rebin string present and ';' present, so variable needs to
+	// be kept and second case stuff
+	while (options->getOptionString("nominal", &nextp, &vardef)) {
 		name[0]='\0';
 		cardinality=0;
 		type=0;
@@ -241,7 +231,6 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
 		abbrev_temp[0]='\0';
 		rebin[0]='\0';
                 int count = sscanf(vardef, " %[^, \t] , %d , %d , %[^,] , %s", name, &cardinality, &type, abbrev_temp, rebin);
-		// Should probably check if the abbrev inlcudes numbers here, rather than just ignoring them
                 num_var_df++;
 
 		// *** We are temporarily allowing numbers in short names, for a project that Marty and Steve Shervais
@@ -249,7 +238,7 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
 		// Actually, I'm just adding 0-9 into the scan pattern.  Remove that part of it to return to letters only.
 		int count2 = sscanf(abbrev_temp, "%[A-Za-z0-9]", abbrev);
 		if ( (count2 != 1) || (strcmp(abbrev, abbrev_temp) != 0) ) {
-			printf("Error in variable definition. Only letters may be used in the abbreviation: %s\n", vardef);
+			printf("Error in variable definition. Only letters and numbers may be used in the abbreviation: %s\n", vardef);
 			exit(1);
 		}
 
@@ -536,9 +525,7 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                                                 for(;;){
                                                         while (*cp && isspace(*cp)) cp++;
                                                         ret=sscanf(cp,"%[^, ],%[^; ]",valp,rest_tok);
-                                                        if(ret==2||ret==1){
-                                                //if(ret==2)printf("cur_token %s and rest %s\n",valp,rest_tok);
-                                                //else if(ret ==1)printf("cur token %s",valp);
+                                                        if(ret==2||ret==1) {
                                                                 if((ch1=strchr(valp,42))!=NULL){
 								//there is a legal * and we might want do something about it
 									if(flag_old_1==1){
@@ -554,7 +541,7 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                                                                 }
                                                                 if(flag_old_1==1){
                                                                         varpt->oldnew[NEW_ROW][index]=varpt->oldnew[NEW_ROW][index-1];
-                                                                }else
+                                                                } else
 									flag_old_1=1;
 								varpt->oldnew[OLD_ROW][index]=new char[strlen(valp)+1];
 								strcpy(varpt->oldnew[OLD_ROW][index],valp);
@@ -580,9 +567,8 @@ done1:
                                 rebin[0] = '\0';
                                 pos = NULL;
                         } else {
-                                //normal case no rebinning************************normal case**************
-				//or since the variable type is 0...the rebinning string will be ignored
-                                if(type != 0) {  //Anjali
+                                // Normal case no rebinning, or since the variable type is 0, the rebinning string will be ignored.
+                                if(type != 0) {
                                         isdv = type == 2;
                                         alldv &= isdv;
                                         vars->addVariable(name, abbrev, cardinality, isdv, false);
@@ -590,7 +576,7 @@ done1:
                                         //sp_val=-1;
                                 } else {
                                         vars->markForNoUse();
-                                }   //Anjali
+                                }
                         }
                 }
         }
@@ -616,10 +602,6 @@ int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdat
 	if (fd) {
 		options->readOptions(fd);
 	}
-//        options->getOptionString("re-bin",&nextp,&val);
- //       if(strcmp(val,"Y")!=0){
- //       ocDefineVariables(options, varp);
-//	}
         ocRebinDefineVar(options, varp, &lostvarp);
 	//-- If not at end of file, there is data in this file
 	if (!feof(fd)) {
