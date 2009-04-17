@@ -39,8 +39,7 @@ public:
 	void sort(const char *attr, SortDir dir);
 	
 	//-- Static function others can use to sort model lists
-	static void sort(class ocModel** models, long modelCount,
-		const char *attr, SortDir dir);
+	static void sort(class ocModel** models, long modelCount, const char *attr, SortDir dir);
 	
 	
 	//-- Print a tabular output format.
