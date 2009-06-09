@@ -1,2 +1,3 @@
 Occam (Portland State University)
 Version {version}
+{date}
