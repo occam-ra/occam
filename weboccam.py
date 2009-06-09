@@ -9,7 +9,7 @@ from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 #import urllib2
 
-VERSION = "3.2.26"
+VERSION = "3.2.27"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
