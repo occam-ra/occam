@@ -22,25 +22,38 @@ struct LostVar{
 
 bool isLostVar(int i, LostVar ** varp, LostVar *lostvarp)
 {
-        while(lostvarp !=NULL)
-        {
-                if(lostvarp->num==i){
-                        *varp=lostvarp;
+        while(lostvarp != NULL) {
+                if(lostvarp->num == i) {
+                        *varp = lostvarp;
                         return true;
                 }
-                lostvarp=lostvarp->next;
+                lostvarp = lostvarp->next;
         }
         return false;
 }
 
-bool KeepVal(LostVar *lostvarpt,char * var){
+bool KeepVal(LostVar *lostvarpt, char * var)
+{
         int i=0,k;
-        while(lostvarpt->ValidList[i]!=NULL){
+        while(lostvarpt->ValidList[i]!=NULL) {
                 if(lostvarpt->all==1)return true;
                 else if((k=strcmp(lostvarpt->ValidList[i],var))==0)return true;
                 i++;
         }
         return false;
+}
+
+void dumpLostVars(LostVar *varp)
+{
+	int i = 0;
+	while(varp != NULL) {
+		printf("lost var #%d: %d %d\n", i, varp->num, varp->all);
+		fflush(stdout);
+		varp = varp->next;
+		i++;
+	}
+	printf("done\n");
+	fflush(stdout);
 }
 
 /*ReadData - read data tuples, one per line; return number of lines read
@@ -96,6 +109,7 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
        		                         	value = vars->getVarValueIndex(j,newvalue);
                                 		if (value < 0) {        // cardinality error
 		                                        printf("Error in data, line %d: new value exceeds cardinality of variable #%d: %s.\n", lineno, i, vars->getVariable(j)->abbrev);
+							fflush(stdout);
 							exit(1);
 		                                } else {
                                                		 values[j] = value;
@@ -107,6 +121,7 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
        		                       	value = vars->getVarValueIndex(j,cp);
                                 	if (value < 0) {        // cardinality error
 		                                printf("Error in data, Line %d: new value exceeds cardinality of variable #%d: %s.\n", lineno, i, vars->getVariable(j)->abbrev);
+						fflush(stdout);
 						exit(1);
 		                        } else {
 						values[j] = value;
@@ -118,18 +133,16 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
                 		j++;
                         } else {  //Anjali
                                 //check if it is in LostVar list, if yes then if all its values are valid then this row of table can go
-                                //otherwise mark it for being rmoved from building a key
-				//printf("variable %d is not good",i);
-				if(lostvarp!=NULL) {
-				        b_lostvar=isLostVar(i,&lostvarpt,lostvarp);
-					if(b_lostvar) {
-						int ret=sscanf(cp,"%[^\t ]",var);
-						if(ret==1) {
-							//if(lostvarpt!=NULL)printf("lostvarpt is not null\n"); //****
-							keepval=KeepVal(lostvarpt,var);
-							if(!keepval)flag=DISCARD;
+                                //otherwise mark it for being removed from building a key
+				if (lostvarp != NULL) {
+				        b_lostvar = isLostVar(i, &lostvarpt, lostvarp);
+					if (b_lostvar) {
+						int ret = sscanf(cp,"%[^\t ]", var);
+						if(ret == 1) {
+							keepval = KeepVal(lostvarpt, var);
+							if (!keepval) flag = DISCARD;
 						} else {
-							printf("something went wrong");
+							printf("something went wrong"); fflush(stdout);
 							return false;
 						}
 					}
@@ -139,7 +152,6 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
                         } //Anjali
                 }
                 j=0;
-		//		printf("variable %d is not good",i);
                 while (*cp && isspace(*cp)) cp++;
                 if (*cp) {      // there is still a tuple value on the line
                         tupleValue = (double) atof(cp);
@@ -297,11 +309,12 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                                 } else {
                                         lostvarp1->next=new LostVar;//ithis might have issues
                                         lostvarp1=lostvarp1->next;
+					lostvarp1->next=NULL;
                                 }
-                                        lostvarp1->num=num_var_df-1;
-					lostvarp1->ValidList[0]=new char[strlen(cp)+1];
-                                        strcpy(lostvarp1->ValidList[0],cp);
-                                        lostvarp1->ValidList[1]=NULL;
+                                lostvarp1->num=num_var_df-1;
+				lostvarp1->ValidList[0]=new char[strlen(cp)+1];
+                                strcpy(lostvarp1->ValidList[0],cp);
+                                lostvarp1->ValidList[1]=NULL;
 			} else if(count==5 && (type ==1 || type==2)) {
                                 //rebinning required********************rebin********************
                                 //printf("string:  %s\n",rebin);
@@ -329,6 +342,7 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                                         }else{
                                                 lostvarp1->next=new LostVar;//ithis might have issues
                                                 lostvarp1=lostvarp1->next;
+						lostvarp1->next=NULL;
                                         }
                                         lostvarp1->num=num_var_df-1;
                                         
@@ -615,7 +629,6 @@ int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdat
 		testLines = ocReadData(fd, varp, testdatap, lostvarp);
 		testdatap->sort();
 	}
-	system("date");
 	return dataLines;
 }
 
