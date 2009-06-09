@@ -1,6 +1,6 @@
 #! /pkg/python/bin/python
 
-import os, sys, cgi, sys, occam, time, string, traceback, pickle, zipfile
+import os, sys, cgi, sys, occam, time, string, traceback, pickle, zipfile, datetime
 import cgitb; cgitb.enable()
 
 from ocutils import ocUtils
@@ -53,7 +53,7 @@ def printTop(template, textFormat):
 		template.set_template('header.txt')
 	else:
 		template.set_template('header.html')
-	args = {'version':VERSION}
+	args = {'version':VERSION,'date':datetime.datetime.now().strftime("%c")}
 	template.out(args)
 
 #
