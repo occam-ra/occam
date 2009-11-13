@@ -3,7 +3,7 @@
 #ifndef OCCORE_H
 #define OCCORE_H
 
-  
+
 //-- typedef for constructing data keys - defined as a 32-bit type. A key consists
 //-- of an array of key segments.  Variable values are packed together into the key
 //-- but don't cross segment boundaries. For example, 16 3-state variables can be
@@ -17,44 +17,44 @@ typedef double ocTupleValue;
  * size information for the tuple storage.
  */
 class ocTable {
-public:
+    public:
 	//-- table types
 	enum TableType {INFO_TYPE, SET_TYPE};
 	ocTable(int keysz, long long maxTuples, TableType typ = INFO_TYPE);	// initialize the table and allocate tuple space
 	~ocTable();
 	long long size();
-	
+
 	void copy(const ocTable *from);	// copy data table
-	
+
 	//-- add or sum tuples in the table.  These take into account the type of table
 	//-- (info theoretic or set theoretic)
 	void addTuple(ocKeySegment *key, double value);	// append to end
 	void insertTuple(ocKeySegment *key, double value, long long index);	// insert in given spot
 	void sumTuple(ocKeySegment *key, double value); // add (or) this value to matching tuple
-	
+
 	//-- key and value access functions	
 	double getValue(long long index);
 	void setValue(long long index, double value);
 	ocKeySegment *getKey(long long index);
 	void copyKey(long long index, ocKeySegment *key);
-	
+
 	//-- find the given key. If matchOnly is true, -1 is returned on no match.
 	//-- if matchOnly is false, the position of the next higher tuple is returned
 	long long indexOf(ocKeySegment *key, bool matchOnly = true);	//
 	long long getTupleCount() { return tupleCount; }
 	int getKeySize()	{ return keysize; }
-	
+
 	void sort();			// sort tuples by key
 	void reset(int keysize);	// reset table to empty, but reuse the storage
-	
+
 	// dump debug output
 	void dump(bool detail = false);
-	
+
 	// normalize information-theoretic table.  No effect for set-theoretic tables.
 	// if these are counts, then the return value is the sample size
 	double normalize();
-	
-private:
+
+    private:
 	void* data;			// storage for all keys and values
 	int keysize;		// number of key segments in the key for each tuple
 	long long tupleCount;	// number of tuples in the tuple array
@@ -67,25 +67,25 @@ private:
  * slot for a variable if it is included in the mask, 1's otherwise)
  */
 class ocKey {
-public:
+    public:
 	//-- key construction and manipulation functions
-	
+
 	// build a key, setting don't care's for all variables except those provided,
 	// and setting the appropriate values where provided. Space for the key is
 	// allocated by the caller. Key points to key storage of at least keysize;
 	// varindices and varvalues are the same length and
 	static void buildKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
 		int *varindices, int *varvalues, int varcount);
-	
+
 	// build a key with a value for every variable.
 	static void buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *vars, int *varvalues);
-		
+
 	// set a single value within a key. Value can be DONT_CARE or a legal variable value.
 	static void setKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars, int index, int value);
 	// get a single value within a key. Value can be DONT_CARE or a legal variable value.
 	static int getKeyValue(ocKeySegment *key, int keysize, class ocVariableList *vars, int index);
 
-		
+
 	// compare two keys, returning -1, 0, or 1 as the first is less than, equal to, or
 	// greater than the second (lexically).
 	static int compareKeys(ocKeySegment *key1, ocKeySegment *key2, int keysize);
@@ -114,7 +114,7 @@ const int KEY_SEGMENT_BITS = 32;	// number of usable bits in a key segment
 const int MAXNAMELEN = 32;
 const int MAXABBREVLEN = 8;
 const int MAXCARDINALITY = 100;
- 
+
 const int ALL =1;
 const int REST_ALL=-1;
 const int KEEP =1;
@@ -123,37 +123,37 @@ const int DISCARD =-1;
 #define NEW_ROW 1
 
 struct ocVariable {	// internal use only - see ocVariableList
-	int cardinality;	// number of values of the variable
-	int segment;	// which ocKeySegment of the key this variable is in
-	int shift;		// starting rightmost bit position of value in segment
-	int size;		// number of bits (log2 of (cardinality+1))
-	bool dv;		// is it a dependent variable?
-	ocKeySegment mask;	// a bitmask of 1's in the bit positions for this variable
-	char name[MAXNAMELEN+1]; 	// long name of variable (max 32 chars)
-	char abbrev[MAXABBREVLEN+1];	// abbreviated name for variable
-	char* valmap[MAXCARDINALITY];	// maps input file values to nominal values
-	bool rebin; //is rebinning required for this variable
-	char * oldnew[2][MAXCARDINALITY];
-	int old_card;	
-	char *exclude;	
+    int cardinality;	// number of values of the variable
+    int segment;	// which ocKeySegment of the key this variable is in
+    int shift;		// starting rightmost bit position of value in segment
+    int size;		// number of bits (log2 of (cardinality+1))
+    bool dv;		// is it a dependent variable?
+    ocKeySegment mask;	// a bitmask of 1's in the bit positions for this variable
+    char name[MAXNAMELEN+1];	// long name of variable (max 32 chars)
+    char abbrev[MAXABBREVLEN+1];	// abbreviated name for variable
+    char* valmap[MAXCARDINALITY];	// maps input file values to nominal values
+    bool rebin; //is rebinning required for this variable
+    char * oldnew[2][MAXCARDINALITY];
+    int old_card;	
+    char *exclude;	
 
 };
 
 class ocVariableList {
-public:
+    public:
 	ocVariableList(int maxvars);
 	~ocVariableList();
 	long size();
-	
+
 	//-- addVariable - add a variable, and return the index
 	int addVariable(const char *name, const char *abbrev, int cardinality, bool dv = false, bool rebin=false, int old_card=-1);
-	
+
 	//-- get the required minimum size for keys, based on all defined variables
 	int getKeySize();
 
 	//-- get the information about a variable
 	ocVariable *getVariable(int index);
-	
+
 	//-- get the number of variables
 	int getVarCount() { return varCount; }
 
@@ -163,19 +163,19 @@ public:
 	//-- generate printable variable list (copied to str, max=maxlength)	
 	void getPrintName(char *str, int maxlength, int count, int *vars, int *state=0);
 	int getPrintLength(int count, int *vars, bool state_b=false);
-	
+
 	//-- see if this is a directed system
 	bool isDirected();
 
 	//--gets the first DV
 	int getDV();
-	
+
 	//-- generate a variable index list from a standard format name name
 	int getVariableList(const char *name, int *varlist);
 
 	//-generate a variable index and state constrain index list from a standard format name name
-	int getVar_StateList(const char *name, int *varlist, int *stlist);
-	
+	int getVarStateList(const char *name, int *varlist, int *stlist);
+
 	int getMaxAbbrevLen() { return maxAbbrevLen; }
 
 	//-- get the value index for a nominal value. If this value has been seen before,
@@ -193,19 +193,18 @@ public:
 	//-- dump debug output
 	void dump();
 
-	//Anjali
-	//checks whether this variable has to be dropped since its type is 0 or is it good 
-	int good(int i);
+	// Checks whether a variable is in use.  Returns 1 for yes, 0 for no (marked to ignore in input file).
+	int isVarInUse(int i);
 
 	//Anjali
 	//marks a particular variable as not be considered in the model
 	int markForNoUse();
 
 	//Anjali
-        //get the new rebinning value for an old one
-        int getnewvalue(int,char*,char*);
-			
-private:
+	//get the new rebinning value for an old one
+	int getNewValue(int, char*, char*);
+
+    private:
 	ocVariable *vars;
 	int varCount;		// number of variables defined so far
 	int varCountDF;		//(Anjali) original no. of variables in data file, some may be marked for no use
@@ -227,7 +226,7 @@ private:
  * The variables in a relation are always kept in sorted order.
  */
 class ocRelation {
-public:
+    public:
 	// initializes an empty relation object. The size argument is a hint as to the 
 	// number of variables to allocate space for (but relations can grow dynamically
 	// if needed).
@@ -253,83 +252,85 @@ public:
 
 	// get a single variable from its index
 	int getVariable(int index);
-	
+
 	// find a variable and return its index
 	int findVariable(int varid);
-	
+
 	// return number of variables in relation
 	int getVariableCount();
-	
+
 	// get the size of the orthogonal expansion of the projection
 	double getExpansionSize();
 
 	// sets a pointer to the table in the relation object
 	void setTable(ocTable *tbl);
-	
+
 	// returns a reference to the table for this relation, NULL if none computed yet.
 	ocTable *getTable();
 	// deletes the projection table to recover storage
-        void deleteTable();
+	void deleteTable();
 
-	
+
 	// sets/gets the state constraints for the relation
 	void setStateConstraints(class ocStateConstraint *constraints);
 	ocStateConstraint *getStateConstraints();
-	
+
 	// compare two relations; returns 0 if they are equal (have the same set
 	// of variables); otherwise returns -1 or 1 based on lexical comparison
 	// of the variable lists
 	int compare(const ocRelation *other);
 	// int compare(const ocRelation *other) {return compare(*other);}
-	
+
 	// see if one relation contains another
 	bool contains(const ocRelation *other);
-	
+
 	// see if all variables are independent
 	bool isIndOnly();
-	
+
 	// get the NC (cartesian product size)
-	long getNC();
-	
+	long long getNC();
+
 	// create a mask with 1's in the don't care slots, and zeros elsewhere
 	// this can be OR'd with a key to set all the don't care slots to DONT_CARE
 	// one form of this function copies the key, the other just returns a pointer
 	void makeMask(ocKeySegment *msk);
 	ocKeySegment *getMask();
-	
+
 	// get the key size; a convenience function for getting in from the variable list
 	int getKeySize() { return varList->getKeySize(); }
-	
+
 	// sort the variable indices
 	void sort();
 	static void sort(int *vars, int varcount);
-	
+
 	// set, get hash chain linkages
 	ocRelation *getHashNext() { return hashNext; }
 	void setHashNext(ocRelation *next) { hashNext = next; }
-	
+
 	// get the attribute list for the relation
 	class ocAttributeList *getAttributeList() { return attributeList; }
-	
+	void setAttribute(const char *name, double value);
+	double getAttribute(const char *name);
+
 	// get a printable name for the relation, using the variable abbreviations
 	const char *getPrintName(int useInverse=0);
-	
+
 	// get a tuple value from the projection table, which matches the key passed in.
 	// the key may contain don't cares but must have actual values for all the variables
 	// of this relation (otherwise zero is returned).
 	double getMatchingTupleValue(ocKeySegment *key);
-	
+
 	// dump data to stdout
 	void dump();
 	class ocStateConstraint *getStateConstraint(){return stateConstraints;}
-	
-private:
+
+    private:
 	void buildMask();		// build the variable mask from the list of variables
 
 	ocVariableList *varList;	// variable list associated with this relation
 	int *vars;		// array of variable indices
 	int *states;		//ARRAY OF STATES associated with each
-			// variable in the rel,DONT_CARE if no state specified 
+	// variable in the rel,DONT_CARE if no state specified 
 	int varCount;	// number of vars in relation
 	int maxVarCount;	// size of vars array
 	class ocTable *table;
@@ -345,12 +346,12 @@ private:
 
 /**
  * ocModel - defines a model as a list of Relations.
-*/
+ */
 
 class ocModel {
-public:
+    public:
 	// initialize model, with space for the given number of relations
-	ocModel(int size = 4);
+	ocModel(int size = 2);
 	~ocModel();
 	long size();
 
@@ -364,16 +365,18 @@ public:
 	void setFitTable(ocTable *tbl);
 	void deleteFitTable();
 	void deleteRelationLinks();
-	
+
 	// copy relation references (but not the objects)
 	void copyRelations(ocModel &model, int skip1 = -1, int skip2 = -1);
 
 	// get the attribute list for the model
 	class ocAttributeList *getAttributeList() { return attributeList; }
+	void setAttribute(const char *name, double value);
+	double getAttribute(const char *name);
 
 	// get a printable name for the relation, using the variable abbreviations
 	const char *getPrintName(int useInverse=0);
-	
+
 	// set, get hash chain linkages
 	ocModel *getHashNext() { return hashNext; }
 	void setHashNext(ocModel *next) { hashNext = next; }
@@ -381,44 +384,44 @@ public:
 	// set and get for progenitor model.  (The model from which this one was derived in a search.)
 	ocModel *getProgenitor() { return progenitor; }
 	void setProgenitor(ocModel *model) { progenitor = model; }
-	
+
 	int getID() { return ID; }
 	void setID(int number) { ID = number; }
-	
+
 	// print out model info
-	void dump();
-	
+	void dump(bool detail = false);
+
 	//state based models need to make structure matrix for Df calculation
-        void makeStructMatrix(int statespace,ocVariableList * vars,int **State_sp_Arr);	
+	void makeStructMatrix(int statespace,ocVariableList * vars,int **State_sp_Arr);	
 	int * get_indicesfromKey(ocKeySegment *key, ocVariableList *vars, int statespace,int **State_Sp_Arr, int *counter);
 
 	void printStructMatrix();
 	int **get_structMatrix(int *statespace,int* Total_const){
-		*statespace=State_Space_sz;
-		*Total_const=Total_constraints;
-		return structMatrix;};
-private:
-	ocRelation **relations;
-	ocModel *progenitor;		// the model from which this one was derived in a search
-	int ID;			// ID of the model in a search list
-	int relationCount;
-	int maxRelationCount;
-	class ocTable *fitTable;
-	class ocAttributeList *attributeList;
-	ocModel *hashNext;
-	char *printName;
-	char *inverseName;
-	int **structMatrix;
-	int Total_constraints;
-	int State_Space_sz;
+	    *statespace=State_Space_sz;
+	    *Total_const=Total_constraints;
+	    return structMatrix;};
+    private:
+	    ocRelation **relations;
+	    ocModel *progenitor;		// the model from which this one was derived in a search
+	    int ID;			// ID of the model in a search list
+	    int relationCount;
+	    int maxRelationCount;
+	    class ocTable *fitTable;
+	    class ocAttributeList *attributeList;
+	    ocModel *hashNext;
+	    char *printName;
+	    char *inverseName;
+	    int **structMatrix;
+	    int Total_constraints;
+	    int State_Space_sz;
 };
 
 
 /**
  * ocAttributeList - assciated with models and relations, an attribute carries a name and a numeric value.
-*/
+ */
 class ocAttributeList {
-public:
+    public:
 	// initialize empty attribute list
 	ocAttributeList(int size);
 	~ocAttributeList();
@@ -432,17 +435,18 @@ public:
 	int getAttributeIndex(const char *name);
 	int getAttributeCount();
 	double getAttributeByIndex(int index);
-	
+
 	// Print out values
 	void dump();
-	
-private:
+
+    private:
 	const char** names;
 	double *values;
 	int attrCount;
 	int maxAttrCount;
 };
 
+#define ATTRIBUTE_LEVEL "level"
 #define ATTRIBUTE_H "h"
 #define ATTRIBUTE_T "t"
 #define ATTRIBUTE_DF "df"
@@ -456,7 +460,7 @@ private:
 #define ATTRIBUTE_EXPLAINED_I "information"
 
 //***********************************************************************
-                                                // Junghan
+// Junghan
 #define ATTRIBUTE_AIC "aic"                     // new
 #define ATTRIBUTE_BIC "bic"                     // new
 #define ATTRIBUTE_BP_AIC "bp_aic"               // new
@@ -496,7 +500,7 @@ private:
 #define ATTRIBUTE_ALPHA "alpha"
 #define ATTRIBUTE_BETA "beta"
 #define ATTRIBUTE_INCR_ALPHA "incr_alpha"
-#define ATTRIBUTE_INCR_ALPHA_05 "incr_alpha_05"
+#define ATTRIBUTE_INCR_ALPHA_REACHABLE "incr_alpha_reachable"
 #define ATTRIBUTE_PROG_ID "prog_id"
 #define ATTRIBUTE_MAX_REL_WIDTH "max_rel_width"
 #define ATTRIBUTE_MIN_REL_WIDTH "min_rel_width"
@@ -511,37 +515,39 @@ private:
 #define ATTRIBUTE_BP_COND_DH "bp_cond_dh"
 #define ATTRIBUTE_BP_COND_PCT_DH "bp_cond_pct_dh"
 #define ATTRIBUTE_PCT_CORRECT_DATA "pct_correct_data"
+#define ATTRIBUTE_PCT_COVERAGE "pct_coverage"
 #define ATTRIBUTE_PCT_CORRECT_TEST "pct_correct_test"
+#define ATTRIBUTE_PCT_MISSED_TEST "pct_missed_test"
 
 /**
  * ocStateConstraint - defines the set of states (variable combinations) within a relation
  * whose values are fixed.
  */
 class ocStateConstraint {
-public:
+    public:
 	// initialize a set of constraints.  Size is a hint of the number needed
 	ocStateConstraint(int keysize, int size);
 	~ocStateConstraint();
-	
+
 	// add a constraint. 
 	void addConstraint(ocKeySegment *key);
-	
+
 	// get the number of constraints in the list
 	long getConstraintCount();
-	
+
 	// retrieve a constraint, given the index (0 .. constraintCount-1)
 	ocKeySegment *getConstraint(int index);
-	
+
 	// get the key size for this constraint table
 	int getKeySize();
 
-private:
+    private:
 	ocKeySegment *constraints;
 	long constraintCount;
 	long maxConstraintCount;
 	int keysize;
 };
 
-	
+
 #endif
 
