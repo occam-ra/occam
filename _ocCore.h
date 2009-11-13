@@ -32,11 +32,11 @@ bool ocContainsVariables(int varCount1, int *var1, int varCount2, int *var2);
 
 #ifdef TRACE_MEMORY
 inline void* operator new (size_t inSize) {
-	if (inSize > 1024) {
-		void *addr = __builtin_return_address(0);
-		printf ("new: [%x] size=%ld\n", addr, inSize);
-	}
-	return malloc(inSize);
+    if (inSize > 1024) {
+	void *addr = __builtin_return_address(0);
+	printf ("new: [%x] size=%ld\n", addr, inSize);
+    }
+    return malloc(inSize);
 }
 #endif
 
