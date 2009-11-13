@@ -1,15 +1,15 @@
-#! /pkg/python/bin/python
+#! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
 
-import os, sys, cgi, sys, occam, time, string, traceback, pickle, zipfile, datetime
-import cgitb; cgitb.enable()
+import os, cgi, sys, occam, time, string, traceback, pickle, zipfile, datetime
+import cgitb; cgitb.enable(display=1)
 
 from ocutils import ocUtils
-from time import clock
+#from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 #import urllib2
 
-VERSION = "3.2.27"
+VERSION = "3.2.28"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
@@ -60,7 +60,7 @@ def printTop(template, textFormat):
 #---- printTime ---- Print elapsed time
 #
 def printTime(textFormat):
-	now = time.time();
+	now = time.time()
 	elapsed_t = now - startt
 	if elapsed_t > 0:
 		if textFormat:
@@ -248,7 +248,7 @@ def actionSearch(formFields):
 	oc = ocUtils(man)
 	oc.initFromCommandLine(["",fn])
 	if formFields["datafilename"] != os.path.split(fn)[1]:
-		oc.setDataFile(os.path.split(fn)[1] + " (from " + formFields["datafilename"] + ")")
+		oc.setDataFile(os.path.split(fn)[1] + " (from: \"" + formFields["datafilename"] + "\")")
 	else:
 		oc.setDataFile(formFields["datafilename"])
 	# unused error? this should get caught by getDataFile() above
@@ -304,23 +304,41 @@ def actionSearch(formFields):
  		if searchSort == "information": searchSort = "bp_information"
 		elif searchSort == "alpha": searchSort = "bp_alpha"
 		if oc.isDirected():
-			reportvars = reportvars + ", bp_cond_pct_dh"
+		    reportvars = reportvars + ", bp_cond_pct_dh"
 		reportvars = reportvars + ", bp_aic, bp_bic"
 	else:
-		reportvars = "Level$I, h, ddf, lr, alpha, information"
-		if oc.isDirected():
-			reportvars = reportvars + ", cond_pct_dh"
-		reportvars = reportvars + ", aic, bic"
+		reportvars = "Level$I"
+		if formFields.get("show_h", ""):
+		    reportvars = reportvars + ", h"
+		reportvars = reportvars + ", ddf"
+		if formFields.get("show_dlr", ""):
+		    reportvars = reportvars + ", lr"
+		if formFields.get("show_alpha", "") or searchSort == "alpha" or reportSort == "alpha":
+		    reportvars = reportvars + ", alpha"
+		reportvars = reportvars + ", information"
 
-	if formFields.get("showincr_a", ""):
+		if oc.isDirected():
+		    if formFields.get("show_pct_dh", ""):
+			reportvars = reportvars + ", cond_pct_dh"
+		if formFields.get("show_aic", "") or searchSort == "aic" or reportSort == "aic":
+		    reportvars = reportvars + ", aic"
+		if formFields.get("show_bic", "") or searchSort == "bic" or reportSort == "bic":
+		    reportvars = reportvars + ", bic"
+
+	if formFields.get("show_incr_a", ""):
 		reportvars = reportvars + ", incr_alpha, prog_id"
 			
-	if formFields.get("showbp", "") and formFields["evalmode"] <> "bp":
+	if formFields.get("show_bp", "") and formFields["evalmode"] <> "bp":
 		reportvars = reportvars + ", bp_t"
 
-	if formFields.get("showpct", ""):
+	if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
 		reportvars = reportvars + ", pct_correct_data"
-		if oc.hasTestData(): reportvars = reportvars + ", pct_correct_test"
+		if formFields.get("show_pct_cover", ""):
+		    reportvars = reportvars + ", pct_coverage"
+		if oc.hasTestData():
+		    reportvars = reportvars + ", pct_correct_test"
+		    if formFields.get("show_pct_miss", ""):
+			reportvars = reportvars + ", pct_missed_test"
 
 	oc.setReportSortName(reportSort)
  	oc.setSortName(searchSort)
@@ -337,7 +355,7 @@ def actionSearch(formFields):
 #
 #---- actionShowLog ---- show job log given email
 def actionShowLog(formFields):
-	email = formFields.get("email", "")
+	email = formFields.get("email", "").lower()
 	if email:
 		printBatchLog(email)
 
@@ -358,7 +376,7 @@ def getFormFields(form):
 			formFields['datafilename'] = form[key].filename
 			formFields['data'] = form[key].value
 		else:
-			formFields[key] = form[key].value
+			formFields[key] = form.getfirst(key)
 	return formFields
 		
 #
@@ -371,7 +389,8 @@ def startBatch(formFields):
 	ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
 	csvname = getDataFileName(formFields, true) + '.csv'
 	datafilename = getDataFileName(formFields, false)
-	toaddress =  formFields["batchOutput"]
+	toaddress =  formFields["batchOutput"].lower()
+	emailSubject = formFields["emailSubject"]
 	f = open(ctlfilename, 'w', 0777)
 	pickle.dump(formFields, f)
 	f.close()
@@ -381,7 +400,7 @@ def startBatch(formFields):
 
 	print "Process ID:", os.getpid(), "<p>"
 
-	cmd = 'nohup "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname)
+	cmd = 'nohup "%s" "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname, emailSubject.encode("hex"))
 	result = os.system(cmd)
 	print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
 
@@ -410,17 +429,18 @@ def getBatchControls():
 #---- printBatchLog ----
 #
 def printBatchLog(email):
-	print "<P>"
-	# perhaps we should do some check that this directory exists?
-	file = os.path.join("batchlogs", email)
-	try:
-		f = open(file)
-		logcontents = f.readlines()
-		theLog = string.join(logcontents, '<BR>')
-		f.close
-		print theLog
-	except:
-		print "no log file found for %s<br>" % email
+    email = email.lower()
+    print "<P>"
+    # perhaps we should do some check that this directory exists?
+    file = os.path.join("batchlogs", email.lower())
+    try:
+	f = open(file)
+	logcontents = f.readlines()
+	theLog = string.join(logcontents, '<BR>')
+	f.close
+	print theLog
+    except:
+	print "no log file found for %s<br>" % email
 
 #---- main script ----
 #
