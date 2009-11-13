@@ -4,6 +4,7 @@
 # arguments:
 # 1 addressee
 # 2 filename
+# 3 optional subject line addendum
 
 import sys, os, string, smtplib, mimetools, MimeWriter, cStringIO
 import socket
@@ -16,7 +17,10 @@ def sendMessage(toaddr, msg):
 def buildMessage(infile, filename):
 	outfd = cStringIO.StringIO()
 	writer = MimeWriter.MimeWriter(outfd)
-	writer.addheader('Subject', 'Occam Results: ' + filename)
+	if emailSubject != "":
+	    writer.addheader('Subject', 'Occam Results: ' + emailSubject)
+	else:
+	    writer.addheader('Subject', 'Occam Results: ' + filename)
 	writer.flushheaders();
 	writer.startmultipartbody('mixed')
 	writer.flushheaders()
@@ -37,6 +41,7 @@ def buildMessage(infile, filename):
 
 toaddr = sys.argv[1]
 filename = sys.argv[2]
+emailSubject = sys.argv[3].decode("hex")
 msg = buildMessage(sys.stdin, filename)
 sendMessage(toaddr, msg)
 
