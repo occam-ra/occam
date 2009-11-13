@@ -1110,7 +1110,7 @@ void ocVBMManager::printBasicStatistics()
     //double h;
     if (ocReport::isHTMLMode()) {
 	header = "<br><br><table border=0 cellpadding=0 cellspacing=0>\n";
-	beginLine = "<tr><td width=16%>";
+	beginLine = "<tr><td width=20%>";
 	separator = "</td><td>";
 	endLine = "</td></tr>\n";
 	footer = "</table>";
