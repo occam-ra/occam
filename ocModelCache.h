@@ -13,10 +13,10 @@
  */
 #define MODELCACHE_HASHSIZE 1001
 class ocModelCache {
-public:
+    public:
 	//-- construct an empty relation cache
 	ocModelCache();
-	
+
 	//-- destroy relation cache.  This also deletes all the models held in the cache.
 	~ocModelCache();
 
@@ -25,7 +25,7 @@ public:
 	//-- addModel - put a new relation in the cache. If a matching model already
 	//-- exists, an error is returned.
 	bool addModel(class ocModel *model);
-	
+
 	//-- deleteModel - deletes a model from the cache.
 	//-- returns true if successful, false if not found.
 	bool deleteModel(class ocModel *model);
@@ -33,10 +33,10 @@ public:
 	//-- findModel - find a model in the cache.  Null is returned if the given
 	//-- model doesn't exist.
 	class ocModel *findModel(const char *name);
-	
+
 	void dump();
-	
-private:
+
+    private:
 	class ocModel **hash;
 };
 

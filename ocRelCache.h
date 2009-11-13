@@ -14,10 +14,10 @@
  */
 #define RELCACHE_HASHSIZE 1001
 class ocRelCache {
-public:
+    public:
 	//-- construct an empty relation cache
 	ocRelCache();
-	
+
 	//-- destroy relation cache.  This also deletes all the relations held in the cache.
 	~ocRelCache();
 
@@ -25,18 +25,18 @@ public:
 
 	//-- delete projection tables from all relations in cache
 	void deleteTables();
-	
+
 	//-- addRelation - put a new relation in the cache. If a matching relation already
 	//-- exists, an error is returned.
 	bool addRelation(class ocRelation *rel);
-	
+
 	//-- findRelation - find a relation in the cache.  Null is returned if the given
 	//-- relation doesn't exist.
 	class ocRelation *findRelation(ocKeySegment *mask, int keysize);
-	
+
 	void dump();
-	
-private:
+
+    private:
 	class ocRelation **hash;
 };
 

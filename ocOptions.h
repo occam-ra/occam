@@ -15,30 +15,29 @@
  * legal options and values, as well as the current options.
  */
 class ocOptions {
-public:
+    public:
 	ocOptions();
 	~ocOptions();
 	//-- set up options definitions.  First the option name is added,
 	//-- then any values for that option.  An option with no values
 	//-- is a boolean (on/off) value.  An option whose value is '#'
 	//-- has a numeric value.
-	struct ocOptionDef *addOptionName(const char *name, const char *abbrev,
-		const char *tip, bool multi=false);
+	struct ocOptionDef *addOptionName(const char *name, const char *abbrev, const char *tip, bool multi=false);
 	void addOptionValue(struct ocOptionDef *option, const char *value, const char *tip);
 	ocOptionDef *findOptionByName(const char *name);
 	ocOptionDef *findOptionByAbbrev(const char *abbrev);
-	
+
 	//-- set options based on command arguments or an input file
 	bool setOptions(int argc, char **argv);
 	bool readOptions(FILE *fd);
 
 	//-- line reader function; for use by other input services
 	static bool getLine(FILE *fd, char *line, int *lineno);
-	
+
 	//-- set individual options
 	bool setOptionString(ocOptionDef *def, const char *value);
 	bool setOptionFloat(ocOptionDef *def, double nvalue);
-	
+
 	//-- get option. If next == NULL, the first (or only) setting of the option
 	//-- is found.  For multivalued options, pass in the argument as returned,
 	//-- e.g.:
@@ -46,13 +45,13 @@ public:
 	//-- while (getOption(name, &next, &value)) { ... do something with value ... }
 	bool getOptionString(const char *name, void **next, const char **value);
 	bool getOptionFloat(const char *name, void **next, double *nvalue);
-	
+
 	//-- write options to a file
 	void write(FILE *fd = NULL, bool printHTML=false);
 
 	struct ocOptionDef *defaultOptDef;
 
-private:
+    private:
 	//-- both of these are singly linked lists.
 	struct ocOptionDef *defs;
 	struct ocOption *options;
