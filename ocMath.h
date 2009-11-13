@@ -81,8 +81,7 @@ double csa (double x, double df);
 double gammds (double y, double p, int *ifault);
 double ppchi (double p, double df, int *ifault);
 double anorm (double x, int upper);
-unsigned chistat (unsigned ntab, double* obs, 
-		  double* fit, double* g2_ptr, double* p2_ptr);
+unsigned chistat (unsigned ntab, double* obs, double* fit, double* g2_ptr, double* p2_ptr);
 
 
 #endif
