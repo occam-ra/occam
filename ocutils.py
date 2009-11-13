@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! python
 ##--
 # ocutils - utility scripts for common operations,
 # such as processing old format occam files
@@ -221,8 +221,6 @@ class ocUtils:
 					key = -key;
 				heapq.heappush(newModelsHeap, (key , newModel))
 				addCount = addCount + 1;
-				newModel.deleteFitTable()	#recover fit table memory
-				newModel.deleteRelationLinks()	#recover relation link memory
 			else:
 				if self.__IncrementalAlpha:
 					# this model has been made already, but this progenitor might lead to a better Incr.Alpha
@@ -383,6 +381,7 @@ class ocUtils:
 					self.__manager.computeIncrementalAlpha(model)
 				self.__nextID = self.__nextID + 1
 				model.setID(self.__nextID)
+				model.deleteFitTable()	#recover fit table memory
 
 				self.__report.addModel(model)
 			oldModels = newModels
@@ -507,7 +506,10 @@ class ocUtils:
 			self.printOption("Models to consider", self.__searchFilter)
 			self.printOption("Search width", self.__searchWidth)
 			self.printOption("Search levels", self.__searchLevels)
-			self.printOption("Sort by", self.__sortName)
+			self.printOption("Search sort by", self.__sortName)
+			self.printOption("Search preference", self.__searchSortDir)
+			self.printOption("Report sort by", self.__reportSortName)
+			self.printOption("Report preference", self.__sortDir)
 		if self.__HTMLFormat:
 			print "</table>"
 
