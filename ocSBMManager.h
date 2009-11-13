@@ -19,28 +19,25 @@
  * - calculation of various parameters for a table or model
  * - determination if a model contains loops
  */ 
- class ocSBMManager : public ocManagerBase {
- public:
- 	//-- create an ocManagerBase object, supplying it with a variable list and a table
+class ocSBMManager : public ocManagerBase {
+    public:
+	//-- create an ocManagerBase object, supplying it with a variable list and a table
 	//-- of input data.  Typically an application will read the input data and variable
 	//-- definitions, and then construct the appropriate manager.
 	ocSBMManager(ocVariableList *vars, ocTable *input);
 	ocSBMManager();
 
-	
 	// initialize an ocManagerBase object, reading in standard options and data files.
 	bool initFromCommandLine(int argc, char **argv);
-	
+
 	//-- delete this object
 	virtual ~ocSBMManager();
-	
-		
-	  
+
 	//-- make the top and bottom reference models, given a relation which represents
 	//-- the saturated model. This function also sets the default reference model based
 	//-- on whether the system is directed or undirected.
 	void makeReferenceModels(ocRelation *top);
-	
+
 	//-- return top, bottom, or default reference
 	ocModel *getTopRefModel() { return topRef; }
 	ocModel *getBottomRefModel() { return bottomRef; }
@@ -50,7 +47,7 @@
 
 	//-- set ref model
 	ocModel *setRefModel(const char *name);
-	
+
 	//-- compute various measures. These generally involve the top and/or bottom
 	//-- reference models, so makeReferenceModels must be called before any of
 	//-- these are used.
@@ -61,26 +58,19 @@
 	//-- flag to indicate whether to make projections on all relations
 	void setMakeProjection(bool proj) { projection = proj; }
 	bool makeProjection() { return projection; }
-	
 
 	//-- compute basic informational statistics
-
 	void computeInformationStatistics(ocModel *model);
 
-
-
 	//-- compute DF and related statistics
-
 	void computeDFStatistics(ocModel *model);
-
-
 
 	//-- compute log likelihood statistics
 	void computeL2Statistics(ocModel *model);
-	
+
 	//-- compute Pearson statistics
 	void computePearsonStatistics(ocModel *model);
-	
+
 	//-- compute dependent variable statistics
 	void computeDependentStatistics(ocModel *model);
 
@@ -92,17 +82,17 @@
 	enum RelOp { LESSTHAN, EQUALS, GREATERTHAN };
 	void setFilter(const char *attrname, double attrvalue, RelOp op);
 	virtual bool applyFilter(ocModel *model);
-	
+
 	//-- Sort definitions
 	void setSortAttr(const char *name);
 	const char *getSortAttr() { return sortAttr; }
 	void setSortDirection(int dir) { sortDirection = dir; }
 	int getSortDirection () { return sortDirection; }
-	
+
 	//-- Single model reports. For multi-model reports see ocReport.h
 	void printFitReport(ocModel *model, FILE *fd);
 
-private:	// data
+    private:	// data
 	bool projection;
 	char *filterAttr;
 	double filterValue;
@@ -110,9 +100,8 @@ private:	// data
 	int sortDirection;
 	RelOp filterOp;
 
-	
-  };
- 
- #endif
- 
+};
+
+#endif
+
 

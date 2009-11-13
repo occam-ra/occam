@@ -19,36 +19,35 @@
  * - calculation of various parameters for a table or model
  * - determination if a model contains loops
  */ 
- class ocVBMManager : public ocManagerBase {
- public:
- 	//-- create an ocManagerBase object, supplying it with a variable list and a table
+class ocVBMManager : public ocManagerBase {
+    public:
+	//-- create an ocManagerBase object, supplying it with a variable list and a table
 	//-- of input data.  Typically an application will read the input data and variable
 	//-- definitions, and then construct the appropriate manager.
 	ocVBMManager(ocVariableList *vars, ocTable *input);
 	ocVBMManager();
 
-	
 	// initialize an ocManagerBase object, reading in standard options and data files.
 	bool initFromCommandLine(int argc, char **argv);
-	
+
 	//-- delete this object
 	virtual ~ocVBMManager();
-	
+
 	//-- return all the child relations of the given relation.  The children array
 	//-- must have been preallocated, of size at least the number of variables in
 	//-- the relation (this is the number of children). Projections are created, if
 	//-- indicated
 	void makeAllChildRelations(ocRelation *rel, ocRelation **children, bool makeProject = false);
-		
+
 	//-- make a child model of a given model, by removing a relation and then adding back
 	//-- in all its children
 	ocModel *makeChildModel(ocModel *model, int remove, bool* fromCache = 0, bool makeProject = false);
-	  
+
 	//-- make the top and bottom reference models, given a relation which represents
 	//-- the saturated model. This function also sets the default reference model based
 	//-- on whether the system is directed or undirected.
 	void makeReferenceModels(ocRelation *top);
-	
+
 	//-- return top, bottom, or default reference
 	ocModel *getTopRefModel() { return topRef; }
 	ocModel *getBottomRefModel() { return bottomRef; }
@@ -56,7 +55,7 @@
 
 	//-- set ref model
 	ocModel *setRefModel(const char *name);
-	
+
 	//-- compute various measures. These generally involve the top and/or bottom
 	//-- reference models, so makeReferenceModels must be called before any of
 	//-- these are used.
@@ -78,7 +77,7 @@
 	//-- flag to indicate whether to make projections on all relations
 	void setMakeProjection(bool proj) { projection = proj; }
 	bool makeProjection() { return projection; }
-	
+
 	//-- get/set search object
 	class ocSearchBase *getSearch() { return search; }
 	void setSearch(const char *name);
@@ -97,10 +96,10 @@
 
 	//-- compares a new progenitor to an existing one, so the best is kept
 	void compareProgenitors(ocModel *model, ocModel *newProgen);
-	
+
 	//-- compute Pearson statistics
 	void computePearsonStatistics(ocModel *model);
-	
+
 	//-- compute dependent variable statistics
 	void computeDependentStatistics(ocModel *model);
 
@@ -109,7 +108,7 @@
 
 	//-- compute all statistics based on BP_T
 	void computeBPStatistics(ocModel *model);
-	
+
 	//-- compute percentage correct of a model for adirected system
 	void computePercentCorrect(ocModel *model);
 
@@ -118,16 +117,16 @@
 	enum RelOp { LESSTHAN, EQUALS, GREATERTHAN };
 	void setFilter(const char *attrname, double attrvalue, RelOp op);
 	virtual bool applyFilter(ocModel *model);
-	
+
 	//-- Sort definitions
 	void setSortAttr(const char *name);
 	const char *getSortAttr() { return sortAttr; }
 	void setSortDirection(int dir) { sortDirection = dir; }
 	int getSortDirection () { return sortDirection; }
-	
+
 	//-- Single model reports. For multi-model reports see ocReport.h
 	void printFitReport(ocModel *model, FILE *fd);
-	
+
 	void printBasicStatistics();
 
 	//-- Get predicting variables, for a model of adependent system.
@@ -136,9 +135,9 @@
 	//-- the varindices arg is filled with the variable indices;
 	//-- it needs to have been allocated large enough.
 
-        void calculateBP_AicBic(ocModel *model, ocAttributeList *attrs);
+	void calculateBP_AicBic(ocModel *model);
 
-private:	// data
+    private:	// data
 	bool projection;
 	class ocSearchBase *search;
 	char *filterAttr;
@@ -148,19 +147,19 @@ private:	// data
 	RelOp filterOp;
 	int searchDirection;
 	int useInverseNotation;
-	
-        bool firstCome;
+
+	bool firstCome;
 	bool firstComeBP;
-        double refer_AIC;
-        double refer_BIC;
-        double refer_BP_AIC;
-        double refer_BP_BIC;
+	double refer_AIC;
+	double refer_BIC;
+	double refer_BP_AIC;
+	double refer_BP_BIC;
 
 	// Called by computeDDF to build a list of the relations that differ between two models.
 	void buildDDF(ocRelation *rel, ocModel *loModel, ocModel *diffModel, bool directed);
 	int DDFMethod;	// method to use for computing DDF. 0=new (default); 1=old
-  };
- 
- #endif
- 
+};
+
+#endif
+
 

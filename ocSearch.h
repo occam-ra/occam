@@ -5,62 +5,62 @@
 #include "ocSearchBase.h"
 
 class ocSearchFullDown : public ocSearchBase {
-public:
- 	ocSearchFullDown() {};
- 	virtual ~ocSearchFullDown() {};
+    public:
+	ocSearchFullDown() {};
+	virtual ~ocSearchFullDown() {};
 	ocModel **search(ocModel *start);
 	static ocSearchBase *make() { return new ocSearchFullDown(); }
 };
 
 class ocSearchFullUp : public ocSearchBase {
-public:
- 	ocSearchFullUp(): parentList(0), parentListCount(0), parentListMax(0) {};
+    public:
+	ocSearchFullUp(): parentList(0), parentListCount(0), parentListMax(0) {};
 	virtual ~ocSearchFullUp() {};
 	ocModel **search(ocModel *start);
 	void makeCandidate(struct SearchStackEntry *stack, int top, ocModel *start);
 	static ocSearchBase *make() { return new ocSearchFullUp(); }
-	
-protected:
+
+    protected:
 	ocModel **parentList;
 	long parentListCount;
 	long parentListMax;
 };
 
 class ocSearchLooplessDown : public ocSearchBase {
-public:
- 	ocSearchLooplessDown() {};
+    public:
+	ocSearchLooplessDown() {};
 	virtual ~ocSearchLooplessDown() {};
 	ocModel **search(ocModel *start);
 	static ocSearchBase *make() { return new ocSearchLooplessDown(); }
-	
+
 };
 
 class ocSearchLooplessUp : public ocSearchBase {
-public:
- 	ocSearchLooplessUp() {};
+    public:
+	ocSearchLooplessUp() {};
 	virtual ~ocSearchLooplessUp() {};
 	ocModel **search(ocModel *start);
 	static ocSearchBase *make() { return new ocSearchLooplessUp(); }
-	
+
 };
 
 class ocSearchDisjointUp : public ocSearchBase {
-public:
- 	ocSearchDisjointUp() {};
+    public:
+	ocSearchDisjointUp() {};
 	virtual ~ocSearchDisjointUp() {};
 	ocModel **search(ocModel *start);
 	static ocSearchBase *make() { return new ocSearchDisjointUp(); }
-	
+
 };
 
 
 class ocSearchChain : public ocSearchBase {
-public:
- 	ocSearchChain() {};
+    public:
+	ocSearchChain() {};
 	virtual ~ocSearchChain() {};
 	ocModel **search(ocModel *start);
 	static ocSearchBase *make() { return new ocSearchChain(); }
-protected:
+    protected:
 	bool makeChainModels();
 	int varCount;	// variables in model
 	int slot;		// next position in models

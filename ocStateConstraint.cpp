@@ -20,52 +20,52 @@
 
 ocStateConstraint::ocStateConstraint(int keysz, int size)
 {
-	keysize = keysz;
-	maxConstraintCount = size;
-	constraintCount = 0;
-	constraints = new ocKeySegment[keysize * maxConstraintCount];
-}
-	
-	
-ocStateConstraint::~ocStateConstraint()
-{
-	// delete storage
-	delete constraints;
+    keysize = keysz;
+    maxConstraintCount = size;
+    constraintCount = 0;
+    constraints = new ocKeySegment[keysize * maxConstraintCount];
 }
 
-	
+
+ocStateConstraint::~ocStateConstraint()
+{
+    // delete storage
+    delete constraints;
+}
+
+
 // add a constraint. 
 void ocStateConstraint::addConstraint(ocKeySegment *key)
 {
-	const int FACTOR = 2;
-	while (constraintCount >= maxConstraintCount) {
-		constraints = (ocKeySegment*) growStorage(constraints, keysize*maxConstraintCount*sizeof(ocKeySegment), FACTOR);
-		maxConstraintCount *= FACTOR;
-	}
-	ocKeySegment *addr = keyAddr(constraintCount);	// get the address of the next key
-	memcpy(addr, key, keysize*sizeof(ocKeySegment)); // and copy the new one
-	constraintCount++;
+    const int FACTOR = 2;
+    while (constraintCount >= maxConstraintCount) {
+	constraints = (ocKeySegment*) growStorage(constraints, keysize*maxConstraintCount*sizeof(ocKeySegment), FACTOR);
+	maxConstraintCount *= FACTOR;
+    }
+    ocKeySegment *addr = keyAddr(constraintCount);	// get the address of the next key
+    memcpy(addr, key, keysize*sizeof(ocKeySegment)); // and copy the new one
+    constraintCount++;
 }
 
 
 // get the number of constraints in the list
 long ocStateConstraint::getConstraintCount()
 {
-	return constraintCount;
+    return constraintCount;
 }
 
-	
+
 // retrieve a constraint, given the index (0 .. constraintCount-1)
 ocKeySegment *ocStateConstraint::getConstraint(int index)
 {
-	return (index < constraintCount) ? keyAddr(index) : NULL;
+    return (index < constraintCount) ? keyAddr(index) : NULL;
 }
 
 
 // get the key size for this constraint table
 int ocStateConstraint::getKeySize()
 {
-	return keysize;
+    return keysize;
 }
 
 
