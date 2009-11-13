@@ -85,10 +85,10 @@
 				During Search, Sort By:
 			</TD>
 			<TD>
-				<INPUT type="radio" checked name="sortby" value="information">Information
-				<INPUT type="radio" name="sortby" value="alpha">Alpha
-				<INPUT type="radio" name="sortby" value="pct_correct_data">% Correct
-				<INPUT type="radio" name="sortby" value="bic">BIC
+				<INPUT type="radio" checked name="sortby" value="information">Information&nbsp;
+				<INPUT type="radio" name="sortby" value="alpha">Alpha&nbsp;
+				<INPUT type="radio" name="sortby" value="pct_correct_data">% Correct&nbsp;
+				<INPUT type="radio" name="sortby" value="bic">BIC&nbsp;
 				<INPUT type="radio" name="sortby" value="aic">AIC
 			</TD>
 		</TR>
@@ -114,11 +114,6 @@
 			<TD>
 				<INPUT type="text" size="4" name="searchlevels" value="7">&nbsp;&nbsp;(leave blank to use settings from data file)</TD>
 		</TR>
-<!--		<TR>
-			<TD>dDF Calculation:</TD>
-			<TD><input type="radio" name="ddfmethod" value="0" checked>New method
-				<input type="radio" name="ddfmethod" value="1">Old method</TD>
-		</TR> -->
 		<TR>
 			<TD colspan="3">
 				<HR>
@@ -134,19 +129,17 @@
 				In Report, Sort By:
 			</TD>
 			<TD colspan="2">
-				<INPUT type="radio" checked name="sortreportby" value="information">Information
-				<INPUT type="radio" name="sortreportby" value="alpha">Alpha
-				<INPUT type="radio" name="sortreportby" value="ddf">dDF
-				<INPUT type="radio" name="sortreportby" value="level">Level
-				<INPUT type="radio" name="sortreportby" value="pct_correct_data">% Correct
-				<INPUT type="radio" name="sortreportby" value="bic">BIC
+				<INPUT type="radio" checked name="sortreportby" value="information">Information&nbsp;
+				<INPUT type="radio" name="sortreportby" value="alpha">Alpha&nbsp;
+				<INPUT type="radio" name="sortreportby" value="ddf">dDF&nbsp;
+				<INPUT type="radio" name="sortreportby" value="level">Level&nbsp;
+				<INPUT type="radio" name="sortreportby" value="pct_correct_data">% Correct&nbsp;
+				<INPUT type="radio" name="sortreportby" value="bic">BIC&nbsp;
 				<INPUT type="radio" name="sortreportby" value="aic">AIC
 			</TD>
 		</TR>
 		<TR>
-			<TD>
-				In Report, Sort:
-			</TD>
+			<TD>In Report, Sort:</TD>
 			<TD>
 				<INPUT type="radio" checked name="sortdir" value="descending">Descending
 				&nbsp;&nbsp;&nbsp;
@@ -154,46 +147,42 @@
 			</TD>
 		</TR>
 		<TR>
-		 	<TD>
-			 	Add to Report:
-			</TD>
-			<TD>
-			 	<INPUT type="checkbox" name="showbp" value="yes">BP-based Transmission
-			</TD>
+		 	<TD>Include in Report:</TD>
+			<TD><INPUT type="checkbox" name="show_h" value="yes" checked>H&nbsp;
+			    <INPUT type="checkbox" name="show_dlr" value="yes" checked>dLR&nbsp;
+			    <INPUT type="checkbox" name="show_alpha" value="yes" checked>Alpha&nbsp;
+			    <INPUT type="checkbox" name="show_pct_dh" value="yes" checked>% dH(DV)&nbsp;
+			    <INPUT type="checkbox" name="show_aic" value="yes" checked>dAIC&nbsp;
+			    <INPUT type="checkbox" name="show_bic" value="yes" checked>dBIC</TD>
 		</TR>
 		<TR>
 		 	<TD>&nbsp;</TD>
-			<TD><INPUT type="checkbox" name="showincr_a" value="yes">Incremental Alpha</TD>
+			<TD><INPUT type="checkbox" name="show_bp" value="yes">BP-based Transmission&nbsp;
+			    <INPUT type="checkbox" name="show_incr_a" value="yes">Incremental Alpha</TD>
 		</TR>
 		<TR>
 		 	<TD>&nbsp;</TD>
-			<TD><INPUT type="checkbox" name="showpct" value="yes">Percent Correct</TD>
+			<TD><INPUT type="checkbox" name="show_pct" value="yes">% Correct&nbsp;
+			    <INPUT type="checkbox" name="show_pct_cover" value="yes">% Coverage of Data&nbsp;
+			    <INPUT type="checkbox" name="show_pct_miss" value="yes">% Missing in Test</TD>
 		</TR>
 		<TR>
-			<TD colspan="2">
-				<INPUT type="checkbox" name='format' value='y'>Return data in spreadsheet format
-			</TD>
+			<TD colspan="2"><INPUT type="checkbox" name='format' value='y'>Return data in spreadsheet format</TD>
 		</TR>
 		<TR>
-			<TD colspan="2">
-				<INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings
-			</TD>
+			<TD colspan="2"><INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings</TD>
 		</TR>
 		<TR>
-			<TD colspan="2">
-				<INPUT type="checkbox" name='inversenotation' value='y'>Use inverse notation for models
-			</TD>
+			<TD colspan="2"><INPUT type="checkbox" name='inversenotation' value='y'>Use inverse notation for models</TD>
 		</TR>
 		<TR>
-			<TD>
-				Run in Background, Email Results To:
-			</TD>
-			<TD>
-				<INPUT type="text" name="batchOutput" size="50">
-			</TD>
-			<TD>
-				<INPUT type="SUBMIT" value="Send">
-			</TD>
+			<TD>Run in Background, Email Results To:</TD>
+			<TD><INPUT type="text" name="batchOutput" size="50"></TD>
+		</TR>
+		<TR>
+			<TD>Subject line for email (optional):</TD>
+			<TD><INPUT type"text" name="emailSubject" size="50"></TD>						    
+			<TD><INPUT type="SUBMIT" value="Send"></TD>
 		</TR>
 	</table>
 <input type="hidden" name="action" value="search">
