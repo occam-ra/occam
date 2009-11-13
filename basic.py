@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! python
 import pdb
 import os, sys
 #sys.path.append("/www")
@@ -65,6 +65,7 @@ util.setUseInverseNotation(0)
 # Set the start model for search [top, bottom, default, a specific model].
 # Skip this to use the model set in the data file.
 util.setStartModel("bottom")
+#util.setStartModel("IV:A38Z")
 
 # Set the ref model [top, bottom, default, a specific model].
 util.setRefModel("default")
@@ -84,7 +85,7 @@ util.setReportSortName("bic")
 
 # Set the model attribute on which sorting is done is done.  This controls the selection
 # of "best models" during search. It can also control reporting (see setReportSortName, below).
-util.setSortName("information")
+util.setSortName("bic")
 
 util.setDDFMethod(0)
 
@@ -94,8 +95,8 @@ util.setDDFMethod(0)
 #util.setReportVariables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
 #util.setNoIPF(1)
 # For ref=bottom, use something like this:
-#util.setReportVariables("Level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
-util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, pct_correct_data")
+util.setReportVariables("Level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
+#util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, pct_correct_data")
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
