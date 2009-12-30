@@ -3,6 +3,7 @@
 #ifndef OCCORE_H
 #define OCCORE_H
 
+#include <limits.h>
 
 //-- typedef for constructing data keys - defined as a 32-bit type. A key consists
 //-- of an array of key segments.  Variable values are packed together into the key
@@ -104,6 +105,8 @@ class ocKey {
 
 const int DONT_CARE = 0xffffffff;	// all bits on
 const int KEY_SEGMENT_BITS = 32;	// number of usable bits in a key segment
+//const int DONT_CARE = ULONG_MAX;	// all bits on
+//const int KEY_SEGMENT_BITS = sizeof(ocKeySegment) * 8;	// number of usable bits in a key segment
 
 
 /**
