@@ -107,8 +107,7 @@ int ocKey::copyKey(ocKeySegment *key1, ocKeySegment *key2, int keysize)
 /**
  * buildMask - create a key with all 0's in included variables, 1's elsewhere
  */
-void ocKey::buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars,
-	int *varindices, int varcount)
+void ocKey::buildMask(ocKeySegment *mask, int keysize, class ocVariableList *vars, int *varindices, int varcount)
 {
     //-- start with all DONT_CARE values
     int i;
