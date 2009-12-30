@@ -127,7 +127,8 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
 	}
     }
     // build a mask with bits in the variable positions
-    varp->mask = ((1 << varp->size) - 1) << varp->shift;	// 1's in the var positions
+    ocKeySegment keytemp = 1;
+    varp->mask = ((keytemp << varp->size) - 1) << varp->shift;	// 1's in the var positions
 
     // clear the value map
     memset(varp->valmap, 0, MAXCARDINALITY * sizeof(const char *));
@@ -231,7 +232,7 @@ void ocVariableList::dump()
     printf("\tDV\tCard\tSeg\tSiz\tShft\tName\t\tAbb\tMask\n");
     for (int i = 0; i < varCount; i++) {
 	ocVariable *v = vars + i;
-	printf("\t%d\t%d\t%d\t%d\t%d\t%8s\t%s\t%016lx\t", v->dv, v->cardinality, v->segment, v->size, v->shift, v->name, v->abbrev, v->mask);
+	printf("\t%d\t%d\t%d\t%d\t%d\t%8s\t%s\t%0*lx\t", v->dv, v->cardinality, v->segment, v->size, v->shift, v->name, v->abbrev, sizeof(ocKeySegment)*2, v->mask);
 	for(int j=0; j < v->cardinality; j++) {
 	    printf("%s\t", v->valmap[j]);
 	}
@@ -241,7 +242,6 @@ void ocVariableList::dump()
     for (int i = 0; i < noUseMaskSize; i++)
 	noUseMask[i] ? printf("1") : printf("0");
     printf("\n");
-    //	printf("%d %d %d\n", sizeof(int), sizeof(long), sizeof(long long));
 }
 
 
