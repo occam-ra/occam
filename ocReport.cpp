@@ -139,7 +139,7 @@ void ocReport::setAttributes(const char *attrlist)
     for(;;) {
 	while (isspace(*cp)) cp++;
 	cpcomma = strchr(cp, ',');
-	if (cpcomma == 0) cpcomma = cp + strlen(cp);	// cpcomma points to null byte
+	if (cpcomma == NULL) cpcomma = cp + strlen(cp);	// cpcomma points to null byte
 	cpend = cpcomma - 1;
 	while (isspace(*cpend)) cpend--;
 	char *newAttr = new char[cpend - cp + 2];	//allow for null
@@ -434,7 +434,7 @@ void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID, bool isOddR
 	if (fmt == NULL) {
 	    // get format info from name, if present
 	    const char *pct = strchr(attrs[a], '$');
-	    fmt = (pct && toupper(*(pct+1)) == 'I') ? "%14.0f" : "%12f";
+	    fmt = (pct!=NULL && toupper(*(pct+1)) == 'I') ? "%14.0f" : "%12f";
 	}
 	double attr = model->getAttribute(attrs[a]);
 	// -1 means uninitialized, so don't print
@@ -1085,7 +1085,6 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	dv_ccount += snprintf(dv_header + dv_ccount, 100 - dv_ccount, "%s", dv_label[dv_order[i]]);
 	dv_ccount += snprintf(dv_header + dv_ccount, 100 - dv_ccount, row_sep);
     }
-
 
     // Header, Row 1
     fprintf(fd, "%s%sIV", block_start, head_start);
