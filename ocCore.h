@@ -362,7 +362,6 @@ class ocModel {
 	void addRelation(ocRelation *relation, bool normalize=true);
 	int getRelations(ocRelation **rels, int maxRelations);
 	ocRelation *getRelation(int index);
-	bool containsRelation(ocRelation *relation);
 	int getRelationCount();
 	ocTable *getFitTable();
 	void setFitTable(ocTable *tbl);
@@ -383,6 +382,14 @@ class ocModel {
 	// set, get hash chain linkages
 	ocModel *getHashNext() { return hashNext; }
 	void setHashNext(ocModel *next) { hashNext = next; }
+
+	// Checks if this model contains the specified relation.  That is, checks if any of
+	// the model's relations *contain* this relation, not if any of them *are* this relation.
+	bool containsRelation(ocRelation *relation);
+
+	// Checks to see if this model is parent (or higher) of the specified child model.
+	// That is, if the "child" is between this model and the bottom on the lattice.
+	bool containsModel(ocModel *childModel);
 
 	// set and get for progenitor model.  (The model from which this one was derived in a search.)
 	ocModel *getProgenitor() { return progenitor; }
