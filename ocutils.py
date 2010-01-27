@@ -44,6 +44,7 @@ class ocUtils:
 		self.__reportFile = ""
 		self.__dataFile = ""
 		self.__calcExpectedDV = 0
+		self.__defaultFitModel = ""
 		self.__report.setSeparator(ocUtils.SPACESEP)	# align columns using spaces
 		self.__HTMLFormat = 0
 		self.__useInverseNotation = 0
@@ -154,6 +155,9 @@ class ocUtils:
 
 	def setCalcExpectedDV(self, calcExpectedDV):
 		self.__calcExpectedDV = calcExpectedDV
+
+	def setDefaultFitModel(self, model):
+		self.__defaultFitModel = model
 
 	def setNoIPF(self, state):
 		self.__NoIPF = state
@@ -408,7 +412,7 @@ class ocUtils:
 
 
 	def doFit(self,printOptions):
-		if printOptions: self.printOptions(0);
+		if printOptions: self.printOptions(0)
 		self.__manager.printBasicStatistics()
 		for modelName in self.__fitModels:
 			self.__manager.setRefModel(self.__refModel)
@@ -420,6 +424,13 @@ class ocUtils:
 			self.__manager.printFitReport(model)
 			self.__manager.makeFitTable(model)
 			self.__report.printResiduals(model)
+			if self.__defaultFitModel != "":
+			    try:
+				defaultModel = self.__manager.makeModel(self.__defaultFitModel, 1)
+			    except:
+				print "\nERROR: Unable to create model " + self.__defaultFitModel
+				sys.exit(0)
+			    self.__report.setDefaultFitModel(defaultModel)
 			self.__report.printConditional_DV(model, self.__calcExpectedDV)
 			print
 			print
