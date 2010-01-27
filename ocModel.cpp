@@ -284,6 +284,15 @@ bool ocModel::containsRelation(ocRelation *relation) {
 }
 
 
+bool ocModel::containsModel(ocModel *child) {
+    for (int i = 0; i < child->getRelationCount(); i++) {
+	if (!this->containsRelation(child->getRelation(i))) {
+	    return false;
+	}
+    }
+}
+
+
 int ocModel::getRelationCount()
 {
     return relationCount;
