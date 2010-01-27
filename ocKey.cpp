@@ -30,8 +30,7 @@ void ocKey::buildKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
 /*
  * build a key with a value for every variable
  */
-void ocKey::buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
-	int *varvalues)
+void ocKey::buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *vars, int *varvalues)
 {
     int i;
     int varcount = vars->getVarCount();
