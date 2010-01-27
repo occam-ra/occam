@@ -30,6 +30,8 @@ class ocReport {
 	//-- Add a model to the list of models. The model is added at the end. Run sort() after
 	//-- all models are added to sort them.
 	void addModel(class ocModel *model);
+	
+	void setDefaultFitModel(class ocModel *model);
 
 	//-- Set the attributes to report. This is a comma-separated list, from those in
 	//-- ocCore.h
@@ -68,6 +70,7 @@ class ocReport {
 	static bool htmlMode;
 	class ocManagerBase *manager;
 	ocModel **models;
+	ocModel *defaultFitModel;
 	char **attrs;
 	long modelCount, maxModelCount;
 	long attrCount;
