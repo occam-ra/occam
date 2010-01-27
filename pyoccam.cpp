@@ -1617,6 +1617,22 @@ DefinePyFunction(ocReport, addModel)
 }
 
 
+// void setDefaultFitModel(ocModel *model)
+DefinePyFunction(ocReport, setDefaultFitModel)
+{
+    ocReport *report = ObjRef(self, ocReport);
+    TRACE_FN("ocReport::setDefaultFitModel", __LINE__, report);
+    PocModel *pmodel;
+    ocModel *model;
+    PyArg_ParseTuple(args, "O", &pmodel);
+    model = pmodel->obj;
+    report->setDefaultFitModel(model);
+    Py_INCREF(Py_None);
+    TRACE_FN("ocReport::setDefaultFitModel", __LINE__, 0);
+    return Py_None;
+}
+
+
 // void setAttributes(char *attrList)
 DefinePyFunction(ocReport, setAttributes)
 {
@@ -1729,6 +1745,7 @@ DefinePyFunction(ocReport, printConditional_DV)
 static struct PyMethodDef ocReport_methods[] = {
     PyMethodDef(ocReport, get),
     PyMethodDef(ocReport, addModel),
+    PyMethodDef(ocReport, setDefaultFitModel),
     PyMethodDef(ocReport, setAttributes),
     PyMethodDef(ocReport, sort),
     PyMethodDef(ocReport, printReport),
