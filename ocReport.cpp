@@ -94,9 +94,10 @@ ocReport::ocReport(class ocManagerBase *mgr)
 {
     manager = mgr;
     searchDir = -1;
-    maxModelCount = 100;
+    maxModelCount = 10;
     models = new ocModel*[maxModelCount];
-    memset(models, 0, 100*sizeof(ocModel*));
+    memset(models, 0, maxModelCount*sizeof(ocModel*));
+    defaultFitModel = NULL;
     attrs = 0;
     modelCount = 0;
     attrCount = 0;
@@ -120,6 +121,12 @@ void ocReport::addModel(class ocModel *model)
 	maxModelCount *= FACTOR;
     }
     models[modelCount++] = model;
+}
+
+
+void ocReport::setDefaultFitModel(class ocModel *model)
+{
+    defaultFitModel = model;
 }
 
 
@@ -617,7 +624,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     int var_count = var_list->getVarCount();		// Get the number of variables
     int key_size = input_data->getKeySize();		// Get the key size from the reference data
     int dv_card = dv_var->cardinality;			// Get the cardinality of the DV
-    double dv_bin_value[dv_card];				// Contains the DV values for calculating expected values.
+    double dv_bin_value[dv_card];			// Contains the DV values for calculating expected values.
 
     ocTable *input_table, *test_table;
     ocRelation *iv_rel;					// A ptr to the IV component of a model, or the relation itself
@@ -640,12 +647,32 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	if(test_sample_size > 0) manager->makeProjection(test_data, test_table, predRelWithDV);
 	//iv_rel = model->getRelation(0);
 	iv_rel = predRelWithDV;
-	// Else, if we are working with a relation, make projections of the input and test tables.
     } else {
+	// Else, if we are working with a relation, make projections of the input and test tables.
 	fit_table = rel->getTable();
 	manager->makeProjection(input_data, input_table, rel);
 	if(test_sample_size > 0)  manager->makeProjection(test_data,  test_table,  rel);
 	iv_rel = rel;
+    }
+
+    bool use_alt_default = false;
+    ocTable *alt_table;
+    ocRelation *alt_relation;
+    int alt_indices[var_count], alt_var_count;
+    int alt_missing_indices[var_count], alt_missing_count;
+    if (rel != NULL) defaultFitModel = NULL;	// Only consider the alternate default model for the main model, not the component relations.
+    if (defaultFitModel != NULL) {
+	// Check that the alternate model is below the main model on the lattice, and not equal to it.
+	if ( (model != defaultFitModel) && model->containsModel(defaultFitModel) ) {
+	    use_alt_default = true;
+	    // If things are okay, make the alternate default table and project it to the active variables
+	    manager->getPredictingVars(defaultFitModel, alt_indices, alt_var_count, true);
+	    alt_relation = manager->getRelation(alt_indices, alt_var_count);
+	    alt_table = new ocTable(key_size, fit_table->getTupleCount());
+	    manager->makeProjection(fit_table, alt_table, alt_relation);
+	    // Now get a list of the missing variables from the relation, for use in breaking ties later
+	    alt_missing_count = alt_relation->copyMissingVariables(alt_missing_indices, var_count);
+	}
     }
 
     int iv_statespace = ((int)manager->computeDF(iv_rel) + 1) / dv_card;	// iv_rel statespace divided by cardinality of the DV
@@ -655,17 +682,29 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     double *fit_dv_prob = new double[dv_card];
     double *fit_key_prob = new double[iv_statespace]; 
     int *fit_rule = new int[iv_statespace]; 	
+    bool *fit_tied = new bool[iv_statespace];
     double *fit_dv_expected = new double[iv_statespace];
+    ocKeySegment **alt_key = new ocKeySegment *[iv_statespace];
+    double **alt_prob = new double *[iv_statespace];
+    double *alt_key_prob = new double[iv_statespace]; 
+    int *alt_rule = new int[iv_statespace];
     ocKeySegment **input_key = new ocKeySegment *[iv_statespace];
     int **input_freq = new int *[iv_statespace];
     int *input_dv_freq = new int[dv_card];
     int *input_key_freq = new int[iv_statespace]; 
     //int *input_rule = new int[iv_statespace]; 	
-    ocKeySegment **test_key = new ocKeySegment *[iv_statespace];
-    int **test_freq = new int *[iv_statespace];
-    int *test_dv_freq = new int[dv_card];
-    int *test_key_freq = new int[iv_statespace]; 
-    int *test_rule = new int[iv_statespace]; 
+    ocKeySegment **test_key;
+    int **test_freq;
+    int *test_dv_freq;
+    int *test_key_freq;
+    int *test_rule;
+    if(test_sample_size > 0) {
+	test_key = new ocKeySegment *[iv_statespace];
+	test_freq = new int *[iv_statespace];
+	test_dv_freq = new int[dv_card];
+	test_key_freq = new int[iv_statespace]; 
+	test_rule = new int[iv_statespace]; 
+    }
 
     // Allocate space for keys and frequencies
     ocKeySegment *temp_key;
@@ -673,6 +712,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     double *temp_double_array;
     for(int i=0; i < iv_statespace; i++) {
 	fit_key_prob[i] = 0.0;
+	alt_key_prob[i] = 0.0;
 	input_key_freq[i] = 0;
 	fit_dv_expected[i] = 0.0;
 
@@ -682,11 +722,19 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
 	temp_key = new ocKeySegment[key_size];
 	for(int j=0; j < key_size; j++) { temp_key[j] = DONT_CARE; }
+	alt_key[i] = temp_key;
+
+	temp_key = new ocKeySegment[key_size];
+	for(int j=0; j < key_size; j++) { temp_key[j] = DONT_CARE; }
 	input_key[i] = temp_key;
 
 	temp_double_array = new double[dv_card];
 	for(int k=0; k < dv_card; k++) { temp_double_array[k] = 0.0; }
 	fit_prob[i] = temp_double_array;
+
+	temp_double_array = new double[dv_card];
+	for(int k=0; k < dv_card; k++) { temp_double_array[k] = 0.0; }
+	alt_prob[i] = temp_double_array;
 
 	temp_int_array = new int[dv_card];
 	for(int k=0; k < dv_card; k++) { temp_int_array[k] = 0; }
@@ -709,7 +757,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     for(int i=0; i < dv_card; i++) {
 	fit_dv_prob[i] = 0.0;
 	input_dv_freq[i] = 0;
-	test_dv_freq[i] = 0;
+	if(test_sample_size > 0) test_dv_freq[i] = 0;
     }
 
     if(calcExpectedDV) {
@@ -808,7 +856,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     //}
     //iv_count = new_count;
     if(rel == NULL) {
-	fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s", model->getPrintName());
+	fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s.", model->getPrintName());
 	fprintf(fd, new_line);
 	fprintf(fd, "IV order: ");
 	for(int i=0; i < iv_count; i++) {
@@ -819,14 +867,27 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	    if (i > 0) fprintf(fd, "; ");
 	    fprintf(fd, "%s", var_list->getVariable(ind_vars[i])->name);
 	}
-	fprintf(fd, ")");
+	fprintf(fd, ").");
     } else {
-	fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s", rel->getPrintName());
+	fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s.", rel->getPrintName());
+    }
+    if (defaultFitModel != NULL) {
+	fprintf(fd, new_line);
+	if (use_alt_default == false) {
+	    if (model == defaultFitModel) {
+		fprintf(fd, "The specified alternate default model cannot be identical to the fitted model. Using independence model instead.");
+	    } else {
+		fprintf(fd, "The specified alternate default model is not a child of the fitted model. Using independence model instead.");
+	    }
+	} else {
+	    fprintf(fd, "Using %s as alternate default model.", defaultFitModel->getPrintName());
+	}
     }
     fprintf(fd, blank_line);
 
     int index = 0;
     int keys_found = 0;
+    int alt_keys_found = 0;
     ocKeySegment *key;
     double temp_value;
     long *index_sibs = new long[dv_card];
@@ -834,6 +895,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
     int fit_table_size = fit_table->getTupleCount();
     int input_table_size = input_table->getTupleCount();
+    int alt_table_size = 0;
+    if (use_alt_default) {
+	alt_table_size = alt_table->getTupleCount();
+    }
     int test_table_size = 0;
     if(test_sample_size > 0) {
 	test_table_size = test_table->getTupleCount();
@@ -853,13 +918,61 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
     for (int i=0; i < iv_statespace; i++) {
 	fit_rule[i] = input_default_dv;
-	test_rule[i] = input_default_dv;
+	alt_rule[i] = input_default_dv;
+	fit_tied[i] = false;
+	if(test_sample_size > 0) test_rule[i] = input_default_dv;
     }
-
 
     ocKeySegment *temp_key_array = new ocKeySegment[key_size];
     double f1, f2;
     double precision = 1.0e10;
+
+    // Work out the alternate default table, if requested
+    if (use_alt_default) {
+	while (alt_keys_found < iv_statespace) {
+	    if (index >= alt_table_size) break;
+
+	    key = alt_table->getKey(index);
+	    index++;
+	    memcpy((int *)temp_key_array, (int *)key, key_size * sizeof(ocKeySegment));
+	    ocKey::setKeyValue(temp_key_array, key_size, var_list, dv_index, DONT_CARE);
+
+	    key_compare = 1;
+	    for (int i = 0; i < alt_keys_found; i++) {
+		key_compare = ocKey::compareKeys((ocKeySegment *)alt_key[i], temp_key_array, key_size);
+		if(key_compare == 0) break;
+	    }
+	    if(key_compare == 0) continue;
+	    memcpy((int *)alt_key[alt_keys_found], (int *)temp_key_array, sizeof(ocKeySegment) * key_size);
+	    num_sibs = 0;
+	    ocKey::getSiblings(key, var_list, alt_table, index_sibs, dv_index, &num_sibs);
+	    best_i = 0;	    temp_value = 0.0;
+	    for(int i=0; i < num_sibs; i++) {
+		temp_value += alt_table->getValue(index_sibs[i]);
+		ocKeySegment *temp_key = alt_table->getKey(index_sibs[i]);
+		dv_value = ocKey::getKeyValue(temp_key, key_size, var_list, dv_index);
+		alt_prob[alt_keys_found][dv_value] = alt_table->getValue(index_sibs[i]);
+		if(i == 0) {
+		    best_i = dv_value;
+		} else {
+		    f1 = round(alt_prob[alt_keys_found][dv_value] * precision);
+		    f2 = round(alt_prob[alt_keys_found][best_i] * precision);
+		    if (f1 > f2) {
+			best_i = dv_value;
+		    } else if (fabs(f1 - f2) < 1) {
+			if (manager->getDVOrder(best_i) > manager->getDVOrder(dv_value))
+			    best_i = dv_value;
+		    }
+		}
+	    }
+	    alt_key_prob[alt_keys_found] = temp_value;
+	    alt_rule[alt_keys_found] = best_i;
+	    alt_keys_found++;
+	}
+    }
+
+    bool tie_flag;
+    index = 0;
     // Loop till we have as many keys as the size of the IV statespace (at most)
     while (keys_found < iv_statespace) {
 	// Also break the loop if index exceeds the tupleCount for the table
@@ -887,6 +1000,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	num_sibs = 0;
 	ocKey::getSiblings(key, var_list, fit_table, index_sibs, dv_index, &num_sibs);
 
+	tie_flag = false;
 	best_i = 0;	temp_value = 0.0;
 	for(int i=0; i < num_sibs; i++) {
 	    // Sum up the total probability values among the siblings
@@ -907,11 +1021,40 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		f2 = round(fit_prob[keys_found][best_i] * precision);
 		if (f1 > f2) {
 		    best_i = dv_value;
+		    tie_flag = false;
 		    // If there is a tie, break it by choosing the DV state that was most common in the input data.
 		    // If there is a tie in frequency, break it alphabetically, using the actual DV values.
 		} else if (fabs(f1 - f2) < 1) {
-		    if (manager->getDVOrder(best_i) > manager->getDVOrder(dv_value))
-			best_i = dv_value;
+		    tie_flag = true;
+		    if (use_alt_default) {
+			// use temp_key_array, which still contains the current key without the DV
+			// mark unused variables in key as don't care
+			for (int j=0; j < alt_missing_count; j++)
+			    ocKey::setKeyValue(temp_key_array, key_size, var_list, alt_missing_indices[j], DONT_CARE);
+			// find the key in the alt table
+			for (int j=0; j < alt_keys_found; j++) {
+			    key_compare = ocKey::compareKeys((ocKeySegment *)alt_key[j], temp_key_array, key_size);
+			    if(key_compare == 0) {
+				// if present, compare the alt values for best_i and dv_value
+				f1 = round(alt_prob[j][dv_value] * precision);
+				f2 = round(alt_prob[j][best_i] * precision);
+				if (f1 > f2)
+				    best_i = dv_value;
+				else if (fabs(f1 - f2) < 1)
+				    // there is a tie in the alternate default as well, so revert to independence
+				    if (manager->getDVOrder(best_i) > manager->getDVOrder(dv_value))
+					best_i = dv_value;
+				break;
+			    }
+			}
+			// if the key was not found in the alt default table, revert to independence
+			if (key_compare != 0)
+			    if (manager->getDVOrder(best_i) > manager->getDVOrder(dv_value))
+				best_i = dv_value;
+		    } else {
+			if (manager->getDVOrder(best_i) > manager->getDVOrder(dv_value))
+			    best_i = dv_value;
+		    }
 		}
 	    }
 	}
@@ -919,6 +1062,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	fit_key_prob[keys_found] = temp_value;
 	// Save the final best rule's index.
 	fit_rule[keys_found] = best_i;
+	fit_tied[keys_found] = tie_flag;
 	// And move on to the next key...
 	keys_found++;
     }
@@ -956,6 +1100,16 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	// If the key wasn't found, we must add it to the fit list as well
 	if(key_compare != 0) {
 	    memcpy((int *)fit_key[keys_found], (int *)temp_key_array, sizeof(ocKeySegment) * key_size);
+	    if (use_alt_default) {
+		for (int j=0; j < alt_missing_count; j++)
+		    ocKey::setKeyValue(temp_key_array, key_size, var_list, alt_missing_indices[j], DONT_CARE);
+		for (int j=0; j < alt_keys_found; j++) {
+		    key_compare = ocKey::compareKeys((ocKeySegment *)alt_key[j], temp_key_array, key_size);
+		    if(key_compare == 0)
+			fit_rule[keys_found] = alt_rule[j];
+		}			
+	    }
+	    fit_tied[keys_found] = true;
 	    fit_index = keys_found;
 	    keys_found++;
 	}
@@ -1010,6 +1164,16 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	    // If the key wasn't found, we must add it to the fit list as well
 	    if(key_compare != 0) {
 		memcpy((int *)fit_key[keys_found], (int *)temp_key_array, sizeof(ocKeySegment) * key_size);
+		if (use_alt_default) {
+		    for (int j=0; j < alt_missing_count; j++)
+			ocKey::setKeyValue(temp_key_array, key_size, var_list, alt_missing_indices[j], DONT_CARE);
+		    for (int j=0; j < alt_keys_found; j++) {
+			key_compare = ocKey::compareKeys((ocKeySegment *)alt_key[j], temp_key_array, key_size);
+			if(key_compare == 0)
+			    fit_rule[keys_found] = alt_rule[j];
+		    }			
+		}
+		fit_tied[keys_found] = true;
 		fit_index = keys_found;
 		keys_found++;
 	    }
@@ -1030,9 +1194,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 		} else {
 		    // Note: tie-breaking doesn't matter here, since we are only concerned with finding the best frequency possible,
 		    // not with the specific rule that results in that frequency.
-		    if(test_freq[fit_index][dv_value] > test_freq[fit_index][best_i]) {
+		    if(test_freq[fit_index][dv_value] > test_freq[fit_index][best_i])
 			best_i = dv_value;
-		    }
 		}
 	    }
 
@@ -1117,225 +1280,288 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 	if(dv_card > 2)
 	    for(int i=2; i < dv_card; i++)
 		fprintf(fd, head_sep);
-	fprintf(fd, head_str3); }
-	fprintf(fd, head_end);
+	fprintf(fd, head_str3);
+    }
+    fprintf(fd, head_end);
 
-	// Header, Row 3
-	fprintf(fd, "%s", row_start);
-	for(int i=0; i < iv_count; i++)
-	    fprintf(fd, "%s%s", var_list->getVariable(ind_vars[i])->abbrev, row_sep);
-	fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep, row_sep);
+    // Header, Row 3
+    fprintf(fd, "%s", row_start);
+    for(int i=0; i < iv_count; i++)
+	fprintf(fd, "%s%s", var_list->getVariable(ind_vars[i])->abbrev, row_sep);
+    fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep, row_sep);
+    if(calcExpectedDV == true)
+	fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
+
+    if(test_sample_size > 0) {
+	fprintf(fd, "%s|%sfreq%s%sby rule%sbest", row_sep, row_sep, row_sep, dv_header, row_sep);
 	if(calcExpectedDV == true)
-	    fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
+	    fprintf(fd, "%sMSE", row_sep);
+    }
+    fprintf(fd, row_end);
 
-	if(test_sample_size > 0) {
-	    fprintf(fd, "%s|%sfreq%s%sby rule%sbest", row_sep, row_sep, row_sep, dv_header, row_sep);
-	    if(calcExpectedDV == true)
-		fprintf(fd, "%sMSE", row_sep);
+    // Body of Table
+    double mean_squared_error = 0.0;
+    double total_test_error = 0.0;
+    double temp_percent = 0.0;
+    int keyval;
+    int keysize = input_data->getKeySize();
+    const char *keyvalstr;
+    // For each of the model's keys (ie, each row of the table)...
+    for(int i=0; i < iv_statespace; i++) {
+	if (input_key_freq[i] == 0) {
+	    if (test_sample_size > 0) {
+		if (test_key_freq[i] == 0) { continue; }
+	    } else { continue; }
 	}
-	fprintf(fd, row_end);
-
-	// Body of Table
-	double mean_squared_error = 0.0;
-	double total_test_error = 0.0;
-	double temp_percent = 0.0;
-	int keyval;
-	int keysize = input_data->getKeySize();
-	const char *keyvalstr;
-	// For each of the model's keys (ie, each row of the table)...
-	for(int i=0; i < iv_statespace; i++) {
-	    if (input_key_freq[i] == 0) {
-		if (test_sample_size > 0) {
-		    if (test_key_freq[i] == 0) { continue; }
-		} else { continue; }
-	    }
-	    // Also, switch the bgcolor of each row from grey to white, every other row. (If not in HTML, this does nothing.)
-	    if (i % 2) fprintf(fd, row_start);
-	    else fprintf(fd, row_start2);
-	    // Print the states of the IV in separate columns
-	    for (int j=0; j < iv_count; j++) {
-		keyval = ocKey::getKeyValue(fit_key[i], keysize, var_list, ind_vars[j]);
-		keyvalstr = var_list->getVarValue(ind_vars[j], keyval);
-		fprintf(fd, "%s%s", keyvalstr, row_sep);
-	    }
-	    fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
-	    // Print out the conditional probabilities of the training data
-	    temp_percent = 0.0;
-	    for(int j=0; j < dv_card; j++) {
-		if (input_key_freq[i] == 0) temp_percent = 0.0;
-		else {
-		    temp_percent = (double)input_freq[i][dv_order[j]] / (double)input_key_freq[i] * 100.0;
-		}
-		fprintf(fd, "%.3f%s", temp_percent, row_sep);
-	    }
-	    fprintf(fd, "|%s", row_sep);
-	    // Print out the percentages for each of the DV states
-	    for(int j=0; j < dv_card; j++) {
-		if (fit_key_prob[i] == 0) temp_percent = 0.0;
-		else {
-		    temp_percent = fit_prob[i][dv_order[j]] / fit_key_prob[i] * 100.0;
-		    if(calcExpectedDV == true) {
-			fit_dv_expected[i] += temp_percent / 100.0 * dv_bin_value[dv_order[j]];
-		    }
-		}
-		fprintf(fd, "%.3f%s", temp_percent, row_sep);
-	    }
-	    // Print the DV state of the best rule. If there was no input to base the rule on, use the default rule.
-	    fprintf(fd, "%s%s", dv_label[fit_rule[i]], row_sep);
-	    // Number correct (of the input data, based on the rule from fit)
-	    fprintf(fd, "%d%s", input_freq[i][fit_rule[i]], row_sep);
-	    // Percent correct (of the input data, based on the rule from fit)
-	    if (input_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
-	    else fprintf(fd, "%.3f", (double)input_freq[i][fit_rule[i]] / (double)input_key_freq[i] * 100.0);
-	    mean_squared_error = 0.0;
-	    if(calcExpectedDV == true) {
-		fprintf(fd, "%s%.3f", row_sep, fit_dv_expected[i]);
-		if (input_key_freq[i] > 0) {
-		    for (int j=0; j < dv_card; j++) {
-			temp_percent = fit_dv_expected[i] - dv_bin_value[dv_order[j]];
-			mean_squared_error += temp_percent * temp_percent * input_freq[i][dv_order[j]];
-		    }
-		    mean_squared_error /= input_key_freq[i];
-		} else mean_squared_error = 0;
-		fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
-	    }
-
-	    // Print test results, if present
-	    if(test_sample_size > 0) {
-		// Frequency in test data
-		fprintf(fd, "%s|%s%d", row_sep, row_sep, test_key_freq[i]);
-		// Print out the percentages for each of the DV states
-		for(int j=0; j < dv_card; j++) {
-		    fprintf(fd, row_sep);
-		    if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
-		    else fprintf(fd, "%.3f", (double)test_freq[i][dv_order[j]] / (double)test_key_freq[i] * 100.0);	
-		}
-		fprintf(fd, row_sep);
-		if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
-		else fprintf(fd, "%.3f", (double)test_freq[i][fit_rule[i]] / (double)test_key_freq[i] * 100.0);
-		fprintf(fd, row_sep);
-		if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
-		else fprintf(fd, "%.3f", (double)test_freq[i][test_rule[i]] / (double)test_key_freq[i] * 100.0);
-		mean_squared_error = 0.0;
-		if(calcExpectedDV == true) {
-		    if (test_key_freq[i] > 0) {
-			for (int j=0; j < dv_card; j++) {
-			    temp_percent = fit_dv_expected[i] - dv_bin_value[dv_order[j]];
-			    mean_squared_error += temp_percent * temp_percent * test_freq[i][dv_order[j]];
-			}
-			mean_squared_error /= test_key_freq[i];
-		    } else mean_squared_error = 0;
-		    fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
-		    total_test_error += mean_squared_error * test_key_freq[i];
-		}
-	    }
-	    fprintf(fd, row_end);
+	// Also, switch the bgcolor of each row from grey to white, every other row. (If not in HTML, this does nothing.)
+	if (i % 2) fprintf(fd, row_start);
+	else fprintf(fd, row_start2);
+	// Print the states of the IV in separate columns
+	for (int j=0; j < iv_count; j++) {
+	    keyval = ocKey::getKeyValue(fit_key[i], keysize, var_list, ind_vars[j]);
+	    keyvalstr = var_list->getVarValue(ind_vars[j], keyval);
+	    fprintf(fd, "%s%s", keyvalstr, row_sep);
 	}
-
-	// Footer, Row 1 (totals)
-	double total_expected_value = 0.0;
-	fprintf(fd, row_start3);
-	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", row_sep);
-	fprintf(fd, "|%s%d%s", row_sep, (int)round(sample_size), row_sep);
-	// Print the training data DV totals
+	fprintf(fd, "|%s%d%s", row_sep, input_key_freq[i], row_sep);
+	// Print out the conditional probabilities of the training data
+	temp_percent = 0.0;
 	for(int j=0; j < dv_card; j++) {
-	    fprintf(fd, "%.3f%s", (double)input_dv_freq[dv_order[j]] / sample_size * 100.0, row_sep);
+	    if (input_key_freq[i] == 0) temp_percent = 0.0;
+	    else {
+		temp_percent = (double)input_freq[i][dv_order[j]] / (double)input_key_freq[i] * 100.0;
+	    }
+	    fprintf(fd, "%.3f%s", temp_percent, row_sep);
 	}
 	fprintf(fd, "|%s", row_sep);
-	// Print the marginals for each DV state
+	// Print out the percentages for each of the DV states
 	for(int j=0; j < dv_card; j++) {
-	    fprintf(fd, "%.3f%s", marginal[dv_order[j]] * 100.0, row_sep);
-	    if(calcExpectedDV == true)
-		total_expected_value += marginal[dv_order[j]] * dv_bin_value[dv_order[j]];
-	}
-	fprintf(fd, "%s%s%d%s%.3f", dv_var->valmap[input_default_dv], row_sep, total_correct, row_sep, (double)total_correct / sample_size * 100.0);
-	if(calcExpectedDV == true) {
-	    fprintf(fd, "%s%.3f", row_sep, total_expected_value);
-	    temp_percent = mean_squared_error = 0.0;
-	    for(int j=0; j < dv_card; j++) {
-		temp_percent = total_expected_value - dv_bin_value[dv_order[j]];
-		mean_squared_error += temp_percent * temp_percent * (double)input_dv_freq[dv_order[j]];
+	    if (fit_key_prob[i] == 0) temp_percent = 0.0;
+	    else {
+		temp_percent = fit_prob[i][dv_order[j]] / fit_key_prob[i] * 100.0;
+		if(calcExpectedDV == true) {
+		    fit_dv_expected[i] += temp_percent / 100.0 * dv_bin_value[dv_order[j]];
+		}
 	    }
-	    mean_squared_error /= sample_size;
+	    fprintf(fd, "%.3f%s", temp_percent, row_sep);
+	}
+	// Print the DV state of the best rule. If there was no input to base the rule on, use the default rule.
+	fprintf(fd, "%c%s%s", fit_tied[i]?'*':' ', dv_label[fit_rule[i]], row_sep);
+	// Number correct (of the input data, based on the rule from fit)
+	fprintf(fd, "%d%s", input_freq[i][fit_rule[i]], row_sep);
+	// Percent correct (of the input data, based on the rule from fit)
+	if (input_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
+	else fprintf(fd, "%.3f", (double)input_freq[i][fit_rule[i]] / (double)input_key_freq[i] * 100.0);
+	mean_squared_error = 0.0;
+	if(calcExpectedDV == true) {
+	    fprintf(fd, "%s%.3f", row_sep, fit_dv_expected[i]);
+	    if (input_key_freq[i] > 0) {
+		for (int j=0; j < dv_card; j++) {
+		    temp_percent = fit_dv_expected[i] - dv_bin_value[dv_order[j]];
+		    mean_squared_error += temp_percent * temp_percent * input_freq[i][dv_order[j]];
+		}
+		mean_squared_error /= input_key_freq[i];
+	    } else mean_squared_error = 0;
 	    fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
 	}
-	double default_percent_on_test = 0.0;
-	double best_percent_on_test = 0.0;
-	double fit_percent_on_test = 0.0;
+
+	// Print test results, if present
 	if(test_sample_size > 0) {
-	    fprintf(fd, "%s|%s%d%s", row_sep, row_sep, (int)round(test_sample_size), row_sep);
-	    // Print the test marginals for each DV state
+	    // Frequency in test data
+	    fprintf(fd, "%s|%s%d", row_sep, row_sep, test_key_freq[i]);
+	    // Print out the percentages for each of the DV states
 	    for(int j=0; j < dv_card; j++) {
-		temp_percent = (double)test_dv_freq[dv_order[j]] / test_sample_size * 100.0;
-		//if (temp_percent > default_percent_on_test) default_percent_on_test = temp_percent;
-		fprintf(fd, "%.3f%s", temp_percent, row_sep);
+		fprintf(fd, row_sep);
+		if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
+		else fprintf(fd, "%.3f", (double)test_freq[i][dv_order[j]] / (double)test_key_freq[i] * 100.0);	
 	    }
-	    default_percent_on_test = (double)test_dv_freq[input_default_dv] / test_sample_size * 100.0;
-	    fit_percent_on_test = (double)test_by_fit_rule / test_sample_size * 100.0;
-	    best_percent_on_test = (double)test_by_test_rule / test_sample_size * 100.0;
-	    fprintf(fd, "%.3f%s%.3f", fit_percent_on_test, row_sep, best_percent_on_test);
-	    if(calcExpectedDV == true)
-		fprintf(fd, "%s%.3f", row_sep, total_test_error / test_sample_size);
+	    fprintf(fd, row_sep);
+	    if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
+	    else fprintf(fd, "%.3f", (double)test_freq[i][fit_rule[i]] / (double)test_key_freq[i] * 100.0);
+	    fprintf(fd, row_sep);
+	    if (test_key_freq[i] == 0) fprintf(fd, "%.3f", 0.0);
+	    else fprintf(fd, "%.3f", (double)test_freq[i][test_rule[i]] / (double)test_key_freq[i] * 100.0);
+	    mean_squared_error = 0.0;
+	    if(calcExpectedDV == true) {
+		if (test_key_freq[i] > 0) {
+		    for (int j=0; j < dv_card; j++) {
+			temp_percent = fit_dv_expected[i] - dv_bin_value[dv_order[j]];
+			mean_squared_error += temp_percent * temp_percent * test_freq[i][dv_order[j]];
+		    }
+		    mean_squared_error /= test_key_freq[i];
+		} else mean_squared_error = 0;
+		fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
+		total_test_error += mean_squared_error * test_key_freq[i];
+	    }
 	}
 	fprintf(fd, row_end);
-	// Footer, Row 2 (repeat of Header, Row 3)
-	fprintf(fd, row_start);
-	for(int i=0; i < iv_count; i++) fprintf(fd, "%s", row_sep);
-	fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep, row_sep);
+    }
+
+    // Footer, Row 1 (totals)
+    double total_expected_value = 0.0;
+    fprintf(fd, row_start3);
+    for(int i=0; i < iv_count; i++) fprintf(fd, "%s", row_sep);
+    fprintf(fd, "|%s%d%s", row_sep, (int)round(sample_size), row_sep);
+    // Print the training data DV totals
+    for(int j=0; j < dv_card; j++) {
+	fprintf(fd, "%.3f%s", (double)input_dv_freq[dv_order[j]] / sample_size * 100.0, row_sep);
+    }
+    fprintf(fd, "|%s", row_sep);
+    // Print the marginals for each DV state
+    for(int j=0; j < dv_card; j++) {
+	fprintf(fd, "%.3f%s", marginal[dv_order[j]] * 100.0, row_sep);
 	if(calcExpectedDV == true)
-	    fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
-
-	if(test_sample_size > 0) {
-	    fprintf(fd, "%s|%sfreq%s%sby rule%sbest", row_sep, row_sep, row_sep, dv_header, row_sep);
-	    if(calcExpectedDV == true)
-		fprintf(fd, "%sMSE", row_sep);
+	    total_expected_value += marginal[dv_order[j]] * dv_bin_value[dv_order[j]];
+    }
+    fprintf(fd, "%s%s%d%s%.3f", dv_var->valmap[input_default_dv], row_sep, total_correct, row_sep, (double)total_correct / sample_size * 100.0);
+    if(calcExpectedDV == true) {
+	fprintf(fd, "%s%.3f", row_sep, total_expected_value);
+	temp_percent = mean_squared_error = 0.0;
+	for(int j=0; j < dv_card; j++) {
+	    temp_percent = total_expected_value - dv_bin_value[dv_order[j]];
+	    mean_squared_error += temp_percent * temp_percent * (double)input_dv_freq[dv_order[j]];
 	}
-	fprintf(fd, "%s%s", row_end, block_end);
-
-	// Print out a summary of the performance on the test data, if present.
-	if(test_sample_size > 0) {
-	    fprintf(fd, "%s%sPerformance on Test Data%s", block_start, row_start, row_end);
-	    fprintf(fd, "%sDefault rule:%s%.3f%%%scorrect (using rule from the independence model of the training data)%s", row_start, row_sep, default_percent_on_test, row_sep2, row_end);
-	    fprintf(fd, "%sModel rule:%s%.3f%%%scorrect%s", row_start, row_sep, fit_percent_on_test, row_sep2, row_end);
-	    fprintf(fd, "%sBest possible:%s%.3f%%%scorrect (using rules optimal for the test data)%s", row_start, row_sep, best_percent_on_test, row_sep2, row_end);
-	    temp_percent = best_percent_on_test - default_percent_on_test;
-	    if ((temp_percent) != 0)
-		temp_percent = (fit_percent_on_test - default_percent_on_test) / temp_percent * 100.0;
-	    fprintf(fd, "%sImprovement by model:%s%.3f%%%s(Model - Default) / (Best - Default)%s%s", row_start, row_sep, temp_percent, row_sep2, row_end, block_end);
+	mean_squared_error /= sample_size;
+	fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
+    }
+    double default_percent_on_test = 0.0;
+    double best_percent_on_test = 0.0;
+    double fit_percent_on_test = 0.0;
+    if(test_sample_size > 0) {
+	fprintf(fd, "%s|%s%d%s", row_sep, row_sep, (int)round(test_sample_size), row_sep);
+	// Print the test marginals for each DV state
+	for(int j=0; j < dv_card; j++) {
+	    temp_percent = (double)test_dv_freq[dv_order[j]] / test_sample_size * 100.0;
+	    //if (temp_percent > default_percent_on_test) default_percent_on_test = temp_percent;
+	    fprintf(fd, "%.3f%s", temp_percent, row_sep);
 	}
+	default_percent_on_test = (double)test_dv_freq[input_default_dv] / test_sample_size * 100.0;
+	fit_percent_on_test = (double)test_by_fit_rule / test_sample_size * 100.0;
+	best_percent_on_test = (double)test_by_test_rule / test_sample_size * 100.0;
+	fprintf(fd, "%.3f%s%.3f", fit_percent_on_test, row_sep, best_percent_on_test);
+	if(calcExpectedDV == true)
+	    fprintf(fd, "%s%.3f", row_sep, total_test_error / test_sample_size);
+    }
+    fprintf(fd, row_end);
+    // Footer, Row 2 (repeat of Header, Row 3)
+    fprintf(fd, row_start);
+    for(int i=0; i < iv_count; i++) fprintf(fd, "%s", row_sep);
+    fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep, row_sep);
+    if(calcExpectedDV == true)
+	fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
 
-	// If this is the entire model, print tables for each of the component relations.
-	if ((rel == NULL) && (model->getRelationCount() > 2)) {
-	    for(int i=0; i < model->getRelationCount(); i++){
-		if (model->getRelation(i)->isIndOnly()) continue;
-		printConditional_DV(fd, model->getRelation(i), calcExpectedDV);
+    if(test_sample_size > 0) {
+	fprintf(fd, "%s|%sfreq%s%sby rule%sbest", row_sep, row_sep, row_sep, dv_header, row_sep);
+	if(calcExpectedDV == true)
+	    fprintf(fd, "%sMSE", row_sep);
+    }
+    fprintf(fd, "%s%s", row_end, block_end);
+
+    // Print out a summary of the performance on the test data, if present.
+    if(test_sample_size > 0) {
+	fprintf(fd, "%s%sPerformance on Test Data%s", block_start, row_start, row_end);
+	fprintf(fd, "%sIndependence Model rule:%s%.3f%%%scorrect (using rule from the independence model of the training data)%s", row_start, row_sep, default_percent_on_test, row_sep2, row_end);
+	fprintf(fd, "%sModel rule:%s%.3f%%%scorrect%s%s", row_start, row_sep, fit_percent_on_test, row_sep2, use_alt_default ? " (augmented by alternate default model)":"", row_end);
+	fprintf(fd, "%sBest possible:%s%.3f%%%scorrect (using rules optimal for the test data)%s", row_start, row_sep, best_percent_on_test, row_sep2, row_end);
+	temp_percent = best_percent_on_test - default_percent_on_test;
+	if ((temp_percent) != 0)
+	    temp_percent = (fit_percent_on_test - default_percent_on_test) / temp_percent * 100.0;
+	fprintf(fd, "%sImprovement by model:%s%.3f%%%s(Model - Default) / (Best - Default)%s%s", row_start, row_sep, temp_percent, row_sep2, row_end, block_end);
+    }
+    if (use_alt_default)
+	fprintf(fd, "* Rule selected using the alternate default model.");
+    else
+	fprintf(fd, "* Rule selected using the independence model.");
+    fprintf(fd, blank_line);
+
+    // Print the alternate default table, if required.
+    if (use_alt_default) {
+	int *alt_ind_vars = new int[var_count];
+	int alt_iv_count = alt_relation->getIndependentVariables(alt_ind_vars, var_count);
+	fprintf(fd, blank_line);
+	fprintf(fd, "Conditional DV for the alternate default model %s.", defaultFitModel->getPrintName());
+	fprintf(fd, blank_line);
+	// Header, Row 1
+	fprintf(fd, "%s%sIV", block_start, head_start);
+	for(int i=0; i < alt_iv_count; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, "|%sModel", head_sep);
+	for(int i=0; i < dv_card; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, head_end);
+	// Header, Row 2
+	fprintf(fd, "%s", head_start);
+	for(int i=0; i < alt_iv_count; i++) fprintf(fd, "%s", head_sep);
+	fprintf(fd, "|%s%s", head_str1, head_sep);
+	if(dv_card > 2)
+	    for(int i=2; i < dv_card; i++) fprintf(fd, head_sep);
+	fprintf(fd, head_end);
+	// Header, Row 3
+	fprintf(fd, "%s", row_start);
+	for(int i=0; i < alt_iv_count; i++) fprintf(fd, "%s%s", var_list->getVariable(alt_ind_vars[i])->abbrev, row_sep);
+	fprintf(fd, "|%s%srule", row_sep, dv_header);
+	fprintf(fd, row_end);
+	// Body of table
+	for (int i=0; i < alt_keys_found; i++) {
+	    if (i % 2) fprintf(fd, row_start);
+	    else fprintf(fd, row_start2);
+	    for (int j=0; j < alt_iv_count; j++) {
+		keyval = ocKey::getKeyValue(alt_key[i], keysize, var_list, alt_ind_vars[j]);
+		keyvalstr = var_list->getVarValue(alt_ind_vars[j], keyval);
+		fprintf(fd, "%s%s", keyvalstr, row_sep);
 	    }
+	    fprintf(fd, "|%s", row_sep);
+	    for(int j=0; j < dv_card; j++) {
+		if (alt_key_prob[i] == 0) temp_percent = 0.0;
+		else temp_percent = alt_prob[i][dv_order[j]] / alt_key_prob[i] * 100.0;
+		fprintf(fd, "%.3f%s", temp_percent, row_sep);
+	    }
+	    fprintf(fd, "%s", dv_label[alt_rule[i]]);
+	    fprintf(fd, row_end);
+	}
+	// Footer, Row 1
+	fprintf(fd, row_start3);
+	for(int i=0; i < alt_iv_count; i++) fprintf(fd, "%s", row_sep);
+	fprintf(fd, "|%s", row_sep);
+	for(int j=0; j < dv_card; j++) fprintf(fd, "%.3f%s", marginal[dv_order[j]] * 100.0, row_sep);
+	fprintf(fd, "%s%s", dv_var->valmap[input_default_dv], row_sep);
+	fprintf(fd, row_end);
+	// Footer, Row 2
+	fprintf(fd, "%s", row_start);
+	for(int i=0; i < alt_iv_count; i++) fprintf(fd, "%s", row_sep);
+	fprintf(fd, "|%s%srule", row_sep, dv_header);
+	fprintf(fd, "%s%s", row_end, block_end);
+    }
+
+    // If this is the entire model, print tables for each of the component relations.
+    if ((rel == NULL) && (model->getRelationCount() > 2)) {
+	for(int i=0; i < model->getRelationCount(); i++){
+	    if (model->getRelation(i)->isIndOnly()) continue;
+	    printConditional_DV(fd, model->getRelation(i), calcExpectedDV);
+	}
+    }
+
+
+    /*	I can't seem to free this memory properly, in the recursions of the function.
+	The memory frees at the end of the program, so this isn't so bad.  [JSF]
+
+	delete[] dv_header;		delete[] marginal;		delete[] dv_order;
+	delete[] temp_key_array;	delete[] index_sibs;
+	if(test_sample_size > 0) {
+	for(int i=0; i < iv_statespace; i++) {
+	delete[] test_key[i];	delete[] test_freq[i];
+	}
+	}
+	for(int i=0; i < iv_statespace; i++) {
+	delete[] fit_key[i];	delete[] input_key[i];
+	delete[] fit_prob[i];	delete[] input_freq[i];
 	}
 
+	delete[] test_rule;		delete[] test_key_freq;		delete[] test_dv_freq;	
+	delete[] test_freq;		delete[] test_key;		delete[] input_key_freq;
+	delete[] input_dv_freq;		delete[] input_freq;		delete[] input_key;
+	delete[] fit_dv_expected;	delete[] fit_rule;		delete[] fit_key_prob;
+	delete[] fit_dv_prob;		delete[] fit_prob;		delete[] fit_key;		delete[] key_str;
+     */
 
-	/*	I can't seem to free this memory properly, in the recursions of the function.
-		The memory frees at the end of the program, so this isn't so bad.  [JSF]
-
-		delete[] dv_header;		delete[] marginal;		delete[] dv_order;
-		delete[] temp_key_array;	delete[] index_sibs;
-		if(test_sample_size > 0) {
-		for(int i=0; i < iv_statespace; i++) {
-		delete[] test_key[i];	delete[] test_freq[i];
-		}
-		}
-		for(int i=0; i < iv_statespace; i++) {
-		delete[] fit_key[i];	delete[] input_key[i];
-		delete[] fit_prob[i];	delete[] input_freq[i];
-		}
-
-		delete[] test_rule;		delete[] test_key_freq;		delete[] test_dv_freq;	
-		delete[] test_freq;		delete[] test_key;		delete[] input_key_freq;
-		delete[] input_dv_freq;		delete[] input_freq;		delete[] input_key;
-		delete[] fit_dv_expected;	delete[] fit_rule;		delete[] fit_key_prob;
-		delete[] fit_dv_prob;		delete[] fit_prob;		delete[] fit_key;		delete[] key_str;
-	 */
-
-	return;
+    return;
 }
 
 
