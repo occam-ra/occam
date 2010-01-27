@@ -1,4 +1,4 @@
-#! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
+#! python
 
 import os, cgi, sys, occam, time, string, traceback, pickle, zipfile, datetime
 import cgitb; cgitb.enable(display=1)
@@ -9,7 +9,7 @@ from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 #import urllib2
 
-VERSION = "3.2.28"
+VERSION = "3.2.29"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
@@ -194,26 +194,27 @@ def processSBFit(fn, model, oc):
 		oc.setFitModel(model)
 	oc.setAction("SBfit")
 	oc.doAction(printOptions)
+
 #
 #---- actionFit ---- Report on Fit
 #
 def actionFit(formFields):
-	global textFormat, calcExpectedDV
+	global textFormat
 
 	fn = getDataFile(formFields)
-	man="VB"
-	oc = ocUtils(man)
+	oc = ocUtils("VB")
 	oc.initFromCommandLine(["",fn])
 	oc.setDataFile(formFields["datafilename"])
-	oc.setCalcExpectedDV(calcExpectedDV)
+	if formFields.has_key("calcExpectedDV"):
+	    oc.setCalcExpectedDV(1)
 	oc.setDDFMethod(1)
+	if formFields.has_key("defaultmodel"):
+	    oc.setDefaultFitModel(formFields["defaultmodel"])
 
 	if not formFields.has_key("data") or not formFields.has_key("model") :
-		actionNone(formFields, "Missing form fields")
-		return
-	model = formFields["model"]
-
-	processFit(fn, model, oc)
+	    actionNone(formFields, "Missing form fields")
+	    return
+	processFit(fn, formFields["model"], oc)
 
 #
 #---- actionSBFit ---- Report on Fit
@@ -222,8 +223,7 @@ def actionSBFit(formFields):
 	global textFormat
 
 	fn = getDataFile(formFields)
-	man="SB"
-	oc = ocUtils(man)
+	oc = ocUtils("SB")
 	oc.initFromCommandLine(["",fn])
 	oc.setDataFile(formFields["datafilename"])
 
@@ -238,6 +238,7 @@ def actionSBFit(formFields):
 		print "<span class=mono>"
 		processSBFit(fn, model, oc)
 		print "</span>"
+
 #
 #---- processSearch ---- Do search operation
 #
@@ -449,7 +450,6 @@ template = OpagCGI()
 datafile = ""
 textFormat = ""
 printOptions = ""
-calcExpectedDV = 0
 thispage = os.environ.get('SCRIPT_NAME', '')
 startt = time.time()
 
@@ -466,9 +466,6 @@ printHeaders(formFields, textFormat)
 
 if formFields.has_key("printoptions"):
 	printOptions = "true"
-
-if formFields.has_key("calcExpectedDV"):
-	calcExpectedDV = 1
 
 printTop(template, textFormat)
 
