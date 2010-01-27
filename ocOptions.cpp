@@ -263,7 +263,7 @@ bool ocOptions::setOptions(int argc, char **argv)
 	    if (cp[1] == '-') {
 		//-- long form: --name=value (or for booleans, just --name)
 		char * eqpos = strchr(cp+2, '=');
-		if (eqpos) {
+		if (eqpos != NULL) {
 		    //-- has "=value" on end
 		    strncpy(optname, cp+2, eqpos-(cp+2));
 		    optname[eqpos-(cp+2)] = '\0';
@@ -288,14 +288,14 @@ bool ocOptions::setOptions(int argc, char **argv)
 		    currentOptDef = NULL;	// done
 		}
 		else {
-		    fprintf(stderr, "Error: option %s not recognized\n", cp);
+		    printf("Error: option %s not recognized\n", cp);
 		}				
 	    }
 	    else {
 		currentOptDef = findOptionByName(cp+1);
 	    }
 	    if (currentOptDef == NULL) {
-		fprintf(stderr, "Error: option %s not recognized\n", cp);
+		printf("Error: option %s not recognized\n", cp);
 	    }
 	    else {
 		//-- for boolean option, set value as "true"
@@ -333,15 +333,27 @@ bool ocOptions::getLine(FILE *fd, char *line, int *lineno)
     char current;
     while(true) {
 	count = 0;
-	while ( (count + 1) <= MAXLINE ) {
+	while ( count < MAXLINE ) {
 	    current = (char) fgetc(fd);
 	    if ( (count == 0) && feof(fd) ) break;
 	    if ( (current == '\r') || (current == '\n') || feof(fd) ) {
 		line[count++] = '\n';
 		break;
+	    } else if (current == '#') {
+		line[count++] == '\n';
+		while ( (current != '\r') && (current != '\n') && !feof(fd) ) {
+		    current = (char) fgetc(fd);
+		}
+		break;
 	    } else {
 		line[count++] = current;
 	    }
+	}
+	if ( (count == MAXLINE) && (line[count - 1] != '\n') ) {
+	    printf("Error: maximum line length (%d) exceeded in data file.\n", MAXLINE);
+	    line[MAXLINE] = '\0';
+	    printf("Line begins:\n%s\n", line);
+	    exit(1);
 	}
 	if (count > 0) {
 	    line[count++] = '\0';
@@ -373,7 +385,7 @@ bool ocOptions::readOptions(FILE *fd)
 	    if (strcmp(cp, ":data") == 0) break;	// data values follow
 	    currentOptDef = findOptionByName(cp+1);
 	    if (currentOptDef == NULL) {
-		fprintf(stderr, "[%d] Error: option %s not recognized\n", lineno, cp);
+		printf("[%d] Error: option %s not recognized\n", lineno, cp);
 	    }
 	    else {
 		//-- for boolean option, set value as "Y"
@@ -396,7 +408,7 @@ bool ocOptions::readOptions(FILE *fd)
 		if (!currentOptDef->multi) currentOptDef = NULL;
 	    }
 	    else {
-		fprintf(stderr, "[%d] Error: '%s' unexpected\n", lineno, cp);
+		printf("[%d] Error: '%s' unexpected\n", lineno, cp);
 	    }
 	}
 	gotLine = getLine(fd, line, &lineno);
@@ -423,7 +435,7 @@ bool ocOptions::setOptionString(ocOptionDef *def, const char *value)
     }
     if (val == NULL && toupper(value[0]) != 'Y') {
 	//-- no match on option value, and it's not a boolean
-	fprintf(stderr, "Error, value '%s' not legal for option '%s'\n", value, def->name);
+	printf("Error, value '%s' not legal for option '%s'\n", value, def->name);
     }
     else {
 	while (opt) {
