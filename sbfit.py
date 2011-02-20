@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! python
 import pdb
 import os, sys
 sys.path.append("/www")
@@ -21,6 +21,7 @@ oc.initFromCommandLine(sys.argv[0:2]) # initialize with the data file
 oc.setFitModel(sys.argv[2])
 oc.setAction("SBfit")
 oc.setReportSeparator(3)
+oc.setDDFMethod(1)
 
 t2 = time.time()
 oc.doAction(0)
