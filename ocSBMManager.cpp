@@ -26,6 +26,7 @@ ocSBMManager::ocSBMManager(ocVariableList *vars, ocTable *input):
     sortDirection = 0;
 }
 
+
 ocSBMManager::ocSBMManager():
     ocManagerBase()
 {
@@ -38,11 +39,13 @@ ocSBMManager::ocSBMManager():
     sortDirection = 0;
 }
 
+
 ocSBMManager::~ocSBMManager()
 {
     if (filterAttr) delete filterAttr;
     if (sortAttr) delete sortAttr;
 }
+
 
 bool ocSBMManager::initFromCommandLine(int argc, char **argv)
 {
@@ -99,7 +102,6 @@ void ocSBMManager::makeReferenceModels(ocRelation *top)
 	//not independence model
 	model = new ocModel(varCount);
 	for (i = 0; i < varCount; i++) {
-	    //-- build a list of all variables but r
 	    varindices[0] = i;
 	    rel = getRelation(varindices, 1, true);
 	    model->addRelation(rel);
@@ -128,7 +130,7 @@ void ocSBMManager::makeReferenceModels(ocRelation *top)
 	     */
 	}
     }
-    //modelCache->addModel(model);
+    //modelCache->addModel(model); // why isn't this cached? [jsf]
     bottomRef = model;
     computeDF(topRef);
     computeH(topRef);
@@ -143,9 +145,9 @@ void ocSBMManager::makeReferenceModels(ocRelation *top)
     delete [] varindices;
 }
 
+
 ocModel *ocSBMManager::setRefModel(const char *name)
 {
-    //printf("in SB manager\n");
     if (strcasecmp(name, "top") == 0) {
 	refModel = topRef;
     }
@@ -153,25 +155,27 @@ ocModel *ocSBMManager::setRefModel(const char *name)
 	refModel = bottomRef;
     }
     else {
-	//Anjali....the top reference trouble might be from here
 	refModel = makeSBModel(name, true);
     }
     return refModel;
 }
 
+
 double ocSBMManager::computeExplainedInformation(ocModel *model)
 {
+    double info = model->getAttribute(ATTRIBUTE_EXPLAINED_I);
+    if (info >= 0) return info;
     double topH = topRef->getAttribute(ATTRIBUTE_H);
     double botH = bottomRef->getAttribute(ATTRIBUTE_H);
     double modelT = computeTransmission(model,IPF);
-    double info = (botH - topH - modelT) / (botH - topH);
-    // info is normalized but may not quite be between zero and 1 due to
-    // roundoff. Fix this here.
+    info = (botH - topH - modelT) / (botH - topH);
+    // info is normalized but may not quite be between zero and 1 due to roundoff. Fix this here.
     if (info <= 0.0) info = 0.0;
     if (info >= 1.0) info = 1.0;
     model->setAttribute(ATTRIBUTE_EXPLAINED_I, info);
     return info;
 }
+
 
 double ocSBMManager::computeUnexplainedInformation(ocModel *model)
 {
@@ -179,13 +183,13 @@ double ocSBMManager::computeUnexplainedInformation(ocModel *model)
     double botH = bottomRef->getAttribute(ATTRIBUTE_H);
     double modelT = computeTransmission(model,IPF);
     double info = modelT / (botH - topH);
-    // info is normalized but may not quite be between zero and 1 due to
-    // roundoff. Fix this here.
+    // info is normalized but may not quite be between zero and 1 due to roundoff. Fix this here.
     if (info <= 0.0) info = 0.0;
     if (info >= 1.0) info = 1.0;
     model->setAttribute(ATTRIBUTE_UNEXPLAINED_I, info);
     return info;
 }
+
 
 double ocSBMManager::computeDDF(ocModel *model)
 {
@@ -217,10 +221,9 @@ void ocSBMManager::computeInformationStatistics(ocModel *model)
 }
 
 
-
 void ocSBMManager::computeL2Statistics(ocModel *model)
 {
-    //-- make sure we have the fittted table (needed for some statistics)
+    //-- make sure we have the fitted table (needed for some statistics)
     //-- this will return immediately if the table was already created.
 
     //-- make sure the other attributes are there
@@ -272,12 +275,13 @@ void ocSBMManager::computeL2Statistics(ocModel *model)
     model->setAttribute(ATTRIBUTE_BETA, refL2Power);
 }
 
+
 void ocSBMManager::computePearsonStatistics(ocModel *model)
 {
     //-- these statistics require a full contingency table, so make
     //-- sure one has been created.
     if (model == NULL || bottomRef == NULL) return;
-    makeFitTable(model,1);
+    makeFitTable(model, 1);
 
     ocTable *modelFitTable = new ocTable(keysize, fitTable1->getTupleCount());
 
@@ -310,6 +314,7 @@ void ocSBMManager::computePearsonStatistics(ocModel *model)
     model->setAttribute(ATTRIBUTE_P2_BETA, refP2Power);
 }
 
+
 void ocSBMManager::computeDependentStatistics(ocModel *model)
 {
     //-- the basic metric is the conditional uncertainty u(Z|ABC...), which is
@@ -322,7 +327,7 @@ void ocSBMManager::computeDependentStatistics(ocModel *model)
     int i;
     for (i = 0; i < bottomRef->getRelationCount(); i++) {
 	indRel = bottomRef->getRelation(i);
-	if (indRel->isIndOnly()) break;	// this is the one.
+	if (indRel->isIndependentOnly()) break;	// this is the one.
     }
     double indH = indRel->getAttribute(ATTRIBUTE_H);
     double refH = computeH(bottomRef);
@@ -335,6 +340,7 @@ void ocSBMManager::computeDependentStatistics(ocModel *model)
     model->setAttribute(ATTRIBUTE_COND_DH, refH - h);
     model->setAttribute(ATTRIBUTE_COND_PCT_DH, 100 * (refH - h) / depH);
 }
+
 
 void ocSBMManager::computeBPStatistics(ocModel *model)
 {
@@ -451,6 +457,7 @@ void ocSBMManager::setFilter(const char *attrname, double attrvalue, RelOp op)
     filterValue = attrvalue;
     filterOp = op;
 }
+
 
 bool ocSBMManager::applyFilter(ocModel *model)
 {
