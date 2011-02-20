@@ -262,7 +262,7 @@ bool ocOptions::setOptions(int argc, char **argv)
 	if (cp[0] == '-') {
 	    if (cp[1] == '-') {
 		//-- long form: --name=value (or for booleans, just --name)
-		char * eqpos = strchr(cp+2, '=');
+		char * eqpos = strchr((char *)cp+2, '=');
 		if (eqpos != NULL) {
 		    //-- has "=value" on end
 		    strncpy(optname, cp+2, eqpos-(cp+2));
@@ -331,6 +331,7 @@ bool ocOptions::getLine(FILE *fd, char *line, int *lineno)
 {
     int count;
     char current;
+    line[0] = '\0';
     while(true) {
 	count = 0;
 	while ( count < MAXLINE ) {
@@ -340,10 +341,11 @@ bool ocOptions::getLine(FILE *fd, char *line, int *lineno)
 		line[count++] = '\n';
 		break;
 	    } else if (current == '#') {
-		line[count++] == '\n';
 		while ( (current != '\r') && (current != '\n') && !feof(fd) ) {
 		    current = (char) fgetc(fd);
 		}
+		if (count == 0) continue;
+		line[count++] = '\n';
 		break;
 	    } else {
 		line[count++] = current;
@@ -360,6 +362,7 @@ bool ocOptions::getLine(FILE *fd, char *line, int *lineno)
 	    (*lineno)++;
 	    trim(line);
 	    if (line[0] == '\0') continue;	// skip blank lines, comments
+	    if (line[0] == '\n') continue;	// skip blank lines, comments
 	    return true;
 	}
 	else break;
