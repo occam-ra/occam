@@ -804,8 +804,7 @@ DefinePyFunction(ocSBMManager, initFromCommandLine)
     ret = ObjRef(self, ocSBMManager)->initFromCommandLine(argc, argv);
     for (i = 0; i < argc; i++) delete [] argv[i];
     delete [] argv;
-    if (!ret)
-    {
+    if (!ret) {
 	onError("ocSBMManager: initialization failed");
     }
     Py_INCREF(Py_None);
@@ -1109,7 +1108,7 @@ DefinePyFunction(ocSBMManager, makeFitTable)
     PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
     ocModel *model = ObjRef(Pmodel, ocModel);
     if (model == NULL) onError("Model is NULL!");
-    ObjRef(self, ocSBMManager)->makeFitTable(model,1);
+    ObjRef(self, ocSBMManager)->makeFitTable(model, 1);
     Py_INCREF(Py_None);
     return Py_None;
 }
