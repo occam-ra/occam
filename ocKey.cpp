@@ -205,3 +205,14 @@ void ocKey::getSiblings(ocKeySegment *key, ocVariableList *vars, ocTable *table,
     delete [] temp_key;
     *no_sib = j;
 }
+
+
+void ocKey::dumpKey(ocKeySegment *key, int keysize)
+{
+    for (int k = 0; k < keysize; k++) {
+	printf("%08lx ", key[k]);
+    }
+}
+
+
+
