@@ -62,23 +62,21 @@ class ocManagerBase {
 	// this will first search the cache and, if the relation is found, return it.
 	// if not in the cache, a new relation is created. If instructed, the projection
 	// corresponding to the relation is also created.
-	virtual ocRelation *getRelation(int *varindices, int varcount, bool makeProject = false,int *stateindices =0);
+	virtual ocRelation *getRelation(int *varindices, int varcount, bool makeProject = false, int *stateindices = 0);
 
 	// get a relation just like the given relation, but with the given variable removed.
 	// (skip is the variable id in the master variable list).
-	virtual ocRelation *getChildRelation(ocRelation *rel, int skip, bool makeProject = false);
+	virtual ocRelation *getChildRelation(ocRelation *rel, int skip, bool makeProject = false, int *stateindices = 0);
 
 	// make a projection.  This creates an ocTable, and installs it as the table for the
 	// given relation.  The projection is determined from the given table, and the
-	// VariableList is the one associated with the given relation. False is returned
-	// on any error. This function returns true immediately if the relation already
-	// has a table.
-	//if statebased the SB=0 else SB=1
-	virtual bool makeProjection(ocRelation *rel,int SB=0);
+	// VariableList is the one associated with the given relation. False is returned on
+	// any error. This function returns true immediately if the relation already has a table.
+	virtual bool makeProjection(ocRelation *rel);
 
 	// make a projection of table t1 into t2 (empty), based on the variable
 	// list contained in the given relation. This is used as one step of the IPF algorithm.
-	virtual bool makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel, int SB=0);
+	virtual bool makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel);
 
 	// make a "maxProjection" of one table into another. This creates a partial
 	// probability distribution by keeping only the max values for each matching tuple.
@@ -99,7 +97,7 @@ class ocManagerBase {
 	// Make a fit table. This function uses the IPF algorithm. The fit table is
 	// linked to the model.  If the model already has a fit table, the function
 	// returns immediately. False is returned on any error.
-	virtual bool makeFitTable(ocModel *model,int SB=0);
+	virtual bool makeFitTable(ocModel *model, int SB=0);
 
 	// Expand a single tuple into all values of all missing variables, recursively
 	void expandTuple(double tupleValue, ocKeySegment *key,
@@ -107,6 +105,7 @@ class ocManagerBase {
 		ocTable *outTable, int currentMissingVar);
 
 	void makeOrthoExpansion(ocRelation *rel, ocTable *table);
+	void makeSbExpansion(ocRelation *rel, ocTable *table);
 
 	// Process relations and intersections, as need for DF and H computation
 	void doIntersectionProcessing(ocModel *model, ocIntersectProcessor *proc);
@@ -179,7 +178,7 @@ class ocManagerBase {
 
 	//add the state constraints for a relation 
 	int addConstraint(int varcount,int *varindices,int *stateindices,int* stateindices_c,ocKeySegment* start,ocRelation *rel);
-	void make_SS(int statespace=0);
+	void makeStateSpaceArr(int statespace = 0);
 
 	//-- Print debug info on memory usage
 	void printSizes();
@@ -205,7 +204,7 @@ class ocManagerBase {
 	ocTable *fitTable1;
 	ocTable *fitTable2;
 	ocTable *projTable;
-	int **State_Space_Arr;
+	int **stateSpaceArr;
 	int dataLines;
 	int *DVOrder;
 	int useInverseNotation;
