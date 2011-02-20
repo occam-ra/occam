@@ -30,7 +30,7 @@ ocModel **ocSearchFullDown::search(ocModel *start)
 	if (rel->getVariableCount() == 1) continue;
 
 	//-- for directed systems, skip any relations which only have independent vars
-	if (isDirected() && rel->isIndOnly()) continue;
+	if (isDirected() && rel->isIndependentOnly()) continue;
 
 	//-- otherwise this will generate a child relation
 	model = manager->makeChildModel(start, i, 0, makeProjection());
@@ -403,12 +403,12 @@ ocModel **ocSearchLooplessDown::search(ocModel *start)
 	} else {
 	    rel = start->getRelation(1);
 	    ivRel = start->getRelation(0);
-	    if (rel->isIndOnly()) {
+	    if (rel->isIndependentOnly()) {
 		rel = start->getRelation(0);
 		ivRel = start->getRelation(1);
 	    }
 	}
-	if (rel->isIndOnly() || !ivRel->isIndOnly()) return NULL;
+	if (rel->isIndependentOnly() || !ivRel->isIndependentOnly()) return NULL;
 	int activeIVs = rel->getVariableCount() - 1;
 	if (activeIVs == 0) return NULL;
 	int indices[activeIVs];
@@ -520,7 +520,7 @@ ocModel **ocSearchLooplessUp::search(ocModel *start)
     //-- determine which relation is the one containing only independent variables.
     //-- this one is not modified during the search.
     for (i = 0; i < relcount; i++) {
-	if (start->getRelation(i)->isIndOnly()) {
+	if (start->getRelation(i)->isIndependentOnly()) {
 	    indOnlyRel = i;
 	    break;
 	}
@@ -594,7 +594,7 @@ ocModel **ocSearchDisjointUp::search(ocModel *start)
     //-- this one is not modified during the search.
     if (isDirected) {
 	for (i = 0; i < relcount; i++) {
-	    if (start->getRelation(i)->isIndOnly()) {
+	    if (start->getRelation(i)->isIndependentOnly()) {
 		indOnlyRel = i;
 		break;
 	    }
@@ -795,7 +795,7 @@ ocModel **ocSearchChain::search(ocModel *start)
 
     if (isDirected) {
 	for (int r = 0; r < start->getRelationCount(); r++) {
-	    if (start->getRelation(r)->isIndOnly()) {
+	    if (start->getRelation(r)->isIndependentOnly()) {
 		indOnlyRel = start->getRelation(r);
 	    }
 	}

@@ -175,7 +175,6 @@ void ocVBMManager::makeReferenceModels(ocRelation *top)
     else {
 	model = new ocModel(varCount);
 	for (i = 0; i < varCount; i++) {
-	    //-- build a list of all variables but r
 	    varindices[0] = i;
 	    rel = getRelation(varindices, 1, true);
 	    model->addRelation(rel);
@@ -201,9 +200,11 @@ ocModel *ocVBMManager::setRefModel(const char *name)
 {
     if (strcasecmp(name, "top") == 0) {
 	refModel = topRef;
-    } else if (strcasecmp(name, "bottom") == 0) {
+    }
+    else if (strcasecmp(name, "bottom") == 0) {
 	refModel = bottomRef;
-    } else {
+    }
+    else {
 	refModel = makeModel(name, true);
     }
     return refModel;
@@ -218,8 +219,7 @@ double ocVBMManager::computeExplainedInformation(ocModel *model)
     double botH = bottomRef->getAttribute(ATTRIBUTE_H);
     double modelT = computeTransmission(model);
     info = (botH - topH - modelT) / (botH - topH);
-    // info is normalized but may not quite be between zero and 1 due to
-    // roundoff. Fix this here.
+    // info is normalized but may not quite be between zero and 1 due to roundoff. Fix this here.
     if (info <= 0.0) info = 0.0;
     if (info >= 1.0) info = 1.0;
     model->setAttribute(ATTRIBUTE_EXPLAINED_I, info);
@@ -247,7 +247,7 @@ double ocVBMManager::computeUnexplainedInformation(ocModel *model)
 void ocVBMManager::buildDDF(ocRelation *rel, ocModel *loModel, ocModel *diffModel, bool directed)
 {
     // If this is a directed model, only consider relations that contain the DV
-    if(directed && rel->isIndOnly()) { return; }
+    if(directed && rel->isIndependentOnly()) { return; }
     // If the loModel contains the relation, return
     if(loModel->containsRelation(rel)) { return; }
 
@@ -1037,7 +1037,7 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd)
 	fprintf(fd, beginLine);
 	ocRelation *rel = model->getRelation(i);
 	if (directed) {
-	    if (rel->isIndOnly() )
+	    if (rel->isIndependentOnly() )
 		fprintf(fd, "IV Component:");
 	    else
 		fprintf(fd, "Model Component: ");
