@@ -284,9 +284,7 @@ void ocTable::dump(bool detail)
 	double value = getValue(i);
 	if (detail) {
 	    printf("\t%d. ", i);
-	    for (int k = 0; k < keysize; k++) {
-		printf("%08lx ", key[k]);
-	    }
+	    ocKey::dumpKey(key, keysize);
 	    printf("%g\n", value);
 	}
 	sum += value;
