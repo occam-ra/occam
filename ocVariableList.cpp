@@ -238,7 +238,7 @@ void ocVariableList::dump()
 	}
 	printf("\n");
     }
-    printf("\n");
+    printf("No-Use Mask:");
     for (int i = 0; i < noUseMaskSize; i++)
 	noUseMask[i] ? printf("1") : printf("0");
     printf("\n");
@@ -467,7 +467,7 @@ bool ocVariableList::checkCardinalities()
 	int valuecount = 0;
 	while (map[valuecount] != NULL) valuecount++;
 	if (valuecount != cardinality) {
-	    printf("Error: input data cardinality for variable %s is %d, which is less than the specified value of %d.\n",
+	    printf("Warning: input data cardinality for variable %s is %d, which is less than the specified value of %d.\n",
 		    vars[varindex].name, valuecount, cardinality);
 	    // result = false; // no longer fatal
 	}
