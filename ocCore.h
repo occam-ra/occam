@@ -100,7 +100,7 @@ class ocKey {
 	static void keyToUserString(ocKeySegment *key, ocVariableList *var, char *str);
 	static void getSiblings(ocKeySegment *key, ocVariableList *vars, ocTable *table, long *i_sibs, int DV_ind, int *no_sib);
 
-
+	static void dumpKey(ocKeySegment *key, int keysize);
 };
 
 const int DONT_CARE = 0xffffffff;	// all bits on
@@ -233,12 +233,16 @@ class ocRelation {
 	// initializes an empty relation object. The size argument is a hint as to the 
 	// number of variables to allocate space for (but relations can grow dynamically
 	// if needed).
-	ocRelation(ocVariableList *list = 0, int size = 0,int keysz=0,int stateconstsz =0);
+	ocRelation(ocVariableList *list = 0, int size = 0, int keysz = 0, int stateconstsz = 0);
 	~ocRelation();
 	long size();
 
+	// returns true if the relation has state constraints, false otherwise
+	bool isStateBased();
+
 	// adds a variable to the relation
-	void addVariable(int varindex,int stateind=-5);
+	// what does this -5 mean??? [jsf]
+	void addVariable(int varindex, int stateind = -5);
 
 
 	// returns the ocVariableList for this relation
@@ -287,8 +291,9 @@ class ocRelation {
 	// see if one relation contains another
 	bool contains(const ocRelation *other);
 
-	// see if all variables are independent
-	bool isIndOnly();
+	// see if all variables are independent or all dependent
+	bool isIndependentOnly();
+	bool isDependentOnly();
 
 	// get the NC (cartesian product size)
 	long long getNC();
@@ -316,7 +321,7 @@ class ocRelation {
 	double getAttribute(const char *name);
 
 	// get a printable name for the relation, using the variable abbreviations
-	const char *getPrintName(int useInverse=0);
+	const char *getPrintName(int useInverse = 0);
 
 	// get a tuple value from the projection table, which matches the key passed in.
 	// the key may contain don't cares but must have actual values for all the variables
@@ -325,7 +330,6 @@ class ocRelation {
 
 	// dump data to stdout
 	void dump();
-	class ocStateConstraint *getStateConstraint(){return stateConstraints;}
 
     private:
 	void buildMask();		// build the variable mask from the list of variables
@@ -358,8 +362,10 @@ class ocModel {
 	~ocModel();
 	long size();
 
+	bool isStateBased();
+
 	// get/set relations
-	void addRelation(ocRelation *relation, bool normalize=true);
+	void addRelation(ocRelation *relation, bool normalize = true);
 	int getRelations(ocRelation **rels, int maxRelations);
 	ocRelation *getRelation(int index);
 	int getRelationCount();
@@ -377,7 +383,7 @@ class ocModel {
 	double getAttribute(const char *name);
 
 	// get a printable name for the relation, using the variable abbreviations
-	const char *getPrintName(int useInverse=0);
+	const char *getPrintName(int useInverse = 0);
 
 	// set, get hash chain linkages
 	ocModel *getHashNext() { return hashNext; }
@@ -402,13 +408,13 @@ class ocModel {
 	void dump(bool detail = false);
 
 	//state based models need to make structure matrix for Df calculation
-	void makeStructMatrix(int statespace,ocVariableList * vars,int **State_sp_Arr);	
-	int * get_indicesfromKey(ocKeySegment *key, ocVariableList *vars, int statespace,int **State_Sp_Arr, int *counter);
+	void makeStructMatrix(int statespace, ocVariableList *vars, int **stateSpaceArr);	
+	int * get_indicesfromKey(ocKeySegment *key, ocVariableList *vars, int statespace, int **stateSpaceArr, int *counter);
 
 	void printStructMatrix();
-	int **get_structMatrix(int *statespace,int* Total_const){
-	    *statespace=State_Space_sz;
-	    *Total_const=Total_constraints;
+	int **get_structMatrix(int *statespace, int* Total_const) {
+	    *statespace = stateSpaceSize;
+	    *Total_const = Total_constraints;
 	    return structMatrix;};
     private:
 	    ocRelation **relations;
@@ -423,7 +429,7 @@ class ocModel {
 	    char *inverseName;
 	    int **structMatrix;
 	    int Total_constraints;
-	    int State_Space_sz;
+	    int stateSpaceSize;
 };
 
 
