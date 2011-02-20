@@ -213,7 +213,7 @@ ocManagerBase.h
 	- getFitTable()
 	- calc_StateConst_sz()
 	- addConstraint()
-	- make_SS()
+	- makeStateSpaceArr()
 	- printSizes()
 	- dumpRelations()
 
@@ -491,15 +491,15 @@ ocVariableList.cpp
 	- isDirected()
 	- getDV()
 	- getVariableList()
-	- getVar_StateList()
+	- getVarStateList()
 	- getMaxAbbrevLen()
 	- getVarValueIndex()
 	- getVarValue()
 	- checkCardinalities()
 	- dump()
-	- good()
+	- isVarInUse()
 	- markForNoUse()
-	- getnewvalue()
+	- getNewValue()
 
 ocWin32.h
 	Some definitions to bridge between gcc and Visual Studio.
