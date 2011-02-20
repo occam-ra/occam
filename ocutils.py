@@ -450,6 +450,14 @@ class ocUtils:
 			self.__manager.printFitReport(model)
 			self.__manager.makeFitTable(model)
 			self.__report.printResiduals(model)
+			if self.__defaultFitModel != "":
+			    try:
+				defaultModel = self.__manager.makeModel(self.__defaultFitModel, 1)
+			    except:
+				print "\nERROR: Unable to create model " + self.__defaultFitModel
+				sys.exit(0)
+			    self.__report.setDefaultFitModel(defaultModel)
+			self.__report.printConditional_DV(model, self.__calcExpectedDV)
 			print
 			print
 
@@ -484,13 +492,14 @@ class ocUtils:
 		if not self.__manager.isDirected() and self.__refModel == "default":
 			self.__refModel = "top"
 
-		self.__manager.setDDFMethod(self.__DDFMethod)
 		option = self.__action
 		if option == "search":
+			self.__manager.setDDFMethod(self.__DDFMethod)
 			self.doSearch(printOptions)
 			self.printReport()
 
 		elif option == "fit":
+			self.__manager.setDDFMethod(self.__DDFMethod)
 			self.doFit(printOptions)
 
 		elif option == "SBfit":
