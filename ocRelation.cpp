@@ -27,7 +27,7 @@ ocRelation::ocRelation(ocVariableList *list, int size, int keysz, int stateconst
     } else {
 	//needs a better keysize value........Anjali
 	states = new int[size];
-	stateConstraints = new ocStateConstraint(keysz,stateconstsz);
+	stateConstraints = new ocStateConstraint(keysz, stateconstsz);
     }
     mask = NULL;
     hashNext = NULL;
@@ -56,20 +56,27 @@ long ocRelation::size()
 }
 
 
+bool ocRelation::isStateBased()
+{
+    if (stateConstraints != NULL) return true;
+    else return false;
+}
+
+
 // adds a variable to the relation
-void ocRelation::addVariable(int varindex,int stateind)
+void ocRelation::addVariable(int varindex, int stateind)
 {
     const int FACTOR = 2;
     while (varCount >= maxVarCount) {
 	vars = (int*) growStorage(vars, maxVarCount*sizeof(int), FACTOR);
-	if(stateind>=0 || stateind==DONT_CARE) {
+	if(stateind >= 0 || stateind == DONT_CARE) {
 	    states = (int*) growStorage(states, maxVarCount*sizeof(int), FACTOR);
 	}
 	maxVarCount *= FACTOR;
     }
     vars[varCount] = varindex;
-    if(stateind>=0 || stateind==DONT_CARE){
-	states[varCount]=stateind;
+    if(stateind >= 0 || stateind == DONT_CARE){
+	states[varCount] = stateind;
     }
     varCount++;
 }
@@ -262,7 +269,7 @@ bool ocRelation::contains(const ocRelation *other)
 
 
 // see if all variables are independent variables. These relations are not decomposed during search
-bool ocRelation::isIndOnly()
+bool ocRelation::isIndependentOnly()
 {
     if (indepOnly == 0) {
 	return false;
@@ -284,6 +291,18 @@ bool ocRelation::isIndOnly()
 }
 
 
+bool ocRelation::isDependentOnly()
+{
+    for (int i = 0; i < varCount; i++) {
+	if(varList->getVariable(getVariable(i))->dv == false) {
+	    return false;
+	}
+    }
+    return true;
+}
+
+
+// get the NC (cartesian product size)
 long long ocRelation::getNC()
 {
     long long nc = 1;
@@ -430,13 +449,19 @@ void ocRelation::buildMask()
 // dump data to stdout
 void ocRelation::dump()
 {
-    printf("\tRelation: %s", getPrintName());
+    printf("\tocRelation: %s", getPrintName());
+    int keysize = varList->getKeySize();
+    printf("\t\tRelation mask: ");
+    ocKey::dumpKey(mask, keysize);
+    printf("\n");
+
     getAttributeList()->dump();
     printf("\n");
     if (getTable()) {
-	getTable()->dump(false);
+	getTable()->dump(1);
     }
     varList->dump();
+    //delete keystr;
 }
 
 
