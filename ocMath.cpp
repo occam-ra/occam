@@ -900,10 +900,10 @@ double ocSB_DF(ocModel *model){
     int** matrix=model->get_structMatrix(&ncols,&nrows);
     //create a temp copy
     struct_matrix=new int *[nrows];
-    int *State_Space_Arr1;
+    int *stateSpaceArr1;
     for(i=0;i<nrows;i++){
-	State_Space_Arr1=new int[ncols];
-	struct_matrix[i]=State_Space_Arr1;
+	stateSpaceArr1=new int[ncols];
+	struct_matrix[i]=stateSpaceArr1;
     }
     for(int i=0;i<nrows;i++){
 	if(i<nrows-1){
