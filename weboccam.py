@@ -1,4 +1,4 @@
-#! python
+#! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
 
 import os, cgi, sys, occam, time, string, traceback, pickle, zipfile, datetime
 import cgitb; cgitb.enable(display=1)
@@ -9,7 +9,7 @@ from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 #import urllib2
 
-VERSION = "3.2.29"
+VERSION = "3.3.0"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
@@ -188,6 +188,7 @@ def processSBFit(fn, model, oc):
 	if textFormat:
 		oc.setReportSeparator(ocUtils.COMMASEP)
 	else:
+		print '<div class="data">'
 		oc.setReportSeparator(ocUtils.HTMLFORMAT)
 
 	if model <> "":
@@ -230,14 +231,14 @@ def actionSBFit(formFields):
 	if not formFields.has_key("data") or not formFields.has_key("model") :
 		actionNone(formFields, "Missing form fields")
 		return
-	model = formFields["model"]
+#model = formFields["model"]
 
-	if textFormat:
-		processSBFit(fn, model,oc)
-	else:
-		print "<span class=mono>"
-		processSBFit(fn, model, oc)
-		print "</span>"
+#	if textFormat:
+	processSBFit(fn, formFields["model"], oc)
+#else:
+#		print "<span class=mono>"
+#		processSBFit(fn, model, oc)
+#		print "</span>"
 
 #
 #---- processSearch ---- Do search operation
@@ -349,7 +350,7 @@ def actionSearch(formFields):
 		oc.doAction(printOptions)
 	else:
 		print "<hr><p>"
-		print "<div class=data>"
+		print '<div class="data">'
 		oc.doAction(printOptions)
 		print "</div>"
 
