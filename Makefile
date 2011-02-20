@@ -15,7 +15,7 @@ DEFS = -I.
 LDFLAGS = -lm -lstdc++
 
 
-PY_INCLUDE = /usr/include/python2.5
+PY_INCLUDE = /usr/include/python2.6
 PY_WRAPPER = pyoccam.cpp
 PY_OCCAM = occam.so
 
