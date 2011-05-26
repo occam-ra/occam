@@ -19,368 +19,379 @@ datadir = "data"
 #---- getDataFileName -- get the original name of the data file
 #
 def getDataFileName(formFields, trim=false):
-	# extract the file name (minus directory) and seed the download dialog with it
-	# we have to handle both forward and backward slashes here.
-	datafile = formFields['datafilename']
-	if string.find(datafile, "\\") >= 0:
-		datapath = string.split(datafile, "\\")
-	else:
-		datapath = string.split(datafile, "/")
-	datafile = datapath[len(datapath)-1]
-	#datafile = os.path.basename(formFields['datafilename'])
-	if trim:
-		datafile = os.path.splitext(datafile)[0]
-	return datafile
+    # extract the file name (minus directory) and seed the download dialog with it
+    # we have to handle both forward and backward slashes here.
+    datafile = formFields['datafilename']
+    if string.find(datafile, "\\") >= 0:
+        datapath = string.split(datafile, "\\")
+    else:
+        datapath = string.split(datafile, "/")
+    datafile = datapath[len(datapath)-1]
+    #datafile = os.path.basename(formFields['datafilename'])
+    if trim:
+        datafile = os.path.splitext(datafile)[0]
+    return datafile
 
 #
 #---- printHeaders ---- Print HTTP Headers
 #
 def printHeaders(formFields, textFormat):
-	if textFormat:
-		datafile = getDataFileName(formFields, true)
-		datafile = datafile + ".csv"
-		print "Content-type: application/octet-stream"
-		print "Content-disposition: attachment; filename=" + datafile
-	else:
-		print "Content-type: text/html"
-	print ""
+    if textFormat:
+        datafile = getDataFileName(formFields, true)
+        datafile = datafile + ".csv"
+        print "Content-type: application/octet-stream"
+        print "Content-disposition: attachment; filename=" + datafile
+    else:
+        print "Content-type: text/html"
+    print ""
 
 #
 #---- printTop ---- Print top HTML part
 #
 def printTop(template, textFormat):
-	if textFormat:
-		template.set_template('header.txt')
-	else:
-		template.set_template('header.html')
-	args = {'version':VERSION,'date':datetime.datetime.now().strftime("%c")}
-	template.out(args)
+    if textFormat:
+        template.set_template('header.txt')
+    else:
+        template.set_template('header.html')
+    args = {'version':VERSION,'date':datetime.datetime.now().strftime("%c")}
+    template.out(args)
 
 #
 #---- printTime ---- Print elapsed time
 #
 def printTime(textFormat):
-	now = time.time()
-	elapsed_t = now - startt
-	if elapsed_t > 0:
-		if textFormat:
-                        print "Run time: %f seconds\n" % elapsed_t
-		else:
-                        print "<br>Run time: %f seconds</br>" % elapsed_t
+    now = time.time()
+    elapsed_t = now - startt
+    if elapsed_t > 0:
+        if textFormat:
+            print "Run time: %f seconds\n" % elapsed_t
+        else:
+            print "<br>Run time: %f seconds</br>" % elapsed_t
 
 #
 #---- printBottom ---- Print bottom HTML part
 #
 def printBottom():
-	template.set_template('footer.html')
-	args = {}
-	template.out(args)
+    template.set_template('footer.html')
+    args = {}
+    template.out(args)
 
 #
 #---- printForm ---- Print the data input form
 #
 def printForm(formFields):
-	template = OpagCGI()
-	action = formFields.get("action", "")
-	datafile = formFields.get("datafile", "")
-	model = formFields.get("model", "")
-	specificRefModel = formFields.get("specificrefmodel")
+    template = OpagCGI()
+    action = formFields.get("action", "")
+    datafile = formFields.get("datafile", "")
+    model = formFields.get("model", "")
+    specificRefModel = formFields.get("specificrefmodel")
 
-	formatText = ""
-	if formFields.has_key("formatText"): formFields['formatText'] = "checked"
-	template.set_template('switchform.html')
-	template.out(formFields)
+    formatText = ""
+    if formFields.has_key("formatText"): formFields['formatText'] = "checked"
+    template.set_template('switchform.html')
+    template.out(formFields)
 
-	#---- This form section for fit only
-	if action == "fit":
-		template.set_template('fitform.html')
-		template.out(formFields)
+    #---- This form section for fit only
+    if action == "fit":
+        template.set_template('fitform.html')
+        template.out(formFields)
 
-	#---- This section for search only
-	elif action == "search" or action == "advanced" :
-		template.set_template('searchform.html')
-		template.out(formFields)
-	
-	elif action == "SBfit":
-		template.set_template('SBfitform.html')
-		template.out(formFields)
-		
-	elif action == "showlog":
-		template.set_template('logform.html')
-		template.out(formFields)
+    #---- This section for search only
+    elif action == "search" or action == "advanced" :
+        template.set_template('searchform.html')
+        template.out(formFields)
+    
+    elif action == "SBfit":
+        template.set_template('SBfitform.html')
+        template.out(formFields)
+        
+    elif action == "showlog":
+        template.set_template('logform.html')
+        template.out(formFields)
 
-	elif action == "jobcontrol":
-		jc = JobControl()
-		jc.showJobs(formFields)
+    elif action == "jobcontrol":
+        jc = JobControl()
+        jc.showJobs(formFields)
 
 
 #
 #---- actionForm ---- put up the input form
 #
 def actionForm(form, errorText):
-	if errorText:
-		print "<H2>Error: %s</H2><BR>" % errorText
-	printForm(form)
+    if errorText:
+        print "<H2>Error: %s</H2><BR>" % errorText
+    printForm(form)
 
 #
 #---- getDataFile ---- get the posted data and store to temp file
 #
 def getDataFile(formFields):
-	datafile = os.path.join(datadir, getDataFileName(formFields, false))
-	try:
-		outf = open(datafile, "w")
-		data = formFields["data"]
-		outf.write(data)
-		outf.close()
-	except:
-		if getDataFileName(formFields, false) == "":
-			print "ERROR: No data file specified."
-		else:
-			print "ERROR: Problems reading data file %s." % datafile
-		sys.exit()
-	# If it appears to be a zipfile, unzip it
-	if os.path.splitext(datafile)[1] == ".zip":
-		zipdata = zipfile.ZipFile(datafile)
-		# ignore any directories or files in them, such as those OSX likes to make
-		ilist = [item for item in zipdata.infolist() if item.filename.find("/") == -1]
-		# make sure there is only one file left
-		if len(ilist) != 1:
-			print "ERROR: Zip file can only contain one data file. (It appears to contain %d.)" % len(ilist)
-			sys.exit()
-		# try to extract the file
-		try:
-			datafile = os.path.join(datadir, ilist[0].filename)
-			outf = open(datafile, "w")
-			outf.write(zipdata.read(ilist[0].filename))
-			outf.close()
-		except:
-			print "ERROR: Extracting zip file failed."
-			sys.exit()
-	return datafile
+    datafile = os.path.join(datadir, getDataFileName(formFields, false))
+    try:
+        outf = open(datafile, "w")
+        data = formFields["data"]
+        outf.write(data)
+        outf.close()
+    except:
+        if getDataFileName(formFields, false) == "":
+            print "ERROR: No data file specified."
+        else:
+            print "ERROR: Problems reading data file %s." % datafile
+        sys.exit()
+    # If it appears to be a zipfile, unzip it
+    if os.path.splitext(datafile)[1] == ".zip":
+        zipdata = zipfile.ZipFile(datafile)
+        # ignore any directories or files in them, such as those OSX likes to make
+        ilist = [item for item in zipdata.infolist() if item.filename.find("/") == -1]
+        # make sure there is only one file left
+        if len(ilist) != 1:
+            print "ERROR: Zip file can only contain one data file. (It appears to contain %d.)" % len(ilist)
+            sys.exit()
+        # try to extract the file
+        try:
+            datafile = os.path.join(datadir, ilist[0].filename)
+            outf = open(datafile, "w")
+            outf.write(zipdata.read(ilist[0].filename))
+            outf.close()
+        except:
+            print "ERROR: Extracting zip file failed."
+            sys.exit()
+    return datafile
 
 #
 #---- processFit ---- Do fit operation
 #
 def processFit(fn, model, oc):
-	global datafile, textFormat, printOptions
+    global datafile, textFormat, printOptions
 
-	if textFormat:
-		oc.setReportSeparator(ocUtils.COMMASEP)
-	else:
-		print '<div class="data">'
-		oc.setReportSeparator(ocUtils.HTMLFORMAT)
+    if textFormat:
+        oc.setReportSeparator(ocUtils.COMMASEP)
+    else:
+        print '<div class="data">'
+        oc.setReportSeparator(ocUtils.HTMLFORMAT)
 
-	if model <> "":
-		oc.setFitModel(model)
-	oc.setAction("fit")
-	oc.doAction(printOptions)
+    if model <> "":
+        oc.setFitModel(model)
+    oc.setAction("fit")
+    oc.doAction(printOptions)
 
-	if not textFormat:
-		print "</span>"
+    if not textFormat:
+        print "</span>"
 
 #
 #---- processSBFit ---- Do state based fit operation
 #
 def processSBFit(fn, model, oc):
-	global datafile, textFormat, printOptions
+    global datafile, textFormat, printOptions
 
 
-	if textFormat:
-		oc.setReportSeparator(ocUtils.COMMASEP)
-	else:
-		print '<div class="data">'
-		oc.setReportSeparator(ocUtils.HTMLFORMAT)
+    if textFormat:
+        oc.setReportSeparator(ocUtils.COMMASEP)
+    else:
+        print '<div class="data">'
+        oc.setReportSeparator(ocUtils.HTMLFORMAT)
 
-	if model <> "":
-		oc.setFitModel(model)
-	oc.setAction("SBfit")
-	oc.doAction(printOptions)
+    if model <> "":
+        oc.setFitModel(model)
+    oc.setAction("SBfit")
+    oc.doAction(printOptions)
 
 #
 #---- actionFit ---- Report on Fit
 #
 def actionFit(formFields):
-	global textFormat
+    global textFormat
 
-	fn = getDataFile(formFields)
-	oc = ocUtils("VB")
-	oc.initFromCommandLine(["",fn])
-	oc.setDataFile(formFields["datafilename"])
-	if formFields.has_key("calcExpectedDV"):
-	    oc.setCalcExpectedDV(1)
-	oc.setDDFMethod(1)
-	if formFields.has_key("defaultmodel"):
-	    oc.setDefaultFitModel(formFields["defaultmodel"])
+    fn = getDataFile(formFields)
+    oc = ocUtils("VB")
+    if not textFormat:
+        print '<pre>'
+    oc.initFromCommandLine(["",fn])
+    if not textFormat:
+        print '</pre>'
+    oc.setDataFile(formFields["datafilename"])
+    if formFields.has_key("calcExpectedDV"):
+        oc.setCalcExpectedDV(1)
+    oc.setDDFMethod(1)
+    if formFields.has_key("defaultmodel"):
+        oc.setDefaultFitModel(formFields["defaultmodel"])
 
-	if not formFields.has_key("data") or not formFields.has_key("model") :
-	    actionNone(formFields, "Missing form fields")
-	    return
-	processFit(fn, formFields["model"], oc)
+    if not formFields.has_key("data") or not formFields.has_key("model") :
+        actionNone(formFields, "Missing form fields")
+        return
+    processFit(fn, formFields["model"], oc)
 
 #
 #---- actionSBFit ---- Report on Fit
 #
 def actionSBFit(formFields):
-	global textFormat
+    global textFormat
 
-	fn = getDataFile(formFields)
-	oc = ocUtils("SB")
-	oc.initFromCommandLine(["",fn])
-	oc.setDataFile(formFields["datafilename"])
+    fn = getDataFile(formFields)
+    oc = ocUtils("SB")
+    if not textFormat:
+        print '<pre>'
+    oc.initFromCommandLine(["",fn])
+    if not textFormat:
+        print '</pre>'
+    oc.setDataFile(formFields["datafilename"])
 
-	if not formFields.has_key("data") or not formFields.has_key("model") :
-		actionNone(formFields, "Missing form fields")
-		return
+    if not formFields.has_key("data") or not formFields.has_key("model") :
+        actionNone(formFields, "Missing form fields")
+        return
 #model = formFields["model"]
 
-#	if textFormat:
-	processSBFit(fn, formFields["model"], oc)
+#   if textFormat:
+    processSBFit(fn, formFields["model"], oc)
 #else:
-#		print "<span class=mono>"
-#		processSBFit(fn, model, oc)
-#		print "</span>"
+#       print "<span class=mono>"
+#       processSBFit(fn, model, oc)
+#       print "</span>"
 
 #
 #---- processSearch ---- Do search operation
 #
 def actionSearch(formFields):
+    global textFormat
 
-	fn = getDataFile(formFields)
-	man="VB"
-	oc = ocUtils(man)
-	oc.initFromCommandLine(["",fn])
-	if formFields["datafilename"] != os.path.split(fn)[1]:
-		oc.setDataFile(os.path.split(fn)[1] + " (from: \"" + formFields["datafilename"] + "\")")
-	else:
-		oc.setDataFile(formFields["datafilename"])
-	# unused error? this should get caught by getDataFile() above
-	if not formFields.has_key("data") :
-		actionForm(form, "Missing form fields")
-		print "missing data"
-		return
-	textFormat = formFields.get("format", "")
-	if textFormat:
-		oc.setReportSeparator(ocUtils.COMMASEP)
-	else:
-		oc.setReportSeparator(ocUtils.HTMLFORMAT)
+    fn = getDataFile(formFields)
+    man="VB"
+    oc = ocUtils(man)
+    if not textFormat:
+        print '<pre>'
+    oc.initFromCommandLine(["",fn])
+    if not textFormat:
+        print '</pre>'
+    if formFields["datafilename"] != os.path.split(fn)[1]:
+        oc.setDataFile(os.path.split(fn)[1] + " (from: \"" + formFields["datafilename"] + "\")")
+    else:
+        oc.setDataFile(formFields["datafilename"])
+    # unused error? this should get caught by getDataFile() above
+    if not formFields.has_key("data") :
+        actionForm(form, "Missing form fields")
+        print "missing data"
+        return
+    #textFormat = formFields.get("format", "")
+    if textFormat:
+        oc.setReportSeparator(ocUtils.COMMASEP)
+    else:
+        oc.setReportSeparator(ocUtils.HTMLFORMAT)
 
-	oc.setSortDir(formFields.get("sortdir", ""))
-	
-	levels = formFields.get("searchlevels")
-	if levels and levels > 0:
-		oc.setSearchLevels(levels)
-	width = formFields.get("searchwidth")
-	if width and width > 0:
-		oc.setSearchWidth(width)
+    oc.setSortDir(formFields.get("sortdir", ""))
+    
+    levels = formFields.get("searchlevels")
+    if levels and levels > 0:
+        oc.setSearchLevels(levels)
+    width = formFields.get("searchwidth")
+    if width and width > 0:
+        oc.setSearchWidth(width)
 
-	reportSort = formFields.get("sortreportby", "")
-	searchSort = formFields.get("sortby", "")
-#ddfMethod = formFields.get("ddfmethod", "")
-#oc.setDDFMethod(ddfMethod)
-	inverseFlag = formFields.get("inversenotation", "")
-	if inverseFlag:
-		oc.setUseInverseNotation(1)
+    reportSort = formFields.get("sortreportby", "")
+    searchSort = formFields.get("sortby", "")
+    inverseFlag = formFields.get("inversenotation", "")
+    if inverseFlag:
+        oc.setUseInverseNotation(1)
 
-	oc.setStartModel(formFields.get("model", "default"))
+    oc.setStartModel(formFields.get("model", "default"))
 
-	refModel = formFields.get("refmodel", "default")
-	specificRefModel = ""
-	if refModel == "specific" and form.has_key("specificrefmodel"):
-		refModel = formFields["specificrefmodel"]
-		specificRefModel = refModel
-	elif refModel == "starting":
-		refModel = oc.getStartModel()
-	oc.setRefModel(refModel)
+    refModel = formFields.get("refmodel", "default")
+    specificRefModel = ""
+    if refModel == "specific" and form.has_key("specificrefmodel"):
+        refModel = formFields["specificrefmodel"]
+        specificRefModel = refModel
+    elif refModel == "starting":
+        refModel = oc.getStartModel()
+    oc.setRefModel(refModel)
 
-	oc.setSearchDir(formFields.get("searchdir", "default"))
-	oc.setSearchSortDir(formFields.get("searchsortdir", ""))
+    oc.setSearchDir(formFields.get("searchdir", "default"))
+    oc.setSearchSortDir(formFields.get("searchsortdir", ""))
 
-	oc.setSearchFilter(formFields.get("searchtype", "all"))
-	oc.setAction("search")
+    oc.setSearchFilter(formFields.get("searchtype", "all"))
+    oc.setAction("search")
 
-	if formFields["evalmode"] == "bp":
-		reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
-		oc.setNoIPF(true)
- 		if reportSort == "information": reportSort = "bp_information"
-		elif reportSort == "alpha": reportSort = "bp_alpha"
- 		if searchSort == "information": searchSort = "bp_information"
-		elif searchSort == "alpha": searchSort = "bp_alpha"
-		if oc.isDirected():
-		    reportvars = reportvars + ", bp_cond_pct_dh"
-		reportvars = reportvars + ", bp_aic, bp_bic"
-	else:
-		reportvars = "Level$I"
-		if formFields.get("show_h", ""):
-		    reportvars = reportvars + ", h"
-		reportvars = reportvars + ", ddf"
-		if formFields.get("show_dlr", ""):
-		    reportvars = reportvars + ", lr"
-		if formFields.get("show_alpha", "") or searchSort == "alpha" or reportSort == "alpha":
-		    reportvars = reportvars + ", alpha"
-		reportvars = reportvars + ", information"
+    if formFields["evalmode"] == "bp":
+        reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
+        oc.setNoIPF(true)
+        if reportSort == "information": reportSort = "bp_information"
+        elif reportSort == "alpha": reportSort = "bp_alpha"
+        if searchSort == "information": searchSort = "bp_information"
+        elif searchSort == "alpha": searchSort = "bp_alpha"
+        if oc.isDirected():
+            reportvars = reportvars + ", bp_cond_pct_dh"
+        reportvars = reportvars + ", bp_aic, bp_bic"
+    else:
+        reportvars = "Level$I"
+        if formFields.get("show_h", ""):
+            reportvars = reportvars + ", h"
+        reportvars = reportvars + ", ddf"
+        if formFields.get("show_dlr", ""):
+            reportvars = reportvars + ", lr"
+        if formFields.get("show_alpha", "") or searchSort == "alpha" or reportSort == "alpha":
+            reportvars = reportvars + ", alpha"
+        reportvars = reportvars + ", information"
 
-		if oc.isDirected():
-		    if formFields.get("show_pct_dh", ""):
-			reportvars = reportvars + ", cond_pct_dh"
-		if formFields.get("show_aic", "") or searchSort == "aic" or reportSort == "aic":
-		    reportvars = reportvars + ", aic"
-		if formFields.get("show_bic", "") or searchSort == "bic" or reportSort == "bic":
-		    reportvars = reportvars + ", bic"
+        if oc.isDirected():
+            if formFields.get("show_pct_dh", ""):
+                reportvars = reportvars + ", cond_pct_dh"
+        if formFields.get("show_aic", "") or searchSort == "aic" or reportSort == "aic":
+            reportvars = reportvars + ", aic"
+        if formFields.get("show_bic", "") or searchSort == "bic" or reportSort == "bic":
+            reportvars = reportvars + ", bic"
 
-	if formFields.get("show_incr_a", ""):
-		reportvars = reportvars + ", incr_alpha, prog_id"
-			
-	if formFields.get("show_bp", "") and formFields["evalmode"] <> "bp":
-		reportvars = reportvars + ", bp_t"
+    if formFields.get("show_incr_a", ""):
+        reportvars = reportvars + ", incr_alpha, prog_id"
+            
+    if formFields.get("show_bp", "") and formFields["evalmode"] <> "bp":
+        reportvars = reportvars + ", bp_t"
 
-	if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
-		reportvars = reportvars + ", pct_correct_data"
-		if formFields.get("show_pct_cover", ""):
-		    reportvars = reportvars + ", pct_coverage"
-		if oc.hasTestData():
-		    reportvars = reportvars + ", pct_correct_test"
-		    if formFields.get("show_pct_miss", ""):
-			reportvars = reportvars + ", pct_missed_test"
+    if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
+        reportvars = reportvars + ", pct_correct_data"
+        if formFields.get("show_pct_cover", ""):
+            reportvars = reportvars + ", pct_coverage"
+        if oc.hasTestData():
+            reportvars = reportvars + ", pct_correct_test"
+            if formFields.get("show_pct_miss", ""):
+                reportvars = reportvars + ", pct_missed_test"
 
-	oc.setReportSortName(reportSort)
- 	oc.setSortName(searchSort)
-	oc.setReportVariables(reportvars)
+    oc.setReportSortName(reportSort)
+    oc.setSortName(searchSort)
+    oc.setReportVariables(reportvars)
 
-	if textFormat:
-		oc.doAction(printOptions)
-	else:
-		print "<hr><p>"
-		print '<div class="data">'
-		oc.doAction(printOptions)
-		print "</div>"
+    if textFormat:
+        oc.doAction(printOptions)
+    else:
+        print "<hr><p>"
+        print '<div class="data">'
+        oc.doAction(printOptions)
+        print "</div>"
 
 #
 #---- actionShowLog ---- show job log given email
 def actionShowLog(formFields):
-	email = formFields.get("email", "").lower()
-	if email:
-		printBatchLog(email)
+    email = formFields.get("email", "").lower()
+    if email:
+        printBatchLog(email)
 
 #---- actionError ---- print error on unknown action
 #
 def actionError():
-	if textFormat:
-		print "Error: unknown action"
-	else:
-		print "<H1>Error: unknown action</H1>"
+    if textFormat:
+        print "Error: unknown action"
+    else:
+        print "<H1>Error: unknown action</H1>"
 
 #---- getFormFields ----
 def getFormFields(form):
-	formFields = {}
-	keys = form.keys()
-	for key in keys:
-		if key == 'data':
-			formFields['datafilename'] = form[key].filename
-			formFields['data'] = form[key].value
-		else:
-			formFields[key] = form.getfirst(key)
-	return formFields
-		
+    formFields = {}
+    keys = form.keys()
+    for key in keys:
+        if key == 'data':
+            formFields['datafilename'] = form[key].filename
+            formFields['data'] = form[key].value
+        else:
+            formFields[key] = form.getfirst(key)
+    return formFields
+        
 #
 #---- startBatch ----
 #
@@ -388,44 +399,44 @@ def getFormFields(form):
 # script as a command line job
 #
 def startBatch(formFields):
-	ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
-	csvname = getDataFileName(formFields, true) + '.csv'
-	datafilename = getDataFileName(formFields, false)
-	toaddress =  formFields["batchOutput"].lower()
-	emailSubject = formFields["emailSubject"]
-	f = open(ctlfilename, 'w', 0777)
-	pickle.dump(formFields, f)
-	f.close()
-	appname = os.path.dirname(sys.argv[0])
-	if not appname: appname = "."
-	appname = os.path.join(appname, "occambatch")
+    ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
+    csvname = getDataFileName(formFields, true) + '.csv'
+    datafilename = getDataFileName(formFields, false)
+    toaddress =  formFields["batchOutput"].lower()
+    emailSubject = formFields["emailSubject"]
+    f = open(ctlfilename, 'w', 0777)
+    pickle.dump(formFields, f)
+    f.close()
+    appname = os.path.dirname(sys.argv[0])
+    if not appname: appname = "."
+    appname = os.path.join(appname, "occambatch")
 
-	print "Process ID:", os.getpid(), "<p>"
+    print "Process ID:", os.getpid(), "<p>"
 
-	cmd = 'nohup "%s" "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname, emailSubject.encode("hex"))
-	result = os.system(cmd)
-	print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
+    cmd = 'nohup "%s" "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname, emailSubject.encode("hex"))
+    result = os.system(cmd)
+    print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
 
 
 #
 #---- getWebControls ----
 #
 def getWebControls():
-	formFields = getFormFields(cgi.FieldStorage())
-	return formFields
+    formFields = getFormFields(cgi.FieldStorage())
+    return formFields
 
 #
 #---- getBatchControls ----
 #
 def getBatchControls():
-	ctlfile = sys.argv[1]
-	f = open(ctlfile, "r")
-	formFields = pickle.load(f)
-	# set text mode, clear batch mode (so we don't recurse)
-	formFields["format"] = "text"
-	formFields["batchOutput"] = ""
-	f.close()
-	return formFields
+    ctlfile = sys.argv[1]
+    f = open(ctlfile, "r")
+    formFields = pickle.load(f)
+    # set text mode, clear batch mode (so we don't recurse)
+    formFields["format"] = "text"
+    formFields["batchOutput"] = ""
+    f.close()
+    return formFields
 
 #
 #---- printBatchLog ----
@@ -436,13 +447,13 @@ def printBatchLog(email):
     # perhaps we should do some check that this directory exists?
     file = os.path.join("batchlogs", email.lower())
     try:
-	f = open(file)
-	logcontents = f.readlines()
-	theLog = string.join(logcontents, '<BR>')
-	f.close
-	print theLog
+        f = open(file)
+        logcontents = f.readlines()
+        theLog = string.join(logcontents, '<BR>')
+        f.close
+        print theLog
     except:
-	print "no log file found for %s<br>" % email
+        print "no log file found for %s<br>" % email
 
 #---- main script ----
 #
@@ -457,45 +468,47 @@ startt = time.time()
 # See if this is a batch run or a web server run
 argc = len(sys.argv)
 if argc > 1:
-	formFields = getBatchControls()
+    formFields = getBatchControls()
 else:
-	formFields = getWebControls()
+    formFields = getWebControls()
 
 textFormat = formFields.get("format", "") != ""
+if formFields.has_key("batchOutput") and formFields["batchOutput"]:
+    textFormat = 0
 
 printHeaders(formFields, textFormat)
 
 if formFields.has_key("printoptions"):
-	printOptions = "true"
+    printOptions = "true"
 
 printTop(template, textFormat)
 
 # If this is not an output page, or reporting a batch job, then print the header form
 if not formFields.has_key("data") and not formFields.has_key("email"):
-	actionForm(formFields, None)
+    actionForm(formFields, None)
 
 # If there is an action, and either data or an email address, proceed
 if formFields.has_key("action") and ( formFields.has_key("data") or formFields.has_key("email") ) :
-	
-	# If this is running from web server, and batch mode requested, then start a background task
-	if formFields.has_key("batchOutput") and formFields["batchOutput"]:
-		startBatch(formFields)
-	else:
-		try:
-			if formFields["action"] == "fit" :
-				actionFit(formFields)
-			elif formFields["action"] == "SBfit":
-				actionSBFit(formFields)
-			elif formFields["action"] == "search" or formFields["action"] == "advanced":
-				actionSearch(formFields)
-			elif formFields["action"] == "showlog":
-				actionShowLog(formFields)
-			else:
-				actionError()
-			printTime(textFormat)
-		except:
-			pass
+    
+    # If this is running from web server, and batch mode requested, then start a background task
+    if formFields.has_key("batchOutput") and formFields["batchOutput"]:
+        startBatch(formFields)
+    else:
+        try:
+            if formFields["action"] == "fit" :
+                actionFit(formFields)
+            elif formFields["action"] == "SBfit":
+                actionSBFit(formFields)
+            elif formFields["action"] == "search" or formFields["action"] == "advanced":
+                actionSearch(formFields)
+            elif formFields["action"] == "showlog":
+                actionShowLog(formFields)
+            else:
+                actionError()
+            printTime(textFormat)
+        except:
+            pass
 
 if not textFormat:
-	printBottom()
+    printBottom()
 
