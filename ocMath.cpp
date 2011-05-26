@@ -18,8 +18,8 @@ double ocEntropy(ocTable *p)
     long long count = p->getTupleCount();
     double pv;
     for (long long i = 0; i < count; ++i) {
-	pv = p->getValue(i);
-	if (pv > PROB_MIN) h -= pv * log(pv);
+        pv = p->getValue(i);
+        if (pv > PROB_MIN) h -= pv * log(pv);
     }
     h /= log(2.0);	// convert h to log2 rather than ln
     return h;
@@ -33,11 +33,11 @@ double ocTransmission(ocTable *p, ocTable *q)
     double h = 0.0;
     long long count = p->getTupleCount();
     for (long long i = 0; i < count; i++) {
-	double pv = p->getValue(i);
-	ocKeySegment *pv_key = p->getKey(i);
-	long long qi_index = q->indexOf(pv_key);	// find matching entry in q
-	double qi = qi_index >= 0 ? q->getValue(qi_index) : 0.0;
-	if (qi > PROB_MIN && pv > PROB_MIN) h += pv * log(pv/qi);
+        double pv = p->getValue(i);
+        ocKeySegment *pv_key = p->getKey(i);
+        long long qi_index = q->indexOf(pv_key);	// find matching entry in q
+        double qi = qi_index >= 0 ? q->getValue(qi_index) : 0.0;
+        if (qi > PROB_MIN && pv > PROB_MIN) h += pv * log(pv/qi);
     }
     h /= log(2.0);	// convert h to log2 rather than ln
     return h;
@@ -51,12 +51,12 @@ double ocPearsonChiSquared(ocTable *p, ocTable *q, long sampleSize)
     double p2 = 0.0;
     long count = p->getTupleCount();
     for (long i = 0; i < count; i++) {
-	double pi = p->getValue(i);
-	ocKeySegment *pi_key = p->getKey(i);
-	long qi_index = q->indexOf(pi_key);	// find matching entry in q
-	double qi = qi_index >= 0 ? q->getValue(qi_index) : 0.0;
-	if (pi < PROB_MIN) p2 += qi;	// works even if q1 near zero
-	else if (qi > PROB_MIN) p2 += (pi - qi) * (pi - qi)/qi;
+        double pi = p->getValue(i);
+        ocKeySegment *pi_key = p->getKey(i);
+        long qi_index = q->indexOf(pi_key);	// find matching entry in q
+        double qi = qi_index >= 0 ? q->getValue(qi_index) : 0.0;
+        if (pi < PROB_MIN) p2 += qi;	// works even if q1 near zero
+        else if (qi > PROB_MIN) p2 += (pi - qi) * (pi - qi)/qi;
     }
     p2 *= sampleSize;
     return p2;
@@ -69,8 +69,8 @@ double ocDegreesOfFreedom(ocRelation *rel)
     int count = rel->getVariableCount();
     ocVariableList *vars = rel->getVariableList();
     for (int i = 0; i < count; i++) {
-	int varIndex = rel->getVariable(i);
-	df *= vars->getVariable(varIndex)->cardinality;
+        int varIndex = rel->getVariable(i);
+        df *= vars->getVariable(varIndex)->cardinality;
     }
     return df - 1;
 }
@@ -81,7 +81,7 @@ double ocDegreesOfFreedom(ocVariableList *varList)
     double df = 1.0;
     int count = varList->getVarCount();
     for (int i = 0; i < count; i++) {
-	df *= varList->getVariable(i)->cardinality;
+        df *= varList->getVariable(i)->cardinality;
     }
     return df - 1;
 }
@@ -92,8 +92,8 @@ double ocDegreesOfFreedom(ocVariableList *varList, int *variables, int varCount)
 {
     double df = 1;
     for (int i = 0; i < varCount; i++) {
-	int varIndex = variables[i];
-	df *= varList->getVariable(varIndex)->cardinality;
+        int varIndex = variables[i];
+        df *= varList->getVariable(varIndex)->cardinality;
     }
     return df - 1;
 }
@@ -107,13 +107,13 @@ bool ocHasOverlaps(ocModel *model)
     // get the key size, from the variable list (just use the first relation)
     int keysize = model->getRelation(0)->getVariableList()->getKeySize();
     for (int i = 0; i < count; i++) {
-	for (int j = i+1; j < count; j++) {
-	    ocKeySegment *ki = model->getRelation(i)->getMask();
-	    ocKeySegment *kj = model->getRelation(j)->getMask();
-	    for (int k = 0; k < keysize; k++) {
-		if ((ki[k] & kj[k]) != 0) return true;	// same variable in both
-	    }
-	}
+        for (int j = i+1; j < count; j++) {
+            ocKeySegment *ki = model->getRelation(i)->getMask();
+            ocKeySegment *kj = model->getRelation(j)->getMask();
+            for (int k = 0; k < keysize; k++) {
+                if ((ki[k] & kj[k]) != 0) return true;	// same variable in both
+            }
+        }
     }
     return false;
 }
@@ -125,11 +125,11 @@ struct VarList {
     int *vars;
     VarList(): varCount(0), vars(0) {}
     ~VarList() { 
-	if (vars) delete [] vars;
+        if (vars) delete [] vars;
     }
     void setVars(int *newVars) {
-	if (vars) delete [] vars;
-	vars = newVars;
+        if (vars) delete [] vars;
+        vars = newVars;
     }
 };
 
@@ -137,7 +137,7 @@ struct VarList {
 static void VLCopy(VarList &from, VarList &to)
 {
     if (to.varCount < from.varCount) {
-	to.setVars(new int[from.varCount]);
+        to.setVars(new int[from.varCount]);
     }
     to.varCount = from.varCount;
     if (to.varCount > 0) memcpy(to.vars, from.vars, to.varCount*sizeof(int));
@@ -151,12 +151,12 @@ static void VLComplement(VarList &v1, VarList &v2)
     int *newvars = new int[v1.varCount];
     int count = 0, i, j;
     for (i = 0; i < v1.varCount; i++) {
-	for (j = 0; j < v2.varCount; j++) {
-	    if (v2.vars[j] == v1.vars[i]) break;
-	}
-	if (j >= v2.varCount) {	// not found; add it to result
-	    newvars[count++] = v1.vars[i];
-	}
+        for (j = 0; j < v2.varCount; j++) {
+            if (v2.vars[j] == v1.vars[i]) break;
+        }
+        if (j >= v2.varCount) {	// not found; add it to result
+            newvars[count++] = v1.vars[i];
+        }
     }
     v1.setVars(newvars);
     v1.varCount = count;
@@ -178,47 +178,47 @@ bool ocHasLoops(ocModel *model)
     VarList *rels = new VarList[relcount];
     //-- copy variable lists from relations
     for (i = 0; i < relcount; i++) {
-	ocRelation *relation = model->getRelation(i);
-	rels[i].varCount = relation->getVariableCount();
-	rels[i].setVars(new int[rels[i].varCount]);
-	relation->copyVariables(rels[i].vars, rels[i].varCount);
+        ocRelation *relation = model->getRelation(i);
+        rels[i].varCount = relation->getVariableCount();
+        rels[i].setVars(new int[rels[i].varCount]);
+        relation->copyVariables(rels[i].vars, rels[i].varCount);
     }
 
     for(;;) {
-	bool change = false;
-	//-- repeat until no further change:
-	//-- first eliminate variables occuring in only one relation.
-	//-- then eliminate relations which are subsets of others
-	for (i = 0; i < relcount; i++) {
-	    VarList newList;
-	    VLCopy(rels[i], newList);
-	    for (j = 0; j < relcount; j++) {
-		if (j != i) VLComplement(newList, rels[j]);
-	    }
-	    if (newList.varCount > 0) {
-		VLComplement(rels[i], newList);
-		change = true;
-	    }
-	}
-	for (i = 0; i < relcount; i++) {
-	    for (j = 0; j < relcount; j++) {
-		if (i != j && 
-			rels[i].varCount > 0 &&
-			rels[j].varCount > 0 &&
-			VLContains(rels[i], rels[j]))
-		{
-		    change = true;
-		    rels[j].varCount = 0;
-		}
-	    }
-	}
-	if (!change) break;
+        bool change = false;
+        //-- repeat until no further change:
+        //-- first eliminate variables occuring in only one relation.
+        //-- then eliminate relations which are subsets of others
+        for (i = 0; i < relcount; i++) {
+            VarList newList;
+            VLCopy(rels[i], newList);
+            for (j = 0; j < relcount; j++) {
+                if (j != i) VLComplement(newList, rels[j]);
+            }
+            if (newList.varCount > 0) {
+                VLComplement(rels[i], newList);
+                change = true;
+            }
+        }
+        for (i = 0; i < relcount; i++) {
+            for (j = 0; j < relcount; j++) {
+                if (i != j && 
+                        rels[i].varCount > 0 &&
+                        rels[j].varCount > 0 &&
+                        VLContains(rels[i], rels[j]))
+                {
+                    change = true;
+                    rels[j].varCount = 0;
+                }
+            }
+        }
+        if (!change) break;
     }
 
     //-- do cleanup, and also see if there are any relations left.
     int remaining = 0;
     for (i = 0; i < relcount; i++) {
-	if (rels[i].varCount > 0) remaining++;
+        if (rels[i].varCount > 0) remaining++;
     }
     delete [] rels;
     return remaining > 1;
@@ -228,7 +228,7 @@ bool ocHasLoops(ocModel *model)
 double ocLR(double sample, double df, double h)
 {
     return 2.0 * M_LN2 * sample *
-	(log (df) / M_LN2 - h);
+        (log (df) / M_LN2 - h);
 }
 
 
@@ -240,16 +240,16 @@ double LnGamma(double xx)
     int j;
     double x,y,tmp,ser;
     double cof[6] = {
-	76.18009172947146,    -86.50532032941677,
-	24.01409824083091,    -1.231739572450155,
-	0.1208650973866179e-2,-0.5395239384953e-5
+        76.18009172947146,    -86.50532032941677,
+        24.01409824083091,    -1.231739572450155,
+        0.1208650973866179e-2,-0.5395239384953e-5
     };
 
     y = x = xx;
     tmp = x + 5.5 - (x + 0.5) * log(x + 5.5);
     ser = 1.000000000190015;
     for (j=0;j<=5;j++)
-	ser += (cof[j] / ++y);
+        ser += (cof[j] / ++y);
     return(log(2.5066282746310005 * ser / x) - tmp);
 }
 
@@ -283,18 +283,18 @@ double chic (double x2, double df)
     /* Screen arguments */
 
     if (x2 == 0.0)
-	/* There is nothing to do. */
-	return 1.0;
+        /* There is nothing to do. */
+        return 1.0;
     else if (x2 < 0.0 || df < 0.0)
-	/*
-	   Nonsense!  Note:  DF should be strictly
-	   positive, but non-negativity is accepted
-	   for standard handling of the saturated model.
-	 */
-	return -1.0;
+        /*
+           Nonsense!  Note:  DF should be strictly
+           positive, but non-negativity is accepted
+           for standard handling of the saturated model.
+         */
+        return -1.0;
     else if (x2 > 100 && (x2 / df) > 5.0)
-	/* Excessive arguments likely to cause underflow */
-	return 0.0;
+        /* Excessive arguments likely to cause underflow */
+        return 0.0;
 
     /* Arguments OK */
     x = 0.5 * x2;
@@ -307,46 +307,46 @@ double chic (double x2, double df)
 
     if (x < d + 1.0)
     {
-	/* Use a series representation */
-	ap = d;
-	sum = 1.0 / d;
-	del = sum;
-	for (n = 0; n < CHIC_ITMAX; n++)
-	{
-	    ap += 1.0;
-	    del *= x / ap;
-	    sum += del;
-	    if (fabs (del) < fabs (sum) * CHIC_EPS)
-		return 1.0 - sum * exp (-x + d * log(x) - LnGamma (d));
-	}
+        /* Use a series representation */
+        ap = d;
+        sum = 1.0 / d;
+        del = sum;
+        for (n = 0; n < CHIC_ITMAX; n++)
+        {
+            ap += 1.0;
+            del *= x / ap;
+            sum += del;
+            if (fabs (del) < fabs (sum) * CHIC_EPS)
+                return 1.0 - sum * exp (-x + d * log(x) - LnGamma (d));
+        }
     }
     else
     {
-	/* Use a continued fraction */
-	gold = 0.0;
-	a0 = 1.0;
-	a1 = x;
-	b0 = 0.0;
-	b1 = 1.0;
-	fac = 1.0;
-	for (n = 1; n <= CHIC_ITMAX; n++)
-	{
-	    an = (double)n;
-	    ana = an - d;
-	    a0 = (a1 + a0 * ana) * fac;
-	    b0 = (b1 + b0 * ana) * fac;
-	    anf = an * fac;
-	    a1 = x * a0 + anf * a1;
-	    b1 = x * b0 + anf * b1;
-	    if (a1 != 0.0)
-	    {
-		fac = 1.0 / a1;
-		g = b1 * fac;
-		if (fabs ((g - gold) / g) < CHIC_EPS)
-		    return exp (-x + d * log (x) - LnGamma (d)) * g;
-		gold = g;
-	    }
-	}
+        /* Use a continued fraction */
+        gold = 0.0;
+        a0 = 1.0;
+        a1 = x;
+        b0 = 0.0;
+        b1 = 1.0;
+        fac = 1.0;
+        for (n = 1; n <= CHIC_ITMAX; n++)
+        {
+            an = (double)n;
+            ana = an - d;
+            a0 = (a1 + a0 * ana) * fac;
+            b0 = (b1 + b0 * ana) * fac;
+            anf = an * fac;
+            a1 = x * a0 + anf * a1;
+            b1 = x * b0 + anf * b1;
+            if (a1 != 0.0)
+            {
+                fac = 1.0 / a1;
+                g = b1 * fac;
+                if (fabs ((g - gold) / g) < CHIC_EPS)
+                    return exp (-x + d * log (x) - LnGamma (d)) * g;
+                gold = g;
+            }
+        }
     }
     return 0;	// should never get here
 }
@@ -381,20 +381,20 @@ double chin2 (double x, double df, double theta, int *ifault)
 
     *ifault = 2;
     if (df < 0.0 || theta < ZERO)
-	return ret;
+        return ret;
 
     *ifault = 3;
     if (x < ZERO)
-	return ret;
+        return ret;
 
     *ifault = 0;
     if (x == ZERO)
-	return ret;
+        return ret;
 
     ret = ONE;
 
     if (df == 0.0)
-	return ret;
+        return ret;
 
     n = 1;
     x2 = x / TWO;
@@ -405,32 +405,32 @@ double chin2 (double x, double df, double theta, int *ifault)
 
     if ((tst - lam) < -PREC) 
     {
-	/* Use the Aickin central X2 approximation to
-	   the non-central X2, and the Wilson-Hilferty 
-	   transformation for the central X2 approximation. 
-	   Aickin */
+        /* Use the Aickin central X2 approximation to
+           the non-central X2, and the Wilson-Hilferty 
+           transformation for the central X2 approximation. 
+           Aickin */
 
-	c1 = df + theta;
-	c2 = df + TWO * theta;
-	x2 = x * c2 / c1;
-	v = (c1 * c1) / c2;
-	/* Wilson-Hilferty */
-	c1 = pow (x2 / v, THIRD);
-	c2 = TWO / (NINE * v);
-	z = (c1 - ONE + c2) / sqrt(c2);
-	arg = A * z * (ONE + B * z * z);
-	if (arg < -PREC) 
-	    ret = ONE;
-	else if (arg > PREC)
-	    ret = ZERO;
-	else
-	    ret = ONE / (ONE + exp (arg));
-	return ret;
+        c1 = df + theta;
+        c2 = df + TWO * theta;
+        x2 = x * c2 / c1;
+        v = (c1 * c1) / c2;
+        /* Wilson-Hilferty */
+        c1 = pow (x2 / v, THIRD);
+        c2 = TWO / (NINE * v);
+        z = (c1 - ONE + c2) / sqrt(c2);
+        arg = A * z * (ONE + B * z * z);
+        if (arg < -PREC) 
+            ret = ONE;
+        else if (arg > PREC)
+            ret = ZERO;
+        else
+            ret = ONE / (ONE + exp (arg));
+        return ret;
     }
     else
     {
-	u = exp (-lam);
-	t = exp (tst);
+        u = exp (-lam);
+        t = exp (tst);
     }
     v = u;
     term = v * t;
@@ -439,30 +439,30 @@ double chin2 (double x, double df, double theta, int *ifault)
     flag = FALSE;
     while (1)
     {
-	if ((df + TWO * (double)n - x) <= ZERO)
-	    goto thirty;
-	flag = TRUE;
+        if ((df + TWO * (double)n - x) <= ZERO)
+            goto thirty;
+        flag = TRUE;
 
 twenty:
-	bound = t * x / (df + TWO * (double)n - x);
-	if (bound > CHIN2_EPS && n <= CHIN2_ITMAX)
-	    goto thirty;
-	if (bound > CHIN2_EPS)
-	{
-	    *ifault = 1;
-	    return ret;
-	}
-	return ret;
+        bound = t * x / (df + TWO * (double)n - x);
+        if (bound > CHIN2_EPS && n <= CHIN2_ITMAX)
+            goto thirty;
+        if (bound > CHIN2_EPS)
+        {
+            *ifault = 1;
+            return ret;
+        }
+        return ret;
 
 thirty:
-	u = u * lam / (double)n;
-	v += u;
-	t = t * x / (df + TWO * (double)n);
-	term = v * t;
-	ret += term;
-	n++;
-	if (flag)
-	    goto twenty;
+        u = u * lam / (double)n;
+        v += u;
+        t = t * x / (df + TWO * (double)n);
+        term = v * t;
+        ret += term;
+        n++;
+        if (flag)
+            goto twenty;
     }
 }
 
@@ -489,53 +489,53 @@ double csa (double x, double df)
 {
     if (x == 0.0 || df == 0.0)
     {
-	/* There is nothing to do.  Zero degrees of freedom
-	   are allowed to accommodate the saturated model. */
-	return 1.0;
+        /* There is nothing to do.  Zero degrees of freedom
+           are allowed to accommodate the saturated model. */
+        return 1.0;
     }
     else if (x < 0.0 || df < 0.0)
     {
-	/* Nonsense!  Note IDF=0 is also nonsense, but we
-	   allow it here to accommodate the saturated model */
-	return -1.0;
+        /* Nonsense!  Note IDF=0 is also nonsense, but we
+           allow it here to accommodate the saturated model */
+        return -1.0;
     }
 
     if (df == 1.0)
     {
-	double arg = A * sqrt (x) * (1.0 + B * x);
+        double arg = A * sqrt (x) * (1.0 + B * x);
 
-	if (arg <= UFLO)
-	    return 0.0;
-	else
-	    return 2.0 - 2.0 / (1.0 + exp (arg));
+        if (arg <= UFLO)
+            return 0.0;
+        else
+            return 2.0 - 2.0 / (1.0 + exp (arg));
     }
     else if (df == 2.0)
     {
-	if (x >= (2.0 * OFLO))
-	    return 0.0;
-	else
-	    return exp (-x / 2.0);
+        if (x >= (2.0 * OFLO))
+            return 0.0;
+        else
+            return exp (-x / 2.0);
     }
     else if (df > 2.0)
     {
-	double v = df;
-	double c1 = pow (x / v, 0.333333333);
-	double c2 = 2.0 / (9.0 * v);
-	double z = (c1 - 1.0 + c2) / sqrt (c2);
-	double arg = A * z * (1.0 + B * (z * z));
+        double v = df;
+        double c1 = pow (x / v, 0.333333333);
+        double c2 = 2.0 / (9.0 * v);
+        double z = (c1 - 1.0 + c2) / sqrt (c2);
+        double arg = A * z * (1.0 + B * (z * z));
 
-	if (arg <= UFLO)
-	    return 0.0;
-	else if (arg >= OFLO)
-	    return 1.0;
-	else
-	{
-	    double ret = 1.0 - 1.0 / (1.0 + exp (arg));
+        if (arg <= UFLO)
+            return 0.0;
+        else if (arg >= OFLO)
+            return 1.0;
+        else
+        {
+            double ret = 1.0 - 1.0 / (1.0 + exp (arg));
 
-	    if (ret <= 0.0001)
-		return 0.0;
-	    return ret; 
-	}
+            if (ret <= 0.0001)
+                return 0.0;
+            return ret; 
+        }
     }
     return 0.0;	// should never get here
 }
@@ -579,28 +579,28 @@ static double ppnorm (double prob, int *ifault)
     q = p - HALF;
     if (fabs (q) > NSPLIT)
     {
-	r = p;
-	if (q > ZERO)
-	    r = ONE - p;
-	if (r > ZERO)
-	{
-	    r = sqrt (-log (r));
-	    ppnorm = (((NC3 * r + NC2) * r + NC1) * r + NC0) /
-		((ND2 * r + ND1) * r + ONE);
-	    if (q < ZERO)
-		ppnorm = -ppnorm;
-	}
-	else
-	{
-	    *ifault = 1;
-	    ppnorm = 0.0;
-	}
+        r = p;
+        if (q > ZERO)
+            r = ONE - p;
+        if (r > ZERO)
+        {
+            r = sqrt (-log (r));
+            ppnorm = (((NC3 * r + NC2) * r + NC1) * r + NC0) /
+                ((ND2 * r + ND1) * r + ONE);
+            if (q < ZERO)
+                ppnorm = -ppnorm;
+        }
+        else
+        {
+            *ifault = 1;
+            ppnorm = 0.0;
+        }
     }
     else
     { 
-	r = q * q;
-	ppnorm = q * (((NA3 * r + NA2) * r + NA1) * r + NA0) /
-	    ((((NB4 * r + NB3) * r + NB2) * r + NB1) * r + ONE);
+        r = q * q;
+        ppnorm = q * (((NA3 * r + NA2) * r + NA1) * r + NA0) /
+            ((((NB4 * r + NB3) * r + NB2) * r + NB1) * r + ONE);
     }
     return ppnorm;
 }
@@ -618,13 +618,13 @@ double gammds (double y, double p, int *ifault)
     gammds = ZERO;
 
     if (y <= ZERO || p <= ZERO)
-	return gammds;
+        return gammds;
 
     *ifault = 2;
 
     f = exp (p * log (y) - LnGamma (p + ONE) - y);
     if (f == ZERO)
-	return gammds;
+        return gammds;
 
     *ifault = 0;
 
@@ -639,7 +639,7 @@ one:
     c *= y / a;
     gammds += c;
     if (c / gammds > E)
-	goto one;
+        goto one;
     gammds *= f;
 
     return gammds;
@@ -705,10 +705,10 @@ double ppchi (double p, double df, int *ifault)
     ppchi = -ONE;
     *ifault = 1;
     if (p < PMIN || p > PMAX)
-	return ppchi;
+        return ppchi;
     *ifault = 2;
     if (v <= ZERO)
-	return ppchi;
+        return ppchi;
     *ifault = 0;
     xx = HALF * v;
     c = xx - ONE;
@@ -717,16 +717,16 @@ double ppchi (double p, double df, int *ifault)
     /* Starting approximation for small chi-squared. */
 
     if (v >= -C5 * log (p))
-	goto one;
+        goto one;
     ch = pow (p * xx * exp (g + xx * M_LN2), (ONE / xx));
     if (ch < PPCHI_EPS)
-	goto six;
+        goto six;
     goto four;
 
     /* Starting approximation for V s 0.32 */
 one:
     if (v > C3)
-	goto three;
+        goto three;
     ch = C4;
     a = log (ONE - p);
 two:
@@ -736,7 +736,7 @@ two:
     t = -HALF + (C7 + TWO * ch) / p1 - (C9 + ch * (C10 + THREE * ch)) / p2;
     ch -= (ONE - exp (a + g + HALF * ch + c * M_LN2) * p2 / p1) / t;
     if (fabs (q / ch - ONE) > C1) 
-	goto two;
+        goto two;
     goto four;
 
     /* Call routine for percentage points of the normal distribution. */
@@ -751,7 +751,7 @@ three:
     /* Starting approximation for P tending to 1. */
 
     if (ch > (C6 * v + SIX))
-	ch = -TWO * (log (ONE - p) - c * log (HALF * ch) + g);
+        ch = -TWO * (log (ONE - p) - c * log (HALF * ch) + g);
 
     /* Calculation of the seven-term taylor series includes a call
        to a routine for the integral of the central X distribution. */
@@ -764,8 +764,8 @@ four:
     p2 = p - gammds (p1, xx, &if1);
     if (if1 != 0)
     {
-	*ifault = 3;
-	return ppchi;
+        *ifault = 3;
+        return ppchi;
     }
     t = p2 * exp (xx * a + g + p1 - c * log (ch));
     b = t / ch;
@@ -777,9 +777,9 @@ four:
     s5 = (C13 + C21 * a + c * (C18 + C26 * a)) / C37;
     s6 = (C15 + c * (C23 + C16 * c)) / C38;
     ch = ch + t * (ONE + HALF * t * s1 - b * c * 
-	    (s1 - b * (s2 - b * (s3 -b * (s4 - b * (s5 - b * s6))))));
+            (s1 - b * (s2 - b * (s3 -b * (s4 - b * (s5 - b * s6))))));
     if (fabs (q / ch - ONE) > PPCHI_EPS)
-	goto four;
+        goto four;
 six:
     ppchi = ch;
     return ppchi;
@@ -826,18 +826,18 @@ double anorm (double x, int upper)
 
     if (z < ZERO)
     {
-	up = !up;
-	z = -z;
+        up = !up;
+        z = -z;
     }
 
     if (z <= LTONE || (up && z <= UTZERO))
-	y = HALF * z * z;
+        y = HALF * z * z;
     else
-	return !up ? ONE : ZERO;
+        return !up ? ONE : ZERO;
 
     ret = (z > CON)
-	? B1*exp(-y)/(z-B2+B3/(z+B4+B5/(z-B6+B7/(z+B8-B9/(z+B10+B11/(z+B12))))))
-	: HALF-z*(A1-A2*y/(y+A3-A4/(y+A5+A6/(y+A7))));
+        ? B1*exp(-y)/(z-B2+B3/(z+B4+B5/(z-B6+B7/(z+B8-B9/(z+B10+B11/(z+B12))))))
+        : HALF-z*(A1-A2*y/(y+A3-A4/(y+A5+A6/(y+A7))));
 
     return !up ? ONE - ret : ret;
 }
@@ -865,21 +865,21 @@ unsigned chistat (unsigned ntab, double* obs, double* fit, double* g2_ptr, doubl
      */
     for (i = 0; i < ntab; i++)
     {
-	if (fit[i] <= CHISTAT_EPS)
-	    /* Note fit=0 ==> table=0 ==> resid=0 */
-	    nz++;
-	else
-	{
-	    double diff = fabs(obs[i] - fit[i]);
-	    double p_q = obs[i]/fit[i];
+        if (fit[i] <= CHISTAT_EPS)
+            /* Note fit=0 ==> table=0 ==> resid=0 */
+            nz++;
+        else
+        {
+            double diff = fabs(obs[i] - fit[i]);
+            double p_q = obs[i]/fit[i];
 
-	    r = diff * diff;
-	    p2 += r / fit[i];
-	    if ((obs[i] > CHISTAT_EPS) && 
-		    (diff > CHISTAT_EPS)   &&
-		    (p_q > MIN_PROB))
-		g2 += obs[i]*log(p_q);
-	}
+            r = diff * diff;
+            p2 += r / fit[i];
+            if ((obs[i] > CHISTAT_EPS) && 
+                    (diff > CHISTAT_EPS)   &&
+                    (p_q > MIN_PROB))
+                g2 += obs[i]*log(p_q);
+        }
     }
     g2 *= 2.0; 	/* g2 = 2*n*sum(p*ln(p/q)) = L^2 = LR */
     *g2_ptr = g2;
@@ -902,27 +902,21 @@ double ocSB_DF(ocModel *model){
     struct_matrix=new int *[nrows];
     int *stateSpaceArr1;
     for(i=0;i<nrows;i++){
-	stateSpaceArr1=new int[ncols];
-	struct_matrix[i]=stateSpaceArr1;
+        stateSpaceArr1=new int[ncols];
+        struct_matrix[i]=stateSpaceArr1;
     }
     for(int i=0;i<nrows;i++){
-	if(i<nrows-1){
-	    for(int j=0;j<ncols;j++){
-		struct_matrix[i+1][j]=matrix[i][j];
-	    }
-	}else{
-	    for(int j=0;j<ncols;j++){
-		struct_matrix[0][j]=matrix[i][j];
-	    }
+        if(i<nrows-1){
+            for(int j=0;j<ncols;j++){
+                struct_matrix[i+1][j]=matrix[i][j];
+            }
+        }else{
+            for(int j=0;j<ncols;j++){
+                struct_matrix[0][j]=matrix[i][j];
+            }
 
-	}
+        }
     }
-    /*for(int i=0;i<nrows;i++){
-      for(int j=0;j<ncols;j++){
-      printf("%d,",struct_matrix[i][j]);
-      }
-      printf("\n");
-      }*/
 
     i=0;
     j=0;
@@ -931,60 +925,53 @@ double ocSB_DF(ocModel *model){
     int rmax=0;
     ic=0;
     for(ir=0;ir<nrows;ir++){
-	int i1,j1;
-	havepivot=0;
-	// Find pivot in column j, starting in row i:
-	do{
-	    rmax=ir;
-	    for(jr=ir+1 ;jr<nrows;jr++){
-		if (abs(struct_matrix[jr][ic]) > abs(struct_matrix[rmax][ic]) ){
-		    rmax=jr;
-		}
-	    }
-	    if (abs(struct_matrix[rmax][ic])>0){
-		havepivot=1;
-		if(rmax!=ir){
-		    //switch rows i and max_ind
-		    int temp=0;
-		    for(jc=0;jc<ncols;jc++){
-			temp=struct_matrix[ir][jc];
-			struct_matrix[ir][jc]=struct_matrix[rmax][jc];
-			struct_matrix[rmax][jc]=temp;
-		    }
-		}
-	    }else
-		ic=ic+1;
-	    //printf("havepivot is %d and ic is %d\n",havepivot,ic);
-	} while((havepivot==0) && ic<ncols);
-	if(ic<=ncols-1){
-	    for(jr=0;jr<nrows;jr++){
-		if(jr!=ir){
-		    //divide row i by max_val
-		    int temp1=struct_matrix[jr][ic]/struct_matrix[ir][ic];
-		    for(jc=ic;jc<ncols;jc++){
-			struct_matrix[jr][jc]=struct_matrix[jr][jc]-(struct_matrix[ir][jc]*temp1);
-		    }
-		}
-	    }
-	}
+        int i1,j1;
+        havepivot=0;
+        // Find pivot in column j, starting in row i:
+        do{
+            rmax=ir;
+            for(jr=ir+1 ;jr<nrows;jr++){
+                if (abs(struct_matrix[jr][ic]) > abs(struct_matrix[rmax][ic]) ){
+                    rmax=jr;
+                }
+            }
+            if (abs(struct_matrix[rmax][ic])>0){
+                havepivot=1;
+                if(rmax!=ir){
+                    //switch rows i and max_ind
+                    int temp=0;
+                    for(jc=0;jc<ncols;jc++){
+                        temp=struct_matrix[ir][jc];
+                        struct_matrix[ir][jc]=struct_matrix[rmax][jc];
+                        struct_matrix[rmax][jc]=temp;
+                    }
+                }
+            }else
+                ic=ic+1;
+            //printf("havepivot is %d and ic is %d\n",havepivot,ic);
+        } while((havepivot==0) && ic<ncols);
+        if(ic<=ncols-1){
+            for(jr=0;jr<nrows;jr++){
+                if(jr!=ir){
+                    //divide row i by max_val
+                    int temp1=struct_matrix[jr][ic]/struct_matrix[ir][ic];
+                    for(jc=ic;jc<ncols;jc++){
+                        struct_matrix[jr][jc]=struct_matrix[jr][jc]-(struct_matrix[ir][jc]*temp1);
+                    }
+                }
+            }
+        }
     }
     int rank=0;
     for(int i=0;i<nrows;i++){
-	int sum=0;
-	for(int j=0;j<ncols;j++){
-	    sum+=abs(struct_matrix[i][j]);
-	}
+        int sum=0;
+        for(int j=0;j<ncols;j++){
+            sum+=abs(struct_matrix[i][j]);
+        }
 
-	if(sum>0)rank++;
+        if(sum>0)rank++;
 
     }
-    //printf("degree of freedon in math %d\n",rank-1);
-    /*for(int i=0;i<nrows;i++){
-      for(int j=0;j<ncols;j++){
-      printf("%d,",struct_matrix[i][j]);
-      }
-      printf("\n");
-      }*/
 
     delete [] struct_matrix;
     return rank-1;

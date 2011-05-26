@@ -5,7 +5,7 @@
  * ocRelation.cpp - implements the Relation class.  A Relation consists of a list
  * of variables (actually, a list of indices of variables in a VariableList).
  */
- 
+
 #include "ocCore.h"
 #include "_ocCore.h"
 #include <assert.h>
@@ -22,12 +22,12 @@ ocRelation::ocRelation(ocVariableList *list, int size, int keysz, int stateconst
     vars = new int[size];
     table = NULL;
     if(stateconstsz <= 0) {
-	stateConstraints = NULL;
-	states = NULL;
+        stateConstraints = NULL;
+        states = NULL;
     } else {
-	//needs a better keysize value........Anjali
-	states = new int[size];
-	stateConstraints = new ocStateConstraint(keysz, stateconstsz);
+        //needs a better keysize value........Anjali
+        states = new int[size];
+        stateConstraints = new ocStateConstraint(keysz, stateconstsz);
     }
     mask = NULL;
     hashNext = NULL;
@@ -68,15 +68,15 @@ void ocRelation::addVariable(int varindex, int stateind)
 {
     const int FACTOR = 2;
     while (varCount >= maxVarCount) {
-	vars = (int*) growStorage(vars, maxVarCount*sizeof(int), FACTOR);
-	if(stateind >= 0 || stateind == DONT_CARE) {
-	    states = (int*) growStorage(states, maxVarCount*sizeof(int), FACTOR);
-	}
-	maxVarCount *= FACTOR;
+        vars = (int*) growStorage(vars, maxVarCount*sizeof(int), FACTOR);
+        if(stateind >= 0 || stateind == DONT_CARE) {
+            states = (int*) growStorage(states, maxVarCount*sizeof(int), FACTOR);
+        }
+        maxVarCount *= FACTOR;
     }
     vars[varCount] = varindex;
     if(stateind >= 0 || stateind == DONT_CARE){
-	states[varCount] = stateind;
+        states[varCount] = stateind;
     }
     varCount++;
 }
@@ -95,11 +95,11 @@ int ocRelation::copyVariables(int *indices, int maxCount, int skip)
 {
     int copycount = 0, i = 0;
     for (i = 0; i < varCount; i++) {
-	if (copycount >= maxCount) break;
-	if (vars[i] != skip) {
-	    *(indices++) = vars[i];
-	    copycount++;
-	}
+        if (copycount >= maxCount) break;
+        if (vars[i] != skip) {
+            *(indices++) = vars[i];
+            copycount++;
+        }
     }
     return copycount;
 }
@@ -118,7 +118,7 @@ long long int ocRelation::getDDFPortion()
 {
     long int total = 1;
     for(int i=0; i < varCount; i++) {
-	total = total * (varList->getVariable(vars[i])->cardinality - 1);
+        total = total * (varList->getVariable(vars[i])->cardinality - 1);
     }
     return total;
 }
@@ -133,17 +133,17 @@ int ocRelation::copyMissingVariables(int *indices, int maxCount)
     int missing = 0;
     int nextPresent;
     for (i = 0; i < varCount; i++) {
-	nextPresent = vars[i];
-	while (missing < nextPresent) {
-	    if (copycount >= maxCount) break;
-	    *(indices++) = missing++;
-	    copycount++;
-	}
-	missing = nextPresent + 1;
+        nextPresent = vars[i];
+        while (missing < nextPresent) {
+            if (copycount >= maxCount) break;
+            *(indices++) = missing++;
+            copycount++;
+        }
+        missing = nextPresent + 1;
     }
     while (missing < maxCount) {
-	*(indices++) = missing++;
-	copycount++;
+        *(indices++) = missing++;
+        copycount++;
     }
     return copycount;
 }
@@ -154,8 +154,8 @@ int ocRelation::getIndependentVariables(int *indices, int maxCount)
     int i, pos;
     pos = 0;
     for (i = 0; i < varCount; i++) {
-	if (pos >= maxCount) break;
-	if (!varList->getVariable(vars[i])->dv) indices[pos++] = vars[i];
+        if (pos >= maxCount) break;
+        if (!varList->getVariable(vars[i])->dv) indices[pos++] = vars[i];
     }
     return pos;
 }
@@ -166,8 +166,8 @@ int ocRelation::getDependentVariables(int *indices, int maxCount)
     int i, pos;
     pos = 0;
     for (i = 0; i < varCount; i++) {
-	if (pos >= maxCount) break;
-	if (varList->getVariable(vars[i])->dv) indices[pos++] = vars[i];
+        if (pos >= maxCount) break;
+        if (varList->getVariable(vars[i])->dv) indices[pos++] = vars[i];
     }
     return pos;
 }
@@ -185,7 +185,7 @@ int ocRelation::findVariable(int varid)
 {
     int i;
     for (i = 0; i < varCount; i++) {
-	if (getVariable(i) == varid) return i;
+        if (getVariable(i) == varid) return i;
     }
     return -1;
 }
@@ -211,8 +211,8 @@ double ocRelation::getExpansionSize()
     double size = table->getTupleCount();
     int missingCount = copyMissingVariables(missing, maxCount);
     for (int i = 0; i < missingCount; i++) {
-	int v = missing[i];
-	size *= varList->getVariable(v)->cardinality;
+        int v = missing[i];
+        size *= varList->getVariable(v)->cardinality;
     }
     return size;
 
@@ -235,8 +235,8 @@ ocTable *ocRelation::getTable()
 void ocRelation::deleteTable()
 {
     if (table) {
-	delete table;
-	table = NULL;
+        delete table;
+        table = NULL;
     }
 }
 
@@ -272,21 +272,21 @@ bool ocRelation::contains(const ocRelation *other)
 bool ocRelation::isIndependentOnly()
 {
     if (indepOnly == 0) {
-	return false;
+        return false;
     } else if (indepOnly == 1) {
-	return true;
+        return true;
     } else {			// it hasn't been determined yet, so do it
-	int i;
-	int vid;
-	for (i = varCount-1; i >= 0; --i) {
-	    vid = getVariable(i);	// position of variable in relation
-	    if (varList->getVariable(vid)->dv) {
-		indepOnly = 0;
-		return false;
-	    }
-	}
-	indepOnly = 1;
-	return true;
+        int i;
+        int vid;
+        for (i = varCount-1; i >= 0; --i) {
+            vid = getVariable(i);	// position of variable in relation
+            if (varList->getVariable(vid)->dv) {
+                indepOnly = 0;
+                return false;
+            }
+        }
+        indepOnly = 1;
+        return true;
     }
 }
 
@@ -294,9 +294,9 @@ bool ocRelation::isIndependentOnly()
 bool ocRelation::isDependentOnly()
 {
     for (int i = 0; i < varCount; i++) {
-	if(varList->getVariable(getVariable(i))->dv == false) {
-	    return false;
-	}
+        if(varList->getVariable(getVariable(i))->dv == false) {
+            return false;
+        }
     }
     return true;
 }
@@ -308,7 +308,7 @@ long long ocRelation::getNC()
     long long nc = 1;
     int i;
     for (i = 0; i < varCount; i++) {
-	nc *= varList->getVariable(vars[i])->cardinality;
+        nc *= varList->getVariable(vars[i])->cardinality;
     }
     return nc;
 }
@@ -362,52 +362,46 @@ double ocRelation::getAttribute(const char *name)
 const char* ocRelation::getPrintName(int useInverse)
 {
     if (useInverse == 0 || states != NULL) {
-	if (printName == NULL) {
-	    int maxlength = 0;
-	    if(stateConstraints != NULL)
-		maxlength = varList->getPrintLength(varCount, vars, true);
-	    else
-		maxlength = varList->getPrintLength(varCount, vars);
-	    if (maxlength < 40) maxlength = 40;	//??String allocation bug?
-	    printName = new char[maxlength+1];
-	    if (states == NULL)
-		varList->getPrintName(printName, maxlength, varCount, vars);
-	    else
-		varList->getPrintName(printName, maxlength, varCount, vars, states);
-	}
-	return printName;
+        if (printName == NULL) {
+            int maxlength = 0;
+            maxlength = varList->getPrintLength(varCount, vars, states);
+            if (maxlength < 40) maxlength = 40;	//??String allocation bug?
+            printName = new char[maxlength+1];
+            varList->getPrintName(printName, maxlength, varCount, vars, states);
+        }
+        return printName;
     } else {
-	if (inverseName == NULL) {
-	    int *local_vars;
-	    int local_count;
-	    int maxlength = 0;
-	    // make int list to get missing vars
-	    local_vars = new int[varList->getVarCount()];
-	    // copy missing vars
-	    local_count = copyMissingVariables(local_vars, varList->getVarCount());
-	    maxlength = varList->getPrintLength(local_count, local_vars);
-	    maxlength += 2; // add 2 for brackets
-	    if (varList->isDirected()) {
-		maxlength += strlen(varList->getVariable(varList->getDV())->abbrev);
-	    }
-	    if (maxlength < 40) maxlength = 40;	//??String allocation bug?
-	    inverseName = new char[maxlength+1];
-	    char *local_name = inverseName + 1;
-	    varList->getPrintName(local_name, maxlength, local_count, local_vars);
+        if (inverseName == NULL) {
+            int *local_vars;
+            int local_count;
+            int maxlength = 0;
+            // make int list to get missing vars
+            local_vars = new int[varList->getVarCount()];
+            // copy missing vars
+            local_count = copyMissingVariables(local_vars, varList->getVarCount());
+            maxlength = varList->getPrintLength(local_count, local_vars);
+            maxlength += 2; // add 2 for brackets
+            if (varList->isDirected()) {
+                maxlength += strlen(varList->getVariable(varList->getDV())->abbrev);
+            }
+            if (maxlength < 40) maxlength = 40;	//??String allocation bug?
+            inverseName = new char[maxlength+1];
+            char *local_name = inverseName + 1;
+            varList->getPrintName(local_name, maxlength, local_count, local_vars);
 
-	    char *cp = inverseName;
-	    *cp = '[';
-	    cp += strlen(inverseName);
-	    *cp = ']';
-	    cp++;
-	    if (varList->isDirected()) {
-		const char *dv = varList->getVariable(varList->getDV())->abbrev;
-		strcpy(cp, dv);
-		cp += strlen(dv);
-	    }
-	    *cp = '\0';
-	}
-	return inverseName;
+            char *cp = inverseName;
+            *cp = '[';
+            cp += strlen(inverseName);
+            *cp = ']';
+            cp++;
+            if (varList->isDirected()) {
+                const char *dv = varList->getVariable(varList->getDV())->abbrev;
+                strcpy(cp, dv);
+                cp += strlen(dv);
+            }
+            *cp = '\0';
+        }
+        return inverseName;
     }
 }
 
@@ -427,7 +421,7 @@ double ocRelation::getMatchingTupleValue(ocKeySegment *key)
 
     //-- fill the key with the input key, masking off variables we don't care about.
     for (int i = 0; i < keysize; i++) {
-	newKey[i] = key[i] | mask[i];
+        newKey[i] = key[i] | mask[i];
     }
 
     //-- now look up this key in our table, and return the value if present
@@ -458,7 +452,7 @@ void ocRelation::dump()
     getAttributeList()->dump();
     printf("\n");
     if (getTable()) {
-	getTable()->dump(1);
+        getTable()->dump(1);
     }
     varList->dump();
     //delete keystr;

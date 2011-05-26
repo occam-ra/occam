@@ -6,17 +6,17 @@
  * In this implementation, the table contains an array of keys (the value part of each
  * tuple) and a separate array of values, all indexed with the same index.
  */
- 
- #include "ocCore.h"
- #include "_ocCore.h"
- #include <assert.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
- 
-const long GROWTH_FACTOR = 2;
 
- 
+#include "ocCore.h"
+#include "_ocCore.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+const long long GROWTH_FACTOR = 2;
+
+
 /*
  * ocTable - initialize the table. The given keysize and number of tuples are used
  * to allocate storage.  The max number of tuples can be changed after creation, but
@@ -68,8 +68,8 @@ long long ocTable::size()
 void ocTable::copy(const ocTable* from)
 {
     while (from->tupleCount > maxTupleCount) {
-	data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
-	maxTupleCount *= GROWTH_FACTOR;
+        data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
+        maxTupleCount *= GROWTH_FACTOR;
     }
     memcpy(data, from->data, TupleBytes * maxTupleCount);
     tupleCount = from->tupleCount;
@@ -83,8 +83,8 @@ void ocTable::copy(const ocTable* from)
 void ocTable::addTuple(ocKeySegment *key, double value)
 {
     while (tupleCount >= maxTupleCount) {
-	data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
-	maxTupleCount *= GROWTH_FACTOR;
+        data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
+        maxTupleCount *= GROWTH_FACTOR;
     }
     ocKeySegment *keyptr = KeyPtr(data, keysize, tupleCount);
     memcpy(keyptr, key, sizeof(ocKeySegment) * keysize);			// copy key
@@ -101,14 +101,14 @@ void ocTable::addTuple(ocKeySegment *key, double value)
 void ocTable::insertTuple(ocKeySegment *key, double value, long long index)
 {
     while (tupleCount >= maxTupleCount) {
-	data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
-	maxTupleCount *= GROWTH_FACTOR;
+        data = growStorage(data, maxTupleCount*TupleBytes, GROWTH_FACTOR);
+        maxTupleCount *= GROWTH_FACTOR;
     }
     if (index < tupleCount) {
-	void* dest = KeyPtr(data, keysize, index + 1);
-	void* src = KeyPtr(data, keysize, index);
-	long size = ((char*)KeyPtr(data, keysize, tupleCount)) - ((char*)KeyPtr(data, keysize, index));
-	memmove(dest, src, size);
+        void* dest = KeyPtr(data, keysize, index + 1);
+        void* src = KeyPtr(data, keysize, index);
+        long size = ((char*)KeyPtr(data, keysize, tupleCount)) - ((char*)KeyPtr(data, keysize, index));
+        memmove(dest, src, size);
     }
     // else?
 
@@ -130,12 +130,12 @@ void ocTable::sumTuple(ocKeySegment *key, double value)
     long long index = indexOf(key, false);
     //-- index is either the matching tuple, or the next higher one. So we have to test again.
     if (index >= tupleCount || ocKey::compareKeys(KeyPtr(data, keysize, index), key, keysize) != 0) {
-	insertTuple(key, value, index);
+        insertTuple(key, value, index);
     } else {
-	ocTupleValue *valuep = ValuePtr(data, keysize, index);
-	value += *valuep;
-	if (type == SET_TYPE && value != 0.0) value = 1.0;
-	*valuep = (ocTupleValue) value;
+        ocTupleValue *valuep = ValuePtr(data, keysize, index);
+        value += *valuep;
+        if (type == SET_TYPE && value != 0.0) value = 1.0;
+        *valuep = (ocTupleValue) value;
     }
 }
 
@@ -208,15 +208,15 @@ long long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
     // Each iteration, the midpoint of the remaining range is checked, and
     // then half the keys are discarded.
     while (true) {
-	compare = ocKey::compareKeys(KeyPtr(data, keysize, mid), key, keysize);
-	if (compare == 0) return mid;	// got a match
-	if (compare > 0) {	// search top half of range
-	    bottom = mid;
-	} else {	// search bottom half of range
-	    top = mid;
-	}
-	if ((bottom - top) <= 1) return matchOnly ? -1 : bottom;	// no range left to search
-	mid = (bottom + top) / 2;
+        compare = ocKey::compareKeys(KeyPtr(data, keysize, mid), key, keysize);
+        if (compare == 0) return mid;	// got a match
+        if (compare > 0) {	// search top half of range
+            bottom = mid;
+        } else {	// search bottom half of range
+            top = mid;
+        }
+        if ((bottom - top) <= 1) return matchOnly ? -1 : bottom;	// no range left to search
+        mid = (bottom + top) / 2;
     }
     return -1;	// this is never reached
 }
@@ -249,10 +249,10 @@ double ocTable::normalize()
     double denom = 0;
     long long i;
     for (i = 0; i < tupleCount; i++) {
-	denom += getValue(i);
+        denom += getValue(i);
     }
     for (i = 0; i < tupleCount; i++) {
-	setValue(i, (getValue(i)/denom));
+        setValue(i, (getValue(i)/denom));
     }
     //-- if the data was already normalized, then not much will have happened.
     //-- but in that case there is no sample size info, so return 1.
@@ -278,16 +278,16 @@ void ocTable::reset(int keysize)
 void ocTable::dump(bool detail)
 {
     double sum = 0;
-    printf("ocTable: tuples = %ld\n", tupleCount);
+    printf("ocTable: tuples = %lld\n", tupleCount);
     for (long long i = 0; i < tupleCount; i++) {
-	ocKeySegment *key = getKey(i);
-	double value = getValue(i);
-	if (detail) {
-	    printf("\t%d. ", i);
-	    ocKey::dumpKey(key, keysize);
-	    printf("%g\n", value);
-	}
-	sum += value;
+        ocKeySegment *key = getKey(i);
+        double value = getValue(i);
+        if (detail) {
+            printf("\t%d. ", i);
+            ocKey::dumpKey(key, keysize);
+            printf("%g\n", value);
+        }
+        sum += value;
     }
     printf("p total (should be 1.00): %lg\n", sum);
 }
