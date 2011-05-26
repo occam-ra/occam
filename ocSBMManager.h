@@ -92,6 +92,8 @@ class ocSBMManager : public ocManagerBase {
 	//-- Single model reports. For multi-model reports see ocReport.h
 	void printFitReport(ocModel *model, FILE *fd);
 
+    void printBasicStatistics();
+
     private:	// data
 	bool projection;
 	char *filterAttr;
