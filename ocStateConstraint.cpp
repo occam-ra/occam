@@ -1,12 +1,12 @@
 /* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
  */
 
- #include "ocCore.h"
- #include "_ocCore.h"
- #include <assert.h>
- #include <stdio.h>
- #include <stdlib.h>
- #include <string.h>
+#include "ocCore.h"
+#include "_ocCore.h"
+#include <assert.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * ocStateConstraint.cpp - implements a state constraint object, which is
@@ -39,8 +39,8 @@ void ocStateConstraint::addConstraint(ocKeySegment *key)
 {
     const int FACTOR = 2;
     while (constraintCount >= maxConstraintCount) {
-	constraints = (ocKeySegment*) growStorage(constraints, keysize*maxConstraintCount*sizeof(ocKeySegment), FACTOR);
-	maxConstraintCount *= FACTOR;
+        constraints = (ocKeySegment*) growStorage(constraints, keysize*maxConstraintCount*sizeof(ocKeySegment), FACTOR);
+        maxConstraintCount *= FACTOR;
     }
     ocKeySegment *addr = keyAddr(constraintCount);	// get the address of the next key
     memcpy(addr, key, keysize*sizeof(ocKeySegment)); // and copy the new one
