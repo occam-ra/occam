@@ -5,7 +5,7 @@
  * ocKey.cpp - implements the Key class. The class contains only static functions,
  * for key manipulation.
  */
- 
+
 #include "ocCore.h"
 #include <assert.h>
 #include <stdio.h>
@@ -14,15 +14,15 @@
 
 
 void ocKey::buildKey(ocKeySegment *key, int keysize, class ocVariableList *vars,
-	int *varindices, int *varvalues, int varcount)
+        int *varindices, int *varvalues, int varcount)
 {
     int i;
     for (i = 0; i < keysize; i++) key[i] = DONT_CARE;
     for (i = 0; i < varcount; i++) {
-	ocVariable *var = vars->getVariable(varindices[i]);
-	ocKeySegment mask = var->mask;
-	int segment = var->segment;
-	key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
+        ocVariable *var = vars->getVariable(varindices[i]);
+        ocKeySegment mask = var->mask;
+        int segment = var->segment;
+        key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
     }
 }
 
@@ -36,10 +36,10 @@ void ocKey::buildFullKey(ocKeySegment *key, int keysize, class ocVariableList *v
     int varcount = vars->getVarCount();
     for (i = 0; i < keysize; i++) key[i] = DONT_CARE;
     for (i = 0; i < varcount; i++) {
-	ocVariable *var = vars->getVariable(i);
-	ocKeySegment mask = var->mask;
-	int segment = var->segment;
-	key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
+        ocVariable *var = vars->getVariable(i);
+        ocKeySegment mask = var->mask;
+        int segment = var->segment;
+        key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
     }
 }
 
@@ -77,14 +77,14 @@ int ocKey::compareKeys(ocKeySegment *key1, ocKeySegment *key2, int keysize)
 {
     int i;
     for (i = 0; i < keysize; i++) {
-	if (*key1 == *key2) {
-	    key1++;
-	    key2++;
-	} else if (*key1 < *key2) {
-	    return -1;
-	} else { //(*key1 > *key2)
-	    return 1;
-	}
+        if (*key1 == *key2) {
+            key1++;
+            key2++;
+        } else if (*key1 < *key2) {
+            return -1;
+        } else { //(*key1 > *key2)
+            return 1;
+        }
     }
     return 0;
 }
@@ -97,7 +97,7 @@ int ocKey::copyKey(ocKeySegment *key1, ocKeySegment *key2, int keysize)
 {
     int i;
     for (i = 0; i < keysize; i++) {
-	*(key2++) = *(key1++);
+        *(key2++) = *(key1++);
     }
     return 0;   // not sure what this return value was meant to do?
 }
@@ -117,8 +117,8 @@ void ocKey::buildMask(ocKeySegment *mask, int keysize, class ocVariableList *var
     int count = varcount;
     int var;
     for (i = 0; i < count; i++) {
-	var = varindices[i];	// var is index in variableList
-	ocKey::setKeyValue(mask, keysize, vars, var, 0);
+        var = varindices[i];	// var is index in variableList
+        ocKey::setKeyValue(mask, keysize, vars, var, 0);
     }
 }
 /**
@@ -152,12 +152,12 @@ void ocKey::keyToString(ocKeySegment *key, ocVariableList *vars, char *str)
     int varcount = vars->getVarCount();
     char *cp = str;
     for (i = 0; i < varcount; i++) {
-	ocVariable *var = vars->getVariable(i);
-	ocKeySegment mask = var->mask;
-	int segment = var->segment;
-	int value = (key[segment] & mask) >> var->shift;
-	assert(value >= 0 && value < 16);
-	*(cp++) = valchars[value];
+        ocVariable *var = vars->getVariable(i);
+        ocKeySegment mask = var->mask;
+        int segment = var->segment;
+        int value = (key[segment] & mask) >> var->shift;
+        assert(value >= 0 && value < 16);
+        *(cp++) = valchars[value];
     }
     *cp = '\0';
 }
@@ -169,17 +169,17 @@ void ocKey::keyToUserString(ocKeySegment *key, ocVariableList *vars, char *str)
     int varcount = vars->getVarCount();
     char *cp = str;
     for (i = 0; i < varcount; i++) {
-	ocVariable *var = vars->getVariable(i);
-	char **map = var->valmap;
-	ocKeySegment mask = var->mask;
-	int segment = var->segment;
-	int value = (key[segment] & mask) >> var->shift;
-	if(value < (var->cardinality)) {
-	    assert(value >= 0 && value < 16);
-	    int len1 = strlen(map[value]);
-	    strncpy(cp, map[value], len1);
-	    cp += len1;
-	}
+        ocVariable *var = vars->getVariable(i);
+        char **map = var->valmap;
+        ocKeySegment mask = var->mask;
+        int segment = var->segment;
+        int value = (key[segment] & mask) >> var->shift;
+        if(value < (var->cardinality)) {
+            assert(value >= 0 && value < 16);
+            int len1 = strlen(map[value]);
+            strncpy(cp, map[value], len1);
+            cp += len1;
+        }
     }
     *cp = '\0';
 }
@@ -196,11 +196,11 @@ void ocKey::getSiblings(ocKeySegment *key, ocVariableList *vars, ocTable *table,
 
     setKeyValue(temp_key, keySize, vars, DV_ind, 0);
     for(int i=0; i < card; i++) {
-	long index = table->indexOf(temp_key);
-	if(index > -1) {
-	    i_sibs[j++] = index;
-	}	
-	setKeyValue(temp_key, keySize, vars, DV_ind, i+1);
+        long index = table->indexOf(temp_key);
+        if(index > -1) {
+            i_sibs[j++] = index;
+        }	
+        setKeyValue(temp_key, keySize, vars, DV_ind, i+1);
     }
     delete [] temp_key;
     *no_sib = j;
@@ -210,7 +210,7 @@ void ocKey::getSiblings(ocKeySegment *key, ocVariableList *vars, ocTable *table,
 void ocKey::dumpKey(ocKeySegment *key, int keysize)
 {
     for (int k = 0; k < keysize; k++) {
-	printf("%08lx ", key[k]);
+        printf("%08lx ", key[k]);
     }
 }
 
