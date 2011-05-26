@@ -33,7 +33,7 @@
 
 //-- Define the standard python function header.
 #define DefinePyFunction(type, fn) static PyObject *type##_##fn(PyObject *self, PyObject *args)
-	
+
 //-- Create a method definition line
 #define PyMethodDef(type, fn) { #fn, type##_##fn, 1 }
 
@@ -71,7 +71,7 @@ DefinePyObject(ocReport);
 /**************************/
 
 /****** Methods ******/
- 
+
 // Constructor
 DefinePyFunction(ocVBMManager, initFromCommandLine)
 {
@@ -81,10 +81,10 @@ DefinePyFunction(ocVBMManager, initFromCommandLine)
     char **argv = new char*[argc];
     int i;
     for (i = 0; i < argc; i++) {
-	PyObject *PString = PyList_GetItem(Pargv, i);
-	int size = PyString_Size(PString);
-	argv[i] = new char[size+1];
-	strcpy(argv[i], PyString_AsString(PString));
+        PyObject *PString = PyList_GetItem(Pargv, i);
+        int size = PyString_Size(PString);
+        argv[i] = new char[size+1];
+        strcpy(argv[i], PyString_AsString(PString));
     }
     bool ret;
     ret = ObjRef(self, ocVBMManager)->initFromCommandLine(argc, argv);
@@ -92,7 +92,7 @@ DefinePyFunction(ocVBMManager, initFromCommandLine)
     delete [] argv;
     if (!ret)
     {
-	onError("ocVBMManager: initialization failed");
+        onError("ocVBMManager: initialization failed");
     }
     Py_INCREF(Py_None);
     return Py_None;
@@ -110,14 +110,14 @@ DefinePyFunction(ocVBMManager, makeAllChildRelations)
     int count = rel->obj->getVariableCount();
     ocRelation **rels = new ocRelation*[count];
     ObjRef(self, ocVBMManager)->makeAllChildRelations(
-	    rel->obj, rels, bMakeProject);
+            rel->obj, rels, bMakeProject);
     PyObject *list = PyList_New(count);
     int i;
     for (i = 0; i < count; i++) {
-	rel = ObjNew(ocRelation);
-	rel->obj = rels[i];	// move relation to the python object
-	rels[i] = NULL;
-	PyList_SetItem(list, i, (PyObject*)rel);
+        rel = ObjNew(ocRelation);
+        rel->obj = rels[i];	// move relation to the python object
+        rels[i] = NULL;
+        PyList_SetItem(list, i, (PyObject*)rel);
     }
     delete rels;
     Py_INCREF(list);
@@ -134,7 +134,7 @@ DefinePyFunction(ocVBMManager, searchOneLevel)
     ocModel **models;
     ocVBMManager *mgr = ObjRef(self, ocVBMManager);
     if (mgr->getSearch() == NULL) {
-	onError("No search method defined");
+        onError("No search method defined");
     }
     if (start->obj == NULL) onError("Model is NULL!");
     models = mgr->getSearch()->search(start->obj);
@@ -146,16 +146,16 @@ DefinePyFunction(ocVBMManager, searchOneLevel)
 
     //-- sort them if sort was requested
     if (mgr->getSortAttr()) {
-	ocReport::sort(models, count, mgr->getSortAttr(), (ocReport::SortDir) mgr->getSortDirection());
+        ocReport::sort(models, count, mgr->getSortAttr(), (ocReport::SortDir) mgr->getSortDirection());
     }
 
     //-- make a PyList
     PyObject *list = PyList_New(count);
     int i;
     for (i = 0; i < count; i++) {
-	pmodel = ObjNew(ocModel);
-	pmodel->obj = models[i];
-	PyList_SetItem(list, i, (PyObject*)pmodel);
+        pmodel = ObjNew(ocModel);
+        pmodel->obj = models[i];
+        PyList_SetItem(list, i, (PyObject*)pmodel);
     }
     delete [] models;
     Py_INCREF(list);
@@ -171,10 +171,10 @@ DefinePyFunction(ocVBMManager, setSearchType)
     ocVBMManager *mgr = ObjRef(self, ocVBMManager);
     mgr->setSearch(name);
     if (mgr->getSearch() == NULL) { // invalid search method name
-	onError("undefined search type");
+        onError("undefined search type");
     } else {
-	Py_INCREF(Py_None);
-	return Py_None;
+        Py_INCREF(Py_None);
+        return Py_None;
     }
 }
 
@@ -192,11 +192,11 @@ DefinePyFunction(ocVBMManager, makeChildModel)
     if (model == NULL) onError("Model is NULL!");
     //-- if this relation is trivial, return None
     if (model->getRelation(relation)->getVariableCount() <= 1) {
-	Py_INCREF(Py_None);
-	return Py_None;
+        Py_INCREF(Py_None);
+        return Py_None;
     }
     ocModel *ret = ObjRef(self, ocVBMManager)->makeChildModel(
-	    Pmodel->obj, relation, &cache, bMakeProject);
+            Pmodel->obj, relation, &cache, bMakeProject);
     if (ret == NULL) onError("invalid arguments");
     PocModel *newModel = ObjNew(ocModel);
     newModel->obj = ret;
@@ -408,8 +408,8 @@ DefinePyFunction(ocVBMManager, makeModel)
     bMakeProject = makeProject != 0;
     ocModel *ret = ObjRef(self, ocVBMManager)->makeModel(name, bMakeProject);
     if (ret == NULL) {
-	onError("invalid model name");
-	exit(1);
+        onError("invalid model name");
+        exit(1);
     }
     PocModel *newModel = ObjNew(ocModel);
     newModel->obj = ret;
@@ -426,13 +426,13 @@ DefinePyFunction(ocVBMManager, setFilter)
     ocVBMManager::RelOp op;
     PyArg_ParseTuple(args, "ssd", &attrName, &relOp, &attrValue);
     if (strcmp(relOp, "<") == 0 || strcasecmp(relOp, "lt") == 0)
-	op = ocVBMManager::LESSTHAN;
+        op = ocVBMManager::LESSTHAN;
     else if (strcmp(relOp, "=") == 0 || strcasecmp(relOp, "eq") == 0)
-	op = ocVBMManager::EQUALS;
+        op = ocVBMManager::EQUALS;
     else if (strcmp(relOp, ">") == 0 || strcasecmp(relOp, "gt") == 0)
-	op = ocVBMManager::GREATERTHAN;
+        op = ocVBMManager::GREATERTHAN;
     else {
-	onError("Invalid comparison operator");
+        onError("Invalid comparison operator");
     }
     ObjRef(self, ocVBMManager)->setFilter(attrName, attrValue, op);
     Py_INCREF(Py_None);
@@ -518,7 +518,7 @@ DefinePyFunction(ocVBMManager, getOption)
     void *nextp = NULL;
     if (!ObjRef(self, ocVBMManager)->getOptionString(attrName, &nextp, &value))
     {
-	value = "";
+        value = "";
     }
     return Py_BuildValue("s", value);
 }
@@ -532,10 +532,10 @@ DefinePyFunction(ocVBMManager, getOptionList)
     void *nextp = NULL;
     PyObject *list = PyList_New(0);
     while(ObjRef(self, ocVBMManager)->getOptionString(attrName, &nextp, &value) &&
-	    nextp != NULL)
+            nextp != NULL)
     {
-	PyObject *valstr = Py_BuildValue("s", value);
-	PyList_Append(list, valstr);
+        PyObject *valstr = Py_BuildValue("s", value);
+        PyList_Append(list, valstr);
     }
     Py_INCREF(list);
     return list;
@@ -741,38 +741,38 @@ PyObject * ocVBMManager_getattr(PyObject *self, char *name)
 
 
 /****** Type Definition ******/
-PyTypeObject TocVBMManager = {
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,
-    "ocVBMManager",
-    sizeof(PocVBMManager),
-    0,
-    //-- standard methods
-    (destructor) ocVBMManager_dealloc,
-    (printfunc) 0,
-    (getattrfunc) ocVBMManager_getattr,
-    (setattrfunc) 0,
-    (cmpfunc) 0,
-    (reprfunc) 0,
+    PyTypeObject TocVBMManager = {
+        PyObject_HEAD_INIT(&PyType_Type)
+            0,
+        "ocVBMManager",
+        sizeof(PocVBMManager),
+        0,
+        //-- standard methods
+        (destructor) ocVBMManager_dealloc,
+        (printfunc) 0,
+        (getattrfunc) ocVBMManager_getattr,
+        (setattrfunc) 0,
+        (cmpfunc) 0,
+        (reprfunc) 0,
 
-    //-- type categories
-    0,
-    0,
-    0,
+        //-- type categories
+        0,
+        0,
+        0,
 
-    //-- more methods
-    (hashfunc) 0,
-    (ternaryfunc) 0,
-    (reprfunc) 0,
-    (getattrofunc) 0,
-    (setattrofunc) 0,
-};
+        //-- more methods
+        (hashfunc) 0,
+        (ternaryfunc) 0,
+        (reprfunc) 0,
+        (getattrofunc) 0,
+        (setattrofunc) 0,
+    };
 
 
 DefinePyFunction(ocVBMManager, new)
 {
     if (!PyArg_ParseTuple(args, ""))
-	return NULL;
+        return NULL;
     PocVBMManager *newobj = ObjNew(ocVBMManager);
     newobj->obj = new ocVBMManager();
     Py_INCREF(newobj);
@@ -795,17 +795,17 @@ DefinePyFunction(ocSBMManager, initFromCommandLine)
     char **argv = new char*[argc];
     int i;
     for (i = 0; i < argc; i++) {
-	PyObject *PString = PyList_GetItem(Pargv, i);
-	int size = PyString_Size(PString);
-	argv[i] = new char[size+1];
-	strcpy(argv[i], PyString_AsString(PString));
+        PyObject *PString = PyList_GetItem(Pargv, i);
+        int size = PyString_Size(PString);
+        argv[i] = new char[size+1];
+        strcpy(argv[i], PyString_AsString(PString));
     }
     bool ret;
     ret = ObjRef(self, ocSBMManager)->initFromCommandLine(argc, argv);
     for (i = 0; i < argc; i++) delete [] argv[i];
     delete [] argv;
     if (!ret) {
-	onError("ocSBMManager: initialization failed");
+        onError("ocSBMManager: initialization failed");
     }
     Py_INCREF(Py_None);
     return Py_None;
@@ -989,8 +989,8 @@ DefinePyFunction(ocSBMManager, makeSBModel)
     bMakeProject = makeProject != 0;
     ocModel *ret = ObjRef(self, ocSBMManager)->makeSBModel(name, bMakeProject);
     if (ret == NULL){
-	onError("invalid model name");
-	exit(1);
+        onError("invalid model name");
+        exit(1);
     }
     name2=ret->getPrintName();
     //printf("model name is %s\n",name2);
@@ -1009,13 +1009,13 @@ DefinePyFunction(ocSBMManager, setFilter)
     ocSBMManager::RelOp op;
     PyArg_ParseTuple(args, "ssd", &attrName, &relOp, &attrValue);
     if (strcmp(relOp, "<") == 0 || strcasecmp(relOp, "lt") == 0)
-	op = ocSBMManager::LESSTHAN;
+        op = ocSBMManager::LESSTHAN;
     else if (strcmp(relOp, "=") == 0 || strcasecmp(relOp, "eq") == 0)
-	op = ocSBMManager::EQUALS;
+        op = ocSBMManager::EQUALS;
     else if (strcmp(relOp, ">") == 0 || strcasecmp(relOp, "gt") == 0)
-	op = ocSBMManager::GREATERTHAN;
+        op = ocSBMManager::GREATERTHAN;
     else {
-	onError("Invalid comparison operator");
+        onError("Invalid comparison operator");
     }
     ObjRef(self, ocSBMManager)->setFilter(attrName, attrValue, op);
     Py_INCREF(Py_None);
@@ -1067,7 +1067,7 @@ DefinePyFunction(ocSBMManager, getOption)
     void *nextp = NULL;
     if (!ObjRef(self, ocSBMManager)->getOptionString(attrName, &nextp,&value))
     {
-	value = "";
+        value = "";
     }
     return Py_BuildValue("s", value);
 }
@@ -1081,10 +1081,10 @@ DefinePyFunction(ocSBMManager, getOptionList)
     void *nextp = NULL;
     PyObject *list = PyList_New(0);
     while(ObjRef(self, ocSBMManager)->getOptionString(attrName,&nextp, &value) &&
-	    nextp != NULL)
+            nextp != NULL)
     {
-	PyObject *valstr = Py_BuildValue("s", value);
-	PyList_Append(list, valstr);
+        PyObject *valstr = Py_BuildValue("s", value);
+        PyList_Append(list, valstr);
     }
     Py_INCREF(list);
     return list;
@@ -1108,7 +1108,7 @@ DefinePyFunction(ocSBMManager, makeFitTable)
     PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
     ocModel *model = ObjRef(Pmodel, ocModel);
     if (model == NULL) onError("Model is NULL!");
-    ObjRef(self, ocSBMManager)->makeFitTable(model, 1);
+    ObjRef(self, ocSBMManager)->makeFitTable(model);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1151,6 +1151,16 @@ DefinePyFunction(ocSBMManager, getSampleSz)
     return Py_BuildValue("d",ss);
 }
 
+//long printBasicStatistics()
+DefinePyFunction(ocSBMManager, printBasicStatistics)
+{
+    PyArg_ParseTuple(args, "");
+    ocSBMManager *mgr = ObjRef(self, ocSBMManager);
+    mgr->printBasicStatistics();
+    return Py_None;
+}
+
+
 
 static struct PyMethodDef ocSBMManager_methods[] = {
     PyMethodDef(ocSBMManager, initFromCommandLine),
@@ -1178,6 +1188,7 @@ static struct PyMethodDef ocSBMManager_methods[] = {
     PyMethodDef(ocSBMManager, printOptions),
     PyMethodDef(ocSBMManager, deleteTablesFromCache),
     PyMethodDef(ocSBMManager, getSampleSz),
+    PyMethodDef(ocSBMManager, printBasicStatistics),
     {NULL, NULL, 0}
 };
 
@@ -1198,38 +1209,38 @@ PyObject * ocSBMManager_getattr(PyObject *self, char *name)
 
 
 /****** Type Definition ******/
-PyTypeObject TocSBMManager = {
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,
-    "ocSBMManager",
-    sizeof(PocSBMManager),
-    0,
-    //-- standard methods
-    (destructor) ocSBMManager_dealloc,
-    (printfunc) 0,
-    (getattrfunc) ocSBMManager_getattr,
-    (setattrfunc) 0,
-    (cmpfunc) 0,
-    (reprfunc) 0,
+    PyTypeObject TocSBMManager = {
+        PyObject_HEAD_INIT(&PyType_Type)
+            0,
+        "ocSBMManager",
+        sizeof(PocSBMManager),
+        0,
+        //-- standard methods
+        (destructor) ocSBMManager_dealloc,
+        (printfunc) 0,
+        (getattrfunc) ocSBMManager_getattr,
+        (setattrfunc) 0,
+        (cmpfunc) 0,
+        (reprfunc) 0,
 
-    //-- type categories
-    0,
-    0,
-    0,
+        //-- type categories
+        0,
+        0,
+        0,
 
-    //-- more methods
-    (hashfunc) 0,
-    (ternaryfunc) 0,
-    (reprfunc) 0,
-    (getattrofunc) 0,
-    (setattrofunc) 0,
-};
+        //-- more methods
+        (hashfunc) 0,
+        (ternaryfunc) 0,
+        (reprfunc) 0,
+        (getattrofunc) 0,
+        (setattrofunc) 0,
+    };
 
 
 DefinePyFunction(ocSBMManager, new)
 {
     if (!PyArg_ParseTuple(args, ""))
-	return NULL;
+        return NULL;
     PocSBMManager *newobj = ObjNew(ocSBMManager);
     newobj->obj = new ocSBMManager();
     Py_INCREF(newobj);
@@ -1249,13 +1260,13 @@ DefinePyFunction(ocRelation, get)
     PyArg_ParseTuple(args, "s", &name);
     //-- Other attributes
     if (strcmp(name, "name") == 0) {
-	const char *printName = relation->getPrintName();
-	return PyString_FromString(printName);
+        const char *printName = relation->getPrintName();
+        return PyString_FromString(printName);
     }
 
     if (strcmp(name, "varcount") == 0) {
-	long varcount = relation->getVariableCount();
-	return PyInt_FromLong(varcount);
+        long varcount = relation->getVariableCount();
+        return PyInt_FromLong(varcount);
     }
 
     int attindex = relation->getAttributeList()->getAttributeIndex(name);
@@ -1294,7 +1305,7 @@ delete self;
 }
  */
 
-PyObject *
+    PyObject *
 ocRelation_getattr(PyObject *self, char *name)
 {
     PyObject *method = Py_FindMethod(ocRelation_methods, self, name);
@@ -1304,13 +1315,13 @@ ocRelation_getattr(PyObject *self, char *name)
 
     //-- Other attributes
     if (strcmp(name, "name") == 0) {
-	const char *printName = rel->getPrintName();
-	return Py_BuildValue("s", printName);
+        const char *printName = rel->getPrintName();
+        return Py_BuildValue("s", printName);
     }
 
     if (strcmp(name, "varcount") == 0) {
-	long varcount = rel->getVariableCount();
-	return Py_BuildValue("l", varcount);
+        long varcount = rel->getVariableCount();
+        return Py_BuildValue("l", varcount);
     }
 
     int attindex = rel->getAttributeList()->getAttributeIndex(name);
@@ -1322,38 +1333,38 @@ ocRelation_getattr(PyObject *self, char *name)
 
 
 /****** Type Definition ******/
-PyTypeObject TocRelation = {
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,
-    "ocRelation",
-    sizeof(PocRelation),
-    0,
-    //-- standard methods
-    (destructor) 0,
-    (printfunc) 0,
-    (getattrfunc) ocRelation_getattr,
-    (setattrfunc) 0,
-    (cmpfunc) 0,
-    (reprfunc) 0,
+    PyTypeObject TocRelation = {
+        PyObject_HEAD_INIT(&PyType_Type)
+            0,
+        "ocRelation",
+        sizeof(PocRelation),
+        0,
+        //-- standard methods
+        (destructor) 0,
+        (printfunc) 0,
+        (getattrfunc) ocRelation_getattr,
+        (setattrfunc) 0,
+        (cmpfunc) 0,
+        (reprfunc) 0,
 
-    //-- type categories
-    0,
-    0,
-    0,
+        //-- type categories
+        0,
+        0,
+        0,
 
-    //-- more methods
-    (hashfunc) 0,
-    (ternaryfunc) 0,
-    (reprfunc) 0,
-    (getattrofunc) 0,
-    (setattrofunc) 0,
-};
+        //-- more methods
+        (hashfunc) 0,
+        (ternaryfunc) 0,
+        (reprfunc) 0,
+        (getattrofunc) 0,
+        (setattrofunc) 0,
+    };
 
 
 DefinePyFunction(ocRelation, new)
 {
     if (!PyArg_ParseTuple(args, ""))
-	return NULL;
+        return NULL;
     PocRelation *newobj = ObjNew(ocRelation);
     newobj->obj = new ocRelation();
     Py_INCREF(newobj);
@@ -1385,13 +1396,13 @@ DefinePyFunction(ocModel, get)
     PyArg_ParseTuple(args, "s", &name);
     //-- Other attributes
     if (strcmp(name, "name") == 0) {
-	const char *printName = model->getPrintName();
-	return PyString_FromString(printName);
+        const char *printName = model->getPrintName();
+        return PyString_FromString(printName);
     }
 
     if (strcmp(name, "relcount") == 0) {
-	long relcount = model->getRelationCount();
-	return PyInt_FromLong(relcount);
+        long relcount = model->getRelationCount();
+        return PyInt_FromLong(relcount);
     }
 
     int attindex = model->getAttributeList()->getAttributeIndex(name);
@@ -1511,13 +1522,13 @@ PyObject * ocModel_getattr(PyObject *self, char *name)
     ocModel *model = ObjRef(self, ocModel);
     //-- Other attributes
     if (strcmp(name, "name") == 0) {
-	const char *printName = model->getPrintName();
-	return PyString_FromString(printName);
+        const char *printName = model->getPrintName();
+        return PyString_FromString(printName);
     }
 
     if (strcmp(name, "relcount") == 0) {
-	long relcount = model->getRelationCount();
-	return PyInt_FromLong(relcount);
+        long relcount = model->getRelationCount();
+        return PyInt_FromLong(relcount);
     }
 
     int attindex = model->getAttributeList()->getAttributeIndex(name);
@@ -1532,11 +1543,11 @@ int ocModel_setattr(PyObject *self, char *name, PyObject *value)
 {
     double dvalue;
     if (PyFloat_Check(value))
-	dvalue = PyFloat_AsDouble(value);
+        dvalue = PyFloat_AsDouble(value);
     else if (PyLong_Check(value))
-	dvalue = PyLong_AsDouble(value);
+        dvalue = PyLong_AsDouble(value);
     else if (PyInt_Check(value))
-	dvalue = (double) PyInt_AsLong(value);
+        dvalue = (double) PyInt_AsLong(value);
     else dvalue = -1;
     ObjRef(self, ocModel)->setAttribute(name, dvalue);
     return 0;
@@ -1544,38 +1555,38 @@ int ocModel_setattr(PyObject *self, char *name, PyObject *value)
 
 /****** Type Definition ******/
 
-PyTypeObject TocModel = {
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,
-    "ocModel",
-    sizeof(PocModel),
-    0,
-    //-- standard methods
-    (destructor) 0,
-    (printfunc) 0,
-    (getattrfunc) ocModel_getattr,
-    (setattrfunc) ocModel_setattr,
-    (cmpfunc) 0,
-    (reprfunc) 0,
+    PyTypeObject TocModel = {
+        PyObject_HEAD_INIT(&PyType_Type)
+            0,
+        "ocModel",
+        sizeof(PocModel),
+        0,
+        //-- standard methods
+        (destructor) 0,
+        (printfunc) 0,
+        (getattrfunc) ocModel_getattr,
+        (setattrfunc) ocModel_setattr,
+        (cmpfunc) 0,
+        (reprfunc) 0,
 
-    //-- type categories
-    0,
-    0,
-    0,
+        //-- type categories
+        0,
+        0,
+        0,
 
-    //-- more methods
-    (hashfunc) 0,
-    (ternaryfunc) 0,
-    (reprfunc) 0,
-    (getattrofunc) 0,
-    (setattrofunc) 0,
-};
+        //-- more methods
+        (hashfunc) 0,
+        (ternaryfunc) 0,
+        (reprfunc) 0,
+        (getattrofunc) 0,
+        (setattrofunc) 0,
+    };
 
 
 DefinePyFunction(ocModel, new)
 {
     if (!PyArg_ParseTuple(args, ""))
-	return NULL;
+        return NULL;
     PocModel *newobj = ObjNew(ocModel);
     newobj->obj = new ocModel();
     Py_INCREF(newobj);
@@ -1655,13 +1666,13 @@ DefinePyFunction(ocReport, sort)
     char *direction;
     PyArg_ParseTuple(args, "ss", &attr, &direction);
     if (strcasecmp(direction, "ascending") == 0) {
-	report->sort(attr, ocReport::ASCENDING);
+        report->sort(attr, ocReport::ASCENDING);
     }
     else if (strcasecmp(direction, "descending") == 0) {
-	report->sort(attr, ocReport::DESCENDING);
+        report->sort(attr, ocReport::DESCENDING);
     }
     else {
-	onError("Invalid sort direction");
+        onError("Invalid sort direction");
     }
     Py_INCREF(Py_None);
     TRACE_FN("ocReport::sort", __LINE__, 0);
@@ -1785,32 +1796,32 @@ PyObject * ocReport_getattr(PyObject *self, char *name)
 
 
 /****** Type Definition ******/
-PyTypeObject TocReport = {
-    PyObject_HEAD_INIT(&PyType_Type)
-    0,
-    "ocReport",
-    sizeof(PocReport),
-    0,
-    //-- standard methods
-    (destructor) 0,
-    (printfunc) 0,
-    (getattrfunc) ocReport_getattr,
-    (setattrfunc) 0,
-    (cmpfunc) 0,
-    (reprfunc) 0,
+    PyTypeObject TocReport = {
+        PyObject_HEAD_INIT(&PyType_Type)
+            0,
+        "ocReport",
+        sizeof(PocReport),
+        0,
+        //-- standard methods
+        (destructor) 0,
+        (printfunc) 0,
+        (getattrfunc) ocReport_getattr,
+        (setattrfunc) 0,
+        (cmpfunc) 0,
+        (reprfunc) 0,
 
-    //-- type categories
-    0,
-    0,
-    0,
+        //-- type categories
+        0,
+        0,
+        0,
 
-    //-- more methods
-    (hashfunc) 0,
-    (ternaryfunc) 0,
-    (reprfunc) 0,
-    (getattrofunc) 0,
-    (setattrofunc) 0,
-};
+        //-- more methods
+        (hashfunc) 0,
+        (ternaryfunc) 0,
+        (reprfunc) 0,
+        (getattrofunc) 0,
+        (setattrofunc) 0,
+    };
 
 
 /**************************/
@@ -1821,7 +1832,7 @@ static PyObject *setHTMLMode(PyObject *self, PyObject *args)
 {
     int mode;
     if (!PyArg_ParseTuple(args, "i", &mode))
-	return NULL;
+        return NULL;
     ocReport::setHTMLMode(mode != 0);
     Py_INCREF(Py_None);
     return Py_None;
@@ -1851,6 +1862,6 @@ void initoccam()
     ErrorObject = Py_BuildValue("s", "occam.error");
     PyDict_SetItemString(d, "error", ErrorObject);
     if (PyErr_Occurred())
-	Py_FatalError("cannot initialize module occam");
+        Py_FatalError("cannot initialize module occam");
 }
 
