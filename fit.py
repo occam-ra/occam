@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
 import pdb
 import os, sys
 sys.path.append("/www")
@@ -22,11 +22,12 @@ oc.setFitModel(sys.argv[2])
 oc.setAction("fit")
 oc.setReportSeparator(3)
 oc.setDDFMethod(1)
+#oc.setDefaultFitModel("IV:CD")
 
 t2 = time.time()
 oc.doAction(0)
 t3 = time.time()
 
 print "start:  %8f" % (t2 - t1)
-print "search: %8f" % (t3 - t2)
+print "fit: %8f" % (t3 - t2)
 
