@@ -1,4 +1,4 @@
-#! python
+#! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
 import pdb
 import os, sys
 #sys.path.append("/www")
@@ -81,11 +81,11 @@ util.setAction("search")
 
 # Set the model attribute for sorting the report, if it is different from the attribute used during search.
 # Generally this isn't needed.
-util.setReportSortName("bic")
+util.setReportSortName("information")
 
 # Set the model attribute on which sorting is done is done.  This controls the selection
 # of "best models" during search. It can also control reporting (see setReportSortName, below).
-util.setSortName("bic")
+util.setSortName("information")
 
 util.setDDFMethod(0)
 
@@ -95,12 +95,12 @@ util.setDDFMethod(0)
 #util.setReportVariables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
 #util.setNoIPF(1)
 # For ref=bottom, use something like this:
-util.setReportVariables("Level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
-#util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, pct_correct_data")
+#util.setReportVariables("Level$i, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
+util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, pct_correct_data")
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
-util.doAction(0)
+util.doAction(1)
 t3 = time.time()
 
 print "start:  %8f" % (t2 - t1)
