@@ -23,9 +23,9 @@ class ocIntersectProcessor
     public:
 	ocIntersectProcessor() {}
 
-	//-- this function is called for each relation. sign is +1 for
-	//-- the first, third, etc. levels, and -1 for second, fourth, etc.
-	virtual void process(int sign, ocRelation *rel) = 0;
+	//-- this function is called for each relation. sign is true (+1) for
+	//-- the first, third, etc. levels, and false (-1) for second, fourth, etc.
+	virtual void process(bool sign, ocRelation *rel, int count = 1) = 0;
 };
 
 /**
@@ -93,11 +93,14 @@ class ocManagerBase {
 
 	// delete a model from the model cache
 	virtual bool deleteModelFromCache(ocModel *model);
+    
+    // Create an array of relation intersections for an algebraic fit table.
+    virtual void doFitIntersection(ocModel *model);
 
 	// Make a fit table. This function uses the IPF algorithm. The fit table is
 	// linked to the model.  If the model already has a fit table, the function
 	// returns immediately. False is returned on any error.
-	virtual bool makeFitTable(ocModel *model, int SB=0);
+	virtual bool makeFitTable(ocModel *model);
 
 	// Expand a single tuple into all values of all missing variables, recursively
 	void expandTuple(double tupleValue, ocKeySegment *key,
@@ -126,7 +129,7 @@ class ocManagerBase {
 	virtual double computeDF(ocModel *model);
 	virtual double computeH(ocRelation *rel);	// uncertainty
 	virtual double computeH(ocModel *model, HMethod method = AUTO,int SB=0);
-	virtual double computeTransmission(ocModel *model, HMethod method = AUTO,int SB=0);
+	virtual double computeTransmission(ocModel *model, HMethod method = AUTO, int SB=0);
 	virtual void computeStatistics(ocRelation *rel);
 	virtual void computeRelWidth(ocModel *model);
 
@@ -149,6 +152,7 @@ class ocManagerBase {
 	int getDefaultDVIndex();
 	int getDVOrder(int index);
 	void createDVOrder();
+    double getMissingCardinalityFactor(ocModel *model);
 	void getPredictingVars(ocModel *model, int *varindices, int &varcount, bool includeDeps);
 	ocRelation *getDepRelation();
 	ocRelation *getIndRelation();
