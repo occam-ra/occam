@@ -4,6 +4,7 @@
 #include "_ocCore.h"
 #include "string.h"
 #include "stdio.h"
+#include "limits.h"
 
 #undef LOG_MEMORY
 
@@ -30,10 +31,15 @@ void logMemory(void *old, unsigned long long oldSize, long factor, const char *f
 void *_growStorage(void *old, unsigned long long oldSize, long factor, const char *file, long line)
 {
     logMemory(old, oldSize, factor, file, line);
+    if ( ((double)oldSize * (double)factor) > ULONG_MAX ) {
+        printf("Memory allocation error.  %s[%ld], memory requested: %f\n", file, line, (double)oldSize * (double)factor);
+        fflush(stdout);
+        exit(1);
+    }
     char *newp = new char[oldSize * factor];
     if (newp == NULL) {
-	printf("out of memory!\n");
-	return NULL;
+        printf("out of memory!\n");
+        return NULL;
     }
     memset(newp, 0, oldSize * factor);
     memcpy(newp, old, oldSize);
@@ -50,8 +56,8 @@ int ocCompareVariables(int varCount1, int *var1, int varCount2, int *var2)
     // constraints, these must also equal.
     int count = (varCount1 < varCount2) ? varCount1 : varCount2;	// minimum
     for (int i = 0; i < count; i++) {
-	if (var1[i] < var2[i]) return -1;
-	else if (var1[i] > var2[i]) return 1;
+        if (var1[i] < var2[i]) return -1;
+        else if (var1[i] > var2[i]) return 1;
     }
 
     // equal so far
@@ -69,8 +75,8 @@ bool ocContainsVariables(int varCount1, int *var1, int varCount2, int *var2)
     //-- traversed the entire second list.
     int j = 0;
     for (int i = 0; i < varCount1; i++) {
-	if (j >= varCount2) break;
-	if (var1[i] == var2[j]) j++;
+        if (j >= varCount2) break;
+        if (var1[i] == var2[j]) j++;
     }
     return (j >= varCount2);
 }
