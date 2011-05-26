@@ -51,12 +51,12 @@ bool ocSBMManager::initFromCommandLine(int argc, char **argv)
 {
     if (!ocManagerBase::initFromCommandLine(argc, argv)) return false;
     if (varList) {
-	int varCount = varList->getVarCount();
-	ocRelation *top = new ocRelation(varList, varCount);
-	int i;
-	for (i = 0; i < varCount; i++) top->addVariable(i);	// all vars in saturated model
-	top->setTable(inputData);
-	makeReferenceModels(top);
+        int varCount = varList->getVarCount();
+        ocRelation *top = new ocRelation(varList, varCount);
+        int i;
+        for (i = 0; i < varCount; i++) top->addVariable(i);	// all vars in saturated model
+        top->setTable(inputData);
+        makeReferenceModels(top);
     }
     return true;
 }
@@ -77,58 +77,58 @@ void ocSBMManager::makeReferenceModels(ocRelation *top)
     ocRelation *rel;
     int i;
     if (varList->isDirected()) {
-	//-- first, make a relation with all the independent variables
-	model = new ocModel(2);	// typical case: one dep variable
-	int pos = 0;
-	ocVariable *var;
-	for (i = 0; i < varCount; i++) {
-	    var = varList->getVariable(i);
-	    if (!var->dv) varindices[pos++] = i;
-	}
-	rel = getRelation(varindices, pos, true);
-	model->addRelation(rel);
-	//-- now add a unary relation for each dependent variable
-	for (i = 0; i < varCount; i++) {
-	    var = varList->getVariable(i);
-	    if (var->dv) {
-		varindices[0] = i;
-		rel = getRelation(varindices, 1, true);
-		model->addRelation(rel);
-	    }
-	}
+        //-- first, make a relation with all the independent variables
+        model = new ocModel(2);	// typical case: one dep variable
+        int pos = 0;
+        ocVariable *var;
+        for (i = 0; i < varCount; i++) {
+            var = varList->getVariable(i);
+            if (!var->dv) varindices[pos++] = i;
+        }
+        rel = getRelation(varindices, pos, true);
+        model->addRelation(rel);
+        //-- now add a unary relation for each dependent variable
+        for (i = 0; i < varCount; i++) {
+            var = varList->getVariable(i);
+            if (var->dv) {
+                varindices[0] = i;
+                rel = getRelation(varindices, 1, true);
+                model->addRelation(rel);
+            }
+        }
     }
     else {
-	//this needs to change since in SB the bottom reference is uniform model and 
-	//not independence model
-	model = new ocModel(varCount);
-	for (i = 0; i < varCount; i++) {
-	    varindices[0] = i;
-	    rel = getRelation(varindices, 1, true);
-	    model->addRelation(rel);
-	    /*
-	       int inputCells = 1;
-	       int varcount = varList->getVarCount();
-	       for (i = 0; i < varcount; i++) {
-	       inputCells *= varList->getVariable(i)->cardinality;
-	       }
-	       double cellWeight = 1.0 / inputCells;
-	       int *varvalues = new int[varcount];
+        //this needs to change since in SB the bottom reference is uniform model and 
+        //not independence model
+        model = new ocModel(varCount);
+        for (i = 0; i < varCount; i++) {
+            varindices[0] = i;
+            rel = getRelation(varindices, 1, true);
+            model->addRelation(rel);
+            /*
+               int inputCells = 1;
+               int varcount = varList->getVarCount();
+               for (i = 0; i < varcount; i++) {
+               inputCells *= varList->getVariable(i)->cardinality;
+               }
+               double cellWeight = 1.0 / inputCells;
+               int *varvalues = new int[varcount];
 
-	       for (i = 0; i < varcount; i++) {
-	       varvalues[i] = 0;
-	       }
-	       ocKeySegment *key = new ocKeySegment[keysize];
-	       long cellCount = 0;
-	       for(;;) {
-	       ocKey::buildFullKey(key, keysize, varList, varvalues);
-	       fitTable1->addTuple(key, cellWeight);
-	       cellCount++;
-	       if (!nextTuple(varList, varvalues)) break;
-	       }
-	       delete [] varvalues;
+               for (i = 0; i < varcount; i++) {
+               varvalues[i] = 0;
+               }
+               ocKeySegment *key = new ocKeySegment[keysize];
+               long cellCount = 0;
+               for(;;) {
+               ocKey::buildFullKey(key, keysize, varList, varvalues);
+               fitTable1->addTuple(key, cellWeight);
+               cellCount++;
+               if (!nextTuple(varList, varvalues)) break;
+               }
+               delete [] varvalues;
 
-	     */
-	}
+             */
+        }
     }
     //modelCache->addModel(model); // why isn't this cached? [jsf]
     bottomRef = model;
@@ -149,13 +149,13 @@ void ocSBMManager::makeReferenceModels(ocRelation *top)
 ocModel *ocSBMManager::setRefModel(const char *name)
 {
     if (strcasecmp(name, "top") == 0) {
-	refModel = topRef;
+        refModel = topRef;
     }
     else if (strcasecmp(name, "bottom") == 0) {
-	refModel = bottomRef;
+        refModel = bottomRef;
     }
     else {
-	refModel = makeSBModel(name, true);
+        refModel = makeSBModel(name, true);
     }
     return refModel;
 }
@@ -249,8 +249,8 @@ void ocSBMManager::computeL2Statistics(ocModel *model)
     //-- as may refModel2. But the signs should be the same. If they aren't,
     //-- the csa computation will fail.
     if (refDDF < 0) {
-	refDDF = -refDDF;
-	refModelL2 = - refModelL2;
+        refDDF = -refDDF;
+        refModelL2 = - refModelL2;
     }
 
     //-- eliminate negative value due to small roundoff
@@ -281,7 +281,7 @@ void ocSBMManager::computePearsonStatistics(ocModel *model)
     //-- these statistics require a full contingency table, so make
     //-- sure one has been created.
     if (model == NULL || bottomRef == NULL) return;
-    makeFitTable(model, 1);
+    makeFitTable(model);
 
     ocTable *modelFitTable = new ocTable(keysize, fitTable1->getTupleCount());
 
@@ -326,8 +326,8 @@ void ocSBMManager::computeDependentStatistics(ocModel *model)
     ocRelation *indRel;
     int i;
     for (i = 0; i < bottomRef->getRelationCount(); i++) {
-	indRel = bottomRef->getRelation(i);
-	if (indRel->isIndependentOnly()) break;	// this is the one.
+        indRel = bottomRef->getRelation(i);
+        if (indRel->isIndependentOnly()) break;	// this is the one.
     }
     double indH = indRel->getAttribute(ATTRIBUTE_H);
     double refH = computeH(bottomRef);
@@ -359,85 +359,87 @@ void ocSBMManager::computeBPStatistics(ocModel *model)
 
     class BPIntersectProcessor : public ocIntersectProcessor
     {
-	public:
-	    BPIntersectProcessor(ocTable *inData, int rels, long fullDim)
-	    {
-		inputData = inData;
-		keysize = inputData->getKeySize();
-		qData = new ocTable(keysize, inputData->getTupleCount());
-		//-- seed the computed table with the tuples from the input data,
-		//-- but with zero values. These are the only tuples we care about.
-		for (int i = 0; i < inputData->getTupleCount(); i++) {
-		    ocKeySegment *key = inputData->getKey(i);
-		    qData->addTuple(key, 0);
-		}
+        public:
+            BPIntersectProcessor(ocTable *inData, int rels, long fullDim)
+            {
+                inputData = inData;
+                keysize = inputData->getKeySize();
+                qData = new ocTable(keysize, inputData->getTupleCount());
+                //-- seed the computed table with the tuples from the input data,
+                //-- but with zero values. These are the only tuples we care about.
+                for (int i = 0; i < inputData->getTupleCount(); i++) {
+                    ocKeySegment *key = inputData->getKey(i);
+                    qData->addTuple(key, 0);
+                }
 
-		//-- keep track of the total probability so we can deduct
-		//-- the appropriate number of origin terms.
-		originTerms = 0;
+                //-- keep track of the total probability so we can deduct
+                //-- the appropriate number of origin terms.
+                originTerms = 0;
 
-		relCount = rels;
+                relCount = rels;
 
-		fullDimension = fullDim;
-	    }
+                fullDimension = fullDim;
+            }
 
 
-	    virtual void process(int sign, ocRelation *rel)
-	    {
-		ocKeySegment *key = new ocKeySegment[keysize];
-		double qi, q;
-		//-- get the orthogonal dimension of the relation (the number of states
-		//-- projected into one substate)
-		long relDimension = fullDimension / 
-		    ((long)ocDegreesOfFreedom(rel) + 1);
-		//-- add the scaled contribution to each q
-		for (int i = 0; i < qData->getTupleCount(); i++) {
-		    qData->copyKey(i, key);
-		    q = qData->getValue(i);
-		    ocKeySegment *mask = rel->getMask();
-		    for (int k = 0; k < keysize; k++) key[k] |= mask[k];
-		    int j = rel->getTable()->indexOf(key);
-		    if (j >= 0) {
-			qi = sign * (rel->getTable()->getValue(j) / relDimension);
-			qData->setValue(i, qi + q);
-		    }
-		}
-		originTerms += sign;
-	    }
+            virtual void process(bool sign, ocRelation *rel, int count)
+            {
+                for (int counter = 0; counter < count; counter++) {
+                    ocKeySegment *key = new ocKeySegment[keysize];
+                    double qi, q;
+                    //-- get the orthogonal dimension of the relation (the number of states
+                    //-- projected into one substate)
+                    long relDimension = fullDimension / 
+                        ((long)ocDegreesOfFreedom(rel) + 1);
+                    //-- add the scaled contribution to each q
+                    for (int i = 0; i < qData->getTupleCount(); i++) {
+                        qData->copyKey(i, key);
+                        q = qData->getValue(i);
+                        ocKeySegment *mask = rel->getMask();
+                        for (int k = 0; k < keysize; k++) key[k] |= mask[k];
+                        int j = rel->getTable()->indexOf(key);
+                        if (j >= 0) {
+                            qi = (sign ? 1 : -1) * (rel->getTable()->getValue(j) / relDimension);
+                            qData->setValue(i, qi + q);
+                        }
+                    }
+                    originTerms += (sign ? 1 : -1);
+                }
+            }
 
-	    double getTransmission()
-	    {
-		correctOriginTerms();
+            double getTransmission()
+            {
+                correctOriginTerms();
 
-		double t, p, q;
-		t = 0;
-		for (long i = 0; i < inputData->getTupleCount(); i++) {
-		    long j = qData->indexOf(inputData->getKey(i));
-		    p = inputData->getValue(i);
-		    q = qData->getValue(j);
-		    if (p > 0 && q > 0)
-			t += p * log (p/q);
-		}
-		t/= log(2.0);
-		return t;
-	    }
+                double t, p, q;
+                t = 0;
+                for (long i = 0; i < inputData->getTupleCount(); i++) {
+                    long j = qData->indexOf(inputData->getKey(i));
+                    p = inputData->getValue(i);
+                    q = qData->getValue(j);
+                    if (p > 0 && q > 0)
+                        t += p * log (p/q);
+                }
+                t/= log(2.0);
+                return t;
+            }
 
-	    void correctOriginTerms()
-	    {
-		double q;
-		double originTerm = ((double)(originTerms-1)) / fullDimension;
-		for (long i = 0; i < qData->getTupleCount(); i++) {
-		    q = qData->getValue(i);
-		    q -= originTerm;
-		    qData->setValue(i, q);
-		}
-	    }
+            void correctOriginTerms()
+            {
+                double q;
+                double originTerm = ((double)(originTerms-1)) / fullDimension;
+                for (long i = 0; i < qData->getTupleCount(); i++) {
+                    q = qData->getValue(i);
+                    q -= originTerm;
+                    qData->setValue(i, q);
+                }
+            }
 
-	    ocTable *qData, *inputData;
-	    long fullDimension;
-	    int keysize;
-	    int relCount;
-	    int originTerms;
+            ocTable *qData, *inputData;
+            long fullDimension;
+            int keysize;
+            int relCount;
+            int originTerms;
     };
 
     long fullDimension = (long)ocDegreesOfFreedom(topRef->getRelation(0)) + 1;
@@ -472,14 +474,14 @@ bool ocSBMManager::applyFilter(ocModel *model)
     //-- now apply the test
     double val = model->getAttribute(filterAttr);
     switch (filterOp) {
-	case LESSTHAN:
-	    return val < filterValue;
-	case EQUALS:
-	    return fabs(val - filterValue) < DBL_EPSILON;
-	case GREATERTHAN:
-	    return val > filterValue;
-	default:
-	    return false;
+        case LESSTHAN:
+            return val < filterValue;
+        case EQUALS:
+            return fabs(val - filterValue) < DBL_EPSILON;
+        case GREATERTHAN:
+            return val > filterValue;
+        default:
+            return false;
     }
 }
 
@@ -495,131 +497,116 @@ void ocSBMManager::setSortAttr(const char *name)
 static void printRefTable(ocModel *model, FILE *fd, const char *ref, const char **strings, int rows)
 {
     //-- Print general report for a single model, similar to Fit in Occam2
-    const char *header, *beginLine, *endLine, *separator, *footer, *headerSep;
+    const char *line_sep, *header, *beginLine, *endLine, *separator, *footer, *headerSep;
     if (ocReport::isHTMLMode()) {
-	header = "<br><hr><br><table border=0 cellpadding=0 cellspacing=0>\n";
-	beginLine = "<tr><td>";
-	separator = "</td><td>";
-	endLine = "</td></tr>\n";
-	footer = "</table>";
-	headerSep = "<tr><td colspan=10><hr></td></tr>\n";
+        line_sep = "<hr>\n";
+        header = "<table border=0 cellpadding=0 cellspacing=0><tr><td>&nbsp;</td></tr>\n";
+        beginLine = "<tr><td>";
+        separator = "</td><td>";
+        endLine = "</td></tr>\n";
+        footer = "</table><br><br>\n";
+        headerSep = "<tr><td colspan=10><hr></td></tr>\n";
     }
     else {
-	header = "";
-	beginLine = "    ";
-	separator = ",";
-	endLine = "\n";
-	footer = "\n";
-	headerSep = 
-	    "--------------------------------------------------------------------------------\n";
+        line_sep = "-------------------------------------------------------------------------\n";
+        header = "";
+        beginLine = "    ";
+        separator = ",";
+        endLine = "\n";
+        footer = "\n";
+        //headerSep = "    -----------------------------------------------\n";
+        headerSep = "";
     }
-    int cols = 4;
-    int labelwidth = 20;
-    int colwidth = 18;
+    int cols = 3;
     int row, col, rowlabel;
     const char *label;
 
+    fprintf(fd, line_sep);
     fprintf(fd, header);
-    fprintf(fd, "%sREFERENCE = %s%s", beginLine, ref, endLine);
+    fprintf(fd, "\n%sREFERENCE = %s%s", beginLine, ref, endLine);
     label = "Value";
     fprintf(fd, "%s%s%s%s", beginLine, separator, label, separator);
     label = "Prob. (Alpha)";
-    fprintf(fd, "%s%s", label, separator);
-    label = "Power (Beta)";
     fprintf(fd, "%s%s", label, endLine);
 
     fprintf(fd, headerSep);
     for (row = 0; row < rows; row++) {
-	rowlabel = row * cols; 
-	fprintf(fd, "%s%s", beginLine, strings[rowlabel]);
-	for (col = 1; col < cols; col++) {
-	    double value = model->getAttribute(strings[rowlabel + col]);
-	    if (value >= 0)
-		fprintf(fd, "%s%g", separator, value);
-	    else
-		fprintf(fd, "%s", separator);
-	}
-	fprintf(fd, endLine);
+        rowlabel = row * cols;
+        fprintf(fd, "%s%s", beginLine, strings[rowlabel]);
+        for (col = 1; col < cols; col++) {
+            double value = model->getAttribute(strings[rowlabel + col]);
+            if (value >= 0)
+                fprintf(fd, "%s%g", separator, value);
+            else
+                fprintf(fd, "%s", separator);
+        }
+        fprintf(fd, endLine);
     }
     fprintf(fd, footer);
+
 }
 
 
 void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
 {
     //-- Print general report for a single model, similar to Fit in Occam2
-    const char *header, *beginLine, *endLine, *separator, *footer;
-    const char *beginLine1, *endLine1, *separator1;
+    const char *line_sep, *header, *beginLine, *endLine, *separator, *footer;
     if (ocReport::isHTMLMode()) {
-	header = "<table>\n";
-	beginLine = "<tr><td>";
-	separator = "</td><td>";
-	endLine = "</td></tr>\n";
-	footer = "</table>";
-	beginLine1 = "<tr><td>";
-	separator1 = "</td><td>";
-	endLine1 = "</td></tr>\n";
-
+        line_sep = "<hr>\n";
+        header = "<table border=0 cellspacing=0 cellpadding=0>\n";
+        beginLine = "<tr><td>";
+        separator = "</td><td>";
+        endLine = "</td></tr>\n";
+        footer = "</table><br>";
+        fprintf(fd, "<br>\n");
+    } else {
+        line_sep = "-------------------------------------------------------------------------\n";
+        header = "";
+        beginLine = "    ";
+        separator = ",";
+        endLine = "\n";
+        footer = "\n";
     }
-    else {
-	header = "";
-	beginLine = beginLine1 = "    ";
-	separator =separator1= ",";
-	endLine =endLine1= "\n";
-	footer = "\n";
-    }
-    //printf("in print fit report\n");
     bool directed = getVariableList()->isDirected();
     fprintf(fd, header);
-    fprintf(fd, "%sModel%s%s%s", beginLine, separator, model->getPrintName(), separator);
+    fprintf(fd, "%sModel%s%s", beginLine, separator, model->getPrintName());
     if (directed)
-	fprintf(fd, "Directed System%s", endLine);
+        fprintf(fd, " (Directed System)%s", endLine);
     else
-	fprintf(fd, "Neutral System%s", endLine);
+        fprintf(fd, " (Neutral System)%s", endLine);
 
     //-- Print relations using long names
     int i, j;
     for (i = 0; i < model->getRelationCount(); i++) {
-	fprintf(fd, beginLine);
-	ocRelation *rel = model->getRelation(i);
-	for (j = 0; j <rel->getVariableCount(); j++) {
-	    const char *varname = getVariableList()->getVariable(rel->getVariable(j))->name;
-	    if (j > 0) fprintf(fd, ", ");
-	    fprintf(fd, varname);
-	}
-	fprintf(fd, endLine);
+        fprintf(fd, beginLine);
+        ocRelation *rel = model->getRelation(i);
+        if (directed) {
+            if (rel->isIndependentOnly() )
+                fprintf(fd, "IV Component:");
+            else
+                fprintf(fd, "Model Component: ");
+            fprintf(fd, separator);
+        }
+        for (j = 0; j < rel->getVariableCount(); j++) {
+            const char *varname = getVariableList()->getVariable(rel->getVariable(j))->name;
+            if (j > 0) fprintf(fd, "; ");
+            fprintf(fd, varname);
+        }
+        fprintf(fd, separator);
+        fprintf(fd, rel->getPrintName());
+        fprintf(fd, endLine);
     }
 
     //-- Print some general stuff
-    int cwid = 40;
     const char *label;
     double value;
 
-    label = "Sample size:";
-    fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, sampleSize, endLine);
-    label = "Number of cells:";
-    value = topRef->getAttribute("df") + 1;
-    fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
     label = "Degrees of Freedom (DF):";
     value = model->getAttribute("df");
     fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
-
-    label="Structure Matrix:";
-    fprintf(fd,"%s%s%s",beginLine,label,endLine);
-    int statespace,Total_const;
-    int **struct_matrix=model->get_structMatrix(&statespace,&Total_const);
-    for(int i=0;i<Total_const;i++){
-	fprintf(fd, "%s%s%s%s", beginLine1, separator1, separator1, separator1);
-	for(int j=0;j<statespace;j++){
-	    fprintf(fd,"%d %s",struct_matrix[i][j],separator1);
-	}
-	fprintf(fd,"%s",endLine1);
-    }
-    //exit(2);
-
-    label = "Loops:";
-    //value = model->getAttribute("h");
-    fprintf(fd, "%s%s%s%s%s", beginLine, label, separator, value > 0 ? "?" : "?", endLine);
+    //label = "Loops:";
+    //value = model->getAttribute("loops");
+    //fprintf(fd, "%s%s%s%s%s", beginLine, label, separator, value > 0 ? "YES" : "NO", endLine);
     label = "Entropy(H):";
     value = model->getAttribute("h");
     fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
@@ -631,31 +618,92 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
     fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
     fprintf(fd, footer);
     //-- print top and bottom reference tables
-    const char *topFields[] = {
-	"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
-	"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
-	"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
+    const char *topFields1[] = {
+        "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA,
+        "Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA,
+        "Delta DF (dDF)", ATTRIBUTE_DDF, "",
     };
-    const char *bottomFields[] = {
-	"Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, ATTRIBUTE_BETA,
-	"Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, ATTRIBUTE_P2_BETA,
-	"Delta DF (dDF)", ATTRIBUTE_DDF, "", "",
+    const char *bottomFields1[] = {
+        "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA,
+        "Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA,
+        "Delta DF (dDF)", ATTRIBUTE_DDF, "",
     };
     //-- compute attributes for top and bottom references
+    double h1 = model->getAttribute(ATTRIBUTE_ALG_H);
+    double h2 = model->getAttribute(ATTRIBUTE_H);
     model->getAttributeList()->reset();
+    model->setAttribute(ATTRIBUTE_ALG_H, h1);
+    model->setAttribute(ATTRIBUTE_H, h2);
     setRefModel("top");
     computeInformationStatistics(model);
     computeDependentStatistics(model);
     computeL2Statistics(model);
     computePearsonStatistics(model);
-    printRefTable(model, fd, "TOP", topFields, 3);
+    printRefTable(model, fd, "TOP", topFields1, 3);
 
     model->getAttributeList()->reset();
+    model->setAttribute(ATTRIBUTE_ALG_H, h1);
+    model->setAttribute(ATTRIBUTE_H, h2);
     setRefModel("bottom");
     computeInformationStatistics(model);
     computeDependentStatistics(model);
     computeL2Statistics(model);
     computePearsonStatistics(model);
-    printRefTable(model, fd, "BOTTOM", bottomFields, 3);
+    printRefTable(model, fd, "BOTTOM", bottomFields1, 3);
+    fprintf(fd, line_sep);
 }
+
+void ocSBMManager::printBasicStatistics()
+{
+    const char *header, *beginLine, *endLine, *separator, *footer;
+    //double h;
+    if (ocReport::isHTMLMode()) {
+        header = "<br><br><table border=0 cellpadding=0 cellspacing=0>\n";
+        beginLine = "<tr><td width=170 valign=\"top\">";
+        separator = "</td><td>";
+        endLine = "</td></tr>\n";
+        footer = "</table>";
+    } else {
+        header = "";
+        beginLine = "    ";
+        separator = ",";
+        endLine = "";
+        footer = "";
+    }
+    bool directed = getVariableList()->isDirected();
+    printf("%s\n", header);
+    double topH = computeH(topRef);
+    double stateSpace = computeDF(getTopRefModel()) + 1;
+    double sampleSz1 = getSampleSz();
+    double testSampleSize = getTestSampleSize();
+    printf("%s%s%s%8lg%s\n", beginLine, "State Space Size", separator, stateSpace, endLine);
+    printf("%s%s%s%8lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
+    if (testSampleSize > 0) {
+        printf("%s%s%s%8lg%s\n", beginLine, "Sample Size (test)", separator, testSampleSize, endLine);
+    }
+    printf("%s%s%s%8lg%s\n", beginLine, "H(data)", separator, topH, endLine);
+    if (directed) {
+        double depH = topRef->getRelation(0)->getAttribute(ATTRIBUTE_DEP_H);
+        double indH = topRef->getRelation(0)->getAttribute(ATTRIBUTE_IND_H);
+        printf("%s%s%s%8lg%s\n", beginLine, "H(IV)", separator, indH, endLine);
+        printf("%s%s%s%8lg%s\n", beginLine, "H(DV)", separator, depH, endLine);
+        printf("%s%s%s%8lg%s\n", beginLine, "T(IV:DV)", separator, indH + depH - topH, endLine);
+        printf("%sIVs in use (%d)%s", beginLine, getVariableList()->getVarCount() - 1, separator);
+        for (int i=0; i < getVariableList()->getVarCount(); i++) {
+            if (!getVariableList()->getVariable(i)->dv)
+                printf("%s ", getVariableList()->getVariable(i)->abbrev);
+        }
+        printf("%s\n", endLine);
+        printf("%sDV%s%s%s\n", beginLine, separator, getVariableList()->getVariable(getVariableList()->getDV())->abbrev, endLine);
+        // DV: Z
+    } else {
+        printf("%sVariables in use (%d)%s", beginLine, getVariableList()->getVarCount(), separator);
+        for (int i=0; i < getVariableList()->getVarCount(); i++) {
+            printf("%s, ", getVariableList()->getVariable(i)->abbrev);
+        }
+        printf("%s\n", endLine);
+    }
+    printf("%s\n", footer);
+}
+
 
