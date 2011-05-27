@@ -872,7 +872,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
             line_sep    = "-------------------------------------------------------------------------\n";
             break;
     }
-    fprintf(fd, "%s%s%s", blank_line, line_sep, blank_line);
+    //fprintf(fd, "%s%s%s", blank_line, line_sep, blank_line);
 
     int *ind_vars = new int[var_count];
     int iv_count = iv_rel->getIndependentVariables(ind_vars, var_count);
