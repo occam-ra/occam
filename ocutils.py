@@ -293,9 +293,10 @@ class ocUtils:
                     raise sys.exit()
         else:
             if self.__searchDir == "up":
-                if self.__searchFilter == "loopless":
-                    print 'ERROR: Neutral Up Loopless Search not yet implemented.'
-                    raise sys.exit()
+                pass
+#                if self.__searchFilter == "loopless":
+#                    print 'ERROR: Neutral Up Loopless Search not yet implemented.'
+#                    raise sys.exit()
             else:
                 if self.__searchFilter == "disjoint":
                     print 'ERROR: Neutral Down Disjoint Search not yet implemented.'
