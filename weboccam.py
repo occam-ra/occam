@@ -8,6 +8,7 @@ from ocutils import ocUtils
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 #import urllib2
+import platform
 
 VERSION = "3.3.0"
 
@@ -482,6 +483,8 @@ if formFields.has_key("printoptions"):
     printOptions = "true"
 
 printTop(template, textFormat)
+
+#print sys.executable + "<br>" + platform.python_version() + "<br>"
 
 # If this is not an output page, or reporting a batch job, then print the header form
 if not formFields.has_key("data") and not formFields.has_key("email"):
