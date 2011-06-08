@@ -1,7 +1,7 @@
 /*
  * ocSearch.cpp - implements basic LM searches
  */
- 
+
 #include "unistd.h"
 #include <math.h>
 #include <stdlib.h>
@@ -25,16 +25,16 @@ ocModel **ocSearchFullDown::search(ocModel *start)
     int i, slot;
     memset(models, 0, (relcount+1) * sizeof(ocModel*));
     for (i = 0, slot = 0; i < relcount; i++) {
-	ocRelation *rel = start->getRelation(i);
-	//-- skip trivial relations
-	if (rel->getVariableCount() == 1) continue;
+        ocRelation *rel = start->getRelation(i);
+        //-- skip trivial relations
+        if (rel->getVariableCount() == 1) continue;
 
-	//-- for directed systems, skip any relations which only have independent vars
-	if (isDirected() && rel->isIndependentOnly()) continue;
+        //-- for directed systems, skip any relations which only have independent vars
+        if (isDirected() && rel->isIndependentOnly()) continue;
 
-	//-- otherwise this will generate a child relation
-	model = manager->makeChildModel(start, i, 0, makeProjection());
-	if (manager->applyFilter(model)) models[slot++] = model;
+        //-- otherwise this will generate a child relation
+        model = manager->makeChildModel(start, i, 0, makeProjection());
+        if (manager->applyFilter(model)) models[slot++] = model;
     }
     return models;
 }
@@ -83,24 +83,24 @@ struct SearchStackEntry {
 
     // assignment
     void set(int relIndex, int varIndex, int *innerList, int innerListCount,
-	    int *outerList, int outerListCount)
+            int *outerList, int outerListCount)
     {
-	this->relIndex = relIndex;
-	this->nextRelIndex = relIndex + 1;
-	this->varIndex = varIndex;
-	this->innerListCount = innerListCount;
-	this->outerListCount = outerListCount;
-	if (this->innerList) delete this->innerList;
-	this->innerList = innerList;
-	if (this->outerList) delete this->outerList;
-	this->outerList = outerList;
+        this->relIndex = relIndex;
+        this->nextRelIndex = relIndex + 1;
+        this->varIndex = varIndex;
+        this->innerListCount = innerListCount;
+        this->outerListCount = outerListCount;
+        if (this->innerList) delete this->innerList;
+        this->innerList = innerList;
+        if (this->outerList) delete this->outerList;
+        this->outerList = outerList;
     }
 
     void clean() {
-	if (innerList) delete [] innerList;
-	this->innerList = NULL;
-	if (outerList) delete [] outerList;
-	this->outerList = NULL;
+        if (innerList) delete [] innerList;
+        this->innerList = NULL;
+        if (outerList) delete [] outerList;
+        this->outerList = NULL;
     }
 
     void dump(ocModel *model);	
@@ -126,13 +126,13 @@ static void getComplement(int *innerList, int innerListCount, int *outerList, in
     int index;
     //-- note: this code assumes innerList is sorted
     for (int i = 0; i < maxcount; i++) {
-	while (here < innerListCount && (index = innerList[here]) < i) {
-	    here++;
-	}
-	if (i != index) {
-	    *(outp++) = i;
-	}
-	assert(outp - outerList <= maxcount - innerListCount);
+        while (here < innerListCount && (index = innerList[here]) < i) {
+            here++;
+        }
+        if (i != index) {
+            *(outp++) = i;
+        }
+        assert(outp - outerList <= maxcount - innerListCount);
     }
     assert(outp - outerList == maxcount - innerListCount);
 }
@@ -144,11 +144,11 @@ bool varSubset(int *vars, int varcount, ocRelation *rel)
     int relvarcount = rel->getVariableCount();
     int *relvars = rel->getVariables();
     for (i = 0; i < varcount; i++) {
-	for (j = 0; j < relvarcount; j++) {
-	    if (vars[i] == relvars[j]) break;
-	}
-	//-- if got to the end of the list, no match
-	if (j >= relvarcount) return false;
+        for (j = 0; j < relvarcount; j++) {
+            if (vars[i] == relvars[j]) break;
+        }
+        //-- if got to the end of the list, no match
+        if (j >= relvarcount) return false;
     }
     return true;
 }
@@ -158,14 +158,14 @@ void currentVars(int *vars, SearchStackEntry *stack, int top)
 {
     SearchStackEntry *stackEntry;
     for (int i = 0; i < top; i++) {
-	stackEntry = &stack[i];
-	vars[i] = stackEntry->outerList[stackEntry->varIndex];
+        stackEntry = &stack[i];
+        vars[i] = stackEntry->outerList[stackEntry->varIndex];
     }
 }
 
 //-- construct starting stack entry. Returns false on error
 static bool pushStartingRelation(SearchStackEntry *stack, int &top, ocModel *model,
-	int relIndex)
+        int relIndex)
 {
     top = 0;
     ocRelation *rel = model->getRelation(relIndex);
@@ -186,7 +186,7 @@ static bool pushStartingRelation(SearchStackEntry *stack, int &top, ocModel *mod
 //-- whether they are in the given relation or not. Those which are in go in the
 //-- inner list, the rest go into the outer list.
 static void splitVariables(int *relvars, int relvarcount, int *topvars, int topvarcount,
-	int **innerList, int *innerListCount, int **outerList, int *outerListCount)
+        int **innerList, int *innerListCount, int **outerList, int *outerListCount)
 {
     //-- rather than figuring the list sizes exactly, we'll pick an upper bound
     //-- for storage allocation
@@ -200,12 +200,12 @@ static void splitVariables(int *relvars, int relvarcount, int *topvars, int topv
     int index = 0;
     int here = 0;
     for (int i = 0; i < topvarcount; i++) {
-	int topindex = topvars[i];
-	while (here < relvarcount && (index = relvars[here]) < topindex) {
-	    here++;
-	}
-	if (index == topindex) ilist[icount++] = topindex;
-	else olist[ocount++] = topindex;
+        int topindex = topvars[i];
+        while (here < relvarcount && (index = relvars[here]) < topindex) {
+            here++;
+        }
+        if (index == topindex) ilist[icount++] = topindex;
+        else olist[ocount++] = topindex;
     }
     *innerList = ilist;
     *outerList = olist;
@@ -217,7 +217,7 @@ static void splitVariables(int *relvars, int relvarcount, int *topvars, int topv
 //-- intersection of this relation's list and the next entry on the stack.
 //-- the outer list contains all variables in the next stack entry but not in this relation
 static bool pushRelation(SearchStackEntry *stack, int &top, ocModel *model,
-	int relIndex)
+        int relIndex)
 {
     //-- if stack is empty, do special initialization
     if (top == 0) return pushStartingRelation(stack, top, model, relIndex);
@@ -229,9 +229,9 @@ static bool pushRelation(SearchStackEntry *stack, int &top, ocModel *model,
     int innerListCount, outerListCount;
     SearchStackEntry *topEntry = &stack[top-1];
     splitVariables(rel->getVariables(), varcount, topEntry->innerList,
-	    topEntry->innerListCount, &innerList, &innerListCount, &outerList, &outerListCount);
+            topEntry->innerListCount, &innerList, &innerListCount, &outerList, &outerListCount);
     stack[top].set(relIndex, 0, innerList, innerListCount, 
-	    outerList, outerListCount);
+            outerList, outerListCount);
     top++;
     return true;
 }
@@ -250,12 +250,12 @@ static bool pushMatchingRelation(SearchStackEntry *stack, int &top, ocModel *mod
     stackEntry = &stack[top-1];
     currentVars(vars, stack, top);
     for (; stackEntry->nextRelIndex < model->getRelationCount(); stackEntry->nextRelIndex++) {
-	if (varSubset(vars, varcount, model->getRelation(stackEntry->nextRelIndex))) {
-	    pushRelation(stack, top, model, stackEntry->nextRelIndex);
-	    stackEntry->nextRelIndex++;
-	    delete [] vars;
-	    return true;
-	}
+        if (varSubset(vars, varcount, model->getRelation(stackEntry->nextRelIndex))) {
+            pushRelation(stack, top, model, stackEntry->nextRelIndex);
+            stackEntry->nextRelIndex++;
+            delete [] vars;
+            return true;
+        }
     }
     //-- no further candidates found
     delete [] vars;
@@ -277,8 +277,8 @@ void ocSearchFullUp:: makeCandidate(SearchStackEntry *stack, int top, ocModel *s
     SearchStackEntry *stackEntry;
     int *vars = new int[top];
     for (int i = 0; i < top; i++) {
-	stackEntry = &stack[i];
-	vars[i] = stackEntry->outerList[stackEntry->varIndex];
+        stackEntry = &stack[i];
+        vars[i] = stackEntry->outerList[stackEntry->varIndex];
     }
     ocRelation::sort(vars, varcount);
     ocRelation *rel = manager->getRelation(vars, varcount, true);
@@ -287,26 +287,26 @@ void ocSearchFullUp:: makeCandidate(SearchStackEntry *stack, int top, ocModel *s
     newModel->addRelation(rel, true);
     ocModelCache *cache = manager->getModelCache();
     if (!cache->addModel(newModel)) {
-	//-- already exists in cache; return that one
-	ocModel *cachedModel = cache->findModel(newModel->getPrintName());
-	delete newModel;
-	newModel = cachedModel;
-	//-- since all models come from the cache, we can do pointer compares to see if
-	//-- this model is already in the list. The model might also be the current model
-	if (newModel == start) newModel = NULL;
-	else if (manager->applyFilter(newModel)) {
-	    int i;
-	    for (i = 0; i < parentListCount; i++) {
-		if (parentList[i] == newModel) break;
-	    }
-	    if (i >= parentListCount) {
-		parentList[parentListCount++] = newModel;
-	    }
-	    else newModel = NULL;
-	}
+        //-- already exists in cache; return that one
+        ocModel *cachedModel = cache->findModel(newModel->getPrintName());
+        delete newModel;
+        newModel = cachedModel;
+        //-- since all models come from the cache, we can do pointer compares to see if
+        //-- this model is already in the list. The model might also be the current model
+        if (newModel == start) newModel = NULL;
+        else if (manager->applyFilter(newModel)) {
+            int i;
+            for (i = 0; i < parentListCount; i++) {
+                if (parentList[i] == newModel) break;
+            }
+            if (i >= parentListCount) {
+                parentList[parentListCount++] = newModel;
+            }
+            else newModel = NULL;
+        }
     }
     else if (manager->applyFilter(newModel)) {
-	parentList[parentListCount++] = newModel;
+        parentList[parentListCount++] = newModel;
     }
 }
 
@@ -334,34 +334,34 @@ ocModel **ocSearchFullUp::search(ocModel *start)
     //-- For each model up to the next-to-last one, push the relation on the
     //-- stack and do the processing.
     for (int relIndex = 0; relIndex < start->getRelationCount() - 1; relIndex++) {
-	int top = 0;
-	pushRelation(stack, top, start, relIndex);
-	for(;;) {
-	    SearchStackEntry *stacktop = &stack[top-1];
-	    //-- if the innerList is empty, we can't add more relations.
-	    if (stacktop->innerListCount == 0) {
-		while (stacktop->varIndex < stacktop->outerListCount) {
-		    if (top > 1) makeCandidate(stack, top, start);
-		    stacktop->varIndex++;
-		    stacktop->nextRelIndex = stacktop->relIndex + 1;
-		}
-		pop(stack, top);
-		if (top == 0) break;
-	    }
-	    //-- if we can't push another matching relation, then this is a candidate				
-	    else {
-		while (stacktop->varIndex < stacktop->outerListCount &&
-			!pushMatchingRelation(stack, top, start))
-		{
-		    if (top > 1) makeCandidate(stack, top, start);
-		    stacktop->varIndex++;
-		    stacktop->nextRelIndex = stacktop->relIndex + 1;
-		}
-		if (stacktop->varIndex >= stacktop->outerListCount)
-		    pop(stack, top);
-		if (top == 0) break;
-	    }
-	}
+        int top = 0;
+        pushRelation(stack, top, start, relIndex);
+        for(;;) {
+            SearchStackEntry *stacktop = &stack[top-1];
+            //-- if the innerList is empty, we can't add more relations.
+            if (stacktop->innerListCount == 0) {
+                while (stacktop->varIndex < stacktop->outerListCount) {
+                    if (top > 1) makeCandidate(stack, top, start);
+                    stacktop->varIndex++;
+                    stacktop->nextRelIndex = stacktop->relIndex + 1;
+                }
+                pop(stack, top);
+                if (top == 0) break;
+            }
+            //-- if we can't push another matching relation, then this is a candidate				
+            else {
+                while (stacktop->varIndex < stacktop->outerListCount &&
+                        !pushMatchingRelation(stack, top, start))
+                {
+                    if (top > 1) makeCandidate(stack, top, start);
+                    stacktop->varIndex++;
+                    stacktop->nextRelIndex = stacktop->relIndex + 1;
+                }
+                if (stacktop->varIndex >= stacktop->outerListCount)
+                    pop(stack, top);
+                if (top == 0) break;
+            }
+        }
     }
 
     return parentList;
@@ -390,104 +390,104 @@ ocModel **ocSearchLooplessDown::search(ocModel *start)
     bool isDirected = varList->isDirected();
     int relCount = start->getRelationCount();
     if (isDirected) {
-	int dvIndex = varList->getDV();
-	// must have one relation with all vars; or one of IVs and one with DV plus some IVs
-	if ((relCount > 2) || (relCount < 1))
-	    return NULL;
-	ocRelation *rel, *ivRel;
-	if (relCount == 1) {
-	    if (start != manager->getTopRefModel())
-		return NULL;
-	    rel = start->getRelation(0);
-	    ivRel = manager->getChildRelation(rel, dvIndex);
-	} else {
-	    rel = start->getRelation(1);
-	    ivRel = start->getRelation(0);
-	    if (rel->isIndependentOnly()) {
-		rel = start->getRelation(0);
-		ivRel = start->getRelation(1);
-	    }
-	}
-	if (rel->isIndependentOnly() || !ivRel->isIndependentOnly()) return NULL;
-	int activeIVs = rel->getVariableCount() - 1;
-	if (activeIVs == 0) return NULL;
-	int indices[activeIVs];
-	if (rel->getIndependentVariables(indices, activeIVs) != activeIVs)
-	    return NULL;
-	// allocate space for that many models
-	ocModel **models = new ocModel *[activeIVs + 1];
-	memset(models, 0, (activeIVs + 1) * sizeof(ocModel*));
-	ocRelation *newRel;
-	ocModel *model;
-	int slot = 0;
-	// for each IV
-	for (int i=0; i < activeIVs; i++) {
-	    // create a child relation minus that IV
-	    newRel = manager->getChildRelation(rel, indices[i]);
-	    // create a model with the IV-only relation, and the new relation
-	    model = new ocModel(2);
-	    model->addRelation(ivRel);
-	    model->addRelation(newRel);
-	    // put in cache, or use the cached one if already there
-	    ocModelCache *cache = manager->getModelCache();
-	    if (!cache->addModel(model)) {
-		ocModel *cachedModel = cache->findModel(model->getPrintName());
-		delete model;
-		model = cachedModel;
-	    }				
-	    if (manager->applyFilter(model)) models[slot++] = model;
-	}
-	return models;
+        int dvIndex = varList->getDV();
+        // must have one relation with all vars; or one of IVs and one with DV plus some IVs
+        if ((relCount > 2) || (relCount < 1))
+            return NULL;
+        ocRelation *rel, *ivRel;
+        if (relCount == 1) {
+            if (start != manager->getTopRefModel())
+                return NULL;
+            rel = start->getRelation(0);
+            ivRel = manager->getChildRelation(rel, dvIndex);
+        } else {
+            rel = start->getRelation(1);
+            ivRel = start->getRelation(0);
+            if (rel->isIndependentOnly()) {
+                rel = start->getRelation(0);
+                ivRel = start->getRelation(1);
+            }
+        }
+        if (rel->isIndependentOnly() || !ivRel->isIndependentOnly()) return NULL;
+        int activeIVs = rel->getVariableCount() - 1;
+        if (activeIVs == 0) return NULL;
+        int indices[activeIVs];
+        if (rel->getIndependentVariables(indices, activeIVs) != activeIVs)
+            return NULL;
+        // allocate space for that many models
+        ocModel **models = new ocModel *[activeIVs + 1];
+        memset(models, 0, (activeIVs + 1) * sizeof(ocModel*));
+        ocRelation *newRel;
+        ocModel *model;
+        int slot = 0;
+        // for each IV
+        for (int i=0; i < activeIVs; i++) {
+            // create a child relation minus that IV
+            newRel = manager->getChildRelation(rel, indices[i]);
+            // create a model with the IV-only relation, and the new relation
+            model = new ocModel(2);
+            model->addRelation(ivRel);
+            model->addRelation(newRel);
+            // put in cache, or use the cached one if already there
+            ocModelCache *cache = manager->getModelCache();
+            if (!cache->addModel(model)) {
+                ocModel *cachedModel = cache->findModel(model->getPrintName());
+                delete model;
+                model = cachedModel;
+            }				
+            if (manager->applyFilter(model)) models[slot++] = model;
+        }
+        return models;
     } else {
-	int maxChildren = varcount * (varcount - 1);
-	int i, j;
+        int maxChildren = varcount * (varcount - 1);
+        int i, j;
 
-	//-- worst case - need a list with a slot for each pair of variables
-	//-- plus one for null termination of list
-	ocModel **models = new ocModel *[maxChildren + 1];
-	memset(models, 0, (maxChildren+1) * sizeof(ocModel*));
-	ocModel *model;
-	int slot = 0;
+        //-- worst case - need a list with a slot for each pair of variables
+        //-- plus one for null termination of list
+        ocModel **models = new ocModel *[maxChildren + 1];
+        memset(models, 0, (maxChildren+1) * sizeof(ocModel*));
+        ocModel *model;
+        int slot = 0;
 
-	//-- consider each pair of variables
-	for (i = 0; i < varcount-1; i++) {
-	    for (j = i+1; j < varcount; j++) {
-		//-- construct a variable list for this pair, and check for containment
-		int pair[2];
-		int includeCount = 0;
-		int includeID;
-		int relNumber;
-		pair[0] = i;
-		pair[1] = j;
-		ocRelation *rel;
-		for (relNumber = 0; relNumber < relCount; relNumber++) {
-		    rel = start->getRelation(relNumber);
-		    if (ocContainsVariables( rel->getVariableCount(), rel->getVariables(), 2, pair))
-		    {
-			if (++includeCount > 1) break;	//pair in more than one relation
-			includeID = relNumber;
-		    }
-		}
-		//-- did we get a hit? If so, construct the child model
-		if (includeCount == 1) {
-		    model = new ocModel(relCount + 1);
-		    model->copyRelations(*start, includeID);
-		    rel = start->getRelation(includeID);
-		    model->addRelation(manager->getChildRelation(rel, i));
-		    model->addRelation(manager->getChildRelation(rel, j));
+        //-- consider each pair of variables
+        for (i = 0; i < varcount-1; i++) {
+            for (j = i+1; j < varcount; j++) {
+                //-- construct a variable list for this pair, and check for containment
+                int pair[2];
+                int includeCount = 0;
+                int includeID;
+                int relNumber;
+                pair[0] = i;
+                pair[1] = j;
+                ocRelation *rel;
+                for (relNumber = 0; relNumber < relCount; relNumber++) {
+                    rel = start->getRelation(relNumber);
+                    if (ocContainsVariables( rel->getVariableCount(), rel->getVariables(), 2, pair))
+                    {
+                        if (++includeCount > 1) break;	//pair in more than one relation
+                        includeID = relNumber;
+                    }
+                }
+                //-- did we get a hit? If so, construct the child model
+                if (includeCount == 1) {
+                    model = new ocModel(relCount + 1);
+                    model->copyRelations(*start, includeID);
+                    rel = start->getRelation(includeID);
+                    model->addRelation(manager->getChildRelation(rel, i));
+                    model->addRelation(manager->getChildRelation(rel, j));
 
-		    //-- put in cache, or use the cached one if already there
-		    ocModelCache *cache = manager->getModelCache();
-		    if (!cache->addModel(model)) {
-			ocModel *cachedModel = cache->findModel(model->getPrintName());
-			delete model;
-			model = cachedModel;
-		    }				
-		    if (manager->applyFilter(model)) models[slot++] = model;
-		}
-	    }
-	}
-	return models;
+                    //-- put in cache, or use the cached one if already there
+                    ocModelCache *cache = manager->getModelCache();
+                    if (!cache->addModel(model)) {
+                        ocModel *cachedModel = cache->findModel(model->getPrintName());
+                        delete model;
+                        model = cachedModel;
+                    }				
+                    if (manager->applyFilter(model)) models[slot++] = model;
+                }
+            }
+        }
+        return models;
     }
 }
 
@@ -513,20 +513,21 @@ ocModel **ocSearchLooplessUp::search(ocModel *start)
 
     //-- only works for directed systems
     if (!varList->isDirected()) {
-	printf("ERROR: upward loopless search not implemented for neutral systems.\n");
-	return NULL;
+        printf("ERROR: upward loopless search not implemented for neutral systems.\n");
+        exit(1);
+        return NULL;
     }
 
     //-- determine which relation is the one containing only independent variables.
     //-- this one is not modified during the search.
     for (i = 0; i < relcount; i++) {
-	if (start->getRelation(i)->isIndependentOnly()) {
-	    indOnlyRel = i;
-	    break;
-	}
+        if (start->getRelation(i)->isIndependentOnly()) {
+            indOnlyRel = i;
+            break;
+        }
     }
     if (indOnlyRel == -1) {	// no independent-only relation; malformed model for this algorithm
-	return NULL;
+        return NULL;
     }
 
     ocModel **models = new ocModel *[maxChildren + 1];
@@ -536,28 +537,28 @@ ocModel **ocSearchLooplessUp::search(ocModel *start)
 
     //-- for each variable, see if we can add it to each relation (other than the indonly one)
     for (i = 0; i < varcount; i++) {
-	for (r = 0; r < relcount; r++) {
-	    if (r == indOnlyRel) continue;
-	    ocRelation *rel = start->getRelation(r);
-	    if (-1 == rel->findVariable(i)) {
-		model = new ocModel(relcount + 1);
-		model->copyRelations(*start, r);
-		int relvarcount = rel->getVariableCount();
-		int *relvars = new int[relvarcount+1];
-		rel->copyVariables(relvars, relvarcount);
-		relvars[relvarcount++] = i;
-		ocRelation *newRelation = manager->getRelation(relvars, relvarcount, true);
-		model->addRelation(newRelation);
-		//-- put in cache, or use the cached one if already there
-		ocModelCache *cache = manager->getModelCache();
-		if (!cache->addModel(model)) {
-		    ocModel *cachedModel = cache->findModel(model->getPrintName());
-		    delete model;
-		    model = cachedModel;
-		}				
-		if (manager->applyFilter(model)) models[slot++] = model;
-	    }
-	}
+        for (r = 0; r < relcount; r++) {
+            if (r == indOnlyRel) continue;
+            ocRelation *rel = start->getRelation(r);
+            if (-1 == rel->findVariable(i)) {
+                model = new ocModel(relcount + 1);
+                model->copyRelations(*start, r);
+                int relvarcount = rel->getVariableCount();
+                int *relvars = new int[relvarcount+1];
+                rel->copyVariables(relvars, relvarcount);
+                relvars[relvarcount++] = i;
+                ocRelation *newRelation = manager->getRelation(relvars, relvarcount, true);
+                model->addRelation(newRelation);
+                //-- put in cache, or use the cached one if already there
+                ocModelCache *cache = manager->getModelCache();
+                if (!cache->addModel(model)) {
+                    ocModel *cachedModel = cache->findModel(model->getPrintName());
+                    delete model;
+                    model = cachedModel;
+                }				
+                if (manager->applyFilter(model)) models[slot++] = model;
+            }
+        }
     }
     return models;
 }
@@ -593,23 +594,23 @@ ocModel **ocSearchDisjointUp::search(ocModel *start)
     //-- determine which relation is the one containing only independent variables.
     //-- this one is not modified during the search.
     if (isDirected) {
-	for (i = 0; i < relcount; i++) {
-	    if (start->getRelation(i)->isIndependentOnly()) {
-		indOnlyRel = i;
-		break;
-	    }
-	}
+        for (i = 0; i < relcount; i++) {
+            if (start->getRelation(i)->isIndependentOnly()) {
+                indOnlyRel = i;
+                break;
+            }
+        }
 
-	//-- find the dependent variable
-	for (i = 0; i < varcount; i++) {
-	    if (varList->getVariable(i)->dv) {
-		depVar = i;
-		break;
-	    }
-	}
-	if (depVar == -1) {	// no dep variable; malformed model for this algorithm
-	    return NULL;
-	}
+        //-- find the dependent variable
+        for (i = 0; i < varcount; i++) {
+            if (varList->getVariable(i)->dv) {
+                depVar = i;
+                break;
+            }
+        }
+        if (depVar == -1) {	// no dep variable; malformed model for this algorithm
+            return NULL;
+        }
     }
 
     ocModel **models = new ocModel *[maxChildren + 1];
@@ -621,66 +622,66 @@ ocModel **ocSearchDisjointUp::search(ocModel *start)
     //-- this step only applies for directed systems; for neutral systems all
     //-- variables are already present.
     if (isDirected) {
-	for (i = 0; i < varcount; i++) {
-	    if (i == depVar) continue;	// skip dependent variable
-	    bool varfound = false;
-	    for (r = 0; r < relcount; r++) {
-		if (r == indOnlyRel) continue;
-		ocRelation *rel = start->getRelation(r);
-		if (-1 != rel->findVariable(i)) {
-		    varfound = true;
-		    break;
-		}
-	    }
-	    if (!varfound) {
-		model = new ocModel(relcount + 1);
-		model->copyRelations(*start);
-		int *relvars = new int[2];
-		relvars[0] = i;
-		relvars[1] = depVar;
-		ocRelation *newRelation = manager->getRelation(relvars, 2, true);
-		model->addRelation(newRelation);
-		//-- put in cache, or use the cached one if already there
-		ocModelCache *cache = manager->getModelCache();
-		if (!cache->addModel(model)) {
-		    ocModel *cachedModel = cache->findModel(model->getPrintName());
-		    delete model;
-		    model = cachedModel;
-		}				
-		if (manager->applyFilter(model)) models[slot++] = model;
-	    }
-	}
+        for (i = 0; i < varcount; i++) {
+            if (i == depVar) continue;	// skip dependent variable
+            bool varfound = false;
+            for (r = 0; r < relcount; r++) {
+                if (r == indOnlyRel) continue;
+                ocRelation *rel = start->getRelation(r);
+                if (-1 != rel->findVariable(i)) {
+                    varfound = true;
+                    break;
+                }
+            }
+            if (!varfound) {
+                model = new ocModel(relcount + 1);
+                model->copyRelations(*start);
+                int *relvars = new int[2];
+                relvars[0] = i;
+                relvars[1] = depVar;
+                ocRelation *newRelation = manager->getRelation(relvars, 2, true);
+                model->addRelation(newRelation);
+                //-- put in cache, or use the cached one if already there
+                ocModelCache *cache = manager->getModelCache();
+                if (!cache->addModel(model)) {
+                    ocModel *cachedModel = cache->findModel(model->getPrintName());
+                    delete model;
+                    model = cachedModel;
+                }				
+                if (manager->applyFilter(model)) models[slot++] = model;
+            }
+        }
     }
 
     //-- now try combining pairs of models
     ocRelation *rel, *rel2;
     for (r = 0; r < relcount; r++) {
-	if (r == indOnlyRel) continue;
-	for (r2 = r+1; r2 < relcount; r2++) {
-	    if (r2 == indOnlyRel) continue;
-	    model = new ocModel(relcount + 1);
-	    model->copyRelations(*start, r, r2);
-	    rel = start->getRelation(r);
-	    rel2 = start->getRelation(r2);
-	    relvarcount = rel->getVariableCount() + rel2->getVariableCount();
+        if (r == indOnlyRel) continue;
+        for (r2 = r+1; r2 < relcount; r2++) {
+            if (r2 == indOnlyRel) continue;
+            model = new ocModel(relcount + 1);
+            model->copyRelations(*start, r, r2);
+            rel = start->getRelation(r);
+            rel2 = start->getRelation(r2);
+            relvarcount = rel->getVariableCount() + rel2->getVariableCount();
 
-	    //-- for directed system, dep variable is counted twice; so correct for this
-	    if (isDirected) relvarcount--;
+            //-- for directed system, dep variable is counted twice; so correct for this
+            if (isDirected) relvarcount--;
 
-	    int *relvars = new int[relvarcount];
-	    int copycount = rel->copyVariables(relvars, relvarcount);
-	    copycount += rel2->copyVariables(relvars + copycount, relvarcount - copycount, depVar);
-	    ocRelation *newRelation = manager->getRelation(relvars, copycount,true);
-	    model->addRelation(newRelation);
-	    //-- put in cache, or use the cached one if already there
-	    ocModelCache *cache = manager->getModelCache();
-	    if (!cache->addModel(model)) {
-		ocModel *cachedModel = cache->findModel(model->getPrintName());
-		delete model;
-		model = cachedModel;
-	    }				
-	    if (manager->applyFilter(model)) models[slot++] = model;
-	}
+            int *relvars = new int[relvarcount];
+            int copycount = rel->copyVariables(relvars, relvarcount);
+            copycount += rel2->copyVariables(relvars + copycount, relvarcount - copycount, depVar);
+            ocRelation *newRelation = manager->getRelation(relvars, copycount,true);
+            model->addRelation(newRelation);
+            //-- put in cache, or use the cached one if already there
+            ocModelCache *cache = manager->getModelCache();
+            if (!cache->addModel(model)) {
+                ocModel *cachedModel = cache->findModel(model->getPrintName());
+                delete model;
+                model = cachedModel;
+            }				
+            if (manager->applyFilter(model)) models[slot++] = model;
+        }
 
     }
     return models;
@@ -729,48 +730,48 @@ bool ocSearchChain::makeChainModels()
     //-- each pair of adjacent variables generates a relation
     //-- for directed systems, the dv is added
     if (stackPtr >= indVarCount) {
-	relCount = varCount - 1;
-	relVarCount = 2;
-	if (isDirected) {
-	    relCount++;
-	    relVarCount++;
-	}
-	ocModel *model = new ocModel(relCount);
-	if (isDirected) model->addRelation(indOnlyRel);
-	for (int i = 0; i < indVarCount-1; i++) {
-	    relVars[0] = varStack[i];
-	    relVars[1] = varStack[i+1];
-	    if (isDirected) relVars[2] = depVar;
-	    ocRelation *newRelation = manager->getRelation(relVars, relVarCount, true);
-	    model->addRelation(newRelation);
-	}
+        relCount = varCount - 1;
+        relVarCount = 2;
+        if (isDirected) {
+            relCount++;
+            relVarCount++;
+        }
+        ocModel *model = new ocModel(relCount);
+        if (isDirected) model->addRelation(indOnlyRel);
+        for (int i = 0; i < indVarCount-1; i++) {
+            relVars[0] = varStack[i];
+            relVars[1] = varStack[i+1];
+            if (isDirected) relVars[2] = depVar;
+            ocRelation *newRelation = manager->getRelation(relVars, relVarCount, true);
+            model->addRelation(newRelation);
+        }
 
-	//-- put in cache, or use the cached one if already there
-	ocModelCache *cache = manager->getModelCache();
-	static char *oldBrk = 0;
-	if (oldBrk == 0) oldBrk = (char*) sbrk(0);
-	double used = ((char*) sbrk(0)) - oldBrk;
-	if (!cache->addModel(model)) {
-	    ocModel *cachedModel = cache->findModel(model->getPrintName());
-	    delete model;
-	    model = cachedModel;
-	}				
-	if (manager->applyFilter(model)) models[slot++] = model;
+        //-- put in cache, or use the cached one if already there
+        ocModelCache *cache = manager->getModelCache();
+        static char *oldBrk = 0;
+        if (oldBrk == 0) oldBrk = (char*) sbrk(0);
+        double used = ((char*) sbrk(0)) - oldBrk;
+        if (!cache->addModel(model)) {
+            ocModel *cachedModel = cache->findModel(model->getPrintName());
+            delete model;
+            model = cachedModel;
+        }				
+        if (manager->applyFilter(model)) models[slot++] = model;
     }
     else {
-	// generate all possible successors, but skip any variables already in the list
-	for (int idx = 0; idx < varCount; idx++) {
-	    int vidx;
-	    if (idx == depVar) continue;	// skip the dependent variable
-	    for (vidx = 0; vidx < stackPtr; vidx++) {
-		if (varStack[vidx] == idx) break;
-	    }
-	    if (vidx >= stackPtr) {
-		varStack[stackPtr++] = idx;
-		if (!makeChainModels()) return false;
-		stackPtr--;
-	    }
-	}
+        // generate all possible successors, but skip any variables already in the list
+        for (int idx = 0; idx < varCount; idx++) {
+            int vidx;
+            if (idx == depVar) continue;	// skip the dependent variable
+            for (vidx = 0; vidx < stackPtr; vidx++) {
+                if (varStack[vidx] == idx) break;
+            }
+            if (vidx >= stackPtr) {
+                varStack[stackPtr++] = idx;
+                if (!makeChainModels()) return false;
+                stackPtr--;
+            }
+        }
     }
     return true;
 }
@@ -794,22 +795,22 @@ ocModel **ocSearchChain::search(ocModel *start)
     //-- this one is not modified during the search.
 
     if (isDirected) {
-	for (int r = 0; r < start->getRelationCount(); r++) {
-	    if (start->getRelation(r)->isIndependentOnly()) {
-		indOnlyRel = start->getRelation(r);
-	    }
-	}
+        for (int r = 0; r < start->getRelationCount(); r++) {
+            if (start->getRelation(r)->isIndependentOnly()) {
+                indOnlyRel = start->getRelation(r);
+            }
+        }
 
-	//-- find the dependent variable
-	for (i = 0; i < varCount; i++) {
-	    if (varList->getVariable(i)->dv) {
-		depVar = i;
-		break;
-	    }
-	}
-	if (depVar == -1) {	// no dep variable; malformed model for this algorithm
-	    return NULL;
-	}
+        //-- find the dependent variable
+        for (i = 0; i < varCount; i++) {
+            if (varList->getVariable(i)->dv) {
+                depVar = i;
+                break;
+            }
+        }
+        if (depVar == -1) {	// no dep variable; malformed model for this algorithm
+            return NULL;
+        }
     }
     //-- initialize variables used by recursive makeChainModels
     slot = 0;
