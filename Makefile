@@ -43,7 +43,7 @@ LIBOBJECTS = \
 
 EXPORTFILES = occam.so ocutils.py weboccam.py basic.py occam3 occambatch occammail.py  OpagCGI.py \
 	header.html switchform.html searchform.html fitform.html logform.html base.css header.txt \
-	footer.html index.html jobcontrol.py SBfitform.html weboccam.cgi
+	footer.html index.html jobcontrol.py SBfitform.html fitbatchform.html weboccam.cgi
 
 AR = ar
 COMPILE = $(CC) $(DEFS) $(CFLAGS)
