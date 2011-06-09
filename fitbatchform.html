@@ -1,0 +1,53 @@
+
+<FORM method="POST" target="_blank" enctype="multipart/form-data">
+	<TABLE class="form" width="100%">
+		<TR>
+			<TD colspan="5" align="center" class="formtitle">Batch Fit Settings</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Data File:
+			</TD>
+			<TD colspan="4">
+				<INPUT type="file" name="data" size="50">
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Model(s) to Fit:<br>(one per line)
+			</TD>
+			<TD>
+				<textarea name="model" value="" cols="50" rows="6"></textarea>
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>
+				Optional default model:
+			</TD>
+			<TD>
+				<INPUT type="text" name="defaultmodel" value="" size="50">
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD colspan="2">
+				<INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD colspan="2">
+				<INPUT type="checkbox" name='calcExpectedDV' value='y'>Calculate expected DV
+			</TD>
+		</TR>
+		<TR class="form">
+			<TD>Email Results To:</TD>
+			<TD><INPUT type="text" name="batchOutput" size="50"></TD>
+			<TD> </TD>
+		</TR>
+        <TR>
+            <TD>Subject line for email (optional):</TD>
+            <TD><INPUT type"text" name="emailSubject" size="50"></TD>
+            <TD><INPUT type="SUBMIT" value="Send"></TD>
+		</TR>
+	</TABLE>
+<INPUT TYPE="HIDDEN" NAME="action" VALUE="fitbatch">
+</FORM>
