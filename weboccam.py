@@ -92,18 +92,20 @@ def printForm(formFields):
     template.set_template('switchform.html')
     template.out(formFields)
 
-    #---- This form section for fit only
     if action == "fit":
         template.set_template('fitform.html')
         template.out(formFields)
 
-    #---- This section for search only
     elif action == "search" or action == "advanced" :
         template.set_template('searchform.html')
         template.out(formFields)
     
     elif action == "SBfit":
         template.set_template('SBfitform.html')
+        template.out(formFields)
+        
+    elif action == "fitbatch":
+        template.set_template('fitbatchform.html')
         template.out(formFields)
         
     elif action == "showlog":
@@ -223,7 +225,20 @@ def actionFit(formFields):
     processFit(fn, formFields["model"], oc)
 
 #
-#---- actionSBFit ---- Report on Fit
+#---- actionFitBatch ---- Report on several Fit models
+#
+def actionFitBatch(formFields):
+    global batchEmail
+    models = formFields["model"].split()
+    formFields["model"] = models[0]
+    actionFit(formFields)
+    if len(models) > 1:
+        formFields["model"] = "\n".join(models[1:])
+        formFields["batchOutput"] = batchEmail
+        startBatch(formFields)
+
+#
+#---- actionSBFit ---- Report on SB Fit model
 #
 def actionSBFit(formFields):
     global textFormat
@@ -433,10 +448,9 @@ def getBatchControls():
     ctlfile = sys.argv[1]
     f = open(ctlfile, "r")
     formFields = pickle.load(f)
-    # set text mode, clear batch mode (so we don't recurse)
-    formFields["format"] = "text"
-    formFields["batchOutput"] = ""
     f.close()
+    # set text mode
+    formFields["format"] = "text"
     return formFields
 
 #
@@ -463,13 +477,15 @@ template = OpagCGI()
 datafile = ""
 textFormat = ""
 printOptions = ""
-thispage = os.environ.get('SCRIPT_NAME', '')
+#thispage = os.environ.get('SCRIPT_NAME', '')
 startt = time.time()
 
 # See if this is a batch run or a web server run
 argc = len(sys.argv)
 if argc > 1:
     formFields = getBatchControls()
+    batchEmail = formFields["batchOutput"]
+    formFields["batchOutput"] = ""
 else:
     formFields = getWebControls()
 
@@ -502,6 +518,8 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
                 actionFit(formFields)
             elif formFields["action"] == "SBfit":
                 actionSBFit(formFields)
+            elif formFields["action"] == "fitbatch":
+                actionFitBatch(formFields)
             elif formFields["action"] == "search" or formFields["action"] == "advanced":
                 actionSearch(formFields)
             elif formFields["action"] == "showlog":
