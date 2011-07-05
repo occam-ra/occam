@@ -212,6 +212,9 @@ class ocManagerBase {
 	int dataLines;
 	int *DVOrder;
 	int useInverseNotation;
+    VarIntersect *intersectArray;
+    int intersectCount;
+    long intersectMax;
 };
 
 #endif

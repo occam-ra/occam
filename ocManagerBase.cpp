@@ -49,6 +49,9 @@ ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input) : varList(var
     inputData = testData = NULL;
     DVOrder = NULL;
     useInverseNotation = 0;
+    intersectArray = NULL;
+    intersectCount = 0;
+    intersectMax = 1;
 }
 
 
@@ -1034,11 +1037,6 @@ double ocManagerBase::computeTransmission(ocModel *model, HMethod method, int SB
 }
 
 
-static VarIntersect *dfIntersectArray = NULL;
-static int dfIntersectCount = 0;
-static long dfIntersectMax = 1;
-
-
 struct DFAndHProc : public ocIntersectProcessor {
     double df;
     double h;
@@ -1058,11 +1056,11 @@ void ocManagerBase::DFAndEntropy(ocModel *model)
 {
     if ((model->getAttribute(ATTRIBUTE_DF) < 0) || (model->getAttribute(ATTRIBUTE_ALG_H) < 0)) {
         DFAndHProc processor(this);
-        if (dfIntersectArray != NULL) {
-            delete [] dfIntersectArray;
-            dfIntersectCount = 0;
-            dfIntersectMax = model->getRelationCount();;
-            dfIntersectArray = NULL;
+        if (intersectArray != NULL) {
+            delete [] intersectArray;
+            intersectCount = 0;
+            intersectMax = model->getRelationCount();;
+            intersectArray = NULL;
         }
         doIntersectionProcessing(model, &processor);
         model->setAttribute(ATTRIBUTE_DF, processor.df);
@@ -1074,9 +1072,9 @@ void ocManagerBase::DFAndEntropy(ocModel *model)
 void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcessor *proc)
 {
     //-- allocate intersect storage; this grows later if needed
-    if (dfIntersectArray == NULL) {
-        dfIntersectMax = model->getRelationCount();
-        dfIntersectArray = new VarIntersect[dfIntersectMax];
+    if (intersectArray == NULL) {
+        intersectMax = model->getRelationCount();
+        intersectArray = new VarIntersect[intersectMax];
     }
 
     int count = model->getRelationCount();
@@ -1087,18 +1085,18 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
     //-- go through the relations in the model and create VarIntersect entries
     for (i = 0; i < count; i++) {
         rel = model->getRelation(i);
-        while (dfIntersectCount >= dfIntersectMax) {
-            dfIntersectArray = (VarIntersect*) growStorage(dfIntersectArray, sizeof(VarIntersect)*dfIntersectMax, 2);
-            dfIntersectMax *= 2;
+        while (intersectCount >= intersectMax) {
+            intersectArray = (VarIntersect*) growStorage(intersectArray, sizeof(VarIntersect)*intersectMax, 2);
+            intersectMax *= 2;
         }
-        VarIntersect *intersect = dfIntersectArray + (dfIntersectCount++);
+        VarIntersect *intersect = intersectArray + (intersectCount++);
         intersect->rel = rel;
         intersect->startIndex = i;
         intersect->sign = true;
         intersect->count = 1;
         proc->process(intersect->sign, intersect->rel, intersect->count);
     }
-    int level0end = dfIntersectCount;
+    int level0end = intersectCount;
     bool sign = true;
     bool match;
 
@@ -1112,17 +1110,17 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
     int currentCount, nextCount;
     long nextMax;
     int *newvars, newcount;
-    currentArray = dfIntersectArray;
-    currentCount = dfIntersectCount;
+    currentArray = intersectArray;
+    currentCount = intersectCount;
     while (currentCount > 0) {
         sign = !sign;
-        nextArray = new VarIntersect[dfIntersectMax];
+        nextArray = new VarIntersect[intersectMax];
         nextCount = 0;
-        nextMax = dfIntersectMax;
+        nextMax = intersectMax;
         for (i = 0; i < currentCount; i++) {
             for (j = currentArray[i].startIndex+1; j < level0end; j++) {
                 ip = currentArray + i;
-                jp = dfIntersectArray + j;
+                jp = intersectArray + j;
                 if(intersect(ip->rel, jp->rel, newvars, newcount)) {
                     rel = getRelation(newvars, newcount, true);
                     proc->process(sign, rel, ip->count);
@@ -1153,7 +1151,7 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
                 }
             }
         }
-        if (currentArray != dfIntersectArray) {
+        if (currentArray != intersectArray) {
             delete [] currentArray;
         }
         currentArray = nextArray;
