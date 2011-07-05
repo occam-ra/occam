@@ -365,7 +365,7 @@ const char* ocRelation::getPrintName(int useInverse)
         if (printName == NULL) {
             int maxlength = 0;
             maxlength = varList->getPrintLength(varCount, vars, states);
-            if (maxlength < 40) maxlength = 40;	//??String allocation bug?
+            //if (maxlength < 10) maxlength = 10;	//??String allocation bug?
             printName = new char[maxlength+1];
             varList->getPrintName(printName, maxlength, varCount, vars, states);
         }
