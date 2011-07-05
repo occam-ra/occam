@@ -745,8 +745,8 @@ double ocVBMManager::computeBPT(ocModel *model)
 
     //-- because we clear the cache periodically, we have to force
     //-- creation of all projections here
-    long relCount = model->getRelationCount();
-    long r;
+    int relCount = model->getRelationCount();
+    int r;
     class ocRelation *rel;
     for (r = 0; r < relCount; r++) {
         rel = model->getRelation(r);
@@ -755,6 +755,13 @@ double ocVBMManager::computeBPT(ocModel *model)
 
     if (processor == NULL) processor = new BPIntersectProcessor(inputData, fullDimension);
     processor->reset(relCount);
+    if (intersectArray != NULL) {
+        delete [] intersectArray;
+        intersectCount = 0;
+        intersectMax = model->getRelationCount();;
+        intersectArray = NULL;
+    }
+
     doIntersectionProcessing(model, processor);
     modelT = processor->getTransmission();
     model->setAttribute(ATTRIBUTE_BP_T, modelT);

@@ -445,6 +445,13 @@ void ocSBMManager::computeBPStatistics(ocModel *model)
     long fullDimension = (long)ocDegreesOfFreedom(topRef->getRelation(0)) + 1;
 
     BPIntersectProcessor processor(inputData, model->getRelationCount(), fullDimension);
+    if (intersectArray != NULL) {
+        delete [] intersectArray;
+        intersectCount = 0;
+        intersectMax = model->getRelationCount();;
+        intersectArray = NULL;
+    }
+
     doIntersectionProcessing(model, &processor);
     double t = processor.getTransmission();
     model->setAttribute(ATTRIBUTE_BP_T, t);
