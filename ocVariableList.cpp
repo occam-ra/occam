@@ -276,7 +276,7 @@ void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars
         if (i < count-1) { // at least one more to go
             if (maxlength <= 0) break;
             //*cp++ = '.';
-            maxlength--;
+            //maxlength--;
         }
     }
     assert(maxlength >= 0);
@@ -297,7 +297,7 @@ int ocVariableList::getPrintLength(int count, int *vars, int *states)
         varID = vars[i];
         name = getVariable(varID)->abbrev;
         len += strlen(name);
-        if (states) {
+        if (states != NULL) {
             stateID = states[i];
             if(stateID != DONT_CARE) {
                 slen = strlen(getVariable(varID)->valmap[stateID]);
@@ -305,7 +305,7 @@ int ocVariableList::getPrintLength(int count, int *vars, int *states)
             }
         }
     }
-    return len;
+    return len+1;
 }
 
 
