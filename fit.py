@@ -1,7 +1,7 @@
 #! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
 import pdb
 import os, sys
-sys.path.append("/www")
+#sys.path.append("/www")
 import occam
 import time
 
