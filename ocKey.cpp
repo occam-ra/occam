@@ -165,9 +165,16 @@ void ocKey::keyToString(ocKeySegment *key, ocVariableList *vars, char *str)
 
 void ocKey::keyToUserString(ocKeySegment *key, ocVariableList *vars, char *str)
 {
+    ocKey::keyToUserString(key, vars, str, "");
+}
+
+
+void ocKey::keyToUserString(ocKeySegment *key, ocVariableList *vars, char *str, const char *delim)
+{
     int i;
     int varcount = vars->getVarCount();
     char *cp = str;
+    int dlen = strlen(delim);
     for (i = 0; i < varcount; i++) {
         ocVariable *var = vars->getVariable(i);
         char **map = var->valmap;
@@ -175,10 +182,14 @@ void ocKey::keyToUserString(ocKeySegment *key, ocVariableList *vars, char *str)
         int segment = var->segment;
         int value = (key[segment] & mask) >> var->shift;
         if(value < (var->cardinality)) {
-            assert(value >= 0 && value < 16);
+            //assert(value >= 0 && value < 16);
             int len1 = strlen(map[value]);
             strncpy(cp, map[value], len1);
             cp += len1;
+            if ((dlen > 0) && (i < (varcount -1))) {
+                strncpy(cp, delim, dlen);
+                cp += dlen;
+            }
         }
     }
     *cp = '\0';
