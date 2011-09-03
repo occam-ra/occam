@@ -493,42 +493,49 @@ void ocReport::printResiduals(FILE *fd, ocModel *model) {
         return;
     }
     long var_count = varlist->getVarCount();
+    double sample_size = manager->getSampleSz();
+    double test_sample_size = manager->getTestSampleSize();
     int keysize = refData->getKeySize();
-    const char *format, *header, *footer, *traintitle, *testtitle;
-    char *keystr = new char[var_count+1];
+    const char *format, *header, *footer, *traintitle, *testtitle, *delim;
+    char *keystr;
 
     //-- set appropriate format
     int sepStyle = htmlMode ? 0 : separator;
     switch(sepStyle) {
         case 0:
-            header = "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs</th><th>Exp</th><th>Res</th></tr>\n";
+            header = "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs.Prob.</th><th>Obs.Freq.</th><th>Calc.Prob.</th><th>Calc.Freq.</th><th>Residual</th></tr>\n";
             traintitle = "<br>Training Data\n";
             testtitle = "Test Data\n";
-            format = "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
+            format = "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
             footer = "</table><br><br>";
+            delim = "";
             break;
         case 1:
-            header = "Cell\tObs\tExp\tRes\n";
+            header = "Cell\tObs.Prob.\tObs.Freq.\tCalc.Prob.\tCalc.Freq.\tResidual\n";
             traintitle = "\nTraining Data\n";
             testtitle = "\nTest Data\n";
-            format = "%s\t%#6.8g\t%#6.8g\t%#6.8g\n";
+            format = "%s\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\n";
             footer = "";
+            delim = "\t";
             break;
         case 2:
-            header = "Cell,Obs,Exp,Res\n";
+            header = "Cell,Obs.Prob.,Obs.Freq.,Calc.Prob.,Calc.Freq.,Residual\n";
             traintitle = "\nTraining Data\n";
             testtitle = "\nTest Data\n";
-            format = "'%s,%#6.8g,%#6.8g,%#6.8g\n";
+            format = "%s,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g\n";
             footer = "";
+            delim = ",";
             break;
         case 3:
-            header = "    Cell   Obs           Exp           Res\n    ---------------------------------------------\n";
+            header = " Cell   Obs.Prob.    Obs.Freq.    Calc.Prob.    Calc.Freq.    Residual\n    ---------------------------------------------\n";
             traintitle = "\nTraining Data\n";
             testtitle = "\nTest Data\n";
-            format = "%8s  %#6.8g   %#6.8g   %#6.8g\n";
+            format = "%8s  %#6.8g   %#6.8g   %#6.8g   %#6.8g   %#6.8g\n";
             footer = "";
+            delim = " ";
             break;
     }
+    keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) +1];
 
     if (htmlMode) fprintf(fd,"<br>\n");
     fprintf(fd, "Variable order: ");
@@ -542,10 +549,13 @@ void ocReport::printResiduals(FILE *fd, ocModel *model) {
     ocKeySegment *refkey, *key;
     double value, refvalue, res;
 
+    double adjustConstant = manager->getFunctionConstant() + manager->getNegativeConstant();
+
     // Walk through both lists. Missing values are zero.
     // We don't print anything if missing in both lists.
     index = 0; refindex = 0;
     fprintf(fd, traintitle);
+    for (int i = 1; i < var_count; i++) { fprintf(fd, delim); }
     fprintf(fd, header);
     dataCount = refData->getTupleCount();
     for(long long i = 0; i < dataCount; i++) {
@@ -559,12 +569,13 @@ void ocReport::printResiduals(FILE *fd, ocModel *model) {
             value = table1->getValue(index);
         }
         res = value - refvalue;
-        ocKey::keyToUserString(refkey, varlist, keystr);
-        fprintf(fd, format, keystr, refvalue, value, res);
+        ocKey::keyToUserString(refkey, varlist, keystr, delim);
+        fprintf(fd, format, keystr, refvalue, refvalue * sample_size - adjustConstant, value, value * sample_size - adjustConstant, res);
     }
     fprintf(fd, footer);
     if (testData != NULL) {
         fprintf(fd, testtitle);
+        for (int i = 1; i < var_count; i++) { fprintf(fd, delim); }
         fprintf(fd, header);
         long long testCount = testData->getTupleCount();
         for(long long i = 0; i < testCount; i++) {
@@ -578,8 +589,8 @@ void ocReport::printResiduals(FILE *fd, ocModel *model) {
                 value = table1->getValue(index);
             }
             res = value - refvalue;
-            ocKey::keyToUserString(refkey, varlist, keystr);
-            fprintf(fd, format, keystr, refvalue, value, res);
+            ocKey::keyToUserString(refkey, varlist, keystr, delim);
+            fprintf(fd, format, keystr, refvalue, refvalue * test_sample_size - adjustConstant, value, value * test_sample_size - adjustConstant, res);
         }
         fprintf(fd, footer);
     }
