@@ -132,6 +132,10 @@ static void setStandardOptions(ocOptions *opts)
     def = opts->addOptionName("ipf-maxdev", "i", "Max error in IPF, default=0.25");
     opts->addOptionValue(def, "#", "");
     def = opts->addOptionName("no-frequency", "", "There is no frequency data in table");
+    def = opts->addOptionName("function-values", "", "Values represent function data, not frequencies.");
+    opts->addOptionValue(def, "$", "");
+    def = opts->addOptionName("function-constant", "K", "Constant to add to all values, for function data");
+    opts->addOptionValue(def, "#", "");
     def = opts->addOptionName("zero-value", "", "Set replacment value for zero tuples");
     opts->addOptionValue(def, "#", "");
     def = opts->addOptionName("dump-data", "", "Dump loaded data");	

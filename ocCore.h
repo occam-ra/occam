@@ -56,6 +56,14 @@ class ocTable {
         // if these are counts, then the return value is the sample size
         double normalize();
 
+        // Add a constant to every value in the table.
+        // This is used for function data, and it assumes that the table is fully specified.
+        // i.e., it doesn't create missing tuples with assumed zero values, to add the constant to.
+        void addConstant(double constant);
+
+        // Returns the lowest value in the table.
+        double getLowestValue();
+
     private:
         void* data;			// storage for all keys and values
         int keysize;		// number of key segments in the key for each tuple
@@ -99,6 +107,7 @@ class ocKey {
 
         static void keyToString(ocKeySegment *key, ocVariableList *var, char *str);
         static void keyToUserString(ocKeySegment *key, ocVariableList *var, char *str);
+        static void keyToUserString(ocKeySegment *key, ocVariableList *var, char *str, const char *delim);
         static void getSiblings(ocKeySegment *key, ocVariableList *vars, ocTable *table, long *i_sibs, int DV_ind, int *no_sib);
 
         static void dumpKey(ocKeySegment *key, int keysize);

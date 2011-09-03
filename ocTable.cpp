@@ -262,6 +262,28 @@ double ocTable::normalize()
 }
 
 
+// Adds a constant to every value in the table.
+void ocTable::addConstant(double constant)
+{
+    long long i;
+    for (i = 0; i < tupleCount; i++) {
+        setValue(i, getValue(i) + constant);
+    }
+}
+
+
+// Returns the lowest value in the table.
+double ocTable::getLowestValue()
+{
+    double lowest = getValue(0);
+    for (long long i = 0; i < tupleCount; i++) {
+        if (getValue(i) < lowest)
+            lowest = getValue(i);
+    }
+    return lowest;
+}
+
+
 /**
  * reset - reset table to empty
  */

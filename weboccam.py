@@ -10,7 +10,7 @@ from jobcontrol import JobControl
 #import urllib2
 import platform
 
-VERSION = "3.3.1"
+VERSION = "3.3.2"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
@@ -218,6 +218,9 @@ def actionFit(formFields):
     oc.setDDFMethod(1)
     if formFields.has_key("defaultmodel"):
         oc.setDefaultFitModel(formFields["defaultmodel"])
+#functionFlag = formFields.get("functionvalues", "")
+#if functionFlag:
+#oc.setValuesAreFunctions(1)
 
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
@@ -251,6 +254,9 @@ def actionSBFit(formFields):
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+#functionFlag = formFields.get("functionvalues", "")
+#if functionFlag:
+#oc.setValuesAreFunctions(1)
 
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
@@ -307,6 +313,9 @@ def actionSearch(formFields):
     inverseFlag = formFields.get("inversenotation", "")
     if inverseFlag:
         oc.setUseInverseNotation(1)
+    functionFlag = formFields.get("functionvalues", "")
+    if functionFlag:
+        oc.setValuesAreFunctions(1)
 
     oc.setStartModel(formFields.get("model", "default"))
 

@@ -484,6 +484,17 @@ DefinePyFunction(ocVBMManager, setUseInverseNotation)
 }
 
 
+// void setValuesAreFunctions(int method)
+DefinePyFunction(ocVBMManager, setValuesAreFunctions)
+{
+    int flag;
+    PyArg_ParseTuple(args, "i", &flag);
+    ObjRef(self, ocVBMManager)->setValuesAreFunctions(flag);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+
 // void setSearchDirection(int dir)
 // 0 = up, 1 = down
 DefinePyFunction(ocVBMManager, setSearchDirection)
@@ -531,8 +542,7 @@ DefinePyFunction(ocVBMManager, getOptionList)
     const char *value;
     void *nextp = NULL;
     PyObject *list = PyList_New(0);
-    while(ObjRef(self, ocVBMManager)->getOptionString(attrName, &nextp, &value) &&
-            nextp != NULL)
+    while(ObjRef(self, ocVBMManager)->getOptionString(attrName, &nextp, &value) && nextp != NULL)
     {
         PyObject *valstr = Py_BuildValue("s", value);
         PyList_Append(list, valstr);
@@ -703,6 +713,7 @@ static struct PyMethodDef ocVBMManager_methods[] = {
     PyMethodDef(ocVBMManager, compareProgenitors),
     PyMethodDef(ocVBMManager, setDDFMethod),
     PyMethodDef(ocVBMManager, setUseInverseNotation),
+    PyMethodDef(ocVBMManager, setValuesAreFunctions),
     PyMethodDef(ocVBMManager, setSearchDirection),
     PyMethodDef(ocVBMManager, printFitReport),
     PyMethodDef(ocVBMManager, getOption),

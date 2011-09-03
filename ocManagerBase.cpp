@@ -49,9 +49,12 @@ ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input) : varList(var
     inputData = testData = NULL;
     DVOrder = NULL;
     useInverseNotation = 0;
+    valuesAreFunctions = false;
     intersectArray = NULL;
     intersectCount = 0;
     intersectMax = 1;
+    functionConstant = 0;
+    negativeConstant = 0;
 }
 
 
@@ -75,10 +78,51 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
             return false;
         }
     }
+    varList = vars;
+
+    if (!varList->isDirected()) {
+        if (getOptionFloat("function-constant", NULL, &functionConstant)) {
+            input->addConstant(functionConstant);
+            if (test) test->addConstant(functionConstant);
+            setValuesAreFunctions(1);
+        } else {
+            functionConstant = 0;
+        }
+    }
+
+    const char *option;
+    if (getOptionString("function-values", NULL, &option)) {
+        setValuesAreFunctions(1);
+    }
+
+    // check for negative values in the data
+    negativeConstant = input->getLowestValue();
+    if (test) {
+        double testLowest = test->getLowestValue();
+        if (testLowest < negativeConstant)
+            negativeConstant = testLowest;
+    }
+    if (negativeConstant < 0) {
+        if (varList->isDirected()) {
+            printf("ERROR: Negative frequency values are not permitted in directed systems.\n");
+            return false;
+        }
+        setValuesAreFunctions(1);
+        negativeConstant *= -1;
+        input->addConstant(negativeConstant);
+        if (test) test->addConstant(negativeConstant);
+    } else {
+        negativeConstant = 0;
+    }
+
     sampleSize = input->normalize();
     if (test) testSampleSize = test->normalize();
 
-    varList = vars;
+    // if sampleSize is equal to 1, this is probability data, and we should treat it as a function
+    if (fabs(sampleSize - 1) < DBL_EPSILON) {
+        setValuesAreFunctions(1);
+    }
+
     inputData = input;
     testData = test;
     inputH = ocEntropy(inputData);
@@ -1235,6 +1279,18 @@ void ocManagerBase::computeRelWidth(ocModel *model)
     }
     model->setAttribute(ATTRIBUTE_MIN_REL_WIDTH, (double) minwidth);
     model->setAttribute(ATTRIBUTE_MAX_REL_WIDTH, (double) maxwidth);
+}
+
+
+void ocManagerBase::setValuesAreFunctions(int flag)
+{
+    if (flag == 0) valuesAreFunctions = false;
+    else {
+        valuesAreFunctions = true;
+        ocOptionDef *optDef = options->findOptionByName("function-values");
+        if(optDef)
+            setOptionString(optDef, "Y");
+    }
 }
 
 

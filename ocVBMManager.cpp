@@ -1145,9 +1145,11 @@ void ocVBMManager::printBasicStatistics()
     double sampleSz1 = getSampleSz();
     double testSampleSize = getTestSampleSize();
     printf("%s%s%s%8lg%s\n", beginLine, "State Space Size", separator, stateSpace, endLine);
-    printf("%s%s%s%8lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
-    if (testSampleSize > 0) {
-        printf("%s%s%s%8lg%s\n", beginLine, "Sample Size (test)", separator, testSampleSize, endLine);
+    if (!getValuesAreFunctions()) {
+        printf("%s%s%s%8lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
+        if (testSampleSize > 0) {
+            printf("%s%s%s%8lg%s\n", beginLine, "Sample Size (test)", separator, testSampleSize, endLine);
+        }
     }
     printf("%s%s%s%8lg%s\n", beginLine, "H(data)", separator, topH, endLine);
     if (directed) {

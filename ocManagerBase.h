@@ -140,6 +140,10 @@ class ocManagerBase {
 	virtual ocModel *getRefModel() { return refModel; };
 	virtual int getSearchDirection() = 0;
 	virtual int getUseInverseNotation() { return useInverseNotation; };
+    void setValuesAreFunctions(int flag);
+    bool getValuesAreFunctions() { return valuesAreFunctions; };
+    double getFunctionConstant() { return functionConstant; };
+    double getNegativeConstant() { return negativeConstant; };
 
 	int getKeySize() { return keysize; }
 	double getSampleSz() { return sampleSize; }
@@ -164,9 +168,9 @@ class ocManagerBase {
 
 	//-- get and set options. The options are initialized by command line or datafile options
 	bool setOptionString(ocOptionDef *def, const char *value)
-	{ return options->setOptionString(def, value); }
+    { return options->setOptionString(def, value); }
 	bool setOptionFloat(ocOptionDef *def, double nvalue)
-	{ return options->setOptionFloat(def, nvalue); }
+    { return options->setOptionFloat(def, nvalue); }
 	bool getOptionString(const char *name, void **next, const char **value)
 	{ return options->getOptionString(name, next, value); }
 	bool getOptionFloat(const char *name, void **next, double *nvalue)
@@ -215,6 +219,9 @@ class ocManagerBase {
     VarIntersect *intersectArray;
     int intersectCount;
     long intersectMax;
+    double functionConstant;
+    double negativeConstant;
+    bool valuesAreFunctions;
 };
 
 #endif

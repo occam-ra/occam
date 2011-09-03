@@ -48,6 +48,7 @@ class ocUtils:
         self.__report.setSeparator(ocUtils.SPACESEP)    # align columns using spaces
         self.__HTMLFormat = 0
         self.__useInverseNotation = 0
+        self.__valuesAreFunctions = 0
         self.__BPStatistics = 0
         self.__PercentCorrect = 0
         self.__IncrementalAlpha = 0
@@ -67,6 +68,16 @@ class ocUtils:
     #-- Set up report variables
     #
     def setReportVariables(self, reportAttributes):
+        # if the data uses function values, we want to skip the attributes that require a sample size
+        option = self.__manager.getOption("function-values")
+        if option != "" or self.__valuesAreFunctions != 0:
+            reportAttributes = re.sub(r",\salpha", '', reportAttributes)
+            reportAttributes = re.sub(r",\sincr_alpha", '', reportAttributes)
+            reportAttributes = re.sub(r",\slr", '', reportAttributes)
+            reportAttributes = re.sub(r",\saic", '', reportAttributes)
+            reportAttributes = re.sub(r",\sbic", '', reportAttributes)
+            # should bp_* attributes be pulled out here too?
+            pass
         self.__report.setAttributes(reportAttributes)
         if re.search('bp_t', reportAttributes):
             self.__BPStatistics = 1
@@ -85,6 +96,13 @@ class ocUtils:
         if flag != 0 and flag != 1:
             flag = 0
         self.__useInverseNotation = flag
+
+    def setValuesAreFunctions(self, useFlag):
+        flag = int(useFlag)
+        if flag != 0 and flag != 1:
+            flag = 0
+        self.__valuesAreFunctions = flag
+
     #
     #-- Set control attributes
     #
@@ -165,8 +183,8 @@ class ocUtils:
     def isDirected(self):
         return self.__manager.isDirected()
 
-    def setOption(self, opt):
-        return self.__manager.setOption(opt)
+#   def setOption(self, opt):
+#        return self.__manager.setOption(opt)
 
     def hasTestData(self):
         return self.__manager.hasTestData()
@@ -330,6 +348,7 @@ class ocUtils:
 
         self.__manager.setRefModel(self.__refModel)
         self.__manager.setUseInverseNotation(self.__useInverseNotation)
+        self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if (self.__searchDir == "down"):
             self.__manager.setSearchDirection(1)
         else:
@@ -413,6 +432,7 @@ class ocUtils:
 
 
     def doFit(self,printOptions):
+#self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if printOptions: self.printOptions(0)
         self.__manager.printBasicStatistics()
         for modelName in self.__fitModels:
@@ -437,6 +457,7 @@ class ocUtils:
             print
 
     def doSBFit(self,printOptions):
+#self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if printOptions: self.printOptions(0);
         self.__manager.printBasicStatistics()
         for modelName in self.__fitModels:
