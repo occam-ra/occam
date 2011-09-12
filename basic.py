@@ -64,7 +64,7 @@ util.setUseInverseNotation(0)
 
 # Set the start model for search [top, bottom, default, a specific model].
 # Skip this to use the model set in the data file.
-util.setStartModel("bottom")
+util.setStartModel("top")
 #util.setStartModel("IV:A38Z")
 
 # Set the ref model [top, bottom, default, a specific model].
@@ -73,8 +73,8 @@ util.setRefModel("default")
 # Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
 util.setSearchSortDir("descending")
 # Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
-util.setSearchDir("up")
-util.setSearchFilter(filter)
+util.setSearchDir("down")
+util.setSearchFilter("disjoint")
 
 # Set the action [fit, search].  Skip this to set it from the data file.
 util.setAction("search")

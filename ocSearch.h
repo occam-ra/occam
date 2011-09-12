@@ -53,6 +53,11 @@ class ocSearchDisjointUp : public ocSearchBase {
 
 };
 
+class ocSearchDisjointDown : public ocSearchBase {
+    public:
+	ocModel **search(ocModel *start);
+	static ocSearchBase *make() { return new ocSearchDisjointDown();}
+};
 
 class ocSearchChain : public ocSearchBase {
     public:

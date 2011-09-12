@@ -12,7 +12,8 @@
 #include "_ocCore.h"
 #include "ocMath.h"
 #include <assert.h>
-
+#include <iostream>
+using namespace std;
 //----- Full search down through the lattice -----
 
 ocModel **ocSearchFullDown::search(ocModel *start)
@@ -716,6 +717,12 @@ long factorial(long n) {
     return (n <= 1) ? 1 : factorial(n-1) * n;
 }
 
+
+long comb(long n, long m) {
+	return factorial(n)/(factorial(n-m)*factorial(m));
+}
+
+
 // recursive function to generate chain models
 bool ocSearchChain::makeChainModels()
 {
@@ -728,7 +735,7 @@ bool ocSearchChain::makeChainModels()
 
     //-- if we've ordered all the variables, generate a model
     //-- each pair of adjacent variables generates a relation
-    //-- for directed systems, the dv is added
+    //-- for directocContainsVariablesed systems, the dv is added
     if (stackPtr >= indVarCount) {
         relCount = varCount - 1;
         relVarCount = 2;
@@ -823,3 +830,166 @@ ocModel **ocSearchChain::search(ocModel *start)
     return models;
 
 }
+
+// Alireza
+ocModel **ocSearchDisjointDown::search(ocModel *start) { 
+
+    ocVariableList *varList = manager->getVariableList();
+    int varcount = varList->getVarCount();
+    bool isDirected = varList->isDirected();
+    int relCount = start->getRelationCount();
+    int numModels = 100;
+    ocModel **models = new ocModel *[numModels+1];
+    memset(models,0,(numModels+1)*sizeof(ocModel*));
+
+   // cout << endl <<  " directed:" << isDirected << " rel count:" << relCount <<  endl;
+    if (isDirected) {
+	/*
+        int dvIndex = varList->getDV();
+        // must have one relation with all vars; or one of IVs and one with DV plus some IVs
+        if ((relCount > 2) || (relCount < 1))
+            return NULL;
+        ocRelation *rel, *ivRel;
+        if (relCount == 1) {
+            if (start != manager->getTopRefModel())
+                return NULL;
+            rel = start->getRelation(0);
+            ivRel = manager->getChildRelation(rel, dvIndex);
+        } else {
+            rel = start->getRelation(1);
+            ivRel = start->getRelation(0);
+            if (rel->isIndependentOnly()) {
+                rel = start->getRelation(0);
+                ivRel = start->getRelation(1);
+            }
+        }
+        if (rel->isIndependentOnly() || !ivRel->isIndependentOnly()) return NULL;
+        int activeIVs = rel->getVariableCount() - 1;
+        if (activeIVs == 0) return NULL;
+        int indices[activeIVs];
+        if (rel->getIndependentVariables(indices, activeIVs) != activeIVs)
+            return NULL;
+        // allocate space for that many models
+        ocModel **models = new ocModel *[activeIVs + 1];
+        memset(models, 0, (activeIVs + 1) * sizeof(ocModel*));
+        ocRelation *newRel;
+        ocModel *model;
+        int slot = 0;
+        // for each IV
+        for (int i=0; i < activeIVs; i++) {
+            // create a child relation minus that IV
+            newRel = manager->getChildRelation(rel, indices[i]);
+            // create a model with the IV-only relation, and the new relation
+            model = new ocModel(2);
+            model->addRelation(ivRel);
+            model->addRelation(newRel);
+            // put in cache, or use the cached one if already there
+            ocModelCache *cache = manager->getModelCache();
+            if (!cache->addModel(model)) {
+                ocModel *cachedModel = cache->findModel(model->getPrintName());
+                delete model;
+                model = cachedModel;
+            }				
+            if (manager->applyFilter(model)) models[slot++] = model;
+        }
+	*/
+        return NULL;
+    } else { // not directed search starts here
+	//cout << " hi undirected" <<endl;
+	// index for the generated models
+	int mi = 0;
+	// iterate over relations
+	for ( int ri = 0 ; ri < relCount ; ri++ ) { 
+		
+		ocRelation* rel = start->getRelation(ri);	
+		int relvarcnt = rel->getVariableCount();
+		//cout << "1:" << endl;
+		if ( relvarcnt >= 2 ) {
+		int varList[relvarcnt];
+		rel->copyVariables(varList,relvarcnt,-1);
+		for ( int vi = 0 ; vi < relvarcnt ; vi++ ) { 
+		
+			ocModel* m = new ocModel(relCount+1);
+			//first copy all the relations except for the ri
+			for ( int rii = 0 ; rii < relCount ; rii++ ) { 
+				if ( rii != ri ) { 
+				m->addRelation(start->getRelation(rii));
+				}
+			}	
+
+
+			//cout << "vi: " << vi << endl;
+			ocRelation* crel = manager->getChildRelation(rel,varList[vi]);
+			ocRelation* newRelation = manager->getRelation(&varList[vi], 1, true);
+			m->addRelation(crel);
+		        m->addRelation(newRelation);
+			
+			// add the model if it is not in the cache
+			ocModelCache *cache = manager->getModelCache();
+			if (!cache->addModel(m)) {
+                		ocModel *cachedModel = cache->findModel(m->getPrintName());
+                		delete m;
+               			m = cachedModel;
+           		}				
+            		if (manager->applyFilter(m)) models[mi++] = m;
+		
+			//cout << "now in here:" << endl;
+			// here we are adding the variable we droped from one of the
+			// 	relations to the other relations.
+			for ( int rii = 0 ; rii < relCount ;rii++ ) { 
+			if ( rii != ri ) { 
+				//cout << "vi: " << vi << " ri:"<<ri << " rii:"<< rii<<endl;
+				ocModel* m1 = new ocModel(relCount);
+				ocRelation* crel1 = manager->getChildRelation(rel,varList[vi]);
+				ocRelation* nrel1 = start->getRelation(rii);
+				int vnum = nrel1->getVariableCount()+1;
+				int vlist2  [vnum];
+				nrel1->copyVariables(vlist2,vnum,-1);
+				// add the current variable to this relation
+				vlist2[vnum-1] = varList[vi];
+				//cout << " vlist2: " ;
+				//for ( int jj=0; jj < vnum ; jj++ ) { 
+				//	cout << vlist2[jj] << " " ;
+				//}
+				//cout << endl;
+				//cout << "nh:1"<< endl;
+				// make new relation add to the model
+				ocRelation* newRelation1 = manager->getRelation(vlist2, vnum, true);
+				//cout << "nh:1.1"<< endl;
+				m1->addRelation(crel1);
+				m1->addRelation(newRelation1);
+
+				for (int riii = 0 ; riii < relCount ; riii++ ) { 
+					if ( ri != riii && riii != rii ) { 
+						m1->addRelation(start->getRelation(riii));
+					}
+
+				}
+				//cout << "nh:2"<< endl;				
+				// add the model if it is not in the cache
+				ocModelCache *cache = manager->getModelCache();
+				if (!cache->addModel(m1)) {
+					
+		        		ocModel *cachedModel = cache->findModel(m1->getPrintName());
+		        		delete m1;
+		       			m1 = cachedModel;
+		   		}				
+		    		if (manager->applyFilter(m1)) models[mi++] = m1;
+				//cout << "nh:3"<< endl;
+				//cout << start->getPrintName() << " -> " << m1->getPrintName() << endl;
+			}// if rii
+	
+			}// for rii
+
+			//cout << start->getPrintName() << " -> " << m->getPrintName() << endl;		
+			//cout << "2:" << mi << endl;
+
+		}//for vi
+		}//if	
+
+		//cout << "3:" << endl;
+	}
+		//cout << "4:" << endl;
+	return models;
+	}
+};

@@ -304,8 +304,9 @@ class ocUtils:
         if self.__manager.isDirected():
             if self.__searchDir == "down":
                 if self.__searchFilter == "disjoint":
-                    print 'ERROR: Directed Down Disjoint Search not yet implemented.'
-                    raise sys.exit()
+                    #print 'ERROR: Directed Down Disjoint Search not yet implemented.'
+                    #raise sys.exit()
+		    pass
                 elif self.__searchFilter == "chain":
                     print 'ERROR: Directed Down Chain Search not yet implemented.'
                     raise sys.exit()
@@ -317,8 +318,9 @@ class ocUtils:
 #                    raise sys.exit()
             else:
                 if self.__searchFilter == "disjoint":
-                    print 'ERROR: Neutral Down Disjoint Search not yet implemented.'
-                    raise sys.exit()
+                  pass
+		  #  print 'ERROR: Neutral Down Disjoint Search not yet implemented.'
+                  #  raise sys.exit()
                 elif self.__searchFilter == "chain":
                     print 'ERROR: Neutral Down Chain Search not yet implemented.'
                     raise sys.exit()

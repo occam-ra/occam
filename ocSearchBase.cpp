@@ -19,6 +19,7 @@ ocSearchType searchTypes[] = {
     { "loopless-up", ocSearchLooplessUp::make },
     { "disjoint-up", ocSearchDisjointUp::make },
     { "chain-up", ocSearchChain::make },
+    { "disjoint-down",ocSearchDisjointDown::make},
 };
 
 
