@@ -32,7 +32,7 @@ class ocRelCache {
 
 	//-- findRelation - find a relation in the cache.  Null is returned if the given
 	//-- relation doesn't exist.
-	class ocRelation *findRelation(ocKeySegment *mask, int keysize);
+	class ocRelation *findRelation(const char *name);
 
 	void dump();
 
