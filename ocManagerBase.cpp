@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "ocWin32.h"
+//#include "ocWin32.h"
 
 const int defaultRelSize = 10;
 
@@ -29,14 +29,12 @@ void logProjection(const char *name)
     fflush(projfd);
 }
 #else
-void logProjection(const char *name)
-{
+void logProjection(const char *name) {
 }
 #endif
 
-
-ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input) : varList(vars), inputData(input), keysize(vars ? vars->getKeySize() : 0)
-{
+ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input) :
+        varList(vars), inputData(input), keysize(vars ? vars->getKeySize() : 0) {
     topRef = bottomRef = refModel = NULL;
     relCache = new ocRelCache;
     modelCache = new ocModelCache;
@@ -45,9 +43,12 @@ ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input) : varList(var
     options = new ocOptions();
     inputH = -1;
     stateSpaceSize = 0;
-    fitTable1 = fitTable2 = projTable = NULL;
+    fitTable1 = NULL;
+    fitTable2 = NULL;
+    projTable = NULL;
     inputData = testData = NULL;
     DVOrder = NULL;
+    searchDirection = 0;
     useInverseNotation = 0;
     valuesAreFunctions = false;
     intersectArray = NULL;
@@ -57,9 +58,7 @@ ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input) : varList(var
     negativeConstant = 0;
 }
 
-
-bool ocManagerBase::initFromCommandLine(int argc, char **argv)
-{
+bool ocManagerBase::initFromCommandLine(int argc, char **argv) {
     ocTable *input = NULL, *test = NULL;
     ocVariableList *vars;
     //-- get all command line options.  Datafile arguments show up as "datafile" option.
@@ -83,7 +82,8 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
     if (!varList->isDirected()) {
         if (getOptionFloat("function-constant", NULL, &functionConstant)) {
             input->addConstant(functionConstant);
-            if (test) test->addConstant(functionConstant);
+            if (test)
+                test->addConstant(functionConstant);
             setValuesAreFunctions(1);
         } else {
             functionConstant = 0;
@@ -110,13 +110,15 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
         setValuesAreFunctions(1);
         negativeConstant *= -1;
         input->addConstant(negativeConstant);
-        if (test) test->addConstant(negativeConstant);
+        if (test)
+            test->addConstant(negativeConstant);
     } else {
         negativeConstant = 0;
     }
 
     sampleSize = input->normalize();
-    if (test) testSampleSize = test->normalize();
+    if (test)
+        testSampleSize = test->normalize();
 
     // if sampleSize is equal to 1, this is probability data, and we should treat it as a function
     if (fabs(sampleSize - 1) < DBL_EPSILON) {
@@ -130,203 +132,227 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv)
     return true;
 }
 
-
-ocManagerBase::~ocManagerBase()
-{
-    //	if (varList) delete varList;
-    //	if (inputData) delete inputData;
+ocManagerBase::~ocManagerBase() {
+    if (testData) delete testData;
+    if (fitTable1) delete fitTable1;
+    if (fitTable2) delete fitTable2;
+    if (projTable) delete projTable;
+    if (intersectArray) delete[] intersectArray;
+    if (DVOrder) delete[] DVOrder;
+    delete options;
+    delete modelCache;
+    delete relCache;
+    if (varList) delete varList;
 }
 
-
-//Anjali.. 
-//this function calculates the number of state constraints imposed by a particular relation which
-//has variables as are present in the varindices list and state constraints as present in the
-// stateindices list, a state value of -1 implies a dontcare value 
-int ocManagerBase::calc_StateConst_sz(int varcount,int *varindices, int *stateindices)
-{
-    int size=1;
+// Anjali..
+// this function calculates the number of state constraints imposed by a particular relation which
+// has variables as are present in the varindices list and state constraints as present in the
+// stateindices list, a state value of -1 implies a dont_care value
+int ocManagerBase::calcStateConstSize(int varcount, int *varindices, int *stateindices) {
+    int size = 1;
     ocVariable *var;
-    int card=0;
-    if(varindices == NULL || stateindices==NULL)return -1;
-    for(int i=0;i<varcount;i++){
-        if(stateindices[i]==DONT_CARE){
-            var=varList->getVariable(varindices[i]);
-            card=var->cardinality;
-            size=size*card;
+    int card = 0;
+    if (varindices == NULL || stateindices == NULL)
+        return -1;
+    for (int i = 0; i < varcount; i++) {
+        if (stateindices[i] == DONT_CARE) {
+            var = varList->getVariable(varindices[i]);
+            card = var->cardinality;
+            size = size * card;
         }
     }
     return size;
 }
 
-
-//--add the constraints for a relation 
-int ocManagerBase::addConstraint(int varcount, int *varindices, int *stateindices, int* stateindices_c, ocKeySegment* start1, ocRelation *rel)
-{
+//--add the constraints for a relation
+int ocManagerBase::addConstraint(int varcount, int *varindices, int *stateindices, int* stateindices_c,
+        ocKeySegment* start1, ocRelation *rel) {
     ocVariable *var;
     int keysize = getKeySize();
     int count = varcount - 1;
     int card = 0;
     //get card
-    while(stateindices[count] != DONT_CARE) {
-        count--;	
-        if(count < 0) return 0;
+    while (stateindices[count] != DONT_CARE) {
+        count--;
+        if (count < 0)
+            return 0;
     }
-start:
-    var = varList->getVariable(varindices[count]);
+    start: var = varList->getVariable(varindices[count]);
     card = var->cardinality;
-    if(stateindices_c[count] == (card - 1)) {
+    if (stateindices_c[count] == (card - 1)) {
         stateindices_c[count] = 0x00;
         count--;
-        while(stateindices[count] != DONT_CARE) {
-            count--;	
-            if(count < 0) return 0;
+        if (count >= 0) {
+            while (stateindices[count] != DONT_CARE) {
+                count--;
+                if (count < 0)
+                    return 0;
+            }
+            goto start;
+        } else {
+            return 0;
         }
-        goto start;
     } else {
         stateindices_c[count]++;
         ocKey::buildKey(start1, keysize, varList, varindices, stateindices_c, varcount);
         rel->getStateConstraints()->addConstraint(start1);
-        addConstraint(varcount, varindices, stateindices, stateindices_c, start1, rel);  
+        addConstraint(varcount, varindices, stateindices, stateindices_c, start1, rel);
         return 0;
     }
 }
 
-
 //-- look in relCache and, if not found, make a new relation and store in relCache
-ocRelation *ocManagerBase::getRelation(int *varindices, int varcount, bool makeProject, int *stateindices)
-{
-    int stateconstsz = 0;
-    if(stateindices == NULL)
-        ocRelation::sort(varindices, varcount);
-    int keysize = getKeySize();
-    ocRelation *rel = NULL;
-    int *stateindices1 = new int[varcount];
-    ocKeySegment *mask = new ocKeySegment[keysize];
-    ocKeySegment *start = new ocKeySegment[keysize];
-    ocKey::buildMask(mask, keysize, varList, varindices, varcount);
-    ocKey::buildMask(start, keysize, varList, varindices, varcount);
-    if(stateindices == NULL) {
-        rel = relCache->findRelation(mask, keysize);
+// *** warning: this function sorts varindices in place ***
+ocRelation *ocManagerBase::getRelation(int *input_vars, int varcount, bool make_project, int *input_states) {
+    int* varindices = new int[varcount];
+    memcpy(varindices, input_vars, varcount * sizeof(int));
+    int* stateindices = NULL;
+    if (input_states != NULL) {
+        stateindices = new int[varcount];
+        memcpy(stateindices, input_states, varcount * sizeof(int));
     }
-    if (rel == NULL) {
-        if(stateindices != 0) {
-            stateconstsz = calc_StateConst_sz(varcount, varindices, stateindices);
-            rel = new ocRelation(varList, defaultRelSize, keysize, stateconstsz);
-            for (int i = 0; i < varcount; i++) {
-                rel->addVariable(varindices[i], stateindices[i]);
-            }
-        } else {
-            rel = new ocRelation(varList, defaultRelSize);
-            for (int i = 0; i < varcount; i++) {
-                rel->addVariable(varindices[i]);
-            }
+    int stateconstsz = 0;
+    ocRelation::sort(varindices, varcount, stateindices);
+    int keysize = getKeySize();
+    ocRelation *rel;
+    if (stateindices != NULL) {
+        int *stateindices1 = new int[varcount];
+        ocKeySegment* mask = new ocKeySegment[keysize];
+        ocKeySegment* start1 = new ocKeySegment[keysize];
+        memset(stateindices1, 0, varcount * sizeof(int));
+        memset(mask, 0, keysize * sizeof(ocKeySegment));
+        memset(start1, 0, keysize * sizeof(ocKeySegment));
+        ocKey::buildMask(mask, keysize, varList, varindices, varcount);
+        ocKey::buildMask(start1, keysize, varList, varindices, varcount);
+        stateconstsz = calcStateConstSize(varcount, varindices, stateindices);
+        rel = new ocRelation(varList, varList->getVarCount(), keysize, stateconstsz);
+        for (int i = 0; i < varcount; i++) {
+            rel->addVariable(varindices[i], stateindices[i]);
         }
-        // why isn't this combined with if-else above? [jsf]
-        if(stateindices != 0) {
+        if (!relCache->addRelation(rel)) {
+            ocRelation *cached_rel = relCache->findRelation(rel->getPrintName());
+            delete rel;
+            rel = cached_rel;
+        } else {
             //make starting constraint
-            for(int i = 0; i < varcount; i++) {
-                if(stateindices[i] == DONT_CARE) {
+            for (int i = 0; i < varcount; i++) {
+                if (stateindices[i] == DONT_CARE) {
                     stateindices1[i] = 0x00;
                 } else {
-                    stateindices1[i] = stateindices[i];	
+                    stateindices1[i] = stateindices[i];
                 }
             }
             //build the first constraint and then loop
-            ocKey::buildKey(start, keysize, varList, varindices, stateindices1, varcount);
-            rel->getStateConstraints()->addConstraint(start);
-            addConstraint(varcount, varindices, stateindices, stateindices1, start, rel);
-            int c_count = rel->getStateConstraints()->getConstraintCount();
-        }		
-        if(stateindices == 0) {
-            relCache->addRelation(rel);
+            ocKey::buildKey(start1, keysize, varList, varindices, stateindices1, varcount);
+            rel->getStateConstraints()->addConstraint(start1);
+            addConstraint(varcount, varindices, stateindices, stateindices1, start1, rel);
+        }
+        delete[] start1;
+        delete[] mask;
+        delete[] stateindices1;
+        delete[] stateindices;
+    } else {
+        rel = new ocRelation(varList, varList->getVarCount());
+        for (int i = 0; i < varcount; i++) {
+            rel->addVariable(varindices[i]);
+        }
+        if (!relCache->addRelation(rel)) {
+            ocRelation *cached_rel = relCache->findRelation(rel->getPrintName());
+            delete rel;
+            rel = cached_rel;
         }
     }
-    if (makeProject) { makeProjection(rel); }
+    if (make_project) {
+        makeProjection(rel);
+    }
+    delete[] varindices;
     return rel;
 }
 
-
 // "skip" is the index of the variable in the varList
-ocRelation *ocManagerBase::getChildRelation(ocRelation *rel, int skip, bool makeProject, int *stateindices)
-{
+ocRelation *ocManagerBase::getChildRelation(ocRelation *rel, int skip, bool makeProject, int *stateindices) {
     int order = rel->getVariableCount();
     int *varindices = new int[order];
     int slot = 0;
     ocRelation *newRel = NULL;
     for (int i = 0; i < order; i++) {
         //-- build a list of all variables but skip
-        if (rel->getVariable(i) != skip) varindices[slot++] = rel->getVariable(i);
+        if (rel->getVariable(i) != skip)
+            varindices[slot++] = rel->getVariable(i);
     }
     //-- build and cache the relation
-    newRel = getRelation(varindices, order-1, makeProject, stateindices);
+    newRel = getRelation(varindices, order - 1, makeProject, stateindices);
     delete varindices;
     return newRel;
 }
 
-
 // This function is a special case of the other makeProjection(), further below.
 // It projects the input data into the table for a relation.
-bool ocManagerBase::makeProjection(ocRelation *rel)
-{
-    //-- create the projection data for a given relation. Go through
-    if (rel->getTable()) return true;	// table already computed
+bool ocManagerBase::makeProjection(ocRelation *rel) {
+    if (rel->getTable())
+        return true; // table already computed
 
+    //-- create the projection data for a given relation. Go through
     //-- the inputData, and for each tuple, sum it into the table for the relation.
     long long start_size = rel->getNC();
-    if ( (inputData->getTupleCount() < start_size) || (start_size == 0) )
+    if ((inputData->getTupleCount() < start_size) || (start_size <= 0)) {
         start_size = inputData->getTupleCount();
-
-    logProjection(rel->getPrintName());
+    }
+    //logProjection(rel->getPrintName());
     ocTable *table = new ocTable(keysize, start_size);
     rel->setTable(table);
     makeProjection(inputData, table, rel);
     return true;
 }
 
-
 // This function projects the data in table t1 into (empty) table t2, based on the relation.
-bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel)
-{
+bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel) {
     //-- create the projection data for a given relation. Go through
     //-- the inputData, and for each tuple, sum it into the table for the relation.
     long long count = t1->getTupleCount();
-    t2->reset(keysize);	// reset the output table
+    t2->reset(keysize); // reset the output table
     ocKeySegment *key = new ocKeySegment[keysize];
     ocKeySegment *mask = rel->getMask();
     long i, j, k;
     double value;
 
-    bool is_match = false;	// for state-based
-    double remainder = 0;	// for state-based
-    int c_count;		// for state-based
-    ocKeySegment *const_k;	// for state-based
-    if (rel->isStateBased()) {		// for state-based
+    bool is_match = false;  // for state-based
+    double remainder = 0;   // for state-based
+    int c_count;            // for state-based
+    ocKeySegment *const_k;  // for state-based
+    if (rel->isStateBased()) { // for state-based
         c_count = rel->getStateConstraints()->getConstraintCount();
-        makeSbExpansion(rel,t2);
+        makeSbExpansion(rel, t2);
     }
     for (i = 0; i < count; i++) {
         t1->copyKey(i, key);
         value = t1->getValue(i);
         //-- set all the variables in the key to dont_care if they don't exist in the relation
-        for (k = 0; k < keysize; k++) { key[k] |= mask[k]; }
-        if(!rel->isStateBased()) {
+        for (k = 0; k < keysize; k++) {
+            key[k] |= mask[k];
+        }
+        if (!rel->isStateBased()) {
             t2->sumTuple(key, value);
         } else {
             // state based, so if the key matches one of the constraints we keep it,
             // otherwise add it to the remainder to be split up later
-            for(j = 0; j < c_count; j++) {
+            for (j = 0; j < c_count; j++) {
                 is_match = false;
                 const_k = rel->getStateConstraints()->getConstraint(j);
                 if (ocKey::compareKeys(key, const_k, keysize) == 0) {
                     is_match = true;
                     break;
                 }
-            }	
-            if (is_match) { t2->sumTuple(key, value);
-            } else { remainder += value; }
+            }
+            if (is_match) {
+                t2->sumTuple(key, value);
+            } else {
+                remainder += value;
+            }
         }
     }
-    if(rel->isStateBased()) {
+    if (rel->isStateBased()) {
         // now, for SB relations, spread remainder through unused cells
         count = t2->getTupleCount();
         for (i = 0; i < count; i++) {
@@ -338,17 +364,18 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel)
                     break;
                 }
             }
-            if (is_match == false) { t2->setValue(i, remainder / (count - c_count)); }
+            if (is_match == false) {
+                t2->setValue(i, remainder / (count - c_count));
+            }
         }
     }
     t2->sort();
-    delete [] key;
+    delete[] key;
     return true;
 }
 
-
-bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inputData, ocRelation *indRel, ocRelation *depRel, double *missedValues)
-{
+bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inputData, ocRelation *indRel,
+        ocRelation *depRel, double *missedValues) {
     //-- create the max projection data for the IV relation, used for computing percent correct.
     //-- Two new tables are created. maxqt contains a tuple for each distinct IV state,
     //-- and the q value from the qt table. maxpt contains a corresponding tuple for each distinct
@@ -359,11 +386,12 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
     //-- tuples are updated. At the end, maxpt has a tuple for each IV state, and the p value
     //-- for the specific IV,DV state which corresponds to the greatest q value across the DV
     //-- states for that IV state.
-    if (qt == NULL || maxpt == NULL || indRel == NULL || depRel == NULL) return false;
+    if (qt == NULL || maxpt == NULL || indRel == NULL || depRel == NULL)
+        return false;
     long long count = qt->getTupleCount();
     ocTable *maxqt = new ocTable(keysize, count);
     ocTable *dvt = new ocTable(keysize, count);
-    maxpt->reset(keysize);	// reset the output table
+    maxpt->reset(keysize); // reset the output table
     ocKeySegment *key = new ocKeySegment[keysize];
     ocKeySegment *mask = indRel->getMask();
     long long i, pindex, maxqindex, maxpindex, dvindex;
@@ -376,10 +404,12 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
         qvalue = qt->getValue(i);
         pindex = inputData->indexOf(key);
         pvalue = 0.0;
-        if (pindex >= 0) pvalue = inputData->getValue(pindex);
+        if (pindex >= 0)
+            pvalue = inputData->getValue(pindex);
         qdv = ocKey::getKeyValue(key, keysize, varList, varList->getDV());
         //-- set up key to match just IVs
-        for (k = 0; k < keysize; k++) key[k] |= mask[k];
+        for (k = 0; k < keysize; k++)
+            key[k] |= mask[k];
         maxqindex = maxqt->indexOf(key);
         maxpindex = maxpt->indexOf(key);
         dvindex = dvt->indexOf(key);
@@ -388,23 +418,23 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
             maxqvalue = maxqt->getValue(maxqindex);
             if (fabs(maxqvalue - qvalue) < DBL_EPSILON) {
                 // Break any ties by checking the order of the DV values
-                maxdv = (int)dvt->getValue(dvindex);
-                if (getDVOrder(qdv) < getDVOrder(maxdv)) {
+                maxdv = (int) dvt->getValue(dvindex);
+                if (getDvOrder(qdv) < getDvOrder(maxdv)) {
                     maxqt->setValue(maxqindex, qvalue);
                     maxpt->setValue(maxpindex, pvalue);
-                    dvt->setValue(dvindex, (double)qdv);
+                    dvt->setValue(dvindex, (double) qdv);
                 }
             } else if (maxqvalue < qvalue) {
                 maxqt->setValue(maxqindex, qvalue);
                 maxpt->setValue(maxpindex, pvalue);
-                dvt->setValue(dvindex, (double)qdv);
+                dvt->setValue(dvindex, (double) qdv);
             }
         } else {
             //-- new IV state; add to both tables
             //-- we have to call indexOf again to get the position, then do the insert
             maxqt->insertTuple(key, qvalue, maxqt->indexOf(key, false));
             maxpt->insertTuple(key, pvalue, maxpt->indexOf(key, false));
-            dvt->insertTuple(key, (double)qdv, dvt->indexOf(key, false));
+            dvt->insertTuple(key, (double) qdv, dvt->indexOf(key, false));
         }
     }
 
@@ -421,14 +451,16 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
         (*missedValues) = 0;
         for (i = 0; i < count; i++) {
             inputData->copyKey(i, key);
-            for (k = 0; k < keysize; k++) key[k] |= mask[k];
+            for (k = 0; k < keysize; k++)
+                key[k] |= mask[k];
             if (maxpt->indexOf(key) >= 0) {
                 continue; //-- model predicts this; don't need default
             } else {
                 value = inputData->getValue(i);
                 (*missedValues) += value;
                 pdv = ocKey::getKeyValue(inputData->getKey(i), keysize, varList, varList->getDV());
-                if (pdv != defaultDV) continue;
+                if (pdv != defaultDV)
+                    continue;
 
                 //-- add this entry to maxpt; default rule applies
                 if (value > 0) {
@@ -439,57 +471,60 @@ bool ocManagerBase::makeMaxProjection(ocTable *qt, ocTable *maxpt, ocTable *inpu
         }
     }
     maxpt->sort();
-    delete [] key;
+    delete[] key;
     delete maxqt;
     return true;
 }
 
-
-int ocManagerBase::getDefaultDVIndex()
-{
-    if (!varList->isDirected()) return NULL;      // can only do this for directed models
-    if (DVOrder == NULL) createDVOrder();
+int ocManagerBase::getDefaultDVIndex() {
+    if (!varList->isDirected())
+        return NULL; // can only do this for directed models
+    if (DVOrder == NULL)
+        createDvOrder();
     return DVOrder[0];
 }
 
-
-int ocManagerBase::getDVOrder(int index)
-{
-    if (!varList->isDirected()) return NULL;
-    if (DVOrder == NULL) createDVOrder();
+int ocManagerBase::getDvOrder(int index) {
+    if (!varList->isDirected())
+        return NULL;
+    if (DVOrder == NULL)
+        createDvOrder();
     int dv_card = varList->getVariable(varList->getDV())->cardinality;
-    for (int i=0; i < dv_card; ++i) {
-        if(DVOrder[i] == index) return i;
+    for (int i = 0; i < dv_card; ++i) {
+        if (DVOrder[i] == index)
+            return i;
     }
     return NULL;
 }
 
-
 static double *sort_freq;
 static ocVariable *sort_dv_var;
-int sortDV(const void *d1, const void *d2)
-{
-    int a = *(int*)d1;
-    int b = *(int*)d2;
+int sortDV(const void *d1, const void *d2) {
+    int a = *(int*) d1;
+    int b = *(int*) d2;
     // Would prefer to use DBL_EPSILON here, but the frequencies we get for DV values (from the bottom reference)
     // are not precise enough for some reason.
-    if (fabs(sort_freq[a] - sort_freq[b]) < 1e-10) { return strcmp(sort_dv_var->valmap[a], sort_dv_var->valmap[b]); }
-    if (sort_freq[a] > sort_freq[b]) { return -1; }
-    if (sort_freq[a] < sort_freq[b]) { return 1; }
+    if (fabs(sort_freq[a] - sort_freq[b]) < 1e-10) {
+        return strcmp(sort_dv_var->valmap[a], sort_dv_var->valmap[b]);
+    }
+    if (sort_freq[a] > sort_freq[b]) {
+        return -1;
+    }
+    if (sort_freq[a] < sort_freq[b]) {
+        return 1;
+    }
     // Put this again, just in case.
     return strcmp(sort_dv_var->valmap[a], sort_dv_var->valmap[b]);
 }
 
-
-void ocManagerBase::createDVOrder()
-{
-    if (!varList->isDirected()) return;
-    if (DVOrder != NULL) return;
-
+void ocManagerBase::createDvOrder() {
+    if (!varList->isDirected())
+        return;
+    if (DVOrder != NULL)
+        return;
     sort_dv_var = varList->getVariable(varList->getDV());
     int dv_card = sort_dv_var->cardinality;
     DVOrder = new int[dv_card];
-
     // Build an array of frequencies, taken from the dependent relation (from the bottom reference)
     long long k;
     ocTable *depTable;
@@ -503,16 +538,15 @@ void ocManagerBase::createDVOrder()
     for (k = 0; k < depTable->getTupleCount(); ++k) {
         sort_freq[ocKey::getKeyValue(depTable->getKey(k), keysize, varList, varList->getDV())] = depTable->getValue(k);
     }
-    for (int i = 0; i < dv_card; ++i) DVOrder[i] = i;
+    for (int i = 0; i < dv_card; ++i)
+        DVOrder[i] = i;
     qsort(DVOrder, dv_card, sizeof(int), sortDV);
 }
-
 
 // Creates a product of the cardinalities of any variables missing from the model
 // (but present in the data).  Used for adjusting calculated values when fitting
 // a loopless model algorithmically.
-double ocManagerBase::getMissingCardinalityFactor(ocModel *model)
-{
+double ocManagerBase::getMissingCardinalityFactor(ocModel *model) {
     ocVariableList *vars = getVariableList();
     int vcount = vars->getVarCount();
     int rcount = model->getRelationCount();
@@ -532,98 +566,89 @@ double ocManagerBase::getMissingCardinalityFactor(ocModel *model)
     return missingCards;
 }
 
-
-void ocManagerBase::getPredictingVars(ocModel *model, int *varindices, int &varcount, bool includeDeps)
-{
+void ocManagerBase::getPredictingVars(ocModel *model, int *varindices, int &varcount, bool includeDeps) {
     ocVariableList *vars = getVariableList();
     varcount = 0;
     for (int r = 0; r < model->getRelationCount(); r++) {
         ocRelation *rel = model->getRelation(r);
-        if (rel->isIndependentOnly()) continue;
+        if (rel->isIndependentOnly())
+            continue;
         for (int iv = 0; iv < rel->getVariableCount(); iv++) {
             int varid = rel->getVariable(iv);
-            if (vars->getVariable(varid)->dv && !includeDeps) continue;
+            if (vars->getVariable(varid)->dv && !includeDeps)
+                continue;
             for (int jv = 0; jv < varcount; jv++) {
                 if (varid == varindices[jv]) {
                     varid = -1;
                     break;
                 }
             }
-            if (varid >= 0) varindices[varcount++] = varid;
+            if (varid >= 0)
+                varindices[varcount++] = varid;
         }
     }
 }
 
-
-ocRelation *ocManagerBase::getIndRelation()
-{
-    if (!getVariableList()->isDirected()) return NULL;      // can only do this for directed models
-    int i;
-    for (i = 0; i < bottomRef->getRelationCount(); i++) {
+ocRelation *ocManagerBase::getIndRelation() {
+    if (!getVariableList()->isDirected())
+        return NULL; // can only do this for directed models
+    for (int i = 0; i < bottomRef->getRelationCount(); i++) {
         ocRelation *indRel = bottomRef->getRelation(i);
-        if (indRel->isIndependentOnly()) return indRel; // this is the one.
+        if (indRel->isIndependentOnly())
+            return indRel; // this is the one.
     }
     return NULL;
 }
 
-
-ocRelation *ocManagerBase::getDepRelation()
-{
+ocRelation *ocManagerBase::getDepRelation() {
     // This function takes advantage of the fact that the bottom model has only two relations;
     // one is the IV relation, the other is the DV.
-    if (!getVariableList()->isDirected()) return NULL;      // can only do this for directed models
-    int i;
-    for (i = 0; i < bottomRef->getRelationCount(); i++) {
-        ocRelation *indRel = bottomRef->getRelation(i);
-        if (!indRel->isIndependentOnly()) return indRel;        // this is the one.
+    if (!getVariableList()->isDirected())
+        return NULL; // can only do this for directed models
+    for (int i = 0; i < bottomRef->getRelationCount(); i++) {
+        ocRelation *dep_rel = bottomRef->getRelation(i);
+        if (!dep_rel->isIndependentOnly())
+            return dep_rel; // this is the one.
     }
     return NULL;
 }
 
-
-bool ocManagerBase::makeProjections(ocModel *model)
-{
+bool ocManagerBase::makeProjections(ocModel *model) {
     //-- create projections for all relations in model
     int count = model->getRelationCount();
     for (int i = 0; i < count; i++) {
-        if (!makeProjection(model->getRelation(i))) return false;
+        if (!makeProjection(model->getRelation(i)))
+            return false;
     }
     return true;
 }
 
-
-void ocManagerBase::deleteTablesFromCache()
-{
+void ocManagerBase::deleteTablesFromCache() {
     relCache->deleteTables();
 }
 
-
-bool ocManagerBase::deleteModelFromCache(ocModel *model)
-{
+bool ocManagerBase::deleteModelFromCache(ocModel *model) {
     return modelCache->deleteModel(model);
 }
 
-
-static bool nextTuple(ocVariableList *varList, int *varvalues)
-{
-    int varcount = varList->getVarCount();
-    // bump the last variable by one; if it overflows, carry to the
-    // previous one, etc. Return false if we overflow the whole variable list
-    int i = varcount - 1;
-    varvalues[i]++;
-    while (varvalues[i] >= varList->getVariable(i)->cardinality) {
-        if (i == 0) return false;	// overflow
-        varvalues[i--] = 0;
-        varvalues[i]++;
-    }
-    return true;
-}
-
+//static bool nextTuple(ocVariableList *varList, int *varvalues) {
+//    int varcount = varList->getVarCount();
+//    // bump the last variable by one; if it overflows, carry to the
+//    // previous one, etc. Return false if we overflow the whole variable list
+//    int i = varcount - 1;
+//    varvalues[i]++;
+//    while (varvalues[i] >= varList->getVariable(i)->cardinality) {
+//        if (i == 0)
+//            return false; // overflow
+//        varvalues[i--] = 0;
+//        varvalues[i]++;
+//    }
+//    return true;
+//}
 
 //-- intersect two variable lists, producing a third. returns true if intersection
 //-- is not empty, and returns the list and count of common variables
-static bool intersect(ocRelation *rel1, ocRelation *rel2, int* &var, int &count)
-{
+static bool intersect(ocRelation *rel1, ocRelation *rel2, int* &var, int &count) {
     int *var1, *var2;
     int count1, count2;
     count1 = rel1->getVariableCount();
@@ -636,7 +661,8 @@ static bool intersect(ocRelation *rel1, ocRelation *rel2, int* &var, int &count)
     for (int i = 0; i < count1; i++) {
         for (int j = 0; j < count2; j++) {
             if (var1[i] == var2[j]) {
-                if (var == NULL) var = new int[count1];	//this is sure to be large enough
+                if (var == NULL)
+                    var = new int[count1]; //this is sure to be large enough
                 var[count++] = var1[i];
             }
         }
@@ -644,17 +670,15 @@ static bool intersect(ocRelation *rel1, ocRelation *rel2, int* &var, int &count)
     return var != NULL;
 }
 
-
 static VarIntersect *fitIntersectArray = NULL;
 static int fitIntersectCount = 0;
 static long fitIntersectMax = 1;
 
-
-void ocManagerBase::doFitIntersection(ocModel *model)
-{
-    if (model == NULL) return;
+void ocManagerBase::doFitIntersection(ocModel *model) {
+    if (model == NULL)
+        return;
     if (fitIntersectArray != NULL) {
-        delete [] fitIntersectArray;
+        delete[] fitIntersectArray;
     }
     fitIntersectCount = 0;
     fitIntersectMax = model->getRelationCount();
@@ -681,21 +705,22 @@ void ocManagerBase::doFitIntersection(ocModel *model)
     while (levelend > levelstart) {
         sign = !sign;
         for (i = levelstart; i < levelend; i++) {
-            for (j = fitIntersectArray[i].startIndex+1; j < level0end; j++) {
+            for (j = fitIntersectArray[i].startIndex + 1; j < level0end; j++) {
                 ip = fitIntersectArray + i;
                 jp = fitIntersectArray + j;
-                if(intersect(ip->rel, jp->rel, newvars, newcount)) {
+                if (intersect(ip->rel, jp->rel, newvars, newcount)) {
                     rel = getRelation(newvars, newcount, true);
                     //-- add this intersection term to the DF, and append to list
                     while (fitIntersectCount >= fitIntersectMax) {
-                        fitIntersectArray = (VarIntersect*) growStorage(fitIntersectArray, sizeof(VarIntersect)*fitIntersectMax, 2);
+                        fitIntersectArray =
+                                (VarIntersect*) growStorage(fitIntersectArray, sizeof(VarIntersect)*fitIntersectMax, 2);
                         fitIntersectMax *= 2;
                     }
                     newp = fitIntersectArray + (fitIntersectCount++);
                     newp->rel = rel;
                     newp->startIndex = j;
                     newp->sign = sign;
-                    delete [] newvars;
+                    delete[] newvars;
                 }
             }
         }
@@ -704,75 +729,66 @@ void ocManagerBase::doFitIntersection(ocModel *model)
     }
 }
 
-
-bool ocManagerBase::makeFitTable(ocModel *model)
-{
-    if (model == NULL) return false;
-
+bool ocManagerBase::makeFitTable(ocModel *model) {
+    if (model == NULL)
+        return false;
     // Check for models that can be fit algorithmically. If so, solve that way.
-    if(!hasLoops(model) && !model->isStateBased() && !getVariableList()->isDirected()) {
-        //DFAndEntropy(model);
+    if (!hasLoops(model) && !model->isStateBased() && !getVariableList()->isDirected()) {
         doFitIntersection(model);
         double missingCard = getMissingCardinalityFactor(model);
-        // check that all relations in intersectArray have projections
-        for (int ri = 0; ri < fitIntersectCount; ri++) {
+        for (int ri = 0; ri < fitIntersectCount; ri++) {        // check that all relations in intersectArray have projections
             makeProjection(fitIntersectArray[ri].rel);
         }
         //inputData->normalize();
         long long inSize = inputData->getTupleCount();
-        ocTable *algTable = new ocTable(keysize, inSize);;
+        ocTable *algTable = new ocTable(keysize, inSize);
+
         double value, outValue;
         ocKeySegment *tupleKey;
-        // for every tuple in input
         long long ti;
         int ri;
         for (ti = 0; ti < inSize; ti++) {
             tupleKey = inputData->getKey(ti);
-            // start outvalue at 1
-            outValue = 1;
-            // for each item in intersectArray
-            for (ri = 0; ri < fitIntersectCount; ri++) {
-                // get value from relation for masked key
-                value = fitIntersectArray[ri].rel->getMatchingTupleValue(tupleKey);
-                // if value is ever zero, set outValue to zero and end for-loop
-                if (fabs(value) < DBL_EPSILON) { outValue = 0; break; }
-                // mult/div value into outValue
-                if (fitIntersectArray[ri].sign) {
+            outValue = 1;       // start outvalue at 1
+            for (ri = 0; ri < fitIntersectCount; ri++) {        // for each item in intersectArray
+                value = fitIntersectArray[ri].rel->getMatchingTupleValue(tupleKey);     // get value from relation for masked key
+                if (fabs(value) < DBL_EPSILON) {                // if value is ever zero, set outValue to zero and end for-loop
+                    outValue = 0;
+                    break;
+                }
+                if (fitIntersectArray[ri].sign) {               // mult/div value into outValue
                     outValue *= value;
                 } else {
                     outValue /= value;
                 }
             }
-            // put outvalue into fitted table
-            algTable->sumTuple(tupleKey, outValue / missingCard);
+            algTable->sumTuple(tupleKey, outValue / missingCard);       // put outvalue into fitted table
         }
         if (testData) {
             inSize = testData->getTupleCount();
-            // for every tuple in test
-            for (ti = 0; ti < inSize; ti++) {
+            for (ti = 0; ti < inSize; ti++) {                           // for every tuple in test
                 tupleKey = testData->getKey(ti);
-                // if this tuple wasn't in inputData
-                if (inputData->indexOf(tupleKey) == -1) {
+                if (inputData->indexOf(tupleKey) == -1) {               // if this tuple wasn't in inputData
                     outValue = 1;
-                    // for each item in intersectArray
-                    for (ri = 0; ri < fitIntersectCount; ri++) {
+                    for (ri = 0; ri < fitIntersectCount; ri++) {        // for each item in intersectArray
                         // get value from relation for masked key
                         value = fitIntersectArray[ri].rel->getMatchingTupleValue(tupleKey);
-                        // if value is ever zero, set outValue to zero and end for-loop
-                        if (fabs(value) < DBL_EPSILON) { outValue = 0; break; }
-                        // mult/div value into outValue
-                        if (fitIntersectArray[ri].sign) {
+                        if (fabs(value) < DBL_EPSILON) {                // if value is ever zero, set outValue to zero and end for-loop
+                            outValue = 0;
+                            break;
+                        }
+                        if (fitIntersectArray[ri].sign) {               // mult/div value into outValue
                             outValue *= value;
                         } else {
                             outValue /= value;
                         }
                     }
-                    // put outvalue into fitted table
-                    algTable->sumTuple(tupleKey, outValue / missingCard);
+                    algTable->sumTuple(tupleKey, outValue / missingCard);       // put outvalue into fitted table
                 }
             }
         }
         algTable->sort();
+        if (fitTable1) delete fitTable1;
         fitTable1 = algTable;
         return true;
     }
@@ -781,15 +797,18 @@ bool ocManagerBase::makeFitTable(ocModel *model)
     stateSpaceSize = (unsigned long long) ocDegreesOfFreedom(varList) + 1;
     if (!fitTable1) {
         //-- for large state spaces, start with less space and let it grow.
-        if (stateSpaceSize > 1000000) stateSpaceSize = 1000000;
+        if (stateSpaceSize > 1000000)
+            stateSpaceSize = 1000000;
         fitTable1 = new ocTable(keysize, stateSpaceSize);
     }
     if (!fitTable2) {
-        if (stateSpaceSize > 1000000) stateSpaceSize = 1000000;
+        if (stateSpaceSize > 1000000)
+            stateSpaceSize = 1000000;
         fitTable2 = new ocTable(keysize, stateSpaceSize);
     }
     if (!projTable) {
-        if (stateSpaceSize > 1000000) stateSpaceSize = 1000000;
+        if (stateSpaceSize > 1000000)
+            stateSpaceSize = 1000000;
         projTable = new ocTable(keysize, stateSpaceSize);
     }
     fitTable1->reset(keysize);
@@ -820,7 +839,8 @@ bool ocManagerBase::makeFitTable(ocModel *model)
     //-- convergence error. This is approximately in units of samples.
     //-- if initial data was probabilities, an artificial scale of 1000 is used
     double delta2;
-    if (!getOptionFloat("ipf-maxdev", NULL, &delta2)) delta2 = .20;
+    if (!getOptionFloat("ipf-maxdev", NULL, &delta2))
+        delta2 = .20;
     if (this->sampleSize > 0) {
         delta2 /= sampleSize;
     } else {
@@ -828,8 +848,9 @@ bool ocManagerBase::makeFitTable(ocModel *model)
     }
 
     double maxiter;
-    if (hasLoops(model) || (model->isStateBased() && (model->getRelationCount() > 1)) ) {
-        if (!getOptionFloat("ipf-maxit", NULL, &maxiter)) maxiter = 266;
+    if (hasLoops(model) || (model->isStateBased() && (model->getRelationCount() > 1))) {
+        if (!getOptionFloat("ipf-maxit", NULL, &maxiter))
+            maxiter = 266;
     } else {
         maxiter = 1;
     }
@@ -837,7 +858,7 @@ bool ocManagerBase::makeFitTable(ocModel *model)
     long long i, j;
     long long tupleCount;
     for (iter = 0; iter < maxiter; iter++) {
-        error = 0.0;		// abs difference between original proj and computed values
+        error = 0.0; // abs difference between original proj and computed values
         for (r = 0; r < model->getRelationCount(); r++) {
             ocRelation *rel = model->getRelation(r);
             ocTable *relp = rel->getTable();
@@ -856,7 +877,8 @@ bool ocManagerBase::makeFitTable(ocModel *model)
                 double newValue = 0.0;
                 fitTable1->copyKey(i, key);
                 double value = fitTable1->getValue(i);
-                for (k = 0; k < keysize; k++) key[k] |= mask[k];
+                for (k = 0; k < keysize; k++)
+                    key[k] |= mask[k];
                 j = relp->indexOf(key);
                 if (j >= 0) {
                     double relvalue = relp->getValue(j);
@@ -864,7 +886,7 @@ bool ocManagerBase::makeFitTable(ocModel *model)
                         j = projTable->indexOf(key);
                         if (j >= 0) {
                             double projvalue = projTable->getValue(j);
-                            if (projvalue > 0.0) { 
+                            if (projvalue > 0.0) {
                                 newValue = value * relvalue / projvalue;
                             }
                             error = fmax(error, fabs(relvalue - projvalue));
@@ -884,23 +906,22 @@ bool ocManagerBase::makeFitTable(ocModel *model)
             fitTable2 = ftswap;
         }
         // check convergence
-        if (error < delta2) break;
+        if (error < delta2)
+            break;
     }
     fitTable1->sort();
     model->setAttribute(ATTRIBUTE_IPF_ITERATIONS, (double) iter);
     model->setAttribute(ATTRIBUTE_IPF_ERROR, error);
-    //delete dont_care_k;
-    delete [] key;
+    delete[] key;
     return true;
 }
-
 
 /**
  * compute the orthogonal expansion of a projection. This means taking every tuple in the projection, and
  * apportioning it evenly across all the states which map into the substate of that projection.
  */
-void ocManagerBase::expandTuple(double tupleValue, ocKeySegment *key, int *missingVars, int missingCount, ocTable *outTable, int currentMissingVar)
-{
+void ocManagerBase::expandTuple(double tupleValue, ocKeySegment *key, int *missingVars, int missingCount,
+        ocTable *outTable, int currentMissingVar) {
     if (missingCount == 0) {
         outTable->addTuple(key, tupleValue);
     } else {
@@ -923,9 +944,7 @@ void ocManagerBase::expandTuple(double tupleValue, ocKeySegment *key, int *missi
     }
 }
 
-
-void ocManagerBase::makeOrthoExpansion(ocRelation *rel, ocTable *outTable)
-{
+void ocManagerBase::makeOrthoExpansion(ocRelation *rel, ocTable *outTable) {
     //-- get an array of the variable indices which don't occur in the relation.
     int varCount = rel->getVariableList()->getVarCount();
     int missingVars[varCount];
@@ -944,9 +963,7 @@ void ocManagerBase::makeOrthoExpansion(ocRelation *rel, ocTable *outTable)
     outTable->normalize();
 }
 
-
-void ocManagerBase::makeSbExpansion(ocRelation *rel, ocTable *table)
-{
+void ocManagerBase::makeSbExpansion(ocRelation *rel, ocTable *table) {
     int varCount = rel->getVariableCount();
     int vars[varCount];
     varCount = rel->copyVariables(vars, varCount);
@@ -961,12 +978,10 @@ void ocManagerBase::makeSbExpansion(ocRelation *rel, ocTable *table)
     //table->normalize();
 }
 
-
-bool ocManagerBase::hasLoops(ocModel *model)
-{	
+bool ocManagerBase::hasLoops(ocModel *model) {
     bool loops;
     double dloops = model->getAttribute(ATTRIBUTE_LOOPS);
-    if (dloops < 0) {	// -1 = not set, 1 = true, 0 = false
+    if (dloops < 0) { // -1 = not set, 1 = true, 0 = false
         loops = ocHasLoops(model);
         model->setAttribute(ATTRIBUTE_LOOPS, loops ? 1 : 0);
     } else {
@@ -975,45 +990,50 @@ bool ocManagerBase::hasLoops(ocModel *model)
     return loops;
 }
 
+// For information purposes, tells us the direction of the search.
+// 0 = up, 1 = down
+void ocManagerBase::setSearchDirection(int dir) {
+    if ((dir == 0) || (dir == 1))
+        searchDirection = dir;
+    else
+        searchDirection = 0;
+}
 
-double ocManagerBase::computeDF(ocRelation *rel)	// degrees of freedom
-{
+double ocManagerBase::computeDF(ocRelation *rel) { // degrees of freedom
     double df = rel->getAttribute(ATTRIBUTE_DF);
-    if (df < 0.0) {	//-- not set yet
+    if (df < 0.0) { //-- not set yet
         df = ::ocDegreesOfFreedom(rel);
         rel->setAttribute(ATTRIBUTE_DF, df);
     }
     return df;
 }
 
-
-double ocManagerBase::compute_SB_DF(ocModel *model)
-{
+double ocManagerBase::computeDfSb(ocModel *model) {
     double df = model->getAttribute(ATTRIBUTE_DF);
-    if (df < 0.0) {	//-- not set yet
-        df = ::ocSB_DF(model);
+    if (df < 0.0) { //-- not set yet
+        df = ::ocDegreesOfFreedomStateBased(model);
         model->setAttribute(ATTRIBUTE_DF, df);
     }
     return df;
-
 }
 
-
-double ocManagerBase::computeDF(ocModel *model)
-{
+double ocManagerBase::computeDF(ocModel *model) {
     double df = model->getAttribute(ATTRIBUTE_DF);
-    if (df < 0.0) {	//-- not set yet
-        DFAndEntropy(model);
-        df = model->getAttribute(ATTRIBUTE_DF);
+    if (df < 0.0) { //-- not set yet
+        if (model->isStateBased()) {
+            df = computeDfSb(model);
+        } else {
+            calculateDfAndEntropy(model);
+            df = model->getAttribute(ATTRIBUTE_DF);
+        }
     }
     return df;
 }
 
-
-double ocManagerBase::computeH(ocRelation *rel)	// uncertainty
-{
+double ocManagerBase::computeH(ocRelation *rel) // uncertainty
+        {
     double h = rel->getAttribute(ATTRIBUTE_H);
-    if (h < 0) {	//-- not set yet
+    if (h < 0) { //-- not set yet
         ocTable *table = rel->getTable();
         if (table == NULL) {
             makeProjection(rel);
@@ -1025,15 +1045,16 @@ double ocManagerBase::computeH(ocRelation *rel)	// uncertainty
     return h;
 }
 
-
-double ocManagerBase::computeH(ocModel *model, HMethod method, int SB)
-{
+double ocManagerBase::computeH(ocModel *model, HMethod method, int SB) {
     double h;
     bool loops;
 
-    if (method == ALGEBRAIC) loops = false;
-    else if (method == IPF) loops = true;
-    else loops = hasLoops(model);
+    if (method == ALGEBRAIC)
+        loops = false;
+    else if (method == IPF)
+        loops = true;
+    else
+        loops = hasLoops(model);
 
     //-- for models with loops, compute fitted H value.  There may be
     //-- an H value as well, but this is ignored for models with loops.
@@ -1047,8 +1068,8 @@ double ocManagerBase::computeH(ocModel *model, HMethod method, int SB)
         }
     } else {
         h = model->getAttribute(ATTRIBUTE_ALG_H);
-        if (h < 0) {	//-- not set yet
-            DFAndEntropy(model);
+        if (h < 0) { //-- not set yet
+            calculateDfAndEntropy(model);
             h = model->getAttribute(ATTRIBUTE_ALG_H);
         }
         model->setAttribute(ATTRIBUTE_H, h);
@@ -1056,16 +1077,14 @@ double ocManagerBase::computeH(ocModel *model, HMethod method, int SB)
     return h;
 }
 
-
-double ocManagerBase::computeTransmission(ocModel *model, HMethod method, int SB)
-{
+double ocManagerBase::computeTransmission(ocModel *model, HMethod method, int SB) {
     //-- compute analytically. Krippendorf claims that you
     //-- can't do this for models with loops, but experimental
     //-- comparison indicates that loops don't matter in computing this.
     double t;
 
     t = model->getAttribute(ATTRIBUTE_ALG_T);
-    if (t < 0) {	//-- not set yet
+    if (t < 0) { //-- not set yet
         double h = 0;
 
         if (SB) {
@@ -1080,30 +1099,31 @@ double ocManagerBase::computeTransmission(ocModel *model, HMethod method, int SB
     return t;
 }
 
-
-struct DFAndHProc : public ocIntersectProcessor {
-    double df;
-    double h;
-    ocManagerBase *manager;
-    DFAndHProc(ocManagerBase *mgr) {df = 0; h = 0; manager = mgr; }
-    virtual void process(bool sign, ocRelation *rel, int count)
-    {
-        if (rel) {
-            df += (sign ? 1 : -1) * manager->computeDF(rel) * count;
-            h += (sign ? 1 : -1) * manager->computeH(rel) * count;
+struct DFAndHProc: public ocIntersectProcessor {
+        double df;
+        double h;
+        ocManagerBase *manager;
+        DFAndHProc(ocManagerBase *mgr) {
+            df = 0;
+            h = 0;
+            manager = mgr;
         }
-    }
+        void process(bool sign, ocRelation *rel, int count) {
+            if (rel) {
+                df += (sign ? 1 : -1) * manager->computeDF(rel) * count;
+                h += (sign ? 1 : -1) * manager->computeH(rel) * count;
+            }
+        }
 };
 
-
-void ocManagerBase::DFAndEntropy(ocModel *model)
-{
+void ocManagerBase::calculateDfAndEntropy(ocModel *model) {
     if ((model->getAttribute(ATTRIBUTE_DF) < 0) || (model->getAttribute(ATTRIBUTE_ALG_H) < 0)) {
         DFAndHProc processor(this);
         if (intersectArray != NULL) {
-            delete [] intersectArray;
+            delete[] intersectArray;
             intersectCount = 0;
-            intersectMax = model->getRelationCount();;
+            intersectMax = model->getRelationCount();
+            ;
             intersectArray = NULL;
         }
         doIntersectionProcessing(model, &processor);
@@ -1112,9 +1132,7 @@ void ocManagerBase::DFAndEntropy(ocModel *model)
     }
 }
 
-
-void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcessor *proc)
-{
+void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcessor *proc) {
     //-- allocate intersect storage; this grows later if needed
     if (intersectArray == NULL) {
         intersectMax = model->getRelationCount();
@@ -1162,10 +1180,10 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
         nextCount = 0;
         nextMax = intersectMax;
         for (i = 0; i < currentCount; i++) {
-            for (j = currentArray[i].startIndex+1; j < level0end; j++) {
+            for (j = currentArray[i].startIndex + 1; j < level0end; j++) {
                 ip = currentArray + i;
                 jp = intersectArray + j;
-                if(intersect(ip->rel, jp->rel, newvars, newcount)) {
+                if (intersect(ip->rel, jp->rel, newvars, newcount)) {
                     rel = getRelation(newvars, newcount, true);
                     proc->process(sign, rel, ip->count);
                     // only add the relation to the intersect array if it has any potential for overlap.
@@ -1191,24 +1209,25 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
                             newp->count = ip->count;
                         }
                     }
-                    delete [] newvars;
+                    delete[] newvars;
                 }
             }
         }
         if (currentArray != intersectArray) {
-            delete [] currentArray;
+            delete[] currentArray;
         }
         currentArray = nextArray;
         nextArray = NULL;
         currentCount = nextCount;
     }
+    if (currentArray != intersectArray) {
+        delete[] currentArray;
+    }
 }
-
 
 // !!! This function computes dependent stats whether or not this is a directed system. !!!
 // Perhaps this should be fixed. [jsf]
-void ocManagerBase::computeStatistics(ocRelation *rel)
-{
+void ocManagerBase::computeStatistics(ocRelation *rel) {
     int varcount;
     int maxVars = rel->getVariableCount();
     int *varindices = new int[maxVars];
@@ -1221,7 +1240,7 @@ void ocManagerBase::computeStatistics(ocRelation *rel)
     //-- now the dependent-only
     varcount = rel->getDependentVariables(varindices, maxVars);
     ocRelation *depRel = getRelation(varindices, varcount, true);
-    //-- get the various uncertainties and compute basic combinations	
+    //-- get the various uncertainties and compute basic combinations
     double h = computeH(rel);
     double hDep = computeH(depRel);
     double hInd = computeH(indRel);
@@ -1233,7 +1252,7 @@ void ocManagerBase::computeStatistics(ocRelation *rel)
     rel->setAttribute(ATTRIBUTE_DEP_H, hDep);
 
     //-- get the NC (cartesian product) measures
-    double hc = (double)rel->getNC();
+    //double hc = (double)rel->getNC();
     long long depNC = depRel->getNC();
     long long indNC = indRel->getNC();
 
@@ -1250,29 +1269,28 @@ void ocManagerBase::computeStatistics(ocRelation *rel)
     rel->setAttribute(ATTRIBUTE_COND_LR, condLR);
 
     double l2 = 2.0 * M_LN2 * tupleCount * (hDep - hCond);
-    double hCondProb = chic (condLR, df);
+    double hCondProb = chic(condLR, df);
     rel->setAttribute(ATTRIBUTE_COND_H_PROB, hCondProb);
-
+    delete[] varindices;
 }
 
-
-void ocManagerBase::computeRelWidth(ocModel *model)
-{
+void ocManagerBase::computeRelWidth(ocModel *model) {
     //-- relation widths are the min and max number of variables among the relations
     //-- in the model. For directed systems the all-independent relation is not included
     //-- in this. These values are used primarily for filtering and sorting models
-    if (model->getAttribute(ATTRIBUTE_MAX_REL_WIDTH) > 0) return;	// already did this
+    if (model->getAttribute(ATTRIBUTE_MAX_REL_WIDTH) > 0)
+        return; // already did this
     long minwidth = 0, maxwidth = 0;
     bool directed = getVariableList()->isDirected();
     long i, relCount = model->getRelationCount();
     for (i = 0; i < relCount; i++) {
         ocRelation *rel = model->getRelation(i);
-        if (directed && rel->isIndependentOnly()) continue;	// skip all-ind relation
+        if (directed && rel->isIndependentOnly())
+            continue; // skip all-ind relation
         int width = rel->getVariableCount();
-        if (maxwidth == 0) {	// first time
+        if (maxwidth == 0) { // first time
             minwidth = maxwidth = width;
-        }
-        else {
+        } else {
             minwidth = minwidth < width ? minwidth : width;
             maxwidth = maxwidth > width ? maxwidth : width;
         }
@@ -1281,28 +1299,122 @@ void ocManagerBase::computeRelWidth(ocModel *model)
     model->setAttribute(ATTRIBUTE_MAX_REL_WIDTH, (double) maxwidth);
 }
 
+double ocManagerBase::computeLR(ocModel *model) {
+    double lr = model->getAttribute(ATTRIBUTE_LR);
+    if (lr < 0) {
+        lr = fabs(2.0 * M_LN2 * sampleSize * (computeTransmission(model) - computeTransmission(refModel)));
+        model->setAttribute(ATTRIBUTE_LR, lr);
+    }
+    return lr;
+}
 
-void ocManagerBase::setValuesAreFunctions(int flag)
-{
-    if (flag == 0) valuesAreFunctions = false;
+double ocManagerBase::computeDDF(ocModel *model) {
+    // This is not an accurate method of computing DDF, in many cases.
+    // The VB & SB managers do a better job of it.
+    double ddf = model->getAttribute(ATTRIBUTE_DDF);
+    if (ddf >= 0)
+        return ddf;
+    if (model == refModel) {
+        model->setAttribute(ATTRIBUTE_DDF, 0);
+        return 0;
+    }
+    model->setAttribute(ATTRIBUTE_DDF, ddf);
+    return ddf;
+}
+
+void ocManagerBase::computeIncrementalAlpha(ocModel *model) {
+    if (model == NULL)
+        return;
+    double incr_alpha = model->getAttribute(ATTRIBUTE_INCR_ALPHA);
+    if (incr_alpha < 0) {
+        double refL2 = computeLR(model);
+        double refDDF = computeDDF(model);
+        double prog_id;
+        double ia_reachable; // To test if all steps to a model have had incr_alpha < 0.05
+        ocModel *progen = model->getProgenitor();
+        if (progen == NULL) {
+            prog_id = 0;
+            incr_alpha = 0;
+            ia_reachable = 1;
+        } else {
+            prog_id = (double) progen->getID();
+            double prog_ddf = computeDDF(progen);
+            double prog_lr = computeLR(progen);
+            incr_alpha = csa(fabs(prog_lr - refL2), fabs(prog_ddf - refDDF));
+            if ((incr_alpha < 0.05) && (progen->getAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE) == 1)) {
+                ia_reachable = 1;
+            } else {
+                ia_reachable = 0;
+            }
+        }
+        model->setAttribute(ATTRIBUTE_INCR_ALPHA, incr_alpha);
+        model->setAttribute(ATTRIBUTE_PROG_ID, prog_id);
+        model->setAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE, ia_reachable);
+    }
+}
+
+void ocManagerBase::compareProgenitors(ocModel *model, ocModel *newProgen) {
+    if ((model == NULL) || (newProgen == NULL))
+        return;
+    ocModel *oldProgen = model->getProgenitor();
+    if (oldProgen == NULL) {
+        model->setProgenitor(newProgen);
+        return;
+    }
+    // compute and save old IA, then new IA
+    computeIncrementalAlpha(model);
+    double old_IA = model->getAttribute(ATTRIBUTE_INCR_ALPHA);
+    double old_IA_reach = model->getAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE);
+
+    model->setProgenitor(newProgen);
+    model->setAttribute(ATTRIBUTE_INCR_ALPHA, -1);
+    model->setAttribute(ATTRIBUTE_PROG_ID, -1);
+    model->setAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE, -1);
+    computeIncrementalAlpha(model);
+    double new_IA = model->getAttribute(ATTRIBUTE_INCR_ALPHA);
+    double new_IA_reach = model->getAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE);
+
+    // The new progen is now in place. If it's better than (or good as) the old, keep it and return.
+    // Otherwise, put the old one back.
+    // searchDirection: 0=up, 1=down.  When searching up, prefer small incr.alpha;  when down, large.
+    // Also, when searching up, we first prefer models that are reachable, i.e., every step has IA <= 0.05.
+    // If the reference is the top (or is a custom start model above these ones), then prefer large alpha.
+    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == 1))) {
+        if (old_IA <= new_IA)
+            return;
+    } else {
+        if ((old_IA >= new_IA) && (old_IA_reach == new_IA_reach))
+            return;
+        if ((old_IA_reach != 1) && (new_IA_reach == 1))
+            return;
+    }
+    model->setProgenitor(oldProgen);
+    model->setAttribute(ATTRIBUTE_INCR_ALPHA, -1);
+    model->setAttribute(ATTRIBUTE_PROG_ID, -1);
+    model->setAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE, -1);
+    computeIncrementalAlpha(model);
+}
+
+void ocManagerBase::setValuesAreFunctions(int flag) {
+    if (flag == 0)
+        valuesAreFunctions = false;
     else {
         valuesAreFunctions = true;
         ocOptionDef *optDef = options->findOptionByName("function-values");
-        if(optDef)
+        if (optDef)
             setOptionString(optDef, "Y");
     }
 }
 
-
-ocModel *ocManagerBase::makeModel(const char *name, bool makeProject)
-{
+ocModel *ocManagerBase::makeModel(const char *name, bool makeProject) {
     const char *cp = name, *cp2, *cp3;
     // Count how many relations are in the name, for initializing the ocModel object.
     int relCount = 0;
     while (cp != NULL) {
         cp = strchr(cp, ':');
         relCount++;
-        if (cp != NULL) cp++;
+        if (cp != NULL)
+            cp++;
     }
     cp = name;
     ocModel *model = new ocModel(relCount);
@@ -1310,7 +1422,7 @@ ocModel *ocManagerBase::makeModel(const char *name, bool makeProject)
     int varcount, notCount;
     int *vars = new int[varList->getVarCount()];
     bool atStart = true;
-    int i,j;
+    int i, j;
     bool varFound;
     ocRelation *rel;
     while (cp) {
@@ -1326,24 +1438,35 @@ ocModel *ocManagerBase::makeModel(const char *name, bool makeProject)
         }
         // if relname is "IV", is at the start of the string, and this is directed
         // replace "IV" with the abbrevs of all the IVs
-        if (varList->isDirected() && (atStart == true) && (strcmp(relname, "IV") == 0) ) {
+        if (varList->isDirected() && (atStart == true) && (strcmp(relname, "IV") == 0)) {
             rel = getChildRelation(getTopRefModel()->getRelation(0), varList->getDV());
+        // if relname is "IVI" at the start of a neutral model, add all single-variable relations
+        } else if (!varList->isDirected() && (atStart == true) && (strcmp(relname, "IVI") == 0)) {
+            for (i=0; i < varList->getVarCount(); i++) {
+                vars[0] = i;
+                rel = getRelation(vars, 1, makeProject);
+                model->addRelation(rel, true);
+            }
+            atStart = false;
+            continue;
         } else if (strchr(relname, '[') != NULL) {
             cp2 = strchr(relname, '[');
             cp2++;
             cp3 = strchr(cp2, ']');
             if (cp3 == NULL) {
-                delete model; delete relname; delete vars;
-                return NULL;    // error in name
+                delete model;
+                delete relname;
+                delete vars;
+                return NULL; // error in name
             }
-            relname[cp3-relname] = '\0';
+            relname[cp3 - relname] = '\0';
             int *notVars = new int[varList->getVarCount()];
             notCount = varList->getVariableList(cp2, notVars);
             varcount = 0;
             // Now add in every variable in the full varList that is not in the notVars list.
-            for (i=0; i < varList->getVarCount(); i++) {
+            for (i = 0; i < varList->getVarCount(); i++) {
                 varFound = false;
-                for (j=0; j < notCount; j++) {
+                for (j = 0; j < notCount; j++) {
                     if (notVars[j] == i) {
                         varFound = true;
                         break;
@@ -1356,28 +1479,33 @@ ocModel *ocManagerBase::makeModel(const char *name, bool makeProject)
             }
             delete notVars;
             if (varcount == 0) {
-                delete model; delete relname; delete vars;
-                return NULL;	// error in name
+                delete model;
+                delete relname;
+                delete vars;
+                return NULL; // error in name
             }
             rel = getRelation(vars, varcount, makeProject);
-
         } else {
             varcount = varList->getVariableList(relname, vars);
             if (varcount == 0) {
-                delete model; delete relname; delete vars;
-                return NULL;	// error in name
+                delete model;
+                delete relname;
+                delete vars;
+                return NULL; // error in name
             }
             rel = getRelation(vars, varcount, makeProject);
         }
         if (rel == NULL) {
-            delete model; delete relname; delete vars;
-            return NULL;	// error in name
+            delete model;
+            delete relname;
+            delete vars;
+            return NULL; // error in name
         }
-        model->addRelation(rel, makeProject);
+        model->addRelation(rel, true);
         atStart = false;
     }
-    delete vars;
-    delete relname;
+    delete[] vars;
+    delete[] relname;
 
     //-- put it in the cache; return the cached one if present
     if (!modelCache->addModel(model)) {
@@ -1386,27 +1514,25 @@ ocModel *ocManagerBase::makeModel(const char *name, bool makeProject)
         delete model;
         model = cachedModel;
     }
-
     return model;
 }
 
-
 #define MAXSTATENAME 10
-ocModel *ocManagerBase::makeSBModel(const char *name, bool makeProject)
-{
+ocModel *ocManagerBase::makeSbModel(const char *name, bool makeProject) {
     const char *cp = name, *cp2;
     // Count how many relations are in the name, for initializing the ocModel object.
     int relCount = 0;
     while (cp != NULL) {
         cp = strchr(cp, ':');
         relCount++;
-        if (cp != NULL) cp++;
+        if (cp != NULL)
+            cp++;
     }
     cp = name;
     ocModel *model = new ocModel(relCount);
     // This estimate for maximum relation name length is questionable [jsf]
-    char *relname = new char[(1 + varList->getMaxAbbrevLen()) * varList->getVarCount() * 2 * MAXSTATENAME];
-    int varcount;
+    char *relName = new char[(1 + varList->getMaxAbbrevLen()) * varList->getVarCount() * 2 * MAXSTATENAME];
+    int varCount;
     int *vars = new int[varList->getVarCount()];
     int *states = new int[varList->getVarCount()];
     bool atStart = true;
@@ -1415,105 +1541,55 @@ ocModel *ocManagerBase::makeSBModel(const char *name, bool makeProject)
         cp2 = strchr(cp, ':');
         if (cp2 != NULL) {
             int len = cp2 - cp;
-            strncpy(relname, cp, len);
-            relname[len] = '\0';
+            strncpy(relName, cp, len);
+            relName[len] = '\0';
             cp = cp2 + 1;
         } else {
-            strcpy(relname, cp);
+            strcpy(relName, cp);
             cp = NULL;
         }
         // if relname is "IV", is at the start of the string, and this is directed,
-        // replace "IV" with the abbrevs of all the IVs
-        if (varList->isDirected() && (atStart == true) && (strcmp(relname,"IV") == 0) ) {
+        // replace "IV" with the abbreviations of all the IVs
+        if (varList->isDirected() && (atStart == true) && (strcmp(relName, "IV") == 0)) {
             const char *indName = getIndRelation()->getPrintName();
-            varcount = varList->getVarStateList(indName, vars, states);
-            if (varcount == 0) {
-                delete model;
-                delete relname;
-                delete vars;
-                return NULL;    // error in name
+            varCount = varList->getVarStateList(indName, vars, states);
+            if (varCount == 0) {
+                delete model, relName, vars;
+                return NULL; // error in name
             }
-            rel = getRelation(vars, varcount, makeProject, states);
+            rel = getRelation(vars, varCount, makeProject, states);
         } else {
-            varcount = varList->getVarStateList(relname, vars, states);
-            if (varcount == 0) {
-                delete model;
-                delete relname;
-                delete vars;
-                return NULL;    // error in name
+            varCount = varList->getVarStateList(relName, vars, states);
+            if (varCount == 0) {
+                delete model, relName, vars;
+                return NULL; // error in name
             }
-            rel = getRelation(vars, varcount, makeProject, states);
+            rel = getRelation(vars, varCount, makeProject, states);
         }
         if (rel == NULL) {
-            delete model;
-            delete relname;
-            delete vars;
-            return NULL;    // error in name
+            delete model, relName, vars;
+            return NULL; // error in name
         }
-
-        model->addRelation(rel, false);
+        model->addRelation(rel, true, getModelCache());
         atStart = false;
     }
-    int stateSpace = (long) ocDegreesOfFreedom(varList) + 1;
+    model->completeSbModel();
 
-    makeStateSpaceArr(stateSpace);
-    //varcount = varList->getVarCount();
-    model->makeStructMatrix(stateSpace, varList, stateSpaceArr);
-
-    delete vars;
-    delete relname;
-
+    //-- put it in the cache; return the cached one if present
+    if (!modelCache->addModel(model)) {
+        //-- already exists in cache; return that one
+        ocModel *cachedModel = modelCache->findModel(model->getPrintName());
+        delete model;
+        model = cachedModel;
+    }
+    delete[] vars;
+    delete[] states;
+    delete[] relName;
     return model;
 }
 
-
-void ocManagerBase::makeStateSpaceArr(int statespace)
-{
-    int var_count = varList->getVarCount();
-    stateSpaceArr = new int *[statespace];
-    int *stateSpaceArr1;
-    for(int i=0; i < statespace; i++) {
-        stateSpaceArr1 = new int[var_count];
-        stateSpaceArr[i] = stateSpaceArr1;
-    }
-
-    for (int i=0; i < statespace; i++) {
-        for(int j=0; j < var_count; j++) {
-            stateSpaceArr[i][j] = 0;
-        }
-    }
-    for(int k=0; k < var_count; k++) {
-        stateSpaceArr[0][k] = 0;
-    }	
-    int l = var_count - 1;
-    int i = 0;
-    int loop1 = 0;
-    while(i < statespace - 1) {
-        //first copy from previous state
-        for(int j=0; j < var_count; j++) {
-            stateSpaceArr[i+1][j] = stateSpaceArr[i][j];
-        }
-rap:
-        if(i+1 == statespace) break;
-        ocVariable *var = varList->getVariable(l);
-        int card = var->cardinality;
-        if(stateSpaceArr[i][l] == (card - 1)) {
-            stateSpaceArr[i+1][l] = 0;
-            l--;
-            if(l < 0) break;
-            goto rap;
-        } else {
-            stateSpaceArr[i+1][l]++;
-            l = var_count - 1;
-        }
-        i++;
-    }
-}
-
-
-void ocManagerBase::printOptions(bool printHTML = false) 
-{
-    options->write(NULL, printHTML);
+void ocManagerBase::printOptions(bool printHTML, bool skipNominal) {
+    options->write(NULL, printHTML, skipNominal);
     if (printHTML) {
         printf("<tr><td>Data Lines Read</td><td>%d</td></tr>\n", dataLines);
     } else {
@@ -1521,23 +1597,17 @@ void ocManagerBase::printOptions(bool printHTML = false)
     }
 }
 
-
-void ocManagerBase::printSizes()
-{
+void ocManagerBase::printSizes() {
     long size;
     size = relCache->size();
-    printf("Rel-cache: %ld; ", size); 
+    printf("Rel-cache: %ld; ", size);
     size = modelCache->size();
-    printf("Model cache: %ld; ", size); 
+    printf("Model cache: %ld; ", size);
     //	relCache->dump();
     modelCache->dump();
 }
 
-
-void ocManagerBase::dumpRelations()
-{
+void ocManagerBase::dumpRelations() {
     relCache->dump();
 }
-
-
 
