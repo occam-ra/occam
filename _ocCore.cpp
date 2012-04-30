@@ -2,6 +2,7 @@
  */
 
 #include "_ocCore.h"
+#include "ocCore.h"
 #include "string.h"
 #include "stdio.h"
 #include "limits.h"
@@ -79,6 +80,33 @@ bool ocContainsVariables(int varCount1, int *var1, int varCount2, int *var2)
         if (var1[i] == var2[j]) j++;
     }
     return (j >= varCount2);
+}
+
+
+
+
+bool ocContainsStates(int var_count1, int *var1, int *states1, int var_count2, int *var2, int *states2)
+{
+    bool found;
+    int s1, s2;
+    for (int i = 0; i < var_count2; i++) {
+        found = false;
+        for (int j = 0; j < var_count1; j++) {
+            if (var2[i] == var1[j]) {
+                s1 = (states1 == NULL) ? -1 : states1[j];
+                s2 = (states2 == NULL) ? -1 : states2[i];
+                if ((s1 != DONT_CARE) && (s2 != s1)) {
+                    return false;
+                } else {
+                    found = true;
+                    break;
+                }
+            }
+        }
+        if (found == false)
+            return false;
+    }
+    return true;
 }
 
 
