@@ -13,18 +13,15 @@
 #include <stdlib.h>
 #include <string.h>
 
-
-ocRelation::ocRelation(ocVariableList *list, int size, int keysz, int stateconstsz)
-{
+ocRelation::ocRelation(ocVariableList *list, int size, int keysz, int stateconstsz) {
     varList = list;
     maxVarCount = size;
     varCount = 0;
     vars = new int[size];
     table = NULL;
-    if(stateconstsz <= 0) {
-        stateConstraints = NULL;
-        states = NULL;
-    } else {
+    stateConstraints = NULL;
+    states = NULL;
+    if (stateconstsz > 0) {
         //needs a better keysize value........Anjali
         states = new int[size];
         stateConstraints = new ocStateConstraint(keysz, stateconstsz);
@@ -37,65 +34,70 @@ ocRelation::ocRelation(ocVariableList *list, int size, int keysz, int stateconst
     indepOnly = -1;
 }
 
-
-ocRelation::~ocRelation()
-{
+ocRelation::~ocRelation() {
     // delete storage.
-    if (vars) delete vars;
-    if (stateConstraints) delete stateConstraints;
-    if (table) delete table;
+    delete attributeList;
+    if (states)
+        delete states;
+    if (printName)
+        delete printName;
+    if (inverseName)
+        delete inverseName;
+    if (vars)
+        delete vars;
+    if (stateConstraints)
+        delete stateConstraints;
+    if (table)
+        delete table;
+    if (mask)
+        delete[] mask;
 }
 
-
-long ocRelation::size()
-{
+long ocRelation::size() {
     long size = sizeof(ocRelation);
-    if (table) size += table->size();
-    if (vars) size += maxVarCount * sizeof(int);
+    if (table)
+        size += table->size();
+    if (vars)
+        size += maxVarCount * sizeof(int);
     return size;
 }
 
-
-bool ocRelation::isStateBased()
-{
-    if (stateConstraints != NULL) return true;
-    else return false;
+bool ocRelation::isStateBased() {
+    if ((stateConstraints != NULL) || (states != NULL))
+        return true;
+    else
+        return false;
 }
 
-
 // adds a variable to the relation
-void ocRelation::addVariable(int varindex, int stateind)
-{
+void ocRelation::addVariable(int varindex, int stateind) {
     const int FACTOR = 2;
     while (varCount >= maxVarCount) {
         vars = (int*) growStorage(vars, maxVarCount*sizeof(int), FACTOR);
-        if(stateind >= 0 || stateind == DONT_CARE) {
+        if (stateind >= 0 || stateind == DONT_CARE) {
             states = (int*) growStorage(states, maxVarCount*sizeof(int), FACTOR);
         }
         maxVarCount *= FACTOR;
     }
     vars[varCount] = varindex;
-    if(stateind >= 0 || stateind == DONT_CARE){
+    if (stateind >= 0 || stateind == DONT_CARE) {
         states[varCount] = stateind;
     }
     varCount++;
 }
 
-
 // returns the ocVariableList object
-ocVariableList *ocRelation::getVariableList()
-{
+ocVariableList *ocRelation::getVariableList() {
     return varList;
 }
 
-
 // returns the list of variable indices. Function return value is the number of
 // variables. maxVarCount is the allocated size of indices.
-int ocRelation::copyVariables(int *indices, int maxCount, int skip)
-{
+int ocRelation::copyVariables(int *indices, int maxCount, int skip) {
     int copycount = 0, i = 0;
     for (i = 0; i < varCount; i++) {
-        if (copycount >= maxCount) break;
+        if (copycount >= maxCount)
+            break;
         if (vars[i] != skip) {
             *(indices++) = vars[i];
             copycount++;
@@ -104,30 +106,29 @@ int ocRelation::copyVariables(int *indices, int maxCount, int skip)
     return copycount;
 }
 
-
 // similar but does not copy variable array.
-int *ocRelation::getVariables()
-{
+int *ocRelation::getVariables() {
     return vars;
 }
 
+// returns list of state indices
+int *ocRelation::getStateIndices() {
+    return states;
+}
 
 // Used to compute the delta-DF between two models, by the method that counts relations.
 // The number returned is the product of all included variable's (cardinality - 1).
-long long int ocRelation::getDDFPortion()
-{
+long long int ocRelation::getDDFPortion() {
     long int total = 1;
-    for(int i=0; i < varCount; i++) {
+    for (int i = 0; i < varCount; i++) {
         total = total * (varList->getVariable(vars[i])->cardinality - 1);
     }
     return total;
 }
 
-
 // returns the list of variable indices for variables not in the relation
 // this function assumes the indices are sorted
-int ocRelation::copyMissingVariables(int *indices, int maxCount)
-{
+int ocRelation::copyMissingVariables(int *indices, int maxCount) {
     int copycount = 0;
     int i;
     int missing = 0;
@@ -135,76 +136,73 @@ int ocRelation::copyMissingVariables(int *indices, int maxCount)
     for (i = 0; i < varCount; i++) {
         nextPresent = vars[i];
         while (missing < nextPresent) {
-            if (copycount >= maxCount) break;
+            if (copycount >= maxCount)
+                break;
             *(indices++) = missing++;
             copycount++;
         }
         missing = nextPresent + 1;
     }
-    while (missing < maxCount) {
+    while (copycount <= maxCount) {
+        if (missing >= varList->getVarCount())
+            break;
         *(indices++) = missing++;
         copycount++;
     }
     return copycount;
 }
 
-
-int ocRelation::getIndependentVariables(int *indices, int maxCount)
-{
+int ocRelation::getIndependentVariables(int *indices, int maxCount) {
     int i, pos;
     pos = 0;
     for (i = 0; i < varCount; i++) {
-        if (pos >= maxCount) break;
-        if (!varList->getVariable(vars[i])->dv) indices[pos++] = vars[i];
+        if (pos >= maxCount)
+            break;
+        if (!varList->getVariable(vars[i])->dv)
+            indices[pos++] = vars[i];
     }
     return pos;
 }
 
-
-int ocRelation::getDependentVariables(int *indices, int maxCount)
-{
+int ocRelation::getDependentVariables(int *indices, int maxCount) {
     int i, pos;
     pos = 0;
     for (i = 0; i < varCount; i++) {
-        if (pos >= maxCount) break;
-        if (varList->getVariable(vars[i])->dv) indices[pos++] = vars[i];
+        if (pos >= maxCount)
+            break;
+        if (varList->getVariable(vars[i])->dv)
+            indices[pos++] = vars[i];
     }
     return pos;
 }
-
 
 // returns a single variable index
-int ocRelation::getVariable(int index)
-{
+int ocRelation::getVariable(int index) {
     return (index < varCount) ? vars[index] : -1;
 }
 
-
 // find a variable and return its internal index
-int ocRelation::findVariable(int varid)
-{
+int ocRelation::findVariable(int varid) {
     int i;
     for (i = 0; i < varCount; i++) {
-        if (getVariable(i) == varid) return i;
+        if (getVariable(i) == varid)
+            return i;
     }
     return -1;
 }
 
-
 // return number of variables in relation
-int ocRelation::getVariableCount()
-{
+int ocRelation::getVariableCount() {
     return varCount;
 }
-
 
 // get the size of the expansion of the relation, which is the
 // product of cardinalities of missing variables times the
 // number of tuples in the projection.
-double ocRelation::getExpansionSize()
-{
+double ocRelation::getExpansionSize() {
     ocTable * table = getTable();
-    if (table == 0) return 0;
+    if (table == 0)
+        return 0;
 
     int maxCount = getVariableList()->getVarCount();
     int missing[maxCount];
@@ -216,70 +214,63 @@ double ocRelation::getExpansionSize()
     }
     return size;
 
-}	
+}
 // sets a pointer to the table in the relation object
-void ocRelation::setTable(ocTable *tbl)
-{
+void ocRelation::setTable(ocTable *tbl) {
     table = tbl;
 }
 
-
 // returns a reference to the table for this relation, NULL if none computed yet.
-ocTable *ocRelation::getTable()
-{
+ocTable *ocRelation::getTable() {
     return table;
 }
 
-
 // deletes projection table
-void ocRelation::deleteTable()
-{
+void ocRelation::deleteTable() {
     if (table) {
         delete table;
         table = NULL;
     }
 }
 
-
 // sets/gets the state constraints for the relation
-void ocRelation::setStateConstraints(class ocStateConstraint *constraints)
-{
+void ocRelation::setStateConstraints(class ocStateConstraint *constraints) {
     stateConstraints = constraints;
 }
 
-
-ocStateConstraint *ocRelation::getStateConstraints()
-{
+ocStateConstraint *ocRelation::getStateConstraints() {
     return stateConstraints;
 }
 
-
 // compare two relations for equality (same set of variables)
-int ocRelation::compare(const ocRelation *other)
-{
-    return ocCompareVariables(varCount, vars, other->varCount, other->vars);
+int ocRelation::compare(ocRelation *other) {
+    int compare = ocCompareVariables(varCount, vars, other->varCount, other->vars);
+    if ((compare == 0) && (isStateBased() || other->isStateBased())) {
+        return strcmp(getPrintName(), other->getPrintName());
+    } else
+        return compare;
 }
-
 
 // see if one relation contains another. This algorithm assumes the relations are sorted
-bool ocRelation::contains(const ocRelation *other)
-{
-    return ocContainsVariables(varCount, vars, other->varCount, other->vars);
+bool ocRelation::contains(ocRelation *other) {
+    if (isStateBased() || other->isStateBased())
+        return ocContainsStates(varCount, vars, states, other->varCount, other->vars, other->states);
+        // or check if models of rel A & B are equivalent
+    else
+        return ocContainsVariables(varCount, vars, other->varCount, other->vars);
 }
 
-
 // see if all variables are independent variables. These relations are not decomposed during search
-bool ocRelation::isIndependentOnly()
-{
+bool ocRelation::isIndependentOnly() {
     if (indepOnly == 0) {
         return false;
     } else if (indepOnly == 1) {
         return true;
-    } else {			// it hasn't been determined yet, so do it
+    } else { // it hasn't been determined yet, so do it
         int i;
         int vid;
-        for (i = varCount-1; i >= 0; --i) {
-            vid = getVariable(i);	// position of variable in relation
+        for (i = varCount - 1; i >= 0; --i) {
+            vid = getVariable(i); // position of variable in relation
             if (varList->getVariable(vid)->dv) {
                 indepOnly = 0;
                 return false;
@@ -290,21 +281,17 @@ bool ocRelation::isIndependentOnly()
     }
 }
 
-
-bool ocRelation::isDependentOnly()
-{
+bool ocRelation::isDependentOnly() {
     for (int i = 0; i < varCount; i++) {
-        if(varList->getVariable(getVariable(i))->dv == false) {
+        if (varList->getVariable(getVariable(i))->dv == false) {
             return false;
         }
     }
     return true;
 }
 
-
 // get the NC (cartesian product size)
-long long ocRelation::getNC()
-{
+long long ocRelation::getNC() {
     long long nc = 1;
     int i;
     for (i = 0; i < varCount; i++) {
@@ -313,60 +300,76 @@ long long ocRelation::getNC()
     return nc;
 }
 
-
-void ocRelation::makeMask(ocKeySegment *msk)
-{
+void ocRelation::makeMask(ocKeySegment *msk) {
     int keysize = varList->getKeySize();
-    if (mask == NULL) buildMask();
-    memcpy(msk, mask, keysize*sizeof(ocKeySegment));
+    if (mask == NULL)
+        buildMask();
+    memcpy(msk, mask, keysize * sizeof(ocKeySegment));
 }
 
-
-ocKeySegment *ocRelation::getMask()
-{
-    if (mask == NULL) buildMask();
+ocKeySegment *ocRelation::getMask() {
+    if (mask == NULL)
+        buildMask();
     return mask;
 }
 
-
-static int sortCompare(const void *k1, const void *k2)
-{
-    return *((int*)k1) - *((int*)k2);
+static int sortCompare(const void *k1, const void *k2) {
+    return *((int*) k1) - *((int*) k2);
 }
 
-
-void ocRelation::sort(int *vars, int varCount)
-{
-    qsort(vars, varCount, sizeof(int), sortCompare);
+//static int sbSortCompare(void *thunk, const void *k1, const void *k2) {
+static int QSORT_COMPARISON_FUNCTION(sbSortCompare, void *thunk, const void *k1, const void *k2) {
+    int* vars = (int *) thunk;
+    return vars[*((int *) k1)] - vars[*((int *) k2)];
 }
 
-
-void ocRelation::sort()
-{
-    qsort(vars, varCount, sizeof(int), sortCompare);
+void ocRelation::sort(int *vars, int varCount, int *states) {
+    if (varCount <= 1) return;
+    if (states == NULL) {
+        qsort(vars, varCount, sizeof(int), sortCompare);
+    } else {
+        // when there are states, we must arrange both lists in unison, by the vars values.
+        // we do this by sorting an index list based on the vars values, and then arranging
+        // both vars & states using the index list afterwards.
+        int* order = new int[varCount];
+        for (int i = 0; i < varCount; i++)
+            order[i] = i;
+        // order of args must be changed for qsort_r, and its compare function, from BSD to GNU.
+        // last 2 args of qsort_r must be switched, and the thunk moved to the end of compare.
+        QSORT_R(order, varCount, sizeof(int), (void *) vars, sbSortCompare);
+        int *vars_copy = new int[varCount];
+        int *states_copy = new int[varCount];
+        memcpy(vars_copy, vars, varCount * sizeof(int));
+        memcpy(states_copy, states, varCount * sizeof(int));
+        for (int i = 0; i < varCount; i++) {
+            vars[i] = vars_copy[order[i]];
+            states[i] = states_copy[order[i]];
+        }
+        delete[] states_copy;
+        delete[] vars_copy;
+        delete[] order;
+    }
 }
 
+void ocRelation::sort() {
+    sort(vars, varCount, states);
+    //qsort(vars, varCount, sizeof(int), sortCompare);
+}
 
-void ocRelation::setAttribute(const char *name, double value)
-{
+void ocRelation::setAttribute(const char *name, double value) {
     attributeList->setAttribute(name, value);
 }
 
-
-double ocRelation::getAttribute(const char *name)
-{
+double ocRelation::getAttribute(const char *name) {
     return attributeList->getAttribute(name);
 }
 
-
-const char* ocRelation::getPrintName(int useInverse)
-{
+const char* ocRelation::getPrintName(int useInverse) {
     if (useInverse == 0 || states != NULL) {
         if (printName == NULL) {
             int maxlength = 0;
             maxlength = varList->getPrintLength(varCount, vars, states);
-            //if (maxlength < 10) maxlength = 10;	//??String allocation bug?
-            printName = new char[maxlength+1];
+            printName = new char[maxlength + 1];
             varList->getPrintName(printName, maxlength, varCount, vars, states);
         }
         return printName;
@@ -384,8 +387,9 @@ const char* ocRelation::getPrintName(int useInverse)
             if (varList->isDirected()) {
                 maxlength += strlen(varList->getVariable(varList->getDV())->abbrev);
             }
-            if (maxlength < 40) maxlength = 40;	//??String allocation bug?
-            inverseName = new char[maxlength+1];
+            if (maxlength < 40)
+                maxlength = 40; //??String allocation bug?
+            inverseName = new char[maxlength + 1];
             char *local_name = inverseName + 1;
             varList->getPrintName(local_name, maxlength, local_count, local_vars);
 
@@ -405,12 +409,11 @@ const char* ocRelation::getPrintName(int useInverse)
     }
 }
 
-
-double ocRelation::getMatchingTupleValue(ocKeySegment *key)
-{
+double ocRelation::getMatchingTupleValue(ocKeySegment *key) {
     double value;
     ocTable *table = getTable();
-    if (table == NULL) return 0;	// so we don't crash if no projection table
+    if (table == NULL)
+        return 0; // so we don't crash if no projection table
     //-- get the mask, which has 0's in the positions of variables of this relation,
     //-- and 1's elsewhere.
     ocKeySegment *mask = getMask();
@@ -426,28 +429,36 @@ double ocRelation::getMatchingTupleValue(ocKeySegment *key)
 
     //-- now look up this key in our table, and return the value if present
     int j = table->indexOf(newKey);
-    if (j >= 0) value = table->getValue(j);
-    else value = 0;
+    if (j >= 0)
+        value = table->getValue(j);
+    else
+        value = 0;
     return value;
 }
 
-
-void ocRelation::buildMask()
-{
+void ocRelation::buildMask() {
     int keysize = varList->getKeySize();
     mask = new ocKeySegment[keysize];
-    ocKey::buildMask(mask, keysize, varList, vars, varCount);	
+    ocKey::buildMask(mask, keysize, varList, vars, varCount);
 }
 
-
 // dump data to stdout
-void ocRelation::dump()
-{
-    printf("\tocRelation: %s", getPrintName());
+void ocRelation::dump() {
+    printf("\nocRelation: %s", getPrintName());
     int keysize = varList->getKeySize();
     printf("\t\tRelation mask: ");
     ocKey::dumpKey(mask, keysize);
     printf("\n");
+    if (states != NULL) {
+        printf("\tvars  :");
+        for (int i = 0; i < varCount; i++)
+            printf(" %d", vars[i]);
+        printf("\n");
+        printf("\tstates:");
+        for (int i = 0; i < varCount; i++)
+            printf(" %d", states[i]);
+        printf("\n");
+    }
 
     getAttributeList()->dump();
     printf("\n");
@@ -457,5 +468,4 @@ void ocRelation::dump()
     varList->dump();
     //delete keystr;
 }
-
 
