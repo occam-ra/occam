@@ -7,18 +7,18 @@
 #include <ctype.h>
 #include <string.h>
 
-
-static void trim(char *line)
-{
+static void trim(char *line) {
     // trim leading and trailing whitespace, and trailing comments
     char *cp1, *cp2;
 
     // stomp trailing comment
-    if ((cp2 = strchr(line, '#')) != NULL) *cp2 = '\0';
+    if ((cp2 = strchr(line, '#')) != NULL)
+        *cp2 = '\0';
 
     // shift string to eliminate leading space
     cp1 = cp2 = line;
-    while (*cp2 && isspace(*cp2)) cp2++;
+    while (*cp2 && isspace(*cp2))
+        cp2++;
     if (cp1 != cp2) {
         while (*cp2) {
             (*cp1++) = (*cp2++);
@@ -28,63 +28,68 @@ static void trim(char *line)
 
     // stomp trailing space
     cp1 = line + strlen(line);
-    while (cp1 > line && isspace(*(--cp1))) *cp1 = '\0';	// eliminate trailing space
+    while (cp1 > line && isspace(*(--cp1)))
+        *cp1 = '\0'; // eliminate trailing space
 }
-
 
 /**
  * initialize options object
  */
 struct ocOptionValue {
-    ocOptionValue *next;
-    char *value;
-    char *tip;
-    ocOptionValue() : next(NULL), value(NULL), tip(NULL) {}
-    ~ocOptionValue() {
-        delete value; delete tip;
-    }
+        ocOptionValue *next;
+        char *value;
+        char *tip;
+        ocOptionValue() :
+                next(NULL), value(NULL), tip(NULL) {
+        }
+        ~ocOptionValue() {
+            delete value;
+            delete tip;
+        }
 };
-
 
 struct ocOptionDef {
-    ocOptionDef *next;
-    char *name;
-    char *abbrev;
-    char *tip;
-    bool multi;
-    struct ocOptionValue *values;
-    ocOptionDef() : next(NULL), name(NULL), abbrev(NULL), tip(NULL), multi(false), values(NULL) {}
-    ~ocOptionDef() {
-        delete name; delete abbrev; delete tip;
-        while (values) {
-            ocOptionValue *p = values;
-            values = p->next;
-            delete p;
+        ocOptionDef *next;
+        char *name;
+        char *abbrev;
+        char *tip;
+        bool multi;
+        struct ocOptionValue *values;
+        ocOptionDef() :
+                next(NULL), name(NULL), abbrev(NULL), tip(NULL), multi(false), values(NULL) {
         }
-    }
+        ~ocOptionDef() {
+            delete name;
+            delete abbrev;
+            delete tip;
+            while (values) {
+                ocOptionValue *p = values;
+                values = p->next;
+                delete p;
+            }
+        }
 };
-
 
 struct ocOption {
-    ocOption *next;
-    ocOptionDef *def;
-    char *value;
-    ocOption(ocOptionDef *d, const char *v) :
-        next(NULL), def(d), value(NULL)
-    {
-        value = new char[strlen(v) + 1];
-        strcpy(value, v);
-    }
+        ocOption *next;
+        ocOptionDef *def;
+        char *value;
+        ocOption(ocOptionDef *d, const char *v) :
+                next(NULL), def(d), value(NULL) {
+            value = new char[strlen(v) + 1];
+            strcpy(value, v);
+        }
 
-    ~ocOption() { if (value) delete value; }
+        ~ocOption() {
+            if (value)
+                delete value;
+        }
 };
-
 
 /**
  * setStandardOptions - set up the standard option definitions
  */
-static void setStandardOptions(ocOptions *opts)
-{
+static void setStandardOptions(ocOptions *opts) {
     ocOptionDef *def;
     def = opts->addOptionName("action", "a", "Specify activity for run");
     opts->addOptionValue(def, "table", "Output metrics for all relations");
@@ -120,7 +125,8 @@ static void setStandardOptions(ocOptions *opts)
     opts->addOptionValue(def, "lr", "Chi-squared likelihood ratio");
     def = opts->addOptionName("optimize-search-width", "w", "Max models to keep at each level");
     opts->addOptionValue(def, "#", "");
-    def = opts->addOptionName("reference-model", "f", "Specify reference model (default undirected=top, directed=bottom)");
+    def = opts->addOptionName("reference-model", "f",
+            "Specify reference model (default undirected=top, directed=bottom)");
     opts->addOptionValue(def, "top", "reference is saturated model");
     opts->addOptionValue(def, "bottom", "reference is independence model");
     opts->addOptionValue(def, "default", "reference is top for undirected, bottom for directed");
@@ -138,7 +144,7 @@ static void setStandardOptions(ocOptions *opts)
     opts->addOptionValue(def, "#", "");
     def = opts->addOptionName("zero-value", "", "Set replacment value for zero tuples");
     opts->addOptionValue(def, "#", "");
-    def = opts->addOptionName("dump-data", "", "Dump loaded data");	
+    def = opts->addOptionName("dump-data", "", "Dump loaded data");
     def = opts->addOptionName("palpha", "p", "Set alpha for power computation");
     opts->addOptionValue(def, "#", "");
     def = opts->addOptionName("limit", "l", "Show only COUNT best reports");
@@ -153,7 +159,6 @@ static void setStandardOptions(ocOptions *opts)
     def = opts->addOptionName("res-confband", "", "Std devs for confidence bands");
     opts->addOptionValue(def, "#", "");
     def = opts->addOptionName("res-sorted", "", "Sort residual plot");
-    // I don't think this next option is used anywhere [jsf]
     def = opts->addOptionName("res-table", "R", "Print residual table and DV|IV, if directed");
     def = opts->addOptionName("sort", "s", "Sort fit-reports by features, default=info", true);
     opts->addOptionValue(def, "model", "model");
@@ -172,44 +177,38 @@ static void setStandardOptions(ocOptions *opts)
     opts->addOptionValue(def, "$", "");
 }
 
-
-    ocOptions::ocOptions()
-: defs(NULL), options(NULL)
-{
+ocOptions::ocOptions() :
+        defs(NULL), options(NULL) {
     setStandardOptions(this);
 }
 
-
-ocOptions::~ocOptions()
-{
+ocOptions::~ocOptions() {
     ocOptionDef *def;
     ocOption *opt;
     while (defs) {
         def = defs;
         defs = def->next;
         delete def;
-    }	
+    }
     while (options) {
         opt = options;
         options = opt->next;
         delete opt;
-    }	
+    }
 }
-
 
 /**
  * add a named option to the options list.  Initially this has no values
  */
-ocOptionDef *ocOptions::addOptionName(const char *name, const char *abbrev, const char *tip, bool multi)
-{
+ocOptionDef *ocOptions::addOptionName(const char *name, const char *abbrev, const char *tip, bool multi) {
     ocOptionDef *def = new ocOptionDef();
-    char *cp = new char[strlen(name)+1];
+    char *cp = new char[strlen(name) + 1];
     strcpy(cp, name);
     def->name = cp;
-    cp = new char[strlen(abbrev)+1];
+    cp = new char[strlen(abbrev) + 1];
     strcpy(cp, abbrev);
     def->abbrev = cp;
-    cp = new char[strlen(tip)+1];
+    cp = new char[strlen(tip) + 1];
     strcpy(cp, tip);
     def->tip = cp;
     def->multi = multi;
@@ -218,104 +217,92 @@ ocOptionDef *ocOptions::addOptionName(const char *name, const char *abbrev, cons
     return defs;
 }
 
-
-void ocOptions::addOptionValue(struct ocOptionDef *option, const char *value, const char *tip)
-{
+void ocOptions::addOptionValue(struct ocOptionDef *option, const char *value, const char *tip) {
     ocOptionValue *vp = new ocOptionValue();
-    char *cp = new char[strlen(value)+1];
+    char *cp = new char[strlen(value) + 1];
     strcpy(cp, value);
     vp->value = cp;
-    cp = new char[strlen(tip)+1];
+    cp = new char[strlen(tip) + 1];
     strcpy(cp, tip);
     vp->tip = cp;
     vp->next = option->values;
     option->values = vp;
 }
 
-
-ocOptionDef *ocOptions::findOptionByName(const char *name)
-{
+ocOptionDef *ocOptions::findOptionByName(const char *name) {
     ocOptionDef *def = defs;
     while (def) {
-        if (strcmp(name, def->name) == 0) break;
-        else def = def->next;
+        if (strcmp(name, def->name) == 0)
+            break;
+        else
+            def = def->next;
     }
-    return def;		// NULL or else matching entry
+    return def; // NULL or else matching entry
 }
 
-
-ocOptionDef *ocOptions::findOptionByAbbrev(const char *abbrev)
-{
+ocOptionDef *ocOptions::findOptionByAbbrev(const char *abbrev) {
     ocOptionDef *def = defs;
     while (def) {
-        if (strcmp(abbrev, def->abbrev) == 0) break;
-        else def = def->next;
+        if (strcmp(abbrev, def->abbrev) == 0)
+            break;
+        else
+            def = def->next;
     }
-    return def;		// NULL or else matching entry
+    return def; // NULL or else matching entry
 }
 
-
-bool ocOptions::setOptions(int argc, char **argv)
-{
+bool ocOptions::setOptions(int argc, char **argv) {
     char optname[MAXLINE], optvalue[MAXLINE];
     //-- command line arguments are either "--name=value" or "-abbrev" "value"
     //-- any arguments following the option are considered to be values for it
     ocOptionDef *currentOptDef = findOptionByName("");
-    for(int i = 1; i < argc; i++) {
+    for (int i = 1; i < argc; i++) {
         const char *cp = argv[i];
         if (cp[0] == '-') {
             if (cp[1] == '-') {
                 //-- long form: --name=value (or for booleans, just --name)
-                char * eqpos = strchr((char *)cp+2, '=');
+                char * eqpos = strchr((char *) cp + 2, '=');
                 if (eqpos != NULL) {
                     //-- has "=value" on end
-                    strncpy(optname, cp+2, eqpos-(cp+2));
-                    optname[eqpos-(cp+2)] = '\0';
-                    strcpy(optvalue, eqpos+1);
-                }
-                else {
+                    strncpy(optname, cp + 2, eqpos - (cp + 2));
+                    optname[eqpos - (cp + 2)] = '\0';
+                    strcpy(optvalue, eqpos + 1);
+                } else {
                     //-- no value
-                    strcpy(optname, cp+2);
+                    strcpy(optname, cp + 2);
                     optvalue[0] = '\0';
                 }
-                currentOptDef = findOptionByAbbrev(optname);
+                currentOptDef = findOptionByName(optname);
                 if (currentOptDef) {
                     if (currentOptDef->values == NULL) { // boolean
                         setOptionString(currentOptDef, "");
-                    }
-                    else if (strcmp(currentOptDef->values->value, "#") == 0) { // numeric
+                    } else if (strcmp(currentOptDef->values->value, "#") == 0) { // numeric
                         setOptionFloat(currentOptDef, strtod(optvalue, NULL));
-                    }
-                    else {
+                    } else {
                         setOptionString(currentOptDef, optvalue);
                     }
-                    currentOptDef = NULL;	// done
+                    currentOptDef = NULL; // done
+                } else {
+                    printf("Error 1: option %s not recognized\n", cp);
                 }
-                else {
-                    printf("Error: option %s not recognized\n", cp);
-                }				
-            }
-            else {
-                currentOptDef = findOptionByName(cp+1);
-            }
-            if (currentOptDef == NULL) {
-                printf("Error: option %s not recognized\n", cp);
-            }
-            else {
-                //-- for boolean option, set value as "true"
-                if (currentOptDef->values == NULL) {
-                    setOptionString(currentOptDef, "");
+            } else {
+                currentOptDef = findOptionByAbbrev(cp + 1);
+                if (currentOptDef == NULL) {
+                    printf("Error 2: option %s not recognized\n", cp);
+                } else {
+                    //-- for boolean option, set value as "true"
+                    if (currentOptDef->values == NULL) {
+                        setOptionString(currentOptDef, "");
+                        currentOptDef = NULL;
+                    }
                 }
-                currentOptDef = NULL;
             }
-        }
-        else {	// values for current option
+        } else { // values for current option
             if (currentOptDef) {
                 //-- check for numeric
                 if (strcmp(currentOptDef->values->value, "#") == 0) {
                     setOptionFloat(currentOptDef, strtod(cp, NULL));
-                }
-                else {
+                } else {
                     setOptionString(currentOptDef, cp);
                 }
                 currentOptDef = NULL;
@@ -330,32 +317,32 @@ bool ocOptions::setOptions(int argc, char **argv)
     return true;
 }
 
-
-bool ocOptions::getLine(FILE *fd, char *line, int *lineno)
-{
+bool ocOptions::getLine(FILE *fd, char *line, int *lineno) {
     int count;
     char current;
     line[0] = '\0';
-    while(true) {
+    while (true) {
         count = 0;
-        while ( count < MAXLINE ) {
+        while (count < MAXLINE) {
             current = (char) fgetc(fd);
-            if ( (count == 0) && feof(fd) ) break;
-            if ( (current == '\r') || (current == '\n') || feof(fd) ) {
+            if ((count == 0) && feof(fd))
+                break;
+            if ((current == '\r') || (current == '\n') || feof(fd)) {
                 line[count++] = '\n';
                 break;
             } else if (current == '#') {
-                while ( (current != '\r') && (current != '\n') && !feof(fd) ) {
+                while ((current != '\r') && (current != '\n') && !feof(fd)) {
                     current = (char) fgetc(fd);
                 }
-                if (count == 0) continue;
+                if (count == 0)
+                    continue;
                 line[count++] = '\n';
                 break;
             } else {
                 line[count++] = current;
             }
         }
-        if ( (count == MAXLINE) && (line[count - 1] != '\n') ) {
+        if ((count == MAXLINE) && (line[count - 1] != '\n')) {
             printf("Error: maximum line length (%d) exceeded in data file.\n", MAXLINE);
             line[MAXLINE] = '\0';
             printf("Line begins:\n%s\n", line);
@@ -365,18 +352,18 @@ bool ocOptions::getLine(FILE *fd, char *line, int *lineno)
             line[count++] = '\0';
             (*lineno)++;
             trim(line);
-            if (line[0] == '\0') continue;	// skip blank lines, comments
-            if (line[0] == '\n') continue;	// skip blank lines, comments
+            if (line[0] == '\0')
+                continue; // skip blank lines, comments
+            if (line[0] == '\n')
+                continue; // skip blank lines, comments
             return true;
-        }
-        else break;
+        } else
+            break;
     }
-    return false;	// end of file
+    return false; // end of file
 }
 
-
-bool ocOptions::readOptions(FILE *fd)
-{
+bool ocOptions::readOptions(FILE *fd) {
     //-- Read options from a file.  The option name is on a line by itself,
     //-- starting with a colon.  Any option values follow on separate lines
     //-- A given option ends when there is another line with a colon or EOF.
@@ -386,46 +373,42 @@ bool ocOptions::readOptions(FILE *fd)
     char *cp;
     int lineno = 0;
     bool gotLine = getLine(fd, line, &lineno);
-    while(gotLine) {
+    while (gotLine) {
         cp = line;
-        if (*cp == ':') {	// beginning of a new option
-            if (strcmp(cp, ":data") == 0) break;	// data values follow
-            currentOptDef = findOptionByName(cp+1);
+        if (*cp == ':') { // beginning of a new option
+            if (strcmp(cp, ":data") == 0)
+                break; // data values follow
+            currentOptDef = findOptionByName(cp + 1);
             if (currentOptDef == NULL) {
                 printf("[%d] Error: option %s not recognized\n", lineno, cp);
-            }
-            else {
+            } else {
                 //-- for boolean option, set value as "Y"
                 if (currentOptDef->values == NULL) {
                     setOptionString(currentOptDef, "Y");
                     currentOptDef = NULL;
                 }
             }
-        }
-        else {	// values for current option
+        } else { // values for current option
             if (currentOptDef) {
                 //-- check for numeric
                 if (strcmp(currentOptDef->values->value, "#") == 0) {
                     setOptionFloat(currentOptDef, strtod(cp, NULL));
-                }
-                else {
+                } else {
                     setOptionString(currentOptDef, cp);
                 }
                 // if its not a multivalue we are done
-                if (!currentOptDef->multi) currentOptDef = NULL;
-            }
-            else {
+                if (!currentOptDef->multi)
+                    currentOptDef = NULL;
+            } else {
                 printf("[%d] Error: '%s' unexpected\n", lineno, cp);
             }
         }
         gotLine = getLine(fd, line, &lineno);
     }
-    return true;	
+    return true;
 }
 
-
-bool ocOptions::setOptionString(ocOptionDef *def, const char *value)
-{
+bool ocOptions::setOptionString(ocOptionDef *def, const char *value) {
     //-- find the option value.  If there is one already, and
     //-- the option is not a multiple option, update it.
     //-- otherwise append a new option to the list
@@ -435,100 +418,102 @@ bool ocOptions::setOptionString(ocOptionDef *def, const char *value)
         //-- an option of "$" means any string is legal
         //-- an option of "#" means numeric
         //-- an option of "?" means boolean
-        if (strcmp("$", val->value) == 0 ||
-                strcmp("#", val->value) == 0) break;
-        else if (strcmp(value, val->value) == 0) break;
-        else val = val->next;
+        if (strcmp("$", val->value) == 0 || strcmp("#", val->value) == 0)
+            break;
+        else if (strcmp(value, val->value) == 0)
+            break;
+        else
+            val = val->next;
     }
     if (val == NULL && toupper(value[0]) != 'Y') {
         //-- no match on option value, and it's not a boolean
         printf("Error, value '%s' not legal for option '%s'\n", value, def->name);
-    }
-    else {
+    } else {
         while (opt) {
-            if (opt->def == def && !def->multi) break;
+            if (opt->def == def && !def->multi)
+                break;
             lastopt = opt;
-            opt = opt -> next;
+            opt = opt->next;
         }
-        if (opt == NULL) {	// not found, or multiples allowed; append to list
-            if (lastopt == NULL) { 
+        if (opt == NULL) { // not found, or multiples allowed; append to list
+            if (lastopt == NULL) {
                 options = new ocOption(def, value); // first time
+            } else {
+                lastopt->next = new ocOption(def, value); // append to list
             }
-            else {
-                lastopt->next = new ocOption(def, value);	// append to list
-            }
-        }
-        else {	// match - update it
+        } else { // match - update it
             delete opt->value;
-            opt->value = new char[strlen(value)+1];
+            opt->value = new char[strlen(value) + 1];
             strcpy(opt->value, value);
         }
     }
     return true;
 }
 
-
-bool ocOptions::setOptionFloat(ocOptionDef *def, double nvalue)
-{
+bool ocOptions::setOptionFloat(ocOptionDef *def, double nvalue) {
     char val[32];
     sprintf(val, "%14lg", nvalue);
     return setOptionString(def, val);
 }
 
-
-bool ocOptions::getOptionString(const char *name, void **nextp, const char **value)
-{
+bool ocOptions::getOptionString(const char *name, void **nextp, const char **value) {
     ocOption *opt = nextp ? (ocOption *) *nextp : NULL;
-    if (opt == NULL) opt = options;	// start of list, if next is null
-    else opt = opt->next;	// already processed this one last time
+    if (opt == NULL)
+        opt = options; // start of list, if next is null
+    else
+        opt = opt->next; // already processed this one last time
     while (opt) {
-        if (strcmp(opt->def->name, name) == 0) break;
-        else opt = opt->next;
+        if (strcmp(opt->def->name, name) == 0)
+            break;
+        else
+            opt = opt->next;
     }
-    if (opt == NULL) return false;
+    if (opt == NULL)
+        return false;
     else {
         *value = opt->value;
-        if (nextp) *nextp = opt;	// return for next iteration
+        if (nextp)
+            *nextp = opt; // return for next iteration
         return true;
     }
 }
 
-
-bool ocOptions::getOptionFloat(const char *name, void **nextp, double *nvalue)
-{
+bool ocOptions::getOptionFloat(const char *name, void **nextp, double *nvalue) {
     const char *value;
     if (getOptionString(name, nextp, &value)) {
         sscanf(value, "%lg", nvalue);
         return true;
-    }
-    else {
+    } else {
         *nvalue = -1;
         return false;
     }
 }
 
-
-void ocOptions::write(FILE *fd, bool printHTML)
-{
+void ocOptions::write(FILE *fd, bool printHTML, bool skipNominal) {
     const char *startline, *endline, *fieldsep;
 
     ocOption *opt = options;
-    if (fd == NULL) fd = stdout;
+    if (fd == NULL)
+        fd = stdout;
     if (printHTML) {
         startline = "<TR><TD>";
         endline = "</TD></TR>\n";
         fieldsep = "</TD><TD>";
-    }
-    else {
+    } else {
         startline = "";
         endline = "\n";
         fieldsep = ",";
     }
     fprintf(fd, "%sOption settings:%s", startline, endline);
-    //Anjali 
+    if(skipNominal)
+        fprintf(fd, "%s(Omitting variable definitions.)%s", startline, endline);
     while (opt) {
         const char *name = opt->def->name;
         const char *value = opt->value;
+        if (skipNominal && strcmp(name, "nominal") == 0) {
+            opt = opt->next;
+            continue;
+        }
         // (kenw) don't print data file name here; the real name is printed elsewhere
         if (strcmp(name, "datafile") != 0) {
             fprintf(fd, "%s%s%s%s%s", startline, name, fieldsep, value, endline);
@@ -536,5 +521,4 @@ void ocOptions::write(FILE *fd, bool printHTML)
         opt = opt->next;
     }
 }
-
 
