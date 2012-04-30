@@ -12,61 +12,94 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include "ocWin32.h"
+//#include "ocWin32.h"
 
-ocSBMManager::ocSBMManager(ocVariableList *vars, ocTable *input):
-    ocManagerBase(vars, input)
-{
+ocSBMManager::ocSBMManager(ocVariableList *vars, ocTable *input) :
+        ocManagerBase(vars, input) {
     topRef = bottomRef = refModel = NULL;
     projection = true;
     filterAttr = NULL;
     filterOp = EQUALS;
     filterValue = 0.0;
     sortAttr = NULL;
+    search = NULL;
     sortDirection = 0;
 }
 
-
-ocSBMManager::ocSBMManager():
-    ocManagerBase()
-{
+ocSBMManager::ocSBMManager() :
+        ocManagerBase() {
     topRef = bottomRef = refModel = NULL;
     projection = true;
     filterAttr = NULL;
     filterOp = EQUALS;
     filterValue = 0.0;
     sortAttr = NULL;
+    search = NULL;
     sortDirection = 0;
 }
 
-
-ocSBMManager::~ocSBMManager()
-{
-    if (filterAttr) delete filterAttr;
-    if (sortAttr) delete sortAttr;
+ocSBMManager::~ocSBMManager() {
+    if (filterAttr)
+        delete filterAttr;
+    if (sortAttr)
+        delete sortAttr;
+    if (search)
+        delete search;
 }
 
-
-bool ocSBMManager::initFromCommandLine(int argc, char **argv)
-{
-    if (!ocManagerBase::initFromCommandLine(argc, argv)) return false;
+bool ocSBMManager::initFromCommandLine(int argc, char **argv) {
+    if (!ocManagerBase::initFromCommandLine(argc, argv))
+        return false;
+    // Check that variable & state names are appropriate for state-based
+    verifyStateBasedNaming();
     if (varList) {
-        int varCount = varList->getVarCount();
-        ocRelation *top = new ocRelation(varList, varCount);
-        int i;
-        for (i = 0; i < varCount; i++) top->addVariable(i);	// all vars in saturated model
+        int var_count = varList->getVarCount();
+        int* var_indices = new int[var_count];
+        int* state_indices = new int[var_count];
+        for (int i = 0; i < var_count; i++) {
+            var_indices[i] = i;
+            state_indices[i] = DONT_CARE;
+        }
+        ocRelation *top = getRelation(var_indices, var_count, false, state_indices);
         top->setTable(inputData);
         makeReferenceModels(top);
+        delete[] var_indices;
+        delete[] state_indices;
     }
     return true;
 }
 
+// Verifies that variable abbreviations are letters-only, and that state names are numbers-only.
+// It finds & prints all errors before exiting.
+void ocSBMManager::verifyStateBasedNaming() {
+    bool errorFound = false;
+    char temp[MAXLINE];
+    int test = 0;
+    if (varList) {
+        int var_count = varList->getVarCount();
+        for (int i=0; i < var_count; i++) {
+            test = sscanf(varList->getVariable(i)->abbrev, "%[A-Za-z]", temp);
+            if ((test != 1) || (strcmp(temp, varList->getVariable(i)->abbrev) != 0)) {
+                printf("Error: Invalid state-based variable abbreviation: \"%s\". Abbreviations must use only letters.\n", varList->getVariable(i)->abbrev);
+                errorFound = true;
+            }
+            for (int j=0; j < varList->getVariable(i)->cardinality; j++) {
+                test = sscanf(varList->getVariable(i)->valmap[j], "%[0-9.]", temp);
+                if ((test != 1) || (strcmp(temp, varList->getVariable(i)->valmap[j]) != 0)) {
+                    printf("Error: Invalid state-based state value: \"%s\" Values must use only numbers.\n", varList->getVariable(i)->valmap[j]);
+                    errorFound = true;
+                }
+            }
+        }
+    }
+    if (errorFound)
+        exit(1);
+}
 
-void ocSBMManager::makeReferenceModels(ocRelation *top)
-{
+void ocSBMManager::makeReferenceModels(ocRelation *top) {
     ocModel *model = new ocModel(1);
-    model->addRelation(top);
-    //modelCache->addModel(model);
+    model->addRelation(top, false);
+    model->completeSbModel();
     topRef = model;
     //-- Generate bottom reference model. If system is neutral.
     //-- this has a relation per variable. Otherwise it has a
@@ -74,64 +107,78 @@ void ocSBMManager::makeReferenceModels(ocRelation *top)
     //-- the independent variables.
     int varCount = varList->getVarCount();
     int* varindices = new int[varCount];
+    int* state_indices = new int[varCount];
     ocRelation *rel;
     int i;
     if (varList->isDirected()) {
         //-- first, make a relation with all the independent variables
-        model = new ocModel(2);	// typical case: one dep variable
+        model = new ocModel(2); // typical case: one dep variable
         int pos = 0;
         ocVariable *var;
         for (i = 0; i < varCount; i++) {
             var = varList->getVariable(i);
-            if (!var->dv) varindices[pos++] = i;
+            if (!var->dv) {
+                varindices[pos] = i;
+                state_indices[pos] = DONT_CARE;
+                pos++;
+            }
         }
-        rel = getRelation(varindices, pos, true);
-        model->addRelation(rel);
+        rel = getRelation(varindices, pos, true, state_indices);
+        model->addRelation(rel, true, getModelCache());
         //-- now add a unary relation for each dependent variable
         for (i = 0; i < varCount; i++) {
             var = varList->getVariable(i);
             if (var->dv) {
                 varindices[0] = i;
-                rel = getRelation(varindices, 1, true);
-                model->addRelation(rel);
+                rel = getRelation(varindices, 1, true, state_indices);
+                model->addRelation(rel, true, getModelCache());
             }
         }
-    }
-    else {
-        //this needs to change since in SB the bottom reference is uniform model and 
+        model->completeSbModel();
+    } else {
+        //this needs to change since in SB the bottom reference is uniform model and
         //not independence model
         model = new ocModel(varCount);
+        int *state = new int[1];
+        state[0] = DONT_CARE;
         for (i = 0; i < varCount; i++) {
             varindices[0] = i;
-            rel = getRelation(varindices, 1, true);
-            model->addRelation(rel);
+            rel = getRelation(varindices, 1, true, state);
+            model->addRelation(rel, true, getModelCache());
             /*
-               int inputCells = 1;
-               int varcount = varList->getVarCount();
-               for (i = 0; i < varcount; i++) {
-               inputCells *= varList->getVariable(i)->cardinality;
-               }
-               double cellWeight = 1.0 / inputCells;
-               int *varvalues = new int[varcount];
+             int inputCells = 1;
+             int varcount = varList->getVarCount();
+             for (i = 0; i < varcount; i++) {
+             inputCells *= varList->getVariable(i)->cardinality;
+             }
+             double cellWeight = 1.0 / inputCells;
+             int *varvalues = new int[varcount];
 
-               for (i = 0; i < varcount; i++) {
-               varvalues[i] = 0;
-               }
-               ocKeySegment *key = new ocKeySegment[keysize];
-               long cellCount = 0;
-               for(;;) {
-               ocKey::buildFullKey(key, keysize, varList, varvalues);
-               fitTable1->addTuple(key, cellWeight);
-               cellCount++;
-               if (!nextTuple(varList, varvalues)) break;
-               }
-               delete [] varvalues;
+             for (i = 0; i < varcount; i++) {
+             varvalues[i] = 0;
+             }
+             ocKeySegment *key = new ocKeySegment[keysize];
+             long cellCount = 0;
+             for(;;) {
+             ocKey::buildFullKey(key, keysize, varList, varvalues);
+             fitTable1->addTuple(key, cellWeight);
+             cellCount++;
+             if (!nextTuple(varList, varvalues)) break;
+             }
+             delete [] varvalues;
 
              */
         }
+        delete[] state;
+        model->completeSbModel();
     }
-    //modelCache->addModel(model); // why isn't this cached? [jsf]
     bottomRef = model;
+    if (!modelCache->addModel(bottomRef)) {
+        ocModel *cached_model = modelCache->findModel(bottomRef->getPrintName());
+        delete bottomRef;
+        bottomRef = cached_model;
+    }
+    modelCache->addModel(topRef);
     computeDF(topRef);
     computeH(topRef);
     computeDF(bottomRef);
@@ -142,59 +189,63 @@ void ocSBMManager::makeReferenceModels(ocRelation *top)
     //-- set default reference model depending on whether
     //-- the system is directed or neutral
     refModel = varList->isDirected() ? bottomRef : topRef;
-    delete [] varindices;
+    delete[] state_indices;
+    delete[] varindices;
 }
 
-
-ocModel *ocSBMManager::setRefModel(const char *name)
-{
+ocModel *ocSBMManager::setRefModel(const char *name) {
     if (strcasecmp(name, "top") == 0) {
         refModel = topRef;
-    }
-    else if (strcasecmp(name, "bottom") == 0) {
+    } else if (strcasecmp(name, "bottom") == 0) {
         refModel = bottomRef;
-    }
-    else {
-        refModel = makeSBModel(name, true);
+    } else {
+        refModel = makeSbModel(name, true);
     }
     return refModel;
 }
 
-
-double ocSBMManager::computeExplainedInformation(ocModel *model)
-{
+double ocSBMManager::computeExplainedInformation(ocModel *model) {
     double info = model->getAttribute(ATTRIBUTE_EXPLAINED_I);
-    if (info >= 0) return info;
+    if (info >= 0)
+        return info;
     double topH = topRef->getAttribute(ATTRIBUTE_H);
     double botH = bottomRef->getAttribute(ATTRIBUTE_H);
-    double modelT = computeTransmission(model,IPF);
+    double modelT = computeTransmission(model, IPF);
     info = (botH - topH - modelT) / (botH - topH);
     // info is normalized but may not quite be between zero and 1 due to roundoff. Fix this here.
-    if (info <= 0.0) info = 0.0;
-    if (info >= 1.0) info = 1.0;
+    if (info <= 0.0)
+        info = 0.0;
+    if (info >= 1.0)
+        info = 1.0;
     model->setAttribute(ATTRIBUTE_EXPLAINED_I, info);
     return info;
 }
 
-
-double ocSBMManager::computeUnexplainedInformation(ocModel *model)
-{
+double ocSBMManager::computeUnexplainedInformation(ocModel *model) {
     double topH = topRef->getAttribute(ATTRIBUTE_H);
     double botH = bottomRef->getAttribute(ATTRIBUTE_H);
-    double modelT = computeTransmission(model,IPF);
+    double modelT = computeTransmission(model, IPF);
     double info = modelT / (botH - topH);
     // info is normalized but may not quite be between zero and 1 due to roundoff. Fix this here.
-    if (info <= 0.0) info = 0.0;
-    if (info >= 1.0) info = 1.0;
+    if (info <= 0.0)
+        info = 0.0;
+    if (info >= 1.0)
+        info = 1.0;
     model->setAttribute(ATTRIBUTE_UNEXPLAINED_I, info);
     return info;
 }
 
+double ocSBMManager::computeDDF(ocModel *model) {
+    double ddf = model->getAttribute(ATTRIBUTE_DDF);
+    if (ddf >= 0)
+        return ddf;
+    if (model == refModel) {
+        model->setAttribute(ATTRIBUTE_DDF, 0);
+        return 0;
+    }
 
-double ocSBMManager::computeDDF(ocModel *model)
-{
-    double refDF = getRefModel()->getAttribute(ATTRIBUTE_DF);
-    double modelDF = model->getAttribute(ATTRIBUTE_DF);
+    double refDF = computeDF(refModel);
+    double modelDF = computeDF(model);
     double df = refDF - modelDF;
     //-- for bottom reference the sign will be wrong
     df = fabs(df);
@@ -202,45 +253,44 @@ double ocSBMManager::computeDDF(ocModel *model)
     return df;
 }
 
+void ocSBMManager::setSearch(const char *name) {
+    if (search) {
+        delete search;
+        search = NULL;
+    }
+    search = ocSearchFactory::getSearchMethod(this, name, makeProjection());
+}
 
-void ocSBMManager::computeDFStatistics(ocModel *model)
-{
-    compute_SB_DF(model);
+void ocSBMManager::computeDFStatistics(ocModel *model) {
+    computeDfSb(model);
     computeDDF(model);
 }
 
-
-
-void ocSBMManager::computeInformationStatistics(ocModel *model)
-{
+void ocSBMManager::computeInformationStatistics(ocModel *model) {
     //printf("compute H in SB computeInformationStat\n");
-    computeH(model,IPF,1);
-    computeTransmission(model,IPF,1);
+    computeH(model, IPF, 1);
+    computeTransmission(model, IPF, 1);
     computeExplainedInformation(model);
     computeUnexplainedInformation(model);
 }
 
-
-void ocSBMManager::computeL2Statistics(ocModel *model)
-{
+void ocSBMManager::computeL2Statistics(ocModel *model) {
     //-- make sure we have the fitted table (needed for some statistics)
     //-- this will return immediately if the table was already created.
 
     //-- make sure the other attributes are there
-    //printf("in L2 statistics\n");
     computeDFStatistics(model);
 
-    //exit(1);
     computeInformationStatistics(model);
     //-- compute chi-squared statistics and related statistics. L2 = 2*n*sum(p(ln p/q))
     //-- which is 2*n*ln(2)*T
     int errcode;
-    double modelT = computeTransmission(model,IPF);
+    double modelT = computeTransmission(model, IPF);
     double modelL2 = 2.0 * M_LN2 * sampleSize * modelT;
     double refT = computeTransmission(refModel);
     double refL2 = 2.0 * M_LN2 * sampleSize * refT;
     double refModelL2 = refL2 - modelL2;
-    double modelDF = compute_SB_DF(model);
+    double modelDF = computeDfSb(model);
     double refDF = computeDF(refModel);
     double refDDF = modelDF - refDF;
 
@@ -250,22 +300,27 @@ void ocSBMManager::computeL2Statistics(ocModel *model)
     //-- the csa computation will fail.
     if (refDDF < 0) {
         refDDF = -refDDF;
-        refModelL2 = - refModelL2;
+        refModelL2 = -refModelL2;
     }
 
     //-- eliminate negative value due to small roundoff
-    if (refModelL2 <= 0.0) refModelL2 = 0.0;
+    if (refModelL2 <= 0.0)
+        refModelL2 = 0.0;
 
     double refL2Prob = csa(refModelL2, refDDF);
 
-    double critX2=0, refL2Power=0;
+    double critX2 = 0, refL2Power = 0;
 
     errcode = 0;
     double alpha;
-    if (!getOptionFloat("alpha", NULL, &alpha)) alpha = 0.0;
-    if (alpha > 0) critX2 = ppchi(alpha, refDDF, &errcode);
-    else critX2 = refModelL2;
-    if (errcode) printf("ppchi: errcode=%d\n", errcode);
+    if (!getOptionFloat("alpha", NULL, &alpha))
+        alpha = 0.0;
+    if (alpha > 0)
+        critX2 = ppchi(alpha, refDDF, &errcode);
+    else
+        critX2 = refModelL2;
+    if (errcode)
+        printf("ppchi: errcode=%d\n", errcode);
     refL2Power = 1.0 - chin2(critX2, refDDF, refModelL2, &errcode);
 
     //?? do something with these returned errors
@@ -273,77 +328,94 @@ void ocSBMManager::computeL2Statistics(ocModel *model)
     model->setAttribute(ATTRIBUTE_LR, refModelL2);
     model->setAttribute(ATTRIBUTE_ALPHA, refL2Prob);
     model->setAttribute(ATTRIBUTE_BETA, refL2Power);
+
+    double dAIC = refModelL2 - 2.0 * computeDDF(model);
+    double dBIC = refModelL2 - log(sampleSize) * computeDDF(model);
+
+    // If the top model is the reference, or if there is a custom start model and we're searching down,
+    // we flip the signs of dAIC and dBIC.  (A custom start occurs when ref is neither top nor bottom.)
+    // (That is, flip signs in cases when the reference is above the model in the lattice.)
+    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == 1))) {
+        dAIC = -dAIC;
+        dBIC = -dBIC;
+    }
+    model->setAttribute(ATTRIBUTE_AIC, dAIC);
+    model->setAttribute(ATTRIBUTE_BIC, dBIC);
+
 }
 
-
-void ocSBMManager::computePearsonStatistics(ocModel *model)
-{
+void ocSBMManager::computePearsonStatistics(ocModel *model) {
     //-- these statistics require a full contingency table, so make
     //-- sure one has been created.
-    if (model == NULL || bottomRef == NULL) return;
+    if (model == NULL || bottomRef == NULL)
+        return;
     makeFitTable(model);
 
     ocTable *modelFitTable = new ocTable(keysize, fitTable1->getTupleCount());
 
     modelFitTable->copy(fitTable1);
     makeFitTable(bottomRef);
-    double modelP2 = ocPearsonChiSquared(inputData, modelFitTable, (long)round(sampleSize));
-    double refP2 = ocPearsonChiSquared(inputData, fitTable1, (long)round(sampleSize));
+    double modelP2 = ocPearsonChiSquared(inputData, modelFitTable, (long) round(sampleSize));
+    double refP2 = ocPearsonChiSquared(inputData, fitTable1, (long) round(sampleSize));
 
     int errcode;
-    double modelDF = compute_SB_DF(model);
+    double modelDF = computeDfSb(model);
     double refDF = computeDF(refModel);
     double refDDF = fabs(modelDF - refDF);
     double refModelP2 = refP2 - modelP2;
     double refP2Prob = csa(refModelP2, refDDF);
 
     double critX2, refP2Power;
-    errcode=0;
+    errcode = 0;
     double alpha;
 
-    if (!getOptionFloat("alpha", NULL, &alpha)) alpha = 0.0;
-    if (alpha > 0) critX2 = ppchi(alpha, refDDF, &errcode);
-    else critX2 = modelP2;
-    if (errcode) printf("ppchi: errcode=%d\n", errcode);
+    if (!getOptionFloat("alpha", NULL, &alpha))
+        alpha = 0.0;
+    if (alpha > 0)
+        critX2 = ppchi(alpha, refDDF, &errcode);
+    else
+        critX2 = modelP2;
+    if (errcode)
+        printf("ppchi: errcode=%d\n", errcode);
     refP2Power = 1.0 - chin2(critX2, refDDF, modelP2, &errcode);
-    if (errcode) printf("chin2: errcode=%d, %.2f, %.2f\n", errcode, refDDF, modelP2);
+    if (errcode)
+        printf("chin2: errcode=%d, %.2f, %.2f\n", errcode, refDDF, modelP2);
     //?? do something with these returned errors
 
     model->setAttribute(ATTRIBUTE_P2, modelP2);
     model->setAttribute(ATTRIBUTE_P2_ALPHA, refP2Prob);
     model->setAttribute(ATTRIBUTE_P2_BETA, refP2Power);
+    delete modelFitTable;
 }
 
-
-void ocSBMManager::computeDependentStatistics(ocModel *model)
-{
+void ocSBMManager::computeDependentStatistics(ocModel *model) {
     //-- the basic metric is the conditional uncertainty u(Z|ABC...), which is
     //-- u(model) - u(ABC...), where ABC... are the independent variables
     //-- first, compute the relation stats for the bottom reference model, which
     //-- will give us the u(ABC...).
-    if (!getVariableList()->isDirected()) return;	// can only do this for directed models
+    if (!getVariableList()->isDirected())
+        return; // can only do this for directed models
     double depH = topRef->getRelation(0)->getAttribute(ATTRIBUTE_DEP_H);
     ocRelation *indRel;
     int i;
     for (i = 0; i < bottomRef->getRelationCount(); i++) {
         indRel = bottomRef->getRelation(i);
-        if (indRel->isIndependentOnly()) break;	// this is the one.
+        if (indRel->isIndependentOnly())
+            break; // this is the one.
     }
     double indH = indRel->getAttribute(ATTRIBUTE_H);
     double refH = computeH(bottomRef);
     double refCondH = refH - indH;
 
     //printf("compute H in SB computeDependStat\n");
-    double h = computeH(model,IPF);
+    double h = computeH(model, IPF);
     double condH = h - indH;
     model->setAttribute(ATTRIBUTE_COND_H, condH);
     model->setAttribute(ATTRIBUTE_COND_DH, refH - h);
     model->setAttribute(ATTRIBUTE_COND_PCT_DH, 100 * (refH - h) / depH);
 }
 
-
-void ocSBMManager::computeBPStatistics(ocModel *model)
-{
+void ocSBMManager::computeBPStatistics(ocModel *model) {
     // this function computes transmission using the Fourier BP method.
     // Individual q values are computed as the mean value from each projection,
     // q(x) = sum (R(x)/|R|) - (nR - 1), where R(x) is the projected value
@@ -352,16 +424,14 @@ void ocSBMManager::computeBPStatistics(ocModel *model)
     //
     // Since the transmission terms are p(x) log (p(x)/q(x)), these computations
     // are only done for nonzero p and q values.
-    // Subtracting for overlaps may leave the result un-normalized because of 
-    // Null overlaps (for example, AB:CD has no overlaps, but p(AB)+p(CD) = 2, not 1)
+    // Subtracting for overlaps may leave the result un-normalized because of
+    // null overlaps (for example, AB:CD has no overlaps, but p(AB)+p(CD) = 2, not 1)
     // The count of origin terms which much still be deducted for normalization
     // is maintained, and the q values corrected at the end.
 
-    class BPIntersectProcessor : public ocIntersectProcessor
-    {
+    class BPIntersectProcessor: public ocIntersectProcessor {
         public:
-            BPIntersectProcessor(ocTable *inData, int rels, long fullDim)
-            {
+            BPIntersectProcessor(ocTable *inData, int rels, long fullDim) {
                 inputData = inData;
                 keysize = inputData->getKeySize();
                 qData = new ocTable(keysize, inputData->getTupleCount());
@@ -381,22 +451,20 @@ void ocSBMManager::computeBPStatistics(ocModel *model)
                 fullDimension = fullDim;
             }
 
-
-            virtual void process(bool sign, ocRelation *rel, int count)
-            {
+            void process(bool sign, ocRelation *rel, int count) {
                 for (int counter = 0; counter < count; counter++) {
                     ocKeySegment *key = new ocKeySegment[keysize];
                     double qi, q;
                     //-- get the orthogonal dimension of the relation (the number of states
                     //-- projected into one substate)
-                    long relDimension = fullDimension / 
-                        ((long)ocDegreesOfFreedom(rel) + 1);
+                    long relDimension = fullDimension / ((long) ocDegreesOfFreedom(rel) + 1);
                     //-- add the scaled contribution to each q
                     for (int i = 0; i < qData->getTupleCount(); i++) {
                         qData->copyKey(i, key);
                         q = qData->getValue(i);
                         ocKeySegment *mask = rel->getMask();
-                        for (int k = 0; k < keysize; k++) key[k] |= mask[k];
+                        for (int k = 0; k < keysize; k++)
+                            key[k] |= mask[k];
                         int j = rel->getTable()->indexOf(key);
                         if (j >= 0) {
                             qi = (sign ? 1 : -1) * (rel->getTable()->getValue(j) / relDimension);
@@ -407,8 +475,7 @@ void ocSBMManager::computeBPStatistics(ocModel *model)
                 }
             }
 
-            double getTransmission()
-            {
+            double getTransmission() {
                 correctOriginTerms();
 
                 double t, p, q;
@@ -418,16 +485,15 @@ void ocSBMManager::computeBPStatistics(ocModel *model)
                     p = inputData->getValue(i);
                     q = qData->getValue(j);
                     if (p > 0 && q > 0)
-                        t += p * log (p/q);
+                        t += p * log(p / q);
                 }
-                t/= log(2.0);
+                t /= log(2.0);
                 return t;
             }
 
-            void correctOriginTerms()
-            {
+            void correctOriginTerms() {
                 double q;
-                double originTerm = ((double)(originTerms-1)) / fullDimension;
+                double originTerm = ((double) (originTerms - 1)) / fullDimension;
                 for (long i = 0; i < qData->getTupleCount(); i++) {
                     q = qData->getValue(i);
                     q -= originTerm;
@@ -442,13 +508,14 @@ void ocSBMManager::computeBPStatistics(ocModel *model)
             int originTerms;
     };
 
-    long fullDimension = (long)ocDegreesOfFreedom(topRef->getRelation(0)) + 1;
+    long fullDimension = (long) ocDegreesOfFreedom(topRef->getRelation(0)) + 1;
 
     BPIntersectProcessor processor(inputData, model->getRelationCount(), fullDimension);
     if (intersectArray != NULL) {
-        delete [] intersectArray;
+        delete[] intersectArray;
         intersectCount = 0;
-        intersectMax = model->getRelationCount();;
+        intersectMax = model->getRelationCount();
+        ;
         intersectArray = NULL;
     }
 
@@ -457,21 +524,19 @@ void ocSBMManager::computeBPStatistics(ocModel *model)
     model->setAttribute(ATTRIBUTE_BP_T, t);
 }
 
-
-void ocSBMManager::setFilter(const char *attrname, double attrvalue, RelOp op)
-{
-    if (filterAttr) delete filterAttr;
+void ocSBMManager::setFilter(const char *attrname, double attrvalue, RelOp op) {
+    if (filterAttr)
+        delete filterAttr;
     filterAttr = new char[strlen(attrname) + 1];
     strcpy(filterAttr, attrname);
     filterValue = attrvalue;
     filterOp = op;
 }
 
-
-bool ocSBMManager::applyFilter(ocModel *model)
-{
+bool ocSBMManager::applyFilter(ocModel *model) {
     //-- if no filter defined, then it passes
-    if (filterAttr == NULL) return true;
+    if (filterAttr == NULL)
+        return true;
 
     //-- make sure require attributes were computed
     computeRelWidth(model);
@@ -492,20 +557,18 @@ bool ocSBMManager::applyFilter(ocModel *model)
     }
 }
 
-
-void ocSBMManager::setSortAttr(const char *name)
-{
-    if (sortAttr) delete sortAttr;
+void ocSBMManager::setSortAttr(const char *name) {
+    if (sortAttr)
+        delete sortAttr;
     sortAttr = new char[strlen(name) + 1];
     strcpy(sortAttr, name);
 }
 
-
-static void printRefTable(ocModel *model, FILE *fd, const char *ref, const char **strings, int rows)
-{
+static void printRefTable(ocModel *model, FILE *fd, const char *ref, const char **strings,
+        int rows) {
     //-- Print general report for a single model, similar to Fit in Occam2
     const char *line_sep, *header, *beginLine, *endLine, *separator, *footer, *headerSep;
-    if (ocReport::isHTMLMode()) {
+    if (ocReport::isHTMLMode()) {       // does this check a particular ocReport object, or the class?  seems odd.
         line_sep = "<hr>\n";
         header = "<table border=0 cellpadding=0 cellspacing=0><tr><td>&nbsp;</td></tr>\n";
         beginLine = "<tr><td>";
@@ -513,8 +576,7 @@ static void printRefTable(ocModel *model, FILE *fd, const char *ref, const char 
         endLine = "</td></tr>\n";
         footer = "</table><br><br>\n";
         headerSep = "<tr><td colspan=10><hr></td></tr>\n";
-    }
-    else {
+    } else {
         line_sep = "-------------------------------------------------------------------------\n";
         header = "";
         beginLine = "    ";
@@ -553,9 +615,7 @@ static void printRefTable(ocModel *model, FILE *fd, const char *ref, const char 
 
 }
 
-
-void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
-{
+void ocSBMManager::printFitReport(ocModel *model, FILE *fd) {
     //-- Print general report for a single model, similar to Fit in Occam2
     const char *line_sep, *header, *beginLine, *endLine, *separator, *footer;
     if (ocReport::isHTMLMode()) {
@@ -588,7 +648,7 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
         fprintf(fd, beginLine);
         ocRelation *rel = model->getRelation(i);
         if (directed) {
-            if (rel->isIndependentOnly() )
+            if (rel->isIndependentOnly())
                 fprintf(fd, "IV Component:");
             else
                 fprintf(fd, "Model Component: ");
@@ -596,7 +656,8 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
         }
         for (j = 0; j < rel->getVariableCount(); j++) {
             const char *varname = getVariableList()->getVariable(rel->getVariable(j))->name;
-            if (j > 0) fprintf(fd, "; ");
+            if (j > 0)
+                fprintf(fd, "; ");
             fprintf(fd, varname);
         }
         fprintf(fd, separator);
@@ -611,9 +672,9 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
     label = "Degrees of Freedom (DF):";
     value = model->getAttribute("df");
     fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
-    //label = "Loops:";
-    //value = model->getAttribute("loops");
-    //fprintf(fd, "%s%s%s%s%s", beginLine, label, separator, value > 0 ? "YES" : "NO", endLine);
+    label = "Loops:";
+    value = model->getAttribute("loops");
+    fprintf(fd, "%s%s%s%s%s", beginLine, label, separator, value > 0 ? "YES" : "NO", endLine);
     label = "Entropy(H):";
     value = model->getAttribute("h");
     fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
@@ -625,16 +686,10 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
     fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
     fprintf(fd, footer);
     //-- print top and bottom reference tables
-    const char *topFields1[] = {
-        "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA,
-        "Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA,
-        "Delta DF (dDF)", ATTRIBUTE_DDF, "",
-    };
-    const char *bottomFields1[] = {
-        "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA,
-        "Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA,
-        "Delta DF (dDF)", ATTRIBUTE_DDF, "",
-    };
+    const char *topFields1[] = { "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, "Pearson X2",
+            ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, "Delta DF (dDF)", ATTRIBUTE_DDF, "", };
+    const char *bottomFields1[] = { "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA,
+            "Pearson X2", ATTRIBUTE_P2, ATTRIBUTE_P2_ALPHA, "Delta DF (dDF)", ATTRIBUTE_DDF, "", };
     //-- compute attributes for top and bottom references
     double h1 = model->getAttribute(ATTRIBUTE_ALG_H);
     double h2 = model->getAttribute(ATTRIBUTE_H);
@@ -660,8 +715,7 @@ void ocSBMManager::printFitReport(ocModel *model, FILE *fd)
     fprintf(fd, line_sep);
 }
 
-void ocSBMManager::printBasicStatistics()
-{
+void ocSBMManager::printBasicStatistics() {
     const char *header, *beginLine, *endLine, *separator, *footer;
     //double h;
     if (ocReport::isHTMLMode()) {
@@ -687,10 +741,12 @@ void ocSBMManager::printBasicStatistics()
     if (!getValuesAreFunctions()) {
         printf("%s%s%s%8lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
         if (testSampleSize > 0) {
-            printf("%s%s%s%8lg%s\n", beginLine, "Sample Size (test)", separator, testSampleSize, endLine);
+            printf("%s%s%s%8lg%s\n", beginLine, "Sample Size (test)", separator, testSampleSize,
+                    endLine);
         }
     }
     printf("%s%s%s%8lg%s\n", beginLine, "H(data)", separator, topH, endLine);
+    int varLineBreaks = 0;
     if (directed) {
         double depH = topRef->getRelation(0)->getAttribute(ATTRIBUTE_DEP_H);
         double indH = topRef->getRelation(0)->getAttribute(ATTRIBUTE_IND_H);
@@ -698,21 +754,32 @@ void ocSBMManager::printBasicStatistics()
         printf("%s%s%s%8lg%s\n", beginLine, "H(DV)", separator, depH, endLine);
         printf("%s%s%s%8lg%s\n", beginLine, "T(IV:DV)", separator, indH + depH - topH, endLine);
         printf("%sIVs in use (%d)%s", beginLine, getVariableList()->getVarCount() - 1, separator);
-        for (int i=0; i < getVariableList()->getVarCount(); i++) {
-            if (!getVariableList()->getVariable(i)->dv)
-                printf("%s ", getVariableList()->getVariable(i)->abbrev);
+        for (int i = 0; i < getVariableList()->getVarCount(); i++) {
+            if (!getVariableList()->getVariable(i)->dv) {
+                if (i / 30 > varLineBreaks) {
+                    varLineBreaks++;
+                    printf("%s\n", endLine);
+                    printf("%s%s", beginLine, separator);
+                }
+                printf(" %s", getVariableList()->getVariable(i)->abbrev);
+            }
         }
         printf("%s\n", endLine);
-        printf("%sDV%s%s%s\n", beginLine, separator, getVariableList()->getVariable(getVariableList()->getDV())->abbrev, endLine);
+        printf("%sDV%s%s%s\n", beginLine, separator,
+                getVariableList()->getVariable(getVariableList()->getDV())->abbrev, endLine);
         // DV: Z
     } else {
         printf("%sVariables in use (%d)%s", beginLine, getVariableList()->getVarCount(), separator);
-        for (int i=0; i < getVariableList()->getVarCount(); i++) {
-            printf("%s, ", getVariableList()->getVariable(i)->abbrev);
+        for (int i = 0; i < getVariableList()->getVarCount(); i++) {
+            if (i / 30 > varLineBreaks) {
+                varLineBreaks++;
+                printf("%s\n", endLine);
+                printf("%s%s", beginLine, separator);
+            }
+            printf(" %s", getVariableList()->getVariable(i)->abbrev);
         }
         printf("%s\n", endLine);
     }
     printf("%s\n", footer);
 }
-
 
