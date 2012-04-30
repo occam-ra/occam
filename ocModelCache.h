@@ -14,15 +14,15 @@
 #define MODELCACHE_HASHSIZE 1001
 class ocModelCache {
     public:
-	//-- construct an empty relation cache
+	//-- construct an empty model cache
 	ocModelCache();
 
-	//-- destroy relation cache.  This also deletes all the models held in the cache.
+	//-- destroy model cache.  This also deletes all the models held in the cache.
 	~ocModelCache();
 
 	long size();
 
-	//-- addModel - put a new relation in the cache. If a matching model already
+	//-- addModel - put a new model in the cache. If a matching model already
 	//-- exists, an error is returned.
 	bool addModel(class ocModel *model);
 

@@ -4,6 +4,7 @@
 #ifndef OCOPTIONS_H
 #define OCOPTIONS_H
 
+#include "stdlib.h"
 #include <stdio.h>
 
 // maximum line length in input file
@@ -47,10 +48,9 @@ class ocOptions {
 	bool getOptionFloat(const char *name, void **next, double *nvalue);
 
 	//-- write options to a file
-	void write(FILE *fd = NULL, bool printHTML=false);
+	void write(FILE *fd=NULL, bool printHTML=false, bool skipNominal=false);
 
 	struct ocOptionDef *defaultOptDef;
-
     private:
 	//-- both of these are singly linked lists.
 	struct ocOptionDef *defs;
