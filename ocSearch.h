@@ -32,7 +32,26 @@ class ocSearchLooplessDown : public ocSearchBase {
 	virtual ~ocSearchLooplessDown() {};
 	ocModel **search(ocModel *start);
 	static ocSearchBase *make() { return new ocSearchLooplessDown(); }
+};
 
+class ocSearchSbFullUp : public ocSearchBase {
+    public:
+	ocSearchSbFullUp() {};
+	virtual ~ocSearchSbFullUp() {};
+	ocModel **search(ocModel *start);
+	static ocSearchBase *make() { return new ocSearchSbFullUp(); }
+    void recurseDirected(ocModel *start, int cur_var, int cur_index, int *var_indices, int *state_indices, int &models_found, ocModel **model_list);
+    bool addToCache(ocModel *model, int &models_found, ocModel **model_list);
+};
+
+class ocSearchSbLooplessUp : public ocSearchBase {
+    public:
+	ocSearchSbLooplessUp() {};
+	virtual ~ocSearchSbLooplessUp() {};
+	ocModel **search(ocModel *start);
+	static ocSearchBase *make() { return new ocSearchSbLooplessUp(); }
+    void recurseDirected(int cur_var, int cur_index, int *var_indices, int *state_indices, int &models_found, ocModel **model_list);
+    bool addToCache(ocModel *model, int &models_found, ocModel **model_list);
 };
 
 class ocSearchLooplessUp : public ocSearchBase {
@@ -41,7 +60,6 @@ class ocSearchLooplessUp : public ocSearchBase {
 	virtual ~ocSearchLooplessUp() {};
 	ocModel **search(ocModel *start);
 	static ocSearchBase *make() { return new ocSearchLooplessUp(); }
-
 };
 
 class ocSearchDisjointUp : public ocSearchBase {
@@ -50,7 +68,6 @@ class ocSearchDisjointUp : public ocSearchBase {
 	virtual ~ocSearchDisjointUp() {};
 	ocModel **search(ocModel *start);
 	static ocSearchBase *make() { return new ocSearchDisjointUp(); }
-
 };
 
 class ocSearchDisjointDown : public ocSearchBase {
