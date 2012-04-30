@@ -37,7 +37,7 @@ else:
 util = ocUtils("VB")			# create a variable-based manager
 t1 = time.time()
 util.initFromCommandLine(sys.argv[0:2])	# initialize with the data file
-
+util.setDataFile(sys.argv[1:2])
 #------------- Main script ---------------
 # This script sets various options on a ocUtils object, and then runs the desired action.
 # ocUtils is a convenience wrapper around the basic occam3 objects, and it sets appropriate
@@ -64,17 +64,17 @@ util.setUseInverseNotation(0)
 
 # Set the start model for search [top, bottom, default, a specific model].
 # Skip this to use the model set in the data file.
-util.setStartModel("top")
+util.setStartModel("bottom")
 #util.setStartModel("IV:A38Z")
 
 # Set the ref model [top, bottom, default, a specific model].
-util.setRefModel("default")
+util.setRefModel("bottom")
 
 # Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
 util.setSearchSortDir("descending")
 # Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
-util.setSearchDir("down")
-util.setSearchFilter("disjoint")
+util.setSearchDir("up")
+util.setSearchFilter(filter)
 
 # Set the action [fit, search].  Skip this to set it from the data file.
 util.setAction("search")
@@ -87,7 +87,7 @@ util.setReportSortName("information")
 # of "best models" during search. It can also control reporting (see setReportSortName, below).
 util.setSortName("information")
 
-util.setDDFMethod(0)
+#util.setDDFMethod(0)
 
 # Set report names, from the list above. If omitted, the list is set based on whether the ref model
 # is top or bottom.  List is separated by commas, and provided as a single text string.
@@ -96,7 +96,7 @@ util.setDDFMethod(0)
 #util.setNoIPF(1)
 # For ref=bottom, use something like this:
 #util.setReportVariables("Level$i, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
-util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, pct_correct_data")
+util.setReportVariables("level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
