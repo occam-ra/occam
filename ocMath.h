@@ -51,12 +51,9 @@ bool ocHasLoops(ocModel *model);
  */
 double ocDegreesOfFreedom(ocRelation *rel);
 
-double ocSB_DF(ocModel *model);
-
-
+double ocDegreesOfFreedomStateBased(ocModel *model);
 
 /**
-
  * to compute DF for the input data
  */
 double ocDegreesOfFreedom(ocVariableList *varList);
