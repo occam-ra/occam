@@ -14,77 +14,61 @@
 #include <stdlib.h>
 
 struct LostVar {
-    int num;
-    char * ValidList[MAXCARDINALITY];
-    int all;  //flag to mark if all values are valid
-    LostVar *next;
+        int num;
+        char * ValidList[MAXCARDINALITY];
+        int all; //flag to mark if all values are valid
+        LostVar *next;
 };
 
-
-bool isLostVar(int i, LostVar ** varp, LostVar *lostvarp)
-{
-    while(lostvarp !=NULL)
-    {
-        if(lostvarp->num==i){
-            *varp=lostvarp;
+bool isLostVar(int i, LostVar ** varp, LostVar *lostvarp) {
+    while (lostvarp != NULL) {
+        if (lostvarp->num == i) {
+            *varp = lostvarp;
             return true;
         }
-        lostvarp=lostvarp->next;
+        lostvarp = lostvarp->next;
     }
     return false;
 }
 
-
-bool KeepVal(LostVar *lostvarpt,char * var)
-{
-    int i=0,k;
-    while(lostvarpt->ValidList[i]!=NULL){
-        if(lostvarpt->all==1)return true;
-        else if((k=strcmp(lostvarpt->ValidList[i],var))==0)return true;
+bool KeepVal(LostVar *lostvarpt, char * var) {
+    int i = 0, k;
+    while (lostvarpt->ValidList[i] != NULL) {
+        if (lostvarpt->all == 1)
+            return true;
+        else if ((k = strcmp(lostvarpt->ValidList[i], var)) == 0)
+            return true;
         i++;
     }
     return false;
 }
 
-
 /*ReadData - read data tuples, one per line; return number of lines read
  */
-long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostvarp)
-{
+long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostvarp) {
     char line[MAXLINE];
     ocKeySegment *key = 0;
     int lineno = 0;
     double tupleValue;
     LostVar *lostvarpt;
     int keysize = vars->getKeySize();
-    if((key = new ocKeySegment[keysize])==NULL){
-        printf("No memory available\n");
-        exit(1);
-    }
-    int varCountDF = vars->getVarCountDF();//Anjali
+    key = new ocKeySegment[keysize];
+    int varCountDF = vars->getVarCountDF(); //Anjali
     int varCount = vars->getVarCount();
-    int *values,*indices;
-    bool gotLine=false;
-    int b_lostvar=0;
-    int flag= KEEP;
+    int *values, *indices;
+    bool gotLine = false;
+    int b_lostvar = 0;
+    int flag = KEEP;
     char var[MAXCARDINALITY];
     char newvalue[MAXLINE];
-    bool keepval=true;
-    //printf("number of effective variable %d and df variable %d\n",varCount,varCountDF); //****
-    if((values = new int[varCount])==NULL){ // values of the variables
-        printf("No memory available\n");
-        exit(1);
-    }
-    if((indices = new int[varCount])==NULL){
-        // indices of the variables in the var list
-        printf("No memory available\n");
-        exit(1);
-    }
-    int j=0;
-    int value=0;
-    int l=0;
+    bool keepval = true;
+    values = new int[varCount];
+    indices = new int[varCount];
+    int j = 0;
+    int value = 0;
+    int l = 0;
     gotLine = ocOptions::getLine(fin, line, &lineno);
-    if (!gotLine){
+    if (!gotLine) {
         printf("No data\n");
         return false;
     }
@@ -92,14 +76,15 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
         char *cp = line;
         l++;
         for (int i = 0; i < varCountDF; i++) { //Anjali
-            newvalue[0]='\0';
-            if(vars->isVarInUse(i)) {       //Anjali
-                if( (vars->getVariable(j)->rebin == true) || (vars->getVariable(j)->exclude != NULL) ){
-                    vars->getNewValue(j,cp,newvalue);
-                    if(newvalue[0]!='\0'){
-                        value = vars->getVarValueIndex(j,newvalue);
-                        if (value < 0) {        // cardinality error
-                            printf("Error in data, line %d: new value exceeds cardinality of variable #%d, \"%s\".\n", lineno, i, vars->getVariable(j)->abbrev);
+            newvalue[0] = '\0';
+            if (vars->isVarInUse(i)) { //Anjali
+                if ((vars->getVariable(j)->rebin == true) || (vars->getVariable(j)->exclude != NULL)) {
+                    vars->getNewValue(j, cp, newvalue);
+                    if (newvalue[0] != '\0') {
+                        value = vars->getVarValueIndex(j, newvalue);
+                        if (value < 0) { // cardinality error
+                            printf("Error in data, line %d: new value exceeds cardinality of variable #%d, \"%s\".\n",
+                                    lineno, i, vars->getVariable(j)->abbrev);
                             printf("Data line: %s\n", line);
                             exit(1);
                         } else {
@@ -107,11 +92,12 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
                             indices[j] = j;
                         }
                     } else
-                        flag=DISCARD;
+                        flag = DISCARD;
                 } else {
-                    value = vars->getVarValueIndex(j,cp);
-                    if (value < 0) {        // cardinality error
-                        printf("Error in data, line %d: new value exceeds cardinality of variable #%d, \"%s\".\n", lineno, i, vars->getVariable(j)->abbrev);
+                    value = vars->getVarValueIndex(j, cp);
+                    if (value < 0) { // cardinality error
+                        printf("Error in data, line %d: new value exceeds cardinality of variable #%d, \"%s\".\n",
+                                lineno, i, vars->getVariable(j)->abbrev);
                         printf("Data line: %s\n", line);
                         exit(1);
                     } else {
@@ -119,55 +105,62 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
                         indices[j] = j;
                     }
                 }
-                while (*cp && !(isspace(*cp) || (*cp == ','))) cp++;
-                while (*cp &&  (isspace(*cp) || (*cp == ','))) cp++;       // now at next value
+                while (*cp && !(isspace(*cp) || (*cp == ',')))
+                    cp++;
+                while (*cp && (isspace(*cp) || (*cp == ',')))
+                    cp++; // now at next value
                 j++;
-            } else {  //Anjali
+            } else { //Anjali
                 //check if it is in LostVar list, if yes then if all its values are valid then this row of table can go
                 //otherwise mark it for being rmoved from building a key
-                //printf("variable %d is not good",i);
-                if(lostvarp!=NULL) {
-                    b_lostvar=isLostVar(i,&lostvarpt,lostvarp);
-                    if(b_lostvar) {
+                if (lostvarp != NULL) {
+                    b_lostvar = isLostVar(i, &lostvarpt, lostvarp);
+                    if (b_lostvar) {
                         int ret = sscanf(cp, "%[^\t ]", var);
-                        if(ret==1) {
-                            //if(lostvarpt!=NULL)printf("lostvarpt is not null\n"); //****
-                            keepval=KeepVal(lostvarpt,var);
-                            if(!keepval)flag=DISCARD;
+                        if (ret == 1) {
+                            keepval = KeepVal(lostvarpt, var);
+                            if (!keepval)
+                                flag = DISCARD;
                         } else {
                             printf("something went wrong");
-                            return false;
+                            exit(1);
                         }
                     }
                 }
-                while (*cp && !(isspace(*cp) || (*cp == ','))) cp++;
-                while (*cp &&  (isspace(*cp) || (*cp == ','))) cp++;       // now at next value
+                while (*cp && !(isspace(*cp) || (*cp == ',')))
+                    cp++;
+                while (*cp && (isspace(*cp) || (*cp == ',')))
+                    cp++; // now at next value
             } //Anjali
         }
-        j=0;
-        while (*cp && (isspace(*cp) || (*cp == ','))) cp++;
-        if (*cp) {      // there is still a tuple value on the line
-            tupleValue = (double) strtod(cp, (char **)NULL);
+        j = 0;
+        while (*cp && (isspace(*cp) || (*cp == ',')))
+            cp++;
+        if (*cp) { // there is still a tuple value on the line
+            tupleValue = (double) strtod(cp, (char **) NULL);
         } else {
             tupleValue = 1;
         }
-        if(flag == KEEP) {
+        if (flag == KEEP) {
             ocKey::buildKey(key, keysize, vars, indices, values, varCount);
             indata->sumTuple(key, tupleValue);
         }
-        flag=KEEP;
+        flag = KEEP;
 
         gotLine = ocOptions::getLine(fin, line, &lineno);
         //-- see if there is test data; if so, stop here
-        if (strcmp(line, ":test") == 0) break;
+        if (strcmp(line, ":test") == 0)
+            break;
         else if (line[0] == ':') {
             printf("Unrecognized directive here: %s\n", line);
             break;
         }
     }
+    delete[] indices;
+    delete[] values;
+    delete[] key;
     return l;
 }
-
 
 void ocDefineVariables(ocOptions *options, ocVariableList *vars) {
     //-- variable def is "name,cardinality,type,abbrev"
@@ -176,7 +169,7 @@ void ocDefineVariables(ocOptions *options, ocVariableList *vars) {
     void *nextp = NULL;
     const char *vardef;
     int type, cardinality;
-    char name[MAXLINE+1], abbrev[MAXLINE+1];
+    char name[MAXLINE + 1], abbrev[MAXLINE + 1];
     bool isdv, alldv = true;
     while (options->getOptionString("nominal", &nextp, &vardef)) {
         int count = sscanf(vardef, " %[^, \t] , %d , %d , %[A-Za-z]", name, &cardinality, &type, abbrev);
@@ -184,57 +177,57 @@ void ocDefineVariables(ocOptions *options, ocVariableList *vars) {
         if (count != 4) {
             fprintf(stderr, "Error in variable definition: %s\n", vardef);
         } else {
-            if(type !=0) {  //Anjali
+            if (type != 0) { //Anjali
                 isdv = type == 2;
                 alldv &= isdv;
                 vars->addVariable(name, abbrev, cardinality, isdv, false);
             } else {
                 vars->markForNoUse();
-            }   //Anjali
+            } //Anjali
         }
     }
     if (alldv) {
         int i;
-        for (i = 0; i < vars->getVarCount(); i++) vars->getVariable(i)->dv = false;
+        for (i = 0; i < vars->getVarCount(); i++)
+            vars->getVariable(i)->dv = false;
     }
 }
 
-
-//this function is called instead of ocDefineVar if rebinning is required 
+//this function is called instead of ocDefineVar if rebinning is required
 //needs to be made elegant
-void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostvarp){
+void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostvarp) {
     //-- Variable def is "name, cardinality, type, abbrev"
     //-- Types are 1=iv, 2=dv, 0=variable disregarded.
     //-- Note that neutral systems may have all variables dv,
     //-- and we want them marked as iv, so there is a second pass below.
 
     void *nextp = NULL;
-    const char *vardef=NULL;
-    LostVar * lostvarp1=NULL;
-    char * pos=NULL;
-    int type=0;
-    int  cardinality=0;
+    const char *vardef = NULL;
+    LostVar * lostvarp1 = NULL;
+    char * pos = NULL;
+    int type = 0;
+    int cardinality = 0;
     //int sp_val=-1; //assuming negative values are not there in the table
     char name[MAXLINE], abbrev[MAXLINE], rebinarray[MAXLINE], *rebin = rebinarray, rebin1[MAXLINE];
     char abbrev_temp[MAXLINE];
     bool isdv, alldv = true;
-    int num_var_df=0;
-    int flag_1=0;
-    int index_card=0;
-    char e[]="exclude";
-    int v=0;
-    int num_var_actual=0;
+    int num_var_df = 0;
+    int flag_1 = 0;
+    int index_card = 0;
+    char e[] = "exclude";
+    int v = 0;
+    int num_var_actual = 0;
 
     // Three cases: First, rebin string not present, so do normal stuff.  Second case, rebin string present and ';' not present,
     // so variable is not kept (marked for no use).  Third case, the rebin string present and ';' present, so variable needs to
     // be kept and second case stuff
     while (options->getOptionString("nominal", &nextp, &vardef)) {
-        name[0]='\0';
-        cardinality=0;
-        type=0;
-        abbrev[0]='\0';
-        abbrev_temp[0]='\0';
-        rebin[0]='\0';
+        name[0] = '\0';
+        cardinality = 0;
+        type = 0;
+        abbrev[0] = '\0';
+        abbrev_temp[0] = '\0';
+        rebin[0] = '\0';
         int count = sscanf(vardef, " %[^, \t] , %d , %d , %[^,] , %s", name, &cardinality, &type, abbrev_temp, rebin);
         num_var_df++;
 
@@ -242,8 +235,9 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
         // are working on.  They've been using them for a bit, so I'm backing this code out till they're done.
         // Actually, I'm just adding 0-9 into the scan pattern.  Remove that part of it to return to letters only.
         int count2 = sscanf(abbrev_temp, "%[A-Za-z0-9]", abbrev);
-        if ( (count2 != 1) || (strcmp(abbrev, abbrev_temp) != 0) ) {
-            printf("Error in variable definition. Only letters and numbers may be used in the abbreviation: %s\n", vardef);
+        if ((count2 != 1) || (strcmp(abbrev, abbrev_temp) != 0)) {
+            printf("Error in variable definition. Only letters and numbers may be used in the abbreviation: %s\n",
+                    vardef);
             exit(1);
         }
 
@@ -251,128 +245,130 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
             printf("Error in variable definition: %s\n", vardef);
             exit(1);
         } else {
-            char *cp=rebin;
-            while (*cp && isspace(*cp)) cp++;
-            if(((v = strncmp(cp,e,7)) == 0) && type != 0) {
+            char *cp = rebin;
+            while (*cp && isspace(*cp))
+                cp++;
+            if (((v = strncmp(cp, e, 7)) == 0) && type != 0) {
                 //************exclude case**************
                 ocVariable *varpt = NULL;
                 char myvalue[100];
                 //while (*cp && isspace(*cp)) cp++;
                 isdv = type == 2;
                 alldv &= isdv;
-                vars->addVariable(name, abbrev, cardinality-1, isdv,false);
+                vars->addVariable(name, abbrev, cardinality - 1, isdv, false);
                 num_var_actual++;
-                cp=cp+strlen(e);
-                if (*cp!='(') {
+                cp = cp + strlen(e);
+                if (*cp != '(') {
                     printf("Error in rebinning string\n");
                     exit(1);
                 }
                 cp++;
-                while (*cp && isspace(*cp)) cp++;
+                while (*cp && isspace(*cp))
+                    cp++;
                 //////////correct this....
-                sscanf(cp,"%[^) ]",myvalue);
-                cp=cp+strlen(myvalue);
+                sscanf(cp, "%[^) ]", myvalue);
+                cp = cp + strlen(myvalue);
                 //printf("exclude the value %s from the variable %s\n",myvalue,abbrev);
-                while (*cp && isspace(*cp)) cp++;
-                if(*cp!=')'){
+                while (*cp && isspace(*cp))
+                    cp++;
+                if (*cp != ')') {
                     printf("Error in rebinning string\n");
                     exit(1);
                 }
-                varpt=vars->getVariable(num_var_actual-1);
-                if(varpt==NULL){
+                varpt = vars->getVariable(num_var_actual - 1);
+                if (varpt == NULL) {
                     printf("varpt is NULL\n");
                     exit(1);
                 }
-                varpt->exclude=new char[strlen(myvalue)+1];
-                strcpy(varpt->exclude,myvalue);
+                varpt->exclude = new char[strlen(myvalue) + 1];
+                strcpy(varpt->exclude, myvalue);
                 //	printf("exclude %s\n",varpt->exclude);
-            } else if( (cp[0] != '\0') && (cp[0] != '[') && (type != 0) ) {
+            } else if ((cp[0] != '\0') && (cp[0] != '[') && (type != 0)) {
                 //*****************single value to be considered
                 //printf("the string to be kept %s for variable %s\n",cp,abbrev);
                 vars->markForNoUse();
-                if(flag_1==0){
-                    lostvarp1=new LostVar;//this might have some issues
-                    if(lostvarp1==NULL){
+                if (flag_1 == 0) {
+                    lostvarp1 = new LostVar; //this might have some issues
+                    if (lostvarp1 == NULL) {
                         printf("error allocating mem\n");
                         exit(1);
                     }
-                    flag_1=1;
-                    *lostvarp=lostvarp1;
-                    lostvarp1->next=NULL;
+                    flag_1 = 1;
+                    *lostvarp = lostvarp1;
+                    lostvarp1->next = NULL;
                 } else {
-                    lostvarp1->next=new LostVar;//ithis might have issues
-                    lostvarp1=lostvarp1->next;
+                    lostvarp1->next = new LostVar; //ithis might have issues
+                    lostvarp1 = lostvarp1->next;
                     lostvarp1->next = NULL;
                 }
-                lostvarp1->num=num_var_df-1;
-                lostvarp1->ValidList[0]=new char[strlen(cp)+1];
-                strcpy(lostvarp1->ValidList[0],cp);
-                lostvarp1->ValidList[1]=NULL;
-            } else if(count==5 && (type ==1 || type==2)) {
+                lostvarp1->num = num_var_df - 1;
+                lostvarp1->ValidList[0] = new char[strlen(cp) + 1];
+                strcpy(lostvarp1->ValidList[0], cp);
+                lostvarp1->ValidList[1] = NULL;
+            } else if (count == 5 && (type == 1 || type == 2)) {
                 //rebinning required********************rebin********************
-                //printf("string:  %s\n",rebin);
-                sscanf(rebin,"[%[^] ]]",rebin1);
-                //printf("string rebin1:  %s\n",rebin1);
-                rebin[0]='\0';
-                strcpy(rebin,rebin1);
-                if((pos=strchr(rebin,59))==NULL){
+                sscanf(rebin, "[%[^] ]]", rebin1);
+                rebin[0] = '\0';
+                strcpy(rebin, rebin1);
+                if ((pos = strchr(rebin, 59)) == NULL) {
                     //looking for semicolon***************var lost************
-                    //variable will be lost 
-                    int ret=0;
-                    char number[MAXLINE];//a 10 digit long number
-                    char rest[MAXLINE];//space for 100 rest of the string
-                    int ind=0;
+                    //variable will be lost
+                    int ret = 0;
+                    char number[MAXLINE]; //a 10 digit long number
+                    char rest[MAXLINE]; //space for 100 rest of the string
+                    int ind = 0;
                     vars->markForNoUse();
-                    if(flag_1==0){
-                        lostvarp1=new LostVar;//this might have some issues
-                        if(lostvarp1==NULL){
+                    if (flag_1 == 0) {
+                        lostvarp1 = new LostVar; //this might have some issues
+                        if (lostvarp1 == NULL) {
                             printf("error allocating mem\n");
                             exit(1);
                         }
-                        flag_1=1;
-                        *lostvarp=lostvarp1;
-                        lostvarp1->next=NULL;
-                    }else{
-                        lostvarp1->next=new LostVar;//ithis might have issues
-                        lostvarp1=lostvarp1->next;
+                        flag_1 = 1;
+                        *lostvarp = lostvarp1;
+                        lostvarp1->next = NULL;
+                    } else {
+                        lostvarp1->next = new LostVar; //ithis might have issues
+                        lostvarp1 = lostvarp1->next;
                         lostvarp1->next = NULL;
                     }
-                    lostvarp1->num=num_var_df-1;
+                    lostvarp1->num = num_var_df - 1;
 
                     //********string format checking begins***************
                     //check to see if the string is correctly formed
-                    char *loc1,*loc2,*loc3,*loc4,*loc6,*loc7;
-                    cp=rebin;
-                    while (*cp && isspace(*cp)) cp++;
-                    loc1=cp;//looking for first no.
-                    loc2=strchr(rebin,40);//looking for '('
-                    loc3=strchr(rebin,44);//looking for first ','
-                    loc4=strchr(rebin,41);//looking for ')'
-                    if((loc1==NULL) ||(loc2==NULL) ||(loc4==NULL)){
+                    char *loc1, *loc2, *loc3, *loc4, *loc6, *loc7;
+                    cp = rebin;
+                    while (*cp && isspace(*cp))
+                        cp++;
+                    loc1 = cp; //looking for first no.
+                    loc2 = strchr(rebin, 40); //looking for '('
+                    loc3 = strchr(rebin, 44); //looking for first ','
+                    loc4 = strchr(rebin, 41); //looking for ')'
+                    if ((loc1 == NULL) || (loc2 == NULL) || (loc4 == NULL)) {
                         printf("error 200\n");
                         printf("Error in rebinning string\n");
                         exit(1);
                     }
-                    if(loc3!=NULL){
-                        if(!(loc4>loc3 && loc3>loc2 && loc2>loc1)){
+                    if (loc3 != NULL) {
+                        if (!(loc4 > loc3 && loc3 > loc2 && loc2 > loc1)) {
                             printf("error 201\n");
                             printf("Error in rebinning string\n");
                             exit(1);
                         }
-                    }else{
-                        if(!(loc4>loc2 && loc2>loc1)){
+                    } else {
+                        if (!(loc4 > loc2 && loc2 > loc1)) {
                             printf("error 201\n");
                             printf("Error in rebinning string\n");
                             exit(1);
                         }
                     }
                     //check to see if there are more than one '(' or ')'
-                    if((loc6=strchr(loc2+1,'('))!=NULL){
+                    if ((loc6 = strchr(loc2 + 1, '(')) != NULL) {
                         printf("error 204\n");
                         printf("Error in rebinning string\n");
                         exit(1);
                     }
-                    if((loc7=strchr(loc4+1,')'))!=NULL){
+                    if ((loc7 = strchr(loc4 + 1, ')')) != NULL) {
                         printf("error 204\n");
                         printf("Error in rebinning string\n");
                         exit(1);
@@ -380,14 +376,14 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                     //********string format checking ends***************
                     // look for '*', if that is present its equivalent to the 0 option
                     char *loc5;
-                    if(((loc5=strchr(rebin,42))!=NULL)){
+                    if (((loc5 = strchr(rebin, 42)) != NULL)) {
                         //this is like 0 option but make sure the string is correctly formed
-                        if((loc5>loc4) || (loc5<loc2)){
+                        if ((loc5 > loc4) || (loc5 < loc2)) {
                             printf("error 203\n");
                             printf("Error in rebinning string\n");
                             exit(1);
                         }
-                        lostvarp1->all=1;
+                        lostvarp1->all = 1;
                         goto done1;
                     }
                     //get the list of variable values which needs to be kept in the table
@@ -395,19 +391,21 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                     //mark those values in the cardinality size mask and go through the
                     //table and discard all unwanted
                     //no * found in the string so needs to modify the mask one bit at a time
-                    if(loc5==NULL){
-                        while (*cp && isspace(*cp)) cp++;
-                        ret=sscanf(cp,"%[^( ](%[^; ]",number,rest);
-                        if(ret==0||ret==1){
+                    if (loc5 == NULL) {
+                        while (*cp && isspace(*cp))
+                            cp++;
+                        ret = sscanf(cp, "%[^( ](%[^; ]", number, rest);
+                        if (ret == 0 || ret == 1) {
                             printf("error 111\n");
                             printf("Error in rebinning string\n");
                             exit(1);
                         }
-                        cp=rest;
-                        for(;;){
-                            while (*cp && isspace(*cp)) cp++;
-                            ret=sscanf(cp,"%[^, ],%[^; ]",number,rest);
-                            if(ret==0){
+                        cp = rest;
+                        for (;;) {
+                            while (*cp && isspace(*cp))
+                                cp++;
+                            ret = sscanf(cp, "%[^, ],%[^; ]", number, rest);
+                            if (ret == 0) {
                                 printf("error 111\n");
                                 printf("Error in rebinning string\n");
                                 exit(1);
@@ -416,93 +414,94 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                             //       printf("number %s, and the remaining string %s\n",number,rest);
                             //if(ret==1)
                             //       printf("number %s\n",number);
-                            if(ret==2 ){
-                                //this is not the last number 
-                                lostvarp1->ValidList[ind]=new char[strlen(number)+1];
-                                strcpy(lostvarp1->ValidList[ind],number);
-                                cp=rest;
-                                while(*cp && isspace(*cp))cp++;
+                            if (ret == 2) {
+                                //this is not the last number
+                                lostvarp1->ValidList[ind] = new char[strlen(number) + 1];
+                                strcpy(lostvarp1->ValidList[ind], number);
+                                cp = rest;
+                                while (*cp && isspace(*cp))
+                                    cp++;
                                 ///////check...
                                 ind++;
-                            }else if(ret==1){
-                                ret=sscanf(number,"%[^) ])",rest);
-                                lostvarp1->ValidList[ind]=new char[strlen(rest)+1];
-                                strcpy(lostvarp1->ValidList[ind],rest);
+                            } else if (ret == 1) {
+                                ret = sscanf(number, "%[^) ])", rest);
+                                lostvarp1->ValidList[ind] = new char[strlen(rest) + 1];
+                                strcpy(lostvarp1->ValidList[ind], rest);
                                 ind++;
                                 break;
                             }
-                        }//for loop
-                        lostvarp1->ValidList[ind]=NULL;
-                    }//no * found case there has to be an else case
-                }else{
+                        } //for loop
+                        lostvarp1->ValidList[ind] = NULL;
+                    } //no * found case there has to be an else case
+                } else {
                     //variable is kept*********************var kept*************
                     //Though cardinality might need adjusting
                     //The cardinality (if rebinning is used)is eq to the number of ';'+1
                     //int oldnewTable[2][MAXCARDINALITY];
-                    ocVariable *varpt=NULL;
-                    int card=1;
-                    char* locator=rebin;
-                    int index=0;
-                    int flag_old_1=0;
-                    bool rebinning_f=true;
-                    while((locator=strchr(&rebin[index_card],59))!=NULL){
-                        index_card=locator-rebin+1;
+                    ocVariable *varpt = NULL;
+                    int card = 1;
+                    char* locator = rebin;
+                    int index = 0;
+                    int flag_old_1 = 0;
+                    bool rebinning_f = true;
+                    while ((locator = strchr(&rebin[index_card], 59)) != NULL) {
+                        index_card = locator - rebin + 1;
                         card++;
                     }
-                    index_card=0;
+                    index_card = 0;
                     //add the variable
-                    if(type !=0){  //Anjali
+                    if (type != 0) { //Anjali
                         isdv = type == 2;
                         alldv &= isdv;
-                        vars->addVariable(name, abbrev, card, isdv,rebinning_f,cardinality);
+                        vars->addVariable(name, abbrev, card, isdv, rebinning_f, cardinality);
                     } else {
                         printf("we hope we dont come here\n");
-                    }   //Anjali
+                    } //Anjali
                     num_var_actual++;
                     //state based parsing find matching brackets and stuff
 
-                    char cur_token[MAXLINE],rest[MAXLINE];
-                    char * loc1,*loc2,*loc3,*loc4,*loc5;
-                    int temp=0;
-                    varpt=vars->getVariable(num_var_actual-1);
-                    if(varpt==NULL){
+                    char cur_token[MAXLINE], rest[MAXLINE];
+                    char * loc1, *loc2, *loc3, *loc4, *loc5;
+                    int temp = 0;
+                    varpt = vars->getVariable(num_var_actual - 1);
+                    if (varpt == NULL) {
                         printf("varpt is NULL\n");
                         exit(1);
                     }
 
-                    while(temp=sscanf(rebin,"%[^; \t];%[^& ]",cur_token,rest))
-                    {
-                        cp=cur_token;
+                    while (temp = sscanf(rebin, "%[^; \t];%[^& ]", cur_token, rest)) {
+                        cp = cur_token;
                         //if(temp==2)printf("cur_token %s and rest %s\n",cur_token,rest);
                         //else if(temp ==1)printf("cur token %s",cur_token);
-                        while (*cp && isspace(*cp)) cp++;
-                        loc1=cp;//looking for first no.
-                        loc2=strchr(cur_token,40);//looking for '('
-                        loc3=strchr(cur_token,44);//looking for first ','
-                        loc4=strchr(cur_token,41);//looking for ')'
-                        if((loc1==NULL) ||(loc2==NULL) ||(loc4==NULL)){
+                        while (*cp && isspace(*cp))
+                            cp++;
+                        loc1 = cp; //looking for first no.
+                        loc2 = strchr(cur_token, 40); //looking for '('
+                        loc3 = strchr(cur_token, 44); //looking for first ','
+                        loc4 = strchr(cur_token, 41); //looking for ')'
+                        if ((loc1 == NULL) || (loc2 == NULL) || (loc4 == NULL)) {
                             printf("error 206\n");
                             printf("Error in rebinning string\n");
                             exit(1);
                         }
-                        if(loc3!=NULL){
-                            if(!((loc4>loc3) && loc3>loc2 && loc2>loc1)){
+                        if (loc3 != NULL) {
+                            if (!((loc4 > loc3) && loc3 > loc2 && loc2 > loc1)) {
                                 printf("error 207\n");
                                 printf("Error in rebinning string\n");
                                 exit(1);
                             }
-                        }else{
-                            if(!(loc4>loc2 && loc2>loc1)){
+                        } else {
+                            if (!(loc4 > loc2 && loc2 > loc1)) {
                                 printf("error 212\n");
                                 printf("Error in rebinning string\n");
                                 exit(1);
                             }
                         }
-                        //first look for '*', if that is present 
-                        if(((loc5=strchr(cur_token,42))!=NULL)){
+                        //first look for '*', if that is present
+                        if (((loc5 = strchr(cur_token, 42)) != NULL)) {
                             //this is like 0 option but make sure the string is correctly formed
                             //check if * is anywhere else other than last token
-                            if((loc5>loc4) || (loc5<loc2)||(temp==2)){
+                            if ((loc5 > loc4) || (loc5 < loc2) || (temp == 2)) {
                                 printf("error 208\n");
                                 printf("Error in rebinning string\n");
                                 exit(1);
@@ -511,70 +510,71 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                         //checks over get to real work of extracting each nuber from token
                         //and putting it at correct place
                         char valp[MAXLINE];
-                        char *cp=cur_token;
+                        char *cp = cur_token;
                         char rest_tok[MAXLINE];
                         char rest_tok1[MAXLINE];
-                        int flag_newval=0;
-                        char * ch1=NULL;
+                        int flag_newval = 0;
+                        char * ch1 = NULL;
 
-                        int ret=0;
-                        while (*cp && isspace(*cp)) cp++;
-                        ret=sscanf(cp,"%[^( ](%[^) ])%[^] ]",valp,rest_tok,rest_tok1);
-                        if(ret==0||ret==1||ret==3){
+                        int ret = 0;
+                        while (*cp && isspace(*cp))
+                            cp++;
+                        ret = sscanf(cp, "%[^( ](%[^) ])%[^] ]", valp, rest_tok, rest_tok1);
+                        if (ret == 0 || ret == 1 || ret == 3) {
                             printf("error 111\n");
                             printf("Error in rebinning string\n");
                             exit(1);
                         }
-                        varpt->oldnew[NEW_ROW][index]=new char[strlen(valp)+1];
-                        strcpy(varpt->oldnew[NEW_ROW][index],valp);
-                        cp=rest_tok;
-                        for(;;){
-                            while (*cp && isspace(*cp)) cp++;
-                            ret=sscanf(cp,"%[^, ],%[^; ]",valp,rest_tok);
-                            if(ret==2||ret==1) {
-                                if((ch1=strchr(valp,42))!=NULL){
+                        varpt->oldnew[NEW_ROW][index] = new char[strlen(valp) + 1];
+                        strcpy(varpt->oldnew[NEW_ROW][index], valp);
+                        cp = rest_tok;
+                        for (;;) {
+                            while (*cp && isspace(*cp))
+                                cp++;
+                            ret = sscanf(cp, "%[^, ],%[^; ]", valp, rest_tok);
+                            if (ret == 2 || ret == 1) {
+                                if ((ch1 = strchr(valp, 42)) != NULL) {
                                     //there is a legal * and we might want do something about it
-                                    if(flag_old_1==1){
-                                        varpt->oldnew[NEW_ROW][index]=varpt->oldnew[NEW_ROW][index-1];
+                                    if (flag_old_1 == 1) {
+                                        varpt->oldnew[NEW_ROW][index] = varpt->oldnew[NEW_ROW][index - 1];
                                     }
-                                    varpt->oldnew[OLD_ROW][index]=new char[1+1];
-                                    strcpy(varpt->oldnew[OLD_ROW][index],"*");
+                                    varpt->oldnew[OLD_ROW][index] = new char[1 + 1];
+                                    strcpy(varpt->oldnew[OLD_ROW][index], "*");
                                     index++;
                                     goto Done;
                                     //may be a goto is better inspite of
-                                    //what our grand parents told us 
+                                    //what our grand parents told us
                                     //we need to get out of whileloop as well
                                 }
-                                if(flag_old_1==1){
-                                    varpt->oldnew[NEW_ROW][index]=varpt->oldnew[NEW_ROW][index-1];
+                                if (flag_old_1 == 1) {
+                                    varpt->oldnew[NEW_ROW][index] = varpt->oldnew[NEW_ROW][index - 1];
                                 } else
-                                    flag_old_1=1;
-                                varpt->oldnew[OLD_ROW][index]=new char[strlen(valp)+1];
-                                strcpy(varpt->oldnew[OLD_ROW][index],valp);
+                                    flag_old_1 = 1;
+                                varpt->oldnew[OLD_ROW][index] = new char[strlen(valp) + 1];
+                                strcpy(varpt->oldnew[OLD_ROW][index], valp);
                                 index++;
-                                if(ret==2)cp=rest_tok;
+                                if (ret == 2)
+                                    cp = rest_tok;
                                 else {
-                                    flag_old_1=0;
-                                    flag_newval=0;
+                                    flag_old_1 = 0;
+                                    flag_newval = 0;
                                     break;
                                 }
                             }
-                        }//end of for
-                        if(temp==2)
-                            rebin=rest;              
+                        } //end of for
+                        if (temp == 2)
+                            rebin = rest;
                         else
                             break;
-                    }//end of while for tokenizing
-Done:
-                    varpt->oldnew[NEW_ROW][index] = NULL; //marks end of mapping
+                    } //end of while for tokenizing
+                    Done: varpt->oldnew[NEW_ROW][index] = NULL; //marks end of mapping
 
                 } //end of variable is kept
-done1:
-                rebin[0] = '\0';
+                done1: rebin[0] = '\0';
                 pos = NULL;
             } else {
                 // Normal case no rebinning, or since the variable type is 0, the rebinning string will be ignored.
-                if(type != 0) {
+                if (type != 0) {
                     isdv = type == 2;
                     alldv &= isdv;
                     vars->addVariable(name, abbrev, cardinality, isdv, false);
@@ -588,21 +588,20 @@ done1:
     }
     if (alldv) {
         int i;
-        for (i = 0; i < vars->getVarCount(); i++) vars->getVariable(i)->dv = false;
+        for (i = 0; i < vars->getVarCount(); i++)
+            vars->getVariable(i)->dv = false;
     }
     return;
 }
 
-
 /*
  * oldRead - read old format files.
  */
-int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdata, ocVariableList **vars)
-{
-    ocVariableList *varp=NULL;
-    ocTable *indatap=NULL;
-    ocTable *testdatap=NULL;
-    LostVar *lostvarp=NULL;
+int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdata, ocVariableList **vars) {
+    ocVariableList *varp = NULL;
+    ocTable *indatap = NULL;
+    ocTable *testdatap = NULL;
+    LostVar *lostvarp = NULL;
     int dataLines = 0;
     int testLines = 0;
     *vars = varp = new ocVariableList(8);
@@ -627,5 +626,4 @@ int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdat
         exit(1);
     return dataLines;
 }
-
 
