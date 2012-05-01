@@ -1,8 +1,8 @@
 SHELL = /bin/sh
 
 CC = gcc
-CFLAGS = -w -Wall -O2 -fPIC -g
-LFLAGS = 
+CFLAGS = -w -Wall -O2 -fPIC
+LFLAGS = -shared
 
 # -arch x86_64 to force 64-bit intel compile
 # -arch i386 to force 32-bit intel compile
