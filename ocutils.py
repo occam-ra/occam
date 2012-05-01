@@ -3,8 +3,8 @@
 # ocutils - utility scripts for common operations,
 # such as processing old format occam files
 
-import os, sys, re, occam, random, time
-import resource
+import sys, re, occam, time
+#import resource, os, random
 import heapq
 #from time import clock
 totalgen=0
@@ -47,6 +47,7 @@ class ocUtils:
         self.__defaultFitModel = ""
         self.__report.setSeparator(ocUtils.SPACESEP)    # align columns using spaces
         self.__HTMLFormat = 0
+        self.__skipNominal = 0
         self.__useInverseNotation = 0
         self.__valuesAreFunctions = 0
         self.__BPStatistics = 0
@@ -91,15 +92,21 @@ class ocUtils:
         self.__report.setSeparator(format)
         self.__HTMLFormat = (format == ocUtils.HTMLFORMAT)
 
+    def setSkipNominal(self, useFlag):
+        flag = int(useFlag)
+        if flag != 1:
+            flag = 0
+        self.__skipNominal = flag
+
     def setUseInverseNotation(self, useFlag):
         flag = int(useFlag)
-        if flag != 0 and flag != 1:
+        if flag != 1:
             flag = 0
         self.__useInverseNotation = flag
 
     def setValuesAreFunctions(self, useFlag):
         flag = int(useFlag)
-        if flag != 0 and flag != 1:
+        if flag != 1:
             flag = 0
         self.__valuesAreFunctions = flag
 
@@ -108,7 +115,7 @@ class ocUtils:
     #
     def setDDFMethod(self, DDFMethod):
         method = int(DDFMethod)
-        if method != 0 and method != 1:
+        if method != 1:
             method = 0
         self.__DDFMethod = method
 
@@ -200,11 +207,11 @@ class ocUtils:
         a1 = m1.get(self.__sortName)
         a2 = m2.get(self.__sortName)
         if self.__searchSortDir == "ascending":
-            if (a1 > a2): result = 1
-            if (a1 < a2): result = -1
+            if a1 > a2: result = 1
+            if a1 < a2: result = -1
         else:
-            if (a1 > a2): result = -1
-            if (a1 < a2): result = 1
+            if a1 > a2: result = -1
+            if a1 < a2: result = 1
         return result
 
     # this function decides which statistic to computed, based
@@ -229,20 +236,21 @@ class ocUtils:
     # this function also computes the LR statistics (H, LR, DF, etc.) as well
     # as the dependent statistics (dH, %dH, etc.)
     def processModel(self, level, newModelsHeap, model):
-        addCount = 0;
+        addCount = 0
         generatedModels = self.__manager.searchOneLevel(model)
-        for newModel in generatedModels :
+        for newModel in generatedModels:
             if newModel.get("processed") <= 0.0 :
                 newModel.processed = 1.0
                 newModel.level = level
                 newModel.setProgenitor(model)
                 self.computeSortStatistic(newModel)
+    # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
                 # decorate model with a key for sorting, & push onto heap
                 key = newModel.get(self.__sortName)
                 if self.__searchSortDir == "descending":
-                    key = -key;
+                    key = -key
                 heapq.heappush(newModelsHeap, (key , newModel))
-                addCount = addCount + 1;
+                addCount += 1
             else:
                 if self.__IncrementalAlpha:
                     # this model has been made already, but this progenitor might lead to a better Incr.Alpha
@@ -255,19 +263,27 @@ class ocUtils:
     def processLevel(self, level, oldModels, clear_cache_flag):
         # start a new heap
         newModelsHeap = []
-        fullCount = 0;
+        fullCount = 0
         for model in oldModels:
-            fullCount = fullCount + self.processModel(level, newModelsHeap, model)
+            fullCount += self.processModel(level, newModelsHeap, model)
         # if searchWidth < heapsize, pop off searchWidth and add to bestModels
         bestModels = []
-        while ( (len(bestModels) < self.__searchWidth) and (len(newModelsHeap) > 0) ):
-            bestModels.append(heapq.heappop(newModelsHeap)[1])
-        self.__manager.deleteTablesFromCache()
+        while (len(bestModels) < self.__searchWidth) and (len(newModelsHeap) > 0):
+            # make sure that we're adding unique models to the list (mostly for state-based)
+            candidate = heapq.heappop(newModelsHeap)[1]
+            match = False
+            for accepted in bestModels:
+                if accepted.isEquivalentTo(candidate):
+                    match = True
+                    break
+            if not match:
+                bestModels.append(candidate)
         truncCount = len(bestModels)
         self.totalgen  = fullCount + self.totalgen
         self.totalkept = truncCount + self.totalkept
-        memUsed = self.__manager.getMemUsage();
+        memUsed = self.__manager.getMemUsage()
         print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (fullCount, truncCount, self.totalgen+1, self.totalkept+1, memUsed/1024),
+        sys.stdout.flush()
         if clear_cache_flag:
             for item in newModelsHeap:
                 self.__manager.deleteModelFromCache(item[1])
@@ -299,63 +315,72 @@ class ocUtils:
                 searchMode = "full-down"
         return searchMode
 
+    def sbSearchType(self):
+        if self.__searchDir == "up":
+            if self.__searchFilter == "loopless":
+                searchMode = "sb-loopless-up"
+            elif self.__searchFilter == "disjoint":
+                searchMode = "sb-disjoint-up"
+            elif self.__searchFilter == "chain":
+                searchMode = "sb-chain-up"
+            else:
+                searchMode = "sb-full-up"
+        else:
+            if self.__searchFilter == "loopless":
+                searchMode = "sb-loopless-down"
+            elif self.__searchFilter == "disjoint":
+                # This mode is not implemented
+                searchMode = "sb-disjoint-down"
+            elif self.__searchFilter == "chain":
+                # This mode is not implemented
+                searchMode = "sb-chain-down"
+            else:
+                searchMode = "sb-full-down"
+        return searchMode
 
     def doSearch(self, printOptions):
         if self.__manager.isDirected():
             if self.__searchDir == "down":
                 if self.__searchFilter == "disjoint":
-                    #print 'ERROR: Directed Down Disjoint Search not yet implemented.'
-                    #raise sys.exit()
-		    pass
+		            pass
                 elif self.__searchFilter == "chain":
                     print 'ERROR: Directed Down Chain Search not yet implemented.'
                     raise sys.exit()
         else:
             if self.__searchDir == "up":
                 pass
-#                if self.__searchFilter == "loopless":
-#                    print 'ERROR: Neutral Up Loopless Search not yet implemented.'
-#                    raise sys.exit()
             else:
                 if self.__searchFilter == "disjoint":
-                  pass
-		  #  print 'ERROR: Neutral Down Disjoint Search not yet implemented.'
-                  #  raise sys.exit()
+                    pass
                 elif self.__searchFilter == "chain":
                     print 'ERROR: Neutral Down Chain Search not yet implemented.'
                     raise sys.exit()
 
         if self.__startModel == "":
             self.__startModel = "default"
-
         if self.__manager.isDirected() and self.__searchDir == "default":
             self.__searchDir = "up"
-        
         if not self.__manager.isDirected() and self.__searchDir == "default":
             self.__searchDir = "down"
-
         # set start model. For chain search, ignore any specific starting model
         # otherwise, if not set, set the start model based on search direction
         if (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "down":
             self.__startModel = "top"
         elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "up":
             self.__startModel = "bottom"
-
         if self.__startModel == "top":
             start = self.__manager.getTopRefModel()
         elif self.__startModel == "bottom":
             start = self.__manager.getBottomRefModel()
         else:
             start = self.__manager.makeModel(self.__startModel, 1)
-
         self.__manager.setRefModel(self.__refModel)
         self.__manager.setUseInverseNotation(self.__useInverseNotation)
         self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
-        if (self.__searchDir == "down"):
+        if self.__searchDir == "down":
             self.__manager.setSearchDirection(1)
         else:
             self.__manager.setSearchDirection(0)
-
         if printOptions: self.printOptions(1)
         self.__manager.printBasicStatistics()
         self.__manager.computeL2Statistics(start)
@@ -371,13 +396,11 @@ class ocUtils:
         self.__nextID = 1
         start.setID(self.__nextID)
         oldModels = [start]
-
         try:
             self.__manager.setSearchType(self.searchType())
         except:
             print "ERROR: UNDEFINED SEARCH TYPE " + self.searchType()
             return
-
         # process each level, up to the number of levels indicated. Each of the best models
         # is added to the report generator for later output
         if self.__HTMLFormat: print '<pre>'
@@ -388,7 +411,84 @@ class ocUtils:
             if self.__manager.getMemUsage() > maxMemoryToUse:
                 print "Memory limit exceeded: stopping search"
                 break
+            print i,':',    # progress indicator
+            newModels = self.processLevel(i, oldModels, i != self.__searchLevels)
+            current_time = time.time()
+            print '%.1f seconds, %.1f total' % (current_time - last_time, current_time - start_time)
+            sys.stdout.flush()
+            last_time = current_time
+            for model in newModels:
+                # Make sure all statistics are calculated. This won't do anything if we did it already.
+                if not self.__NoIPF:
+                    self.__manager.computeL2Statistics(model)
+                    self.__manager.computeDependentStatistics(model)
+                if self.__BPStatistics:
+                    self.__manager.computeBPStatistics(model)
+                if self.__PercentCorrect:
+                    self.__manager.computePercentCorrect(model)
+                if self.__IncrementalAlpha:
+                    self.__manager.computeIncrementalAlpha(model)
+                self.__nextID += 1
+                model.setID(self.__nextID)
+                #model.deleteFitTable()  #recover fit table memory
+                self.__report.addModel(model)
+            oldModels = newModels
+            # if the list is empty, stop. Also, only do one step for chain search
+            if self.__searchFilter == "chain" or len(oldModels) == 0:
+                break
+        if self.__HTMLFormat: print '</pre><br>'
+        else: print ""
 
+
+    def doSbSearch(self,printOptions):
+#if not self.__manager.isDirected():
+#print 'Error: Directed search only.'
+#raise sys.exit()
+        if self.__startModel == "":
+            self.__startModel = "default"
+        if self.__manager.isDirected() and self.__searchDir == "default":
+            self.__searchDir = "up"
+        if not self.__manager.isDirected() and self.__searchDir == "default":
+            self.__searchDir = "down"
+        if (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "down":
+            self.__startModel = "top"
+        elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "up":
+            self.__startModel = "bottom"
+        if self.__startModel == "top":
+            start = self.__manager.getTopRefModel()
+        elif self.__startModel == "bottom":
+            start = self.__manager.getBottomRefModel()
+        else:
+            start = self.__manager.makeModel(self.__startModel, 1)
+        self.__manager.setRefModel(self.__refModel)
+        #self.__manager.setUseInverseNotation(self.__useInverseNotation)
+        #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
+        if self.__searchDir == "down":
+            self.__manager.setSearchDirection(1)
+        else:
+            self.__manager.setSearchDirection(0)
+        if printOptions: self.printOptions(1)
+        self.__manager.printBasicStatistics()
+        self.__manager.computeL2Statistics(start)
+        self.__manager.computeDependentStatistics(start)
+        start.level = 0
+        self.__report.addModel(start)
+        self.__nextID = 1
+        start.setID(self.__nextID)
+        oldModels = [start]
+        try:
+            self.__manager.setSearchType(self.sbSearchType())
+        except:
+            print "ERROR: UNDEFINED SEARCH TYPE " + self.sbSearchType()
+            return
+        if self.__HTMLFormat: print '<pre>'
+        print "Searching levels:"
+        start_time = time.time()
+        last_time = start_time
+        for i in xrange(1,self.__searchLevels+1):
+            if self.__manager.getMemUsage() > maxMemoryToUse:
+                print "Memory limit exceeded: stopping search"
+                break
             print i,':',    # progress indicator
             newModels = self.processLevel(i, oldModels, i != self.__searchLevels)
             current_time = time.time()
@@ -405,18 +505,17 @@ class ocUtils:
                     self.__manager.computePercentCorrect(model)
                 if self.__IncrementalAlpha:
                     self.__manager.computeIncrementalAlpha(model)
-                self.__nextID = self.__nextID + 1
+                self.__nextID += 1
                 model.setID(self.__nextID)
                 model.deleteFitTable()  #recover fit table memory
-
                 self.__report.addModel(model)
             oldModels = newModels
-
             # if the list is empty, stop. Also, only do one step for chain search
             if self.__searchFilter == "chain" or len(oldModels) == 0:
                 break
         if self.__HTMLFormat: print '</pre><br>'
         else: print ""
+
 
 
     def printReport(self):
@@ -434,7 +533,7 @@ class ocUtils:
 
 
     def doFit(self,printOptions):
-#self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
+        #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if printOptions: self.printOptions(0)
         self.__manager.printBasicStatistics()
         for modelName in self.__fitModels:
@@ -458,13 +557,13 @@ class ocUtils:
             print
             print
 
-    def doSBFit(self,printOptions):
-#self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
+    def doSbFit(self,printOptions):
+        #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if printOptions: self.printOptions(0);
         self.__manager.printBasicStatistics()
         for modelName in self.__fitModels:
             self.__manager.setRefModel(self.__refModel)
-            model = self.__manager.makeSBModel(modelName, 1)
+            model = self.__manager.makeSbModel(modelName, 1)
             self.__manager.computeL2Statistics(model)
             self.__manager.computeDependentStatistics(model)
             self.__report.addModel(model)
@@ -518,14 +617,15 @@ class ocUtils:
             self.__manager.setDDFMethod(self.__DDFMethod)
             self.doSearch(printOptions)
             self.printReport()
-
         elif option == "fit":
             self.__manager.setDDFMethod(self.__DDFMethod)
             self.doFit(printOptions)
-
+        elif option == "SBsearch":
+            #self.__manager.setDDFMethod(self.__DDFMethod)
+            self.doSbSearch(printOptions)
+            self.printReport()
         elif option == "SBfit":
-            self.doSBFit(printOptions)
-
+            self.doSbFit(printOptions)
         else:
             print "Error: unknown operation", self.__action
 
@@ -538,7 +638,7 @@ class ocUtils:
     def printOptions(self,r_type):
         if self.__HTMLFormat:
             print "<br><table border=0 cellpadding=0 cellspacing=0>"
-        self.__manager.printOptions(self.__HTMLFormat)
+        self.__manager.printOptions(self.__HTMLFormat, self.__skipNominal)
         self.printOption("Input data file", self.__dataFile)
         if r_type==1:   
             self.printOption("Starting model", self.__startModel)
@@ -553,8 +653,6 @@ class ocUtils:
             self.printOption("Report preference", self.__sortDir)
         if self.__HTMLFormat:
             print "</table>"
-
-
 
 # End class ocUtils
 
