@@ -13,7 +13,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-#include "ocWin32.h"
+//#include "ocWin32.h"
 
 static const char *findUpper(const char *cp)
 {
@@ -64,6 +64,8 @@ ocVariableList::~ocVariableList()
         }
     }
     if (vars) delete vars;
+    if (noUseMask)
+        delete[] noUseMask;
 }
 
 
@@ -138,7 +140,7 @@ int ocVariableList::addVariable(const char *name, const char *abbrev, int cardin
 
 
 /*
- * isVarInUse - checks if the variable's value has to be ignored since it is marked as of 
+ * isVarInUse - checks if the variable's value has to be ignored since it is marked as of
  * type 0. Returns 0 if the variable is marked (that is to be ignored), returns 1 for good.
  */
 int ocVariableList::isVarInUse(int varCounter)
@@ -289,19 +291,12 @@ void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars
  */
 int ocVariableList::getPrintLength(int count, int *vars, int *states)
 {
-    int i;
     int len = 0;
-    int varID, stateID, slen;
-    char *name;
-    for (i = 0; i < count; i++) {
-        varID = vars[i];
-        name = getVariable(varID)->abbrev;
-        len += strlen(name);
+    for (int i = 0; i < count; i++) {
+        len += strlen(getVariable(vars[i])->abbrev);
         if (states != NULL) {
-            stateID = states[i];
-            if(stateID != DONT_CARE) {
-                slen = strlen(getVariable(varID)->valmap[stateID]);
-                len += slen;
+            if(states[i] != DONT_CARE) {
+                len += strlen(getVariable(vars[i])->valmap[states[i]]);
             }
         }
     }
@@ -315,7 +310,7 @@ int ocVariableList::getPrintLength(int count, int *vars, int *states)
  */
 bool ocVariableList::isDirected()
 {
-    for (int i = varCount - 1; i >= 0; i--) {
+    for (int i = 0; i < varCount; i++) {
         if (vars[i].dv) return true;
     }
     return false;
@@ -324,7 +319,7 @@ bool ocVariableList::isDirected()
 
 int ocVariableList::getDV()
 {
-    for (int i = varCount - 1; i >= 0; i--) {
+    for (int i = 0; i < varCount; i++) {
         if (vars[i].dv) return i;
     }
     return -1;
@@ -411,7 +406,7 @@ int ocVariableList::getVarStateList(const char *name, int *varlist,int *stlist)
                 //printf("value for sname %s is %d\n",sname,value);
                 stlist[pos]=value;
             }else{
-                stlist[pos]=DONT_CARE; 
+                stlist[pos]=DONT_CARE;
             }
             pos++;
         }
