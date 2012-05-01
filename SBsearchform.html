@@ -27,7 +27,7 @@
 			</TD>
 			<TD>
 			 	<INPUT type="radio" checked name="evalmode" value="info">Standard
-				<INPUT type="radio" name="evalmode" value="bp">Back Projection (Fourier)
+				<INPUT type="radio" name="evalmode" value="bp" disabled="disabled">Back Projection (Fourier)
 			</TD>
 		</TR>
 		<TR>
@@ -63,9 +63,9 @@
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" checked name="searchtype" value="loopless">Loopless
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchtype" value="disjoint">Disjoint
+				<INPUT type="radio" name="searchtype" value="disjoint" disabled="disabled">Disjoint
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchtype" value="chain">Chain
+				<INPUT type="radio" name="searchtype" value="chain" disabled="disabled">Chain
 			</TD>
 		</TR>
 		<TR>
@@ -73,11 +73,11 @@
 				Search Direction:
 			</TD>
 			<TD>
-				<INPUT type="radio" checked name="searchdir" value="default">Default
+				<INPUT type="radio" name="searchdir" value="default" disabled="disabled">Default
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchdir" value="up">Up
+				<INPUT type="radio" checked name="searchdir" value="up">Up
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchdir" value="down">Down
+				<INPUT type="radio" name="searchdir" value="down" disabled="disabled">Down
 			</TD>
 		</TR>
 		<TR>
@@ -157,8 +157,8 @@
 		</TR>
 		<TR>
 		 	<TD>&nbsp;</TD>
-			<TD><INPUT type="checkbox" name="show_bp" value="yes">BP-based Transmission&nbsp;
-			    <INPUT type="checkbox" name="show_incr_a" value="yes">Incremental Alpha</TD>
+			<TD><INPUT type="checkbox" name="show_bp" value="yes" disabled="disabled">BP-based Transmission&nbsp;
+			    <INPUT type="checkbox" name="show_incr_a" value="yes" checked>Incremental Alpha</TD>
 		</TR>
 		<TR>
 		 	<TD>&nbsp;</TD>
@@ -170,14 +170,11 @@
 			<TD colspan="2"><INPUT type="checkbox" name='format' value='y'>Return data in spreadsheet format</TD>
 		</TR>
 		<TR>
-			<TD colspan="2"><INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings</TD>
+			<TD colspan="2"><INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings &nbsp; &nbsp; <INPUT type='checkbox' name='skipnominal' value='y'>(but don't print variable definitions)</TD>
 		</TR>
-		<TR>
-			<TD colspan="2"><INPUT type="checkbox" name='inversenotation' value='y'>Use inverse notation for models</TD>
-		</TR>
-		<TR>
+<!--		<TR>
 			<TD colspan="2"><INPUT type="checkbox" name='functionvalues' value='y'>Data specifies function values, not frequencies</TD>
-		</TR>
+		</TR> -->
 		<TR>
 			<TD>Run in Background, Email Results To:</TD>
 			<TD><INPUT type="text" name="batchOutput" size="50"></TD>
@@ -188,5 +185,6 @@
 			<TD><INPUT type="SUBMIT" value="Send"></TD>
 		</TR>
 	</table>
+<input type="hidden" name='inversenotation' value='n'>
 <input type="hidden" name="action" value="SBsearch">
 </form>

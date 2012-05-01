@@ -204,7 +204,7 @@ ocManagerBase.h
 	- getInputData()
 	- getTestData()
 	- makeModel()
-	- makeSBModel()
+	- makeSbModel()
 	- setOptionString()
 	- setOptionFloat()
 	- getOptionString()

@@ -1,5 +1,5 @@
-#! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
-import pdb
+#! python
+#import pdb
 import os, sys
 #sys.path.append("/www")
 import occam
@@ -9,7 +9,6 @@ import resource
 resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 
 from ocutils import ocUtils
-
 
 
 # This section of the script allows you to specify the most frequently changed options from the command line.
@@ -30,8 +29,6 @@ if len(sys.argv) >= 5:
 	filter = sys.argv[4]
 else:
 	filter = "loopless"
-
-
 
 
 util = ocUtils("SB")			# create a variable-based manager
@@ -96,7 +93,7 @@ util.setSortName("information")
 #util.setNoIPF(1)
 # For ref=bottom, use something like this:
 #util.setReportVariables("Level$i, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
-util.setReportVariables("level$I, h, ddf, lr, alpha, information, aic, bic")
+util.setReportVariables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id")
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
