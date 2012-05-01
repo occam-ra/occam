@@ -41,10 +41,14 @@ ocModel::~ocModel() {
         }
         delete[] structMatrix;
     }
-    if (printName)
+    if (printName) {
         delete printName;
-    if (inverseName)
+        printName = NULL;
+    }
+    if (inverseName) {
         delete inverseName;
+        inverseName = NULL;
+    }
     if (relations)
         delete[] relations;     // only pointers; actual relations deleted by the relCache
     if (fitTable)
@@ -443,6 +447,7 @@ const char * ocModel::getPrintName(int useInverse) {
     bool isDirected = relations[0]->getVariableList()->isDirected();
     int indOnlyRel = -1;
     int useIVI = 0;
+    int notUsingIVI = 0;
     if ((printName == NULL && useInverse != 1) || (inverseName == NULL && useInverse == 1)) {
         for (i = 0; i < relationCount; i++) {
             const char *name;
@@ -452,16 +457,18 @@ const char * ocModel::getPrintName(int useInverse) {
                 name = "IV";
             } else if (!isDirected && (relations[i]->getVariableCount() == 1) && !relations[i]->isStateBased()) {
                 useIVI++;
+                name = relations[i]->getPrintName(useInverse);
+                notUsingIVI = strlen(name) + 1;
                 continue;
             } else {
                 name = relations[i]->getPrintName(useInverse);
             }
             len += strlen(name) + 1;
         }
-//        if (len < 40)
-//            len = 40; //??String allocation bug?
         if (useIVI > 1)
-            len += 3;
+            len += 3 + 1;
+        else if (useIVI == 1)
+            len += notUsingIVI;
         char *tempName = new char[len + 1];
         char *cp = tempName;
         *cp = '\0';
@@ -514,7 +521,7 @@ void ocModel::printStructMatrix() {
 }
 
 void ocModel::dump(bool detail) {
-    printf("\tocModel: %s\n", getPrintName());
+    //printf("\tocModel: %s\n", getPrintName());
     attributeList->dump();
     printf("\n");
     printf("\t\tSize: %d,\tRelCount: %d,\tMaxRel:%d\n", size(), getRelationCount(), maxRelationCount);
