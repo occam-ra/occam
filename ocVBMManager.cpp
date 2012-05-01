@@ -73,10 +73,10 @@ bool ocVBMManager::initFromCommandLine(int argc, char **argv) {
     if (varList) {
         int varCount = varList->getVarCount();
         ocRelation *top = new ocRelation(varList, varCount);
-        getRelCache()->addRelation(top);
         int i;
         for (i = 0; i < varCount; i++)
             top->addVariable(i); // all vars in saturated model
+        getRelCache()->addRelation(top);
         top->setTable(inputData);
         makeReferenceModels(top);
     }
