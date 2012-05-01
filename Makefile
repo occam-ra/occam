@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 CC = gcc
-CFLAGS = -w -Wall -O2 -fPIC
+CFLAGS = -w -Wall -O3 -fPIC
 LFLAGS = -shared
 
 # -arch x86_64 to force 64-bit intel compile
@@ -25,7 +25,7 @@ DEFS = -I.		  						# include the current directory
 
 ifeq ($(arch), Darwin)
 #    CFLAGS = -w -Wall -O1 -arch x86_64 -g -flat_namespace -undefined suppress
-    CFLAGS = -w -Wall -O2 -arch x86_64 -flat_namespace -undefined suppress
+    CFLAGS = -w -Wall -O3 -arch x86_64 -flat_namespace -undefined suppress
     LFLAGS = -bundle
 	DEFS = -I. -DSWAP_QSORT_R				# fixes problem with qsort_r argument order on different platforms
     WEB_ROOT = ~/Sites/occam
