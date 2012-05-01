@@ -2,6 +2,7 @@ SHELL = /bin/sh
 
 CC = gcc
 CFLAGS = -w -Wall -O2 -fPIC -g
+LFLAGS = 
 
 # -arch x86_64 to force 64-bit intel compile
 # -arch i386 to force 32-bit intel compile
@@ -23,8 +24,9 @@ CL = occ								# command-line executable
 DEFS = -I.		  						# include the current directory
 
 ifeq ($(arch), Darwin)
-#    CFLAGS = -w -Wall -O1 -arch x86_64 -g
-    CFLAGS = -w -Wall -O2 -arch x86_64
+#    CFLAGS = -w -Wall -O1 -arch x86_64 -g -flat_namespace -undefined suppress
+    CFLAGS = -w -Wall -O2 -arch x86_64 -flat_namespace -undefined suppress
+    LFLAGS = -bundle
 	DEFS = -I. -DSWAP_QSORT_R				# fixes problem with qsort_r argument order on different platforms
     WEB_ROOT = ~/Sites/occam
     CL_ROOT = ~/Documents/Research/Occam/install
@@ -139,9 +141,9 @@ $(LIB): $(LIBOBJECTS)
 # occam.so depends on liboccam3.a and pyoccam.cpp
 #	(gcc -I. -w) -shared -I (python dir) -o (occam.so) (pyoccam.cpp) (liboccam3.a) (-lm -lstdc++)
 $(PY_OCCAM): $(LIB) $(PY_WRAPPER)
-	$(COMPILE) -bundle -flat_namespace -undefined suppress -I $(PY_INCLUDE) -o $(PY_OCCAM) $(PY_WRAPPER) $(LIB) $(LDFLAGS)
+	$(COMPILE) $(LFLAGS) -I $(PY_INCLUDE) -o $(PY_OCCAM) $(PY_WRAPPER) $(LIB) $(LDFLAGS)
 $(CL): occ.cpp $(LIB)
-	$(COMPILE) -flat_namespace -undefined suppress -o $(CL) occ.cpp $(LIBOBJECTS) $(LDFLAGS)
+	$(COMPILE) -o $(CL) occ.cpp $(LIBOBJECTS) $(LDFLAGS)
 #$(COMPILE) -shared -I $(PY_INCLUDE) -o $(PY_OCCAM) $(PY_WRAPPER) $(LIB) $(LDFLAGS)
 
 
