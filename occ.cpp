@@ -12,12 +12,15 @@
 #include "ocReport.h"
 #include <string.h>
 #include <stdio.h>
+#include <time.h>
 
 int main(int argc, char* argv[]) {
     if (argc <= 1) {
         printf("usage: %s [options] data_file\n", argv[0]);
         return 1;
     }
+    time_t  t0, t1;
+    t0 = time(NULL);
     ocSBMManager *mgr = new ocSBMManager();
     mgr->initFromCommandLine(argc, argv);
     ocReport *report = new ocReport(mgr);
@@ -128,5 +131,7 @@ int main(int argc, char* argv[]) {
     }
     delete report;
     delete mgr;
+    t1 = time(NULL);
+    printf("Elapsed time: %ld\n", (long)(t1 - t0));
     return 0;
 }
