@@ -20,7 +20,7 @@ int main(int argc, char* argv[]) {
         return 1;
     }
     time_t  t0, t1;
-    t0 = time(NULL);
+    t0 = clock();
     ocSBMManager *mgr = new ocSBMManager();
     mgr->initFromCommandLine(argc, argv);
     ocReport *report = new ocReport(mgr);
@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     }
     delete report;
     delete mgr;
-    t1 = time(NULL);
-    printf("Elapsed time: %ld\n", (long)(t1 - t0));
+    t1 = clock();
+    printf("Elapsed time: %f seconds\n", (float)(t1 - t0)/CLOCKS_PER_SEC);
     return 0;
 }
