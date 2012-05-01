@@ -30,11 +30,11 @@ ocStateConstraint::ocStateConstraint(int keysz, int size)
 ocStateConstraint::~ocStateConstraint()
 {
     // delete storage
-    delete constraints;
+    delete[] constraints;
 }
 
 
-// add a constraint. 
+// add a constraint.
 void ocStateConstraint::addConstraint(ocKeySegment *key)
 {
     const int FACTOR = 2;

@@ -19,7 +19,9 @@ ocSearchType searchTypes[] = {
     { "loopless-up", ocSearchLooplessUp::make },
     { "disjoint-up", ocSearchDisjointUp::make },
     { "chain-up", ocSearchChain::make },
-    { "disjoint-down",ocSearchDisjointDown::make},
+    { "disjoint-down",ocSearchDisjointDown::make },
+    { "sb-loopless-up", ocSearchSbLooplessUp::make },
+    { "sb-full-up", ocSearchSbFullUp::make },
 };
 
 
@@ -39,24 +41,24 @@ ocModel **ocSearchBase::search(ocModel *start)
 }
 
 
-ocSearchBase* ocSearchFactory::getSearchMethod(ocVBMManager *mgr, const char *name, bool proj)
+ocSearchBase* ocSearchFactory::getSearchMethod(ocManagerBase *mgr, const char *name, bool proj)
 {
     ocSearchBase *search = NULL;
     ocSearchType *type;
 
     //-- Find the requested search type
     for (type = searchTypes; type->name; type++) {
-	if (strcmp(type->name, name) == 0) {
-	    search = (*type->make)();
-	    break;
-	}
+        if (strcmp(type->name, name) == 0) {
+            search = (*type->make)();
+            break;
+        }
     }
 
     //-- If a search type was found, set its context
     if (search) {
-	search->setDirected(mgr->getVariableList()->isDirected());
-	search->setMakeProjection(proj);
-	search->setManager(mgr);
+        search->setDirected(mgr->getVariableList()->isDirected());
+        search->setMakeProjection(proj);
+        search->setManager(mgr);
     }
     return search;
 }

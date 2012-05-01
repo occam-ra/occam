@@ -225,7 +225,7 @@ long long ocTable::indexOf(ocKeySegment *key, bool matchOnly)
 /**
  * sort() - sort the tuples by key value (to allow binary search).  This uses
  * the Unix QuickSort function qsort. We need a little adaptor function for the
- * comparitor, because compareKeys isn't quite right
+ * comparator, because compareKeys isn't quite right
  */
 static int sortKeySize;	// must be set before calling sortCompare
 static int sortCompare(const void *k1, const void *k2)
@@ -291,7 +291,7 @@ void ocTable::reset(int keysize)
 {
     this->tupleCount = 0;
     this->keysize = keysize;
-} 
+}
 
 
 /**

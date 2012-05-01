@@ -8,7 +8,9 @@
 #define OCSEARCHBASE_H
 
 #include "ocCore.h"
+#include "ocManagerBase.h"
 #include "ocVBMManager.h"
+#include "ocSBMManager.h"
 
 class ocSearchBase {
     friend class ocSearchFactory;
@@ -20,22 +22,22 @@ class ocSearchBase {
     virtual ocModel **search(ocModel *start);
     bool isDirected() { return directed; }
     bool makeProjection() { return projection; }
-    ocVBMManager *getManager() { return manager; }
+    ocManagerBase *getManager() { return manager; }
 
     protected:
-    void setManager(ocVBMManager *mgr) { manager = mgr; }
+    void setManager(ocManagerBase *mgr) { manager = mgr; }
     void setDirected(bool dir) { directed = dir; }
     void setMakeProjection(bool proj) { projection = proj; }
 
     //-- data
-    ocVBMManager *manager;
+    ocManagerBase *manager;
     bool directed;	// system is directed (has dependent variables)
     bool projection; // create a projection table for all new relations
 };
 
 class ocSearchFactory {
     public:
-	static ocSearchBase *getSearchMethod(ocVBMManager *manager, const char *name, bool proj = true);
+	static ocSearchBase *getSearchMethod(ocManagerBase *manager, const char *name, bool proj = true);
 };
 
 #endif
