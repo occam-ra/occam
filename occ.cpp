@@ -14,6 +14,10 @@
 #include <stdio.h>
 
 int main(int argc, char* argv[]) {
+    if (argc <= 1) {
+        printf("usage: %s [options] data_file\n", argv[0]);
+        return 1;
+    }
     ocSBMManager *mgr = new ocSBMManager();
     mgr->initFromCommandLine(argc, argv);
     ocReport *report = new ocReport(mgr);
