@@ -395,6 +395,7 @@ class ocUtils:
         self.__report.addModel(start)
         self.__nextID = 1
         start.setID(self.__nextID)
+        start.setProgenitor(start)
         oldModels = [start]
         try:
             self.__manager.setSearchType(self.searchType())
@@ -475,6 +476,7 @@ class ocUtils:
         self.__report.addModel(start)
         self.__nextID = 1
         start.setID(self.__nextID)
+        start.setProgenitor(start)
         oldModels = [start]
         try:
             self.__manager.setSearchType(self.sbSearchType())
