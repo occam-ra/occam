@@ -194,7 +194,7 @@ void ocReport::print(FILE *fd) {
         }
     }
     // If progenitors are being tracked, map the progenitor values too.
-    if (models[0]->getAttribute(ATTRIBUTE_PROG_ID) != -1.0) {
+    if (models[0]->getProgenitor() != NULL) {
         for (int m = 0; m < modelCount; m++) {
             models[m]->setAttribute(ATTRIBUTE_PROG_ID,
                     (double) idOrder[(int) models[m]->getAttribute(ATTRIBUTE_PROG_ID)]);
