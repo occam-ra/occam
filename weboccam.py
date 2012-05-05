@@ -220,6 +220,9 @@ def actionFit(formFields):
     if formFields.has_key("calcExpectedDV"):
         oc.setCalcExpectedDV(1)
     oc.setDDFMethod(1)
+    skipNominalFlag = formFields.get("skipnominal", "")
+    if skipNominalFlag:
+        oc.setSkipNominal(1)
     if formFields.has_key("defaultmodel"):
         oc.setDefaultFitModel(formFields["defaultmodel"])
 #functionFlag = formFields.get("functionvalues", "")
@@ -264,6 +267,9 @@ def actionSBFit(formFields):
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
         return
+    skipNominalFlag = formFields.get("skipnominal", "")
+    if skipNominalFlag:
+        oc.setSkipNominal(1)
 #model = formFields["model"]
 #   if textFormat:
     processSBFit(fn, formFields["model"], oc)
