@@ -472,6 +472,10 @@ class ocUtils:
         self.__manager.printBasicStatistics()
         self.__manager.computeL2Statistics(start)
         self.__manager.computeDependentStatistics(start)
+        if self.__PercentCorrect:
+            self.__manager.computePercentCorrect(start)
+        if self.__IncrementalAlpha:
+            self.__manager.computeIncrementalAlpha(start)
         start.level = 0
         self.__report.addModel(start)
         self.__nextID = 1
