@@ -12,22 +12,22 @@ LFLAGS = -shared
 arch = $(shell uname)
 # `uname` gives "Linux" or "Darwin" for linux or OSX, respectively
 # `uname -n` gives hostname
-# OIT: nag.research.pdx.edu
+# OIT: *.research.pdx.edu
 # dmm: dmm
 # ra: ra
 
 INCLUDES = ocCore.h _ocCore.h
-WEB_ROOT = ../html						# root for the web install
-CL_ROOT = install						# root for the command-line install
+WEB_ROOT = ../html	# root for the web install
+CL_ROOT = install	# root for the command-line install
 PY_INCLUDE = /usr/include/python2.6		# location of python include files
-CL = occ								# command-line executable
-DEFS = -I.		  						# include the current directory
+CL = occ	# command-line executable
+DEFS = -I.	# include the current directory
 
 ifeq ($(arch), Darwin)
 #    CFLAGS = -w -Wall -O1 -arch x86_64 -g -flat_namespace -undefined suppress
     CFLAGS = -w -Wall -O3 -arch x86_64 -flat_namespace -undefined suppress
     LFLAGS = -bundle
-	DEFS = -I. -DSWAP_QSORT_R				# fixes problem with qsort_r argument order on different platforms
+	DEFS = -I. -DSWAP_QSORT_R	# fixes problem with qsort_r argument order on different platforms
     WEB_ROOT = ~/Sites/occam
     CL_ROOT = ~/Documents/Research/Occam/install
     PY_INCLUDE = /Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 
