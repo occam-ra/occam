@@ -9,7 +9,7 @@ LFLAGS = -shared
 # -g for debugging
 # -pg for gprof (profiler)
 
-arch = $(shell uname)
+ARCH = $(shell uname)
 # `uname` gives "Linux" or "Darwin" for linux or OSX, respectively
 # `uname -n` gives hostname
 # OIT: *.research.pdx.edu
@@ -23,7 +23,15 @@ PY_INCLUDE = /usr/include/python2.6		# location of python include files
 CL = occ	# command-line executable
 DEFS = -I.	# include the current directory
 
-ifeq ($(arch), Darwin)
+ifeq ($(ARCH), Linux)
+# check if we're on one of the research machines, which use python 2.4 still
+    HOST = $(shell uname -n | sed -e "s/[^.]*\.//")
+    ifeq ($(HOST), research.pdx.edu)
+        PY_INCLUDE = /usr/include/python2.4
+    endif
+endif
+
+ifeq ($(ARCH), Darwin)
 #    CFLAGS = -w -Wall -O1 -arch x86_64 -g -flat_namespace -undefined suppress
     CFLAGS = -w -Wall -O3 -arch x86_64 -flat_namespace -undefined suppress
     LFLAGS = -bundle
