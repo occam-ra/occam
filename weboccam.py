@@ -524,6 +524,9 @@ def getFormFields(form):
 # script as a command line job
 #
 def startBatch(formFields):
+    if getDataFileName(formFields) == "":
+        print "ERROR: No data file specified."
+        sys.exit()
     ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
     csvname = getDataFileName(formFields, true) + '.csv'
     datafilename = getDataFileName(formFields)
