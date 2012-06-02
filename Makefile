@@ -27,7 +27,7 @@ ifeq ($(arch), Darwin)
 #    CFLAGS = -w -Wall -O1 -arch x86_64 -g -flat_namespace -undefined suppress
     CFLAGS = -w -Wall -O3 -arch x86_64 -flat_namespace -undefined suppress
     LFLAGS = -bundle
-	DEFS = -I. -DSWAP_QSORT_R	# fixes problem with qsort_r argument order on different platforms
+	DEFS = -I.
     WEB_ROOT = ~/Sites/occam
     CL_ROOT = ~/Documents/Research/Occam/install
     PY_INCLUDE = /Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 

@@ -317,10 +317,11 @@ static int sortCompare(const void *k1, const void *k2) {
     return *((int*) k1) - *((int*) k2);
 }
 
+static int *sorting_vars;
 //static int sbSortCompare(void *thunk, const void *k1, const void *k2) {
-static int QSORT_COMPARISON_FUNCTION(sbSortCompare, void *thunk, const void *k1, const void *k2) {
-    int* vars = (int *) thunk;
-    return vars[*((int *) k1)] - vars[*((int *) k2)];
+static int sbSortCompare(const void *k1, const void *k2) {
+    //int* vars = (int *) thunk;
+    return sorting_vars[*((int *) k1)] - sorting_vars[*((int *) k2)];
 }
 
 void ocRelation::sort(int *vars, int varCount, int *states) {
@@ -336,7 +337,8 @@ void ocRelation::sort(int *vars, int varCount, int *states) {
             order[i] = i;
         // order of args must be changed for qsort_r, and its compare function, from BSD to GNU.
         // last 2 args of qsort_r must be switched, and the thunk moved to the end of compare.
-        QSORT_R(order, varCount, sizeof(int), (void *) vars, sbSortCompare);
+        sorting_vars = vars;
+        qsort(order, varCount, sizeof(int), sbSortCompare);
         int *vars_copy = new int[varCount];
         int *states_copy = new int[varCount];
         memcpy(vars_copy, vars, varCount * sizeof(int));
