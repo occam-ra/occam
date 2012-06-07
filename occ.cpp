@@ -50,7 +50,7 @@ int main(int argc, char* argv[]) {
 
         mgr->printBasicStatistics();
 
-        mgr->setSearch("sb-full-up");
+        mgr->setSearch("sb-loopless-up");
         mgr->setRefModel("bottom");
         ocModel* start = mgr->getBottomRefModel();
         mgr->computeL2Statistics(start);
@@ -71,6 +71,8 @@ int main(int argc, char* argv[]) {
         keptCount = 1;
         ocModel** models;
         bool found;
+        t1 = clock();
+        printf("Setup time: %f seconds\n", (float)(t1 - t0)/CLOCKS_PER_SEC);
         for (int j=0; j < levels; j++) {
             nextCount = 0;
             nextModels = new ocModel*[keptCount * (int)width];
