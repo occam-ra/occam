@@ -18,10 +18,11 @@
 
 #define keyAddr(index) (constraints + (keysize * index))
 
-ocStateConstraint::ocStateConstraint(int keysz, int size)
+ocStateConstraint::ocStateConstraint(int keysz, long size)
 {
     keysize = keysz;
     maxConstraintCount = size;
+    if (maxConstraintCount == 0) maxConstraintCount = 1;
     constraintCount = 0;
     constraints = new ocKeySegment[keysize * maxConstraintCount];
 }
@@ -56,7 +57,7 @@ long ocStateConstraint::getConstraintCount()
 
 
 // retrieve a constraint, given the index (0 .. constraintCount-1)
-ocKeySegment *ocStateConstraint::getConstraint(int index)
+ocKeySegment *ocStateConstraint::getConstraint(long index)
 {
     return (index < constraintCount) ? keyAddr(index) : NULL;
 }

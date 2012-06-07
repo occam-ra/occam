@@ -145,8 +145,8 @@ int * ocModel::getIndicesFromKey(ocKeySegment *key, ocVariableList *vars, int st
 void ocModel::makeStructMatrix(int statespace, ocVariableList *vars, int **stateSpaceArr) {
     if (structMatrix != NULL) return;
     int relCount = getRelationCount();
-    int constraintCount = 0;
-    int i = 0;
+    long constraintCount = 0;
+    long i = 0;
     for (i = 0; i < relCount; i++) {
         ocRelation *rel = getRelation(i);
         ocStateConstraint *sc = rel->getStateConstraints();
@@ -183,7 +183,7 @@ void ocModel::makeStructMatrix(int statespace, ocVariableList *vars, int **state
             printf("error happened in file : ocModel.cpp after getConstraintCount\n");
             exit(1);
         }
-        for (int j = 0; j < constraintCount; j++) {
+        for (long j = 0; j < constraintCount; j++) {
             ocKeySegment* key = sc->getConstraint(j);
             if (key == NULL) {
                 printf("error happened in file : ocModel.cpp after getConstraint\n");

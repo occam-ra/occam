@@ -260,7 +260,7 @@ class ocRelation {
         // initializes an empty relation object. The size argument is a hint as to the
         // number of variables to allocate space for (but relations can grow dynamically
         // if needed).
-        ocRelation(ocVariableList *list = 0, int size = 0, int keysz = 0, int stateconstsz = 0);
+        ocRelation(ocVariableList *list = 0, int size = 0, int keysz = 0, long stateconstsz = -1);
         ~ocRelation();
         long size();
 
@@ -490,7 +490,7 @@ class ocModel {
         char *printName;
         char *inverseName;
         int **structMatrix;
-        int totalConstraints;
+        long totalConstraints;
         int stateSpaceSize;
 };
 
@@ -603,7 +603,7 @@ class ocAttributeList {
 class ocStateConstraint {
     public:
         // initialize a set of constraints.  Size is a hint of the number needed
-        ocStateConstraint(int keysize, int size);
+        ocStateConstraint(int keysize, long size);
         ~ocStateConstraint();
 
         // add a constraint.
@@ -613,7 +613,7 @@ class ocStateConstraint {
         long getConstraintCount();
 
         // retrieve a constraint, given the index (0 .. constraintCount-1)
-        ocKeySegment *getConstraint(int index);
+        ocKeySegment *getConstraint(long index);
 
         // get the key size for this constraint table
         int getKeySize();

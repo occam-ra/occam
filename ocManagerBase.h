@@ -65,7 +65,7 @@ class ocManagerBase {
         // this will first search the cache and, if the relation is found, return it.
         // if not in the cache, a new relation is created. If instructed, the projection
         // corresponding to the relation is also created.
-        virtual ocRelation *getRelation(int *varindices, int varcount, bool makeProject = false, int *stateindices = 0);
+        virtual ocRelation *getRelation(int *varindices, int varcount, bool makeProject = false, int *stateindices = NULL);
 
         // get a relation just like the given relation, but with the given variable removed.
         // (skip is the variable id in the master variable list).
@@ -234,7 +234,7 @@ class ocManagerBase {
         // state based Model functions
         // calculates the number of state constraints generated
         // by a particular relation
-        int calcStateConstSize(int varcount, int *varindices, int *stateindices);
+        long calcStateConstSize(int varcount, int *varindices, int *stateindices);
 
         // add the state constraints for a relation
         int addConstraint(int varcount, int *varindices, int *stateindices, int* stateindices_c, ocKeySegment* start,

@@ -149,8 +149,8 @@ ocManagerBase::~ocManagerBase() {
 // this function calculates the number of state constraints imposed by a particular relation which
 // has variables as are present in the varindices list and state constraints as present in the
 // stateindices list, a state value of -1 implies a dont_care value
-int ocManagerBase::calcStateConstSize(int varcount, int *varindices, int *stateindices) {
-    int size = 1;
+long ocManagerBase::calcStateConstSize(int varcount, int *varindices, int *stateindices) {
+    long size = 1;
     ocVariable *var;
     int card = 0;
     if (varindices == NULL || stateindices == NULL)
@@ -212,7 +212,7 @@ ocRelation *ocManagerBase::getRelation(int *input_vars, int varcount, bool make_
         stateindices = new int[varcount];
         memcpy(stateindices, input_states, varcount * sizeof(int));
     }
-    int stateconstsz = 0;
+    long stateconstsz = 0;
     ocRelation::sort(varindices, varcount, stateindices);
     int keysize = getKeySize();
     ocRelation *rel;
@@ -319,7 +319,7 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel) {
 
     bool is_match = false;  // for state-based
     double remainder = 0;   // for state-based
-    int c_count;            // for state-based
+    long c_count;            // for state-based
     ocKeySegment *const_k;  // for state-based
     if (rel->isStateBased()) { // for state-based
         c_count = rel->getStateConstraints()->getConstraintCount();
