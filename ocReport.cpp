@@ -220,15 +220,15 @@ void ocReport::print(FILE *fd) {
     // Only show best info/alpha values when searching from the bottom.
     bool checkAlpha = false;
     bool showAlpha = false;
-    if ((manager->getRefModel() == manager->getBottomRefModel())
-            || ((manager->getRefModel() != manager->getTopRefModel()) && manager->getSearchDirection() == 0)) {
-        checkAlpha = true;
-    }
+//    if ((manager->getRefModel() == manager->getBottomRefModel())
+//            || ((manager->getRefModel() != manager->getTopRefModel()) && manager->getSearchDirection() == 0)) {
+//        checkAlpha = true;
+//    }
     bool checkIncr = false;
     bool showIncr = false;
-//    if ((manager->getSearchDirection() == 0) && (models[0]->getAttribute(ATTRIBUTE_INCR_ALPHA) != -1)) {
-//        checkIncr = true;
-//    }
+    if ((manager->getSearchDirection() == 0) && (models[0]->getAttribute(ATTRIBUTE_INCR_ALPHA) != -1)) {
+        checkIncr = true;
+    }
 
     // Only show percent correct on test data when it's present.
     bool showPercentCorrect = false;
