@@ -13,7 +13,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-ocRelation::ocRelation(ocVariableList *list, int size, int keysz, int stateconstsz) {
+ocRelation::ocRelation(ocVariableList *list, int size, int keysz, long stateconstsz) {
     varList = list;
     maxVarCount = size;
     varCount = 0;
@@ -21,7 +21,7 @@ ocRelation::ocRelation(ocVariableList *list, int size, int keysz, int stateconst
     table = NULL;
     stateConstraints = NULL;
     states = NULL;
-    if (stateconstsz > 0) {
+    if (stateconstsz >= 0) {
         //needs a better keysize value........Anjali
         states = new int[size];
         stateConstraints = new ocStateConstraint(keysz, stateconstsz);
