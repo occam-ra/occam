@@ -32,17 +32,21 @@ void logMemory(void *old, unsigned long long oldSize, long factor, const char *f
 void *_growStorage(void *old, unsigned long long oldSize, long factor, const char *file, long line)
 {
     logMemory(old, oldSize, factor, file, line);
+    if (oldSize == 0) oldSize = 1;
     if ( ((double)oldSize * (double)factor) > ULONG_MAX ) {
         printf("Memory allocation error.  %s[%ld], memory requested: %f\n", file, line, (double)oldSize * (double)factor);
         fflush(stdout);
         exit(1);
     }
-    char *newp = new char[oldSize * factor];
+    unsigned long long newSize = oldSize * factor;
+    if (newSize == 0) newSize = 1;
+
+    char *newp = new char[newSize];
     if (newp == NULL) {
-        printf("out of memory!\n");
+        printf("Out of memory!\n");
         return NULL;
     }
-    memset(newp, 0, oldSize * factor);
+    memset(newp, 0, newSize);
     memcpy(newp, old, oldSize);
     delete [] ((char*)old);
     return newp;
