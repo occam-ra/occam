@@ -776,39 +776,33 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
         fit_dv_expected[i] = 0.0;
 
         temp_key = new ocKeySegment[key_size];
-        for (int j = 0; j < key_size; j++) {
+        for (int j = 0; j < key_size; j++)
             temp_key[j] = DONT_CARE;
-        }
         fit_key[i] = temp_key;
 
         temp_key = new ocKeySegment[key_size];
-        for (int j = 0; j < key_size; j++) {
+        for (int j = 0; j < key_size; j++)
             temp_key[j] = DONT_CARE;
-        }
         alt_key[i] = temp_key;
 
         temp_key = new ocKeySegment[key_size];
-        for (int j = 0; j < key_size; j++) {
+        for (int j = 0; j < key_size; j++)
             temp_key[j] = DONT_CARE;
-        }
         input_key[i] = temp_key;
 
         temp_double_array = new double[dv_card];
-        for (int k = 0; k < dv_card; k++) {
+        for (int k = 0; k < dv_card; k++)
             temp_double_array[k] = 0.0;
-        }
         fit_prob[i] = temp_double_array;
 
         temp_double_array = new double[dv_card];
-        for (int k = 0; k < dv_card; k++) {
+        for (int k = 0; k < dv_card; k++)
             temp_double_array[k] = 0.0;
-        }
         alt_prob[i] = temp_double_array;
 
         temp_double_array = new double[dv_card];
-        for (int k = 0; k < dv_card; k++) {
+        for (int k = 0; k < dv_card; k++)
             temp_double_array[k] = 0.0;
-        }
         input_freq[i] = temp_double_array;
     }
     if (test_sample_size > 0.0) {
@@ -816,15 +810,13 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
             test_key_freq[i] = 0.0;
 
             temp_key = new ocKeySegment[key_size];
-            for (int j = 0; j < key_size; j++) {
+            for (int j = 0; j < key_size; j++)
                 temp_key[j] = DONT_CARE;
-            }
             test_key[i] = temp_key;
 
             temp_double_array = new double[dv_card];
-            for (int k = 0; k < dv_card; k++) {
+            for (int k = 0; k < dv_card; k++)
                 temp_double_array[k] = 0.0;
-            }
             test_freq[i] = temp_double_array;
         }
     }
@@ -837,9 +829,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     }
 
     if (calcExpectedDV) {
-        for (int i = 0; i < dv_card; i++) {
+        for (int i = 0; i < dv_card; i++)
             dv_bin_value[i] = strtod(dv_label[i], (char **) NULL);
-        }
     }
 
     const char *new_line, *blank_line;
