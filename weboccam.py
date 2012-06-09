@@ -10,7 +10,7 @@ from jobcontrol import JobControl
 #import urllib2
 #import platform, traceback
 
-VERSION = "3.3.5"
+VERSION = "3.3.6"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
