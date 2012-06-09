@@ -631,21 +631,6 @@ bool ocManagerBase::deleteModelFromCache(ocModel *model) {
     return modelCache->deleteModel(model);
 }
 
-//static bool nextTuple(ocVariableList *varList, int *varvalues) {
-//    int varcount = varList->getVarCount();
-//    // bump the last variable by one; if it overflows, carry to the
-//    // previous one, etc. Return false if we overflow the whole variable list
-//    int i = varcount - 1;
-//    varvalues[i]++;
-//    while (varvalues[i] >= varList->getVariable(i)->cardinality) {
-//        if (i == 0)
-//            return false; // overflow
-//        varvalues[i--] = 0;
-//        varvalues[i]++;
-//    }
-//    return true;
-//}
-
 //-- intersect two variable lists, producing a third. returns true if intersection
 //-- is not empty, and returns the list and count of common variables
 static bool intersect(ocRelation *rel1, ocRelation *rel2, int* &var, int &count) {
@@ -1123,7 +1108,6 @@ void ocManagerBase::calculateDfAndEntropy(ocModel *model) {
             delete[] intersectArray;
             intersectCount = 0;
             intersectMax = model->getRelationCount();
-            ;
             intersectArray = NULL;
         }
         doIntersectionProcessing(model, &processor);
@@ -1138,10 +1122,8 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
         intersectMax = model->getRelationCount();
         intersectArray = new VarIntersect[intersectMax];
     }
-
     int count = model->getRelationCount();
     ocVariableList *varList = model->getRelation(0)->getVariableList();
-
     ocRelation *rel;
     int i, j, k;
     //-- go through the relations in the model and create VarIntersect entries
@@ -1170,7 +1152,7 @@ void ocManagerBase::doIntersectionProcessing(ocModel *model, ocIntersectProcesso
     VarIntersect *ip, *jp, *newp;
     VarIntersect *currentArray, *nextArray;
     int currentCount, nextCount;
-    long nextMax;
+    int nextMax;
     int *newvars, newcount;
     currentArray = intersectArray;
     currentCount = intersectCount;

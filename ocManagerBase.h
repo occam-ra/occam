@@ -270,7 +270,7 @@ class ocManagerBase {
         int useInverseNotation;
         VarIntersect *intersectArray;
         int intersectCount;
-        long intersectMax;
+        int intersectMax;
         double functionConstant;
         double negativeConstant;
         bool valuesAreFunctions;
