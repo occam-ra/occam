@@ -282,12 +282,17 @@ double ocVBMManager::computeDDF(ocModel *model) {
     // This is the old method of computing delta-DF.
     // It looks simple here, but it is inaccurate with large statespaces.
     if ((DDFMethod == 1) || (model->getAttribute(ATTRIBUTE_DF) >= 0)) {
+        int modExp, refExp, ddfExp;
+        frexp(computeDF(model), &modExp);
+        frexp(computeDF(refModel), &refExp);
         ddf = fabs(computeDF(refModel) - computeDF(model));
+        frexp(ddf, &ddfExp);
+        int digit_diff = (modExp > refExp ? modExp : refExp) - ddfExp;
         // if we have a good value for dDF now, we're done
-        //if (ddf > .5) {
-        model->setAttribute(ATTRIBUTE_DDF, ddf);
-        return ddf;
-        //}
+        if ((round(ddf) >= 1.0) && (digit_diff < DBL_DIG)) {
+            model->setAttribute(ATTRIBUTE_DDF, ddf);
+            return ddf;
+        }
         // else if ref - mod ~= 0, try the incremental method
     }
 
