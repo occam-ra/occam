@@ -536,7 +536,8 @@ def startBatch(formFields):
     if getDataFileName(formFields) == "":
         print "ERROR: No data file specified."
         sys.exit()
-    ctlfilename = os.path.join(datadir, getUniqueFilename(getDataFileName(formFields, true) + '.ctl'))
+    ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
+    ctlfilename = getUniqueFilename(ctlfilename)
     csvname = getDataFileName(formFields, true) + '.csv'
     datafilename = getDataFileName(formFields)
     toaddress =  formFields["batchOutput"].lower()
