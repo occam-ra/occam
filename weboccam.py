@@ -136,7 +136,7 @@ def getDataFile(formFields):
     datafile = os.path.join(datadir, getDataFileName(formFields))
     datafile = getUniqueFilename(datafile)
     try:
-        outf = open(datafile, "w", 0777)
+        outf = open(datafile, "w", 0660)
         data = formFields["data"]
         outf.write(data)
         outf.close()
@@ -148,6 +148,7 @@ def getDataFile(formFields):
         sys.exit()
     # If it appears to be a zipfile, unzip it
     if os.path.splitext(datafile)[1] == ".zip":
+        oldfile = datafile
         zipdata = zipfile.ZipFile(datafile)
         # ignore any directories or files in them, such as those OSX likes to make
         ilist = [item for item in zipdata.infolist() if item.filename.find("/") == -1]
@@ -162,6 +163,7 @@ def getDataFile(formFields):
             outf = open(datafile, "w")
             outf.write(zipdata.read(ilist[0].filename))
             outf.close()
+            os.remove(oldfile)
         except:
             print "ERROR: Extracting zip file failed."
             sys.exit()
@@ -192,8 +194,6 @@ def processFit(fn, model, oc):
 #
 def processSBFit(fn, model, oc):
     global datafile, textFormat, printOptions
-
-
     if textFormat:
         oc.setReportSeparator(ocUtils.COMMASEP)
     else:
@@ -384,6 +384,7 @@ def actionSearch(formFields):
         print '<div class="data">'
         oc.doAction(printOptions)
         print "</div>"
+    os.remove(fn)
 
 def actionSBSearch(formFields):
     global textFormat
@@ -519,7 +520,7 @@ def getUniqueFilename(file_name):
     prefix, suffix = os.path.splitext(filename)
 
     fd, filename = tempfile.mkstemp(suffix, prefix+"__", dirname)
-    os.chmod(filename, 0770)
+    os.chmod(filename, 0660)
     return filename
 
 #
@@ -538,7 +539,7 @@ def startBatch(formFields):
     datafilename = getDataFileName(formFields)
     toaddress =  formFields["batchOutput"].lower()
     emailSubject = formFields["emailSubject"]
-    f = open(ctlfilename, 'w', 077)
+    f = open(ctlfilename, 'w', 0660)
     pickle.dump(formFields, f)
     f.close()
     appname = os.path.dirname(sys.argv[0])
