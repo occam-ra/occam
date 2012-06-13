@@ -28,7 +28,11 @@ def buildMessage(infile, filename, emailSubject):
     else:
         msg['Subject'] = 'OCCAM Results: ' + filename
     email = 'OCCAM result file ' + filename + ' is attached.\n'
-    email += 'Sent from server ' + socket.getfqdn() + '.\n'
+    email += 'Sent from server ' + socket.getfqdn()
+    if ".rc.pdx.edu" in socket.getfqdn():
+        email += ' for occam.oit.pdx.edu.\n'
+    else:
+        email += '.\n'
     emailmsg = MIMEText(email, 'plain')
     msg.attach(emailmsg)
     line = infile.readline()
