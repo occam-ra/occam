@@ -210,7 +210,6 @@ bool ocSbHasLoops(ocModel *model) {
     //ocStateConstraint *constraints;
     int *var_indices, *state_indices;
     for (i = 0; i < rel_count; i++) {
-        //model->getRelation(i)->dump();
         state_flags[i] = new bool[total_card];
         memset(state_flags[i], 0, total_card * sizeof(bool));
         // Now we populate the array from the relation's constraints.
@@ -225,15 +224,6 @@ bool ocSbHasLoops(ocModel *model) {
                 }
             }
         }
-        /*constraints = model->getRelation(i)->getStateConstraints();
-         for (j = 0; j < constraints->getConstraintCount(); j++) {
-         for (k = 0; k < var_count; k++) {
-         value = ocKey::getKeyValue(constraints->getConstraint(j), var_list->getKeySize(), var_list, k);
-         // Check that this is a valid value, by seeing if the cardinality is in range.
-         if (value < card_array[k])
-         state_flags[i][value + card_offsets[k]] = true;
-         }
-         }*/
     }
     // We now have a set of boolean arrays that represent which states are present or not.
     // We can proceed with the standard loop-finding algorithm now, where we drop variables (states)
@@ -289,12 +279,6 @@ bool ocSbHasLoops(ocModel *model) {
                 }
             }
         }
-        /*for (i = 0; i < rel_count; i++) {
-         printf("rel %s: ", model->getRelation(i)->getPrintName());
-         for (j = 0; j < total_card; j++)
-         printf("%d ", state_flags[i][j] ? 1 : 0);
-         printf("\n");
-         }*/
         // If we ever know that we've cleared all rows, there is no loop and we can return false immediately.
         if (clear_count == rel_count) {
             for (int d = 0; d < rel_count; d++) {
