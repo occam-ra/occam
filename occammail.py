@@ -7,8 +7,12 @@
 # 3 optional subject line addendum
 
 import sys, os, smtplib, socket
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+if sys.version_info < (2, 5):
+    from email.MIMEText import MIMEText
+    from email.MIMEMultipart import MIMEMultipart
+else:
+    from email.mime.text import MIMEText
+    from email.mime.multipart import MIMEMultipart
 
 def sendMessage(toaddr, msg):
     server = smtplib.SMTP('mailhost.pdx.edu')
