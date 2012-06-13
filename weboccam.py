@@ -523,7 +523,6 @@ def getUniqueFilename(file_name):
     prefix, suffix = os.path.splitext(filename)
 
     fd, filename = tempfile.mkstemp(suffix, prefix+"_", dirname)
-    fd.close()
     return filename
 
 #
