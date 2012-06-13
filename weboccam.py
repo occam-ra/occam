@@ -1,6 +1,6 @@
 #! python
 
-import os, cgi, sys, occam, time, string, pickle, zipfile, datetime
+import os, cgi, sys, occam, time, string, pickle, zipfile, datetime, tempfile
 import cgitb; cgitb.enable(display=1)
 
 from ocutils import ocUtils
@@ -135,7 +135,7 @@ def actionForm(form, errorText):
 def getDataFile(formFields):
     datafile = os.path.join(datadir, getDataFileName(formFields))
     try:
-        outf = open(datafile, "w")
+        outf = open(datafile, "w", 0777)
         data = formFields["data"]
         outf.write(data)
         outf.close()
@@ -516,7 +516,15 @@ def getFormFields(form):
         else:
             formFields[key] = form.getfirst(key)
     return formFields
-        
+
+
+def getUniqueFilename(file_name):
+    dirname, filename = os.path.split(file_name)
+    prefix, suffix = os.path.splitext(filename)
+
+    filename = tempfile.mkstemp(suffix, prefix+"_", dirname)
+    return filename
+
 #
 #---- startBatch ----
 #
@@ -527,7 +535,7 @@ def startBatch(formFields):
     if getDataFileName(formFields) == "":
         print "ERROR: No data file specified."
         sys.exit()
-    ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
+    ctlfilename = os.path.join(datadir, getUniqueFilename(getDataFileName(formFields, true) + '.ctl'))
     csvname = getDataFileName(formFields, true) + '.csv'
     datafilename = getDataFileName(formFields)
     toaddress =  formFields["batchOutput"].lower()
