@@ -518,7 +518,8 @@ def getUniqueFilename(file_name):
     dirname, filename = os.path.split(file_name)
     prefix, suffix = os.path.splitext(filename)
 
-    fd, filename = tempfile.mkstemp(suffix, prefix+"_", dirname)
+    fd, filename = tempfile.mkstemp(suffix, prefix+"__", dirname)
+    os.fchmod(fd, 0770)
     return filename
 
 #
@@ -531,13 +532,13 @@ def startBatch(formFields):
     if getDataFileName(formFields) == "":
         print "ERROR: No data file specified."
         sys.exit()
-    ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '_.ctl')
+    ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
     ctlfilename = getUniqueFilename(ctlfilename)
     csvname = getDataFileName(formFields, true) + '.csv'
     datafilename = getDataFileName(formFields)
     toaddress =  formFields["batchOutput"].lower()
     emailSubject = formFields["emailSubject"]
-    f = open(ctlfilename, 'w', 0777)
+    f = open(ctlfilename, 'w', 077)
     pickle.dump(formFields, f)
     f.close()
     appname = os.path.dirname(sys.argv[0])
@@ -566,6 +567,7 @@ def getBatchControls():
     f = open(ctlfile, "r")
     formFields = pickle.load(f)
     f.close()
+    os.remove(ctlfile)
     # set text mode
     formFields["format"] = "text"
     return formFields
