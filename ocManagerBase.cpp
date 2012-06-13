@@ -125,6 +125,20 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv) {
         setValuesAreFunctions(1);
     }
 
+    //-- configurable fitting parameters
+    //-- convergence error. This is approximately in units of samples.
+    //-- if initial data was probabilities, an artificial scale of 1000 is used
+    double value;
+    ocOptionDef *currentOptDef;
+    if (!getOptionFloat("ipf-maxdev", NULL, &value)) {
+        currentOptDef = options->findOptionByName("ipf-maxdev");
+        setOptionFloat(currentOptDef, .20);
+    }
+    if (!getOptionFloat("ipf-maxit", NULL, &value)) {
+        currentOptDef = options->findOptionByName("ipf-maxit");
+        setOptionFloat(currentOptDef, 266);
+    }
+
     inputData = input;
     testData = test;
     inputH = ocEntropy(inputData);
@@ -824,8 +838,7 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
     //-- convergence error. This is approximately in units of samples.
     //-- if initial data was probabilities, an artificial scale of 1000 is used
     double delta2;
-    if (!getOptionFloat("ipf-maxdev", NULL, &delta2))
-        delta2 = .20;
+    getOptionFloat("ipf-maxdev", NULL, &delta2);
     if (this->sampleSize > 0) {
         delta2 /= sampleSize;
     } else {
@@ -834,8 +847,7 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
 
     double maxiter;
     if (hasLoops(model) || (model->isStateBased() && (model->getRelationCount() > 1))) {
-        if (!getOptionFloat("ipf-maxit", NULL, &maxiter))
-            maxiter = 266;
+        getOptionFloat("ipf-maxit", NULL, &maxiter);
     } else {
         maxiter = 1;
     }
