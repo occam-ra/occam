@@ -293,10 +293,7 @@ def actionSearch(formFields):
     oc.initFromCommandLine(["",fn])
     if not textFormat:
         print '</pre>'
-    if formFields["datafilename"] != os.path.split(fn)[1]:
-        oc.setDataFile(os.path.split(fn)[1] + " (from: \"" + formFields["datafilename"] + "\")")
-    else:
-        oc.setDataFile(formFields["datafilename"])
+    oc.setDataFile(formFields["datafilename"])
     # unused error? this should get caught by getDataFile() above
     if not formFields.has_key("data") :
         actionForm(form, "Missing form fields")
@@ -398,10 +395,7 @@ def actionSBSearch(formFields):
     oc.initFromCommandLine(["",fn])
     if not textFormat:
         print '</pre>'
-    if formFields["datafilename"] != os.path.split(fn)[1]:
-        oc.setDataFile(os.path.split(fn)[1] + " (from: \"" + formFields["datafilename"] + "\")")
-    else:
-        oc.setDataFile(formFields["datafilename"])
+    oc.setDataFile(formFields["datafilename"])
     # unused error? this should get caught by getDataFile() above
     if not formFields.has_key("data") :
         actionForm(formFields, "Missing form fields")
