@@ -230,11 +230,11 @@ def actionFit(formFields):
 #functionFlag = formFields.get("functionvalues", "")
 #if functionFlag:
 #oc.setValuesAreFunctions(1)
-
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
         return
     processFit(fn, formFields["model"], oc)
+    os.remove(fn)
 
 #
 #---- actionFitBatch ---- Report on several Fit models
@@ -272,13 +272,8 @@ def actionSBFit(formFields):
     skipNominalFlag = formFields.get("skipnominal", "")
     if skipNominalFlag:
         oc.setSkipNominal(1)
-#model = formFields["model"]
-#   if textFormat:
     processSBFit(fn, formFields["model"], oc)
-#else:
-#       print "<span class=mono>"
-#       processSBFit(fn, model, oc)
-#       print "</span>"
+    os.remove(fn)
 
 #
 #---- processSearch ---- Do search operation
@@ -487,6 +482,8 @@ def actionSBSearch(formFields):
         print '<div class="data">'
         oc.doAction(printOptions)
         print "</div>"
+    os.remove(fn)
+
 #
 #---- actionShowLog ---- show job log given email
 def actionShowLog(formFields):
