@@ -134,6 +134,7 @@ def actionForm(form, errorText):
 #
 def getDataFile(formFields):
     datafile = os.path.join(datadir, getDataFileName(formFields))
+    datafile = getUniqueFilename(datafile)
     try:
         outf = open(datafile, "w", 0777)
         data = formFields["data"]
@@ -157,6 +158,7 @@ def getDataFile(formFields):
         # try to extract the file
         try:
             datafile = os.path.join(datadir, ilist[0].filename)
+            datafile = getUniqueFilename(datafile)
             outf = open(datafile, "w")
             outf.write(zipdata.read(ilist[0].filename))
             outf.close()
@@ -535,7 +537,7 @@ def startBatch(formFields):
     if getDataFileName(formFields) == "":
         print "ERROR: No data file specified."
         sys.exit()
-    ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '.ctl')
+    ctlfilename = os.path.join(datadir, getDataFileName(formFields, true) + '_.ctl')
     ctlfilename = getUniqueFilename(ctlfilename)
     csvname = getDataFileName(formFields, true) + '.csv'
     datafilename = getDataFileName(formFields)
