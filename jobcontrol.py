@@ -37,7 +37,7 @@ class JobControl:
 			if string.find(proc, "occam") >= 0:
 				fields = re.split("[ \t]+", proc, 9)
 				cmds = string.split(fields[-1], ' ')
-				if len(cmds) < 3:
+				if len(cmds) < 2:
 					continue
 				del fields[-1]
 				fields[1] = " ".join(fields[1:4]) + " " + fields[5] + "<br>" + fields[4]
@@ -46,15 +46,17 @@ class JobControl:
 				for n in range(0, len(fields)):
 					print "<td>", fields[n], "</td>"
 				command = ""
-				if len(cmds) == 3:
+				if len(cmds) == 2:
+					command = cmds[1] + " " + cmds[2]
+				elif len(cmds) == 3:
 					command = cmds[1] + " " + string.split(cmds[2], '/')[-1][0:-12] + ".ctl"
-				if len(cmds) == 4:
+				elif len(cmds) == 4:
 					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3]
-				if len(cmds) == 5:
+				elif len(cmds) == 5:
 					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3] + '<br>\nSubject: "' + cmds[4].decode("hex") + '"'
-				if len(cmds) == 6:
+				elif len(cmds) == 6:
 					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + "<br>" + cmds[5]
-				if len(cmds) == 7:
+				elif len(cmds) == 7:
 					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + "<br>" + cmds[5] + '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
 				print "<td>", command, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[0] + '">kill</a></td>'
