@@ -23,12 +23,12 @@ class JobControl:
 		procs = string.split(procstat, '\n');
 		for proc in procs:
 			if string.find(proc, "occam") >= 0:
-				fields = re.split("[ \t]+", proc, 5)
+				fields = re.split("[ \t]+", proc, 9)
 				cmds = string.split(fields[-1], '\t')
 				if len(cmds) < 3:
 					continue
-				fields[2] = " ".join(fields[2:6])
-				del fields[3:6]
+				fields[2] = " ".join(fields[2:7])
+				del fields[3:7]
 				print "<tr>"
 				for n in range(0,len(fields)-1):
 					print "<td>", fields[n], "</td>"
