@@ -1,5 +1,5 @@
-import os, sys, cgi, sys, occam,time, string, traceback, pickle, re
-fieldIDs = [1,2,4,6,7]
+import os, sys, cgi, sys, occam, time, string, traceback, pickle, re
+fieldIDs = [1, 4, 6, 7]
 class JobControl:
 	def showJobs(self, formFields):
 		# Kill job if requested
@@ -17,6 +17,7 @@ class JobControl:
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
 		print "<table class='form'>"
+		print "<tr><td>Process</td><td>Start Time</td><td>CPU Time</td><td>Command</td></tr>"
 		procfd = os.popen("ps -f")
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
@@ -27,6 +28,7 @@ class JobControl:
 				for fieldID in fieldIDs:
 					field = fields[fieldID]
 					print "<td>", field, "</td>"
+				print "<td>", string.split(fields[7], ' '), "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
 				print "</tr>"
 		print "</table>"
