@@ -1,5 +1,5 @@
 import os, sys, cgi, sys, occam, time, string, traceback, pickle, re
-fieldIDs = [1, 4, 6, 7]
+fieldIDs = [1, 4, 6]
 class JobControl:
 	def showJobs(self, formFields):
 		# Kill job if requested
@@ -28,7 +28,6 @@ class JobControl:
 				if len(cmds) < 3:
 					continue
 				print "<tr>"
-				print "<td>", len(cmds), "</td>"
 				command = ""
 				if len(cmds) == 3:
 					command = cmds[1] + " " + string.split(cmds[2],'/')[-1]
@@ -39,7 +38,6 @@ class JobControl:
 				for fieldID in fieldIDs:
 					field = fields[fieldID]
 					print "<td>", field, "</td>"
-				print "<td>", cmds, "</td>"
 				print "<td>", command, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
 				print "</tr>"
