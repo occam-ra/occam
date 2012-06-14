@@ -69,7 +69,7 @@ class JobControl:
 					command = string.split(cmds[1], '/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
 				elif len(cmds) == 7:
 					command = string.split(cmds[1], '/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
-					if cmd[6] != "":
+					if cmds[6] != "":
 						command += '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
 				print "<td>", command, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[0] + '">kill</a></td>'
