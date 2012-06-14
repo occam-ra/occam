@@ -36,7 +36,7 @@ class JobControl:
 		evenRow = False
 		for proc in procs:
 			if string.find(proc, "occam") >= 0:
-				fields = re.split("[ \t]+", proc, 9)
+				fields = re.split("[ \t]+", proc.lstrip(), 9)
 				cmds = string.split(fields[-1], ' ')
 				if len(cmds) < 2:
 					continue
