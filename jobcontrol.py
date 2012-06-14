@@ -25,9 +25,10 @@ class JobControl:
 			if string.find(proc, "occam") >= 0:
 				fields = re.split("[ \t]+", proc, 7)
 				cmds = string.split(fields[7], ' ')
-				print "<td>", len(cmds), "</td>"
 				if len(cmds) < 3:
 					continue
+				print "<tr>"
+				print "<td>", len(cmds), "</td>"
 				command = ""
 				if len(cmds) == 3:
 					command == cmds[1] + " " + string.split(cmds[2],"/")[-1]
@@ -35,7 +36,6 @@ class JobControl:
 					command = cmds[1] + " " + cmds[2] + " " + cmds[3] + ' "' + cmds[4].decode("hex") + '"'
 				if len(cmds) == 7:
 					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + " " + cmds[5] + ' "' + cmds[6].decode("hex") + '"'
-				print "<tr>"
 				for fieldID in fieldIDs:
 					field = fields[fieldID]
 					print "<td>", field, "</td>"
