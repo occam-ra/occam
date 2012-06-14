@@ -19,17 +19,17 @@ class JobControl:
 							killed = True
 							break
 			except Exception, inst:
-				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed</b><p>"
+				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed</b><p><p>"
 			except:
-				print "<b>Kill of " + pid + " failed</b><p>"
+				print "<b>Kill of " + pid + " failed</b><p><p>"
 			if not killed:
-				print "<b>Kill of " + pid + " failed</b><p>"
+				print "<b>Kill of " + pid + " failed</b><p><p>"
 			
 
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
-		print "<table class='form'>"
-		print "<tr><td><b>Process</b></td><td><b>Start Time</b></td><td><b>Elapsed Time</b></td><td><b>%CPU</b></td><td><b>%Mem</b></td><td><b>Command</b></td><td> </td></tr>"
+		print "<table class='form' width='100%'>"
+		print "<tr><td><b>Process</b></td><td><b>Start Time</b></td><td><b>Elapsed Time</b></td><td><b>%CPU</b></td><td><b>%Mem</b></td><td width='40%'><b>Command</b></td><td> </td></tr>"
 		procfd = os.popen("ps -o pid,lstart,etime,pcpu,pmem,command")
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
