@@ -1,5 +1,5 @@
 import os, sys, cgi, sys, occam, time, string, traceback, pickle, re
-fieldIDs = [1, 4, 6]
+
 class JobControl:
 	def showJobs(self, formFields):
 		# Kill job if requested
@@ -17,20 +17,19 @@ class JobControl:
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
 		print "<table class='form'>"
-		print "<tr><td>Process</td><td>Start Time</td><td>CPU Time</td><td>Command</td></tr>"
-		procfd = os.popen("ps -f")
+		print "<tr><td><b>Process</b></td><td><b>Start Time</b></td><td><b>Elapsed Time</b></td>td><b>%CPU</b></td>td><b>%Mem</b></td><td><b>Command</b></td><td> </td></tr>"
+		procfd = os.popen("ps -o pid,lstart,etime,pcpu,pmem,command")
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
 		for proc in procs:
 			if string.find(proc, "occam") >= 0:
-				fields = re.split("[ \t]+", proc, 7)
-				cmds = string.split(fields[7], ' ')
+				fields = re.split("[ \t]+", proc, 5)
+				cmds = string.split(fields[5], ' ')
 				if len(cmds) < 3:
 					continue
 				print "<tr>"
-				for fieldID in fieldIDs:
-					field = fields[fieldID]
-					print "<td>", field, "</td>"
+				for n in range(0,len(fields)-1):
+					print "<td>", fields[n], "</td>"
 				command = ""
 				if len(cmds) == 3:
 					command = cmds[1] + " " + string.split(cmds[2],'/')[-1][0:-12] + ".ctl"
