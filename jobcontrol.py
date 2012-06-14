@@ -23,12 +23,20 @@ class JobControl:
 		procs = string.split(procstat, '\n');
 		for proc in procs:
 			if string.find(proc, "occam") >= 0:
-				print "<tr>"
 				fields = re.split("[ \t]+", proc, 7)
+				command = string.split(fields[7], ' ')
+				if len(command) < 3:
+					continue
+				if len(command) == 5:
+					command[4] = command[4].decode("hex")
+				print "<tr>"
 				for fieldID in fieldIDs:
 					field = fields[fieldID]
 					print "<td>", field, "</td>"
-				print "<td>", string.split(fields[7], ' '), "</td>"
+				print "<td>",
+				for item in range(1,len(command)):
+					print command[item],
+				print "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
 				print "</tr>"
 		print "</table>"
