@@ -25,6 +25,7 @@ class JobControl:
 			if string.find(proc, "occam") >= 0:
 				fields = re.split("[ \t]+", proc, 7)
 				cmds = string.split(fields[7], ' ')
+				print "<td>", len(cmds), "</td>"
 				if len(cmds) < 3:
 					continue
 				command = ""
