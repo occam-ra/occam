@@ -53,6 +53,6 @@ class JobControl:
 				if len(cmds) == 7:
 					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + "<br>" + cmds[5] + '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
 				print "<td>", command, "</td>"
-				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
+				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[0] + '">kill</a></td>'
 				print "</tr>"
 		print "</table>"
