@@ -28,16 +28,20 @@ class JobControl:
 				if len(cmds) < 3:
 					continue
 				print "<tr>"
-				command = ""
-				if len(cmds) == 3:
-					command = cmds[1] + " " + string.split(cmds[2],'/')[-1]
-				if len(cmds) == 5:
-					command = cmds[1] + " " + cmds[2] + " " + cmds[3] + ' "' + cmds[4].decode("hex") + '"'
-				if len(cmds) == 7:
-					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + " " + cmds[5] + ' "' + cmds[6].decode("hex") + '"'
 				for fieldID in fieldIDs:
 					field = fields[fieldID]
 					print "<td>", field, "</td>"
+				command = ""
+				if len(cmds) == 3:
+					command = cmds[1] + " " + string.split(cmds[2],'/')[-1][0:-12] + ".ctl"
+				if len(cmds) == 4:
+					command = cmds[1] + " " + cmds[2] + " " + cmds[3]
+				if len(cmds) == 5:
+					command = cmds[1] + " " + cmds[2] + " " + cmds[3] + '<br>\nSubject: "' + cmds[4].decode("hex") + '"'
+				if len(cmds) == 6:
+					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + " " + cmds[5]
+				if len(cmds) == 7:
+					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + " " + cmds[5] + '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
 				print "<td>", command, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
 				print "</tr>"
