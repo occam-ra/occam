@@ -53,17 +53,24 @@ class JobControl:
 					print "<td>", fields[n], "</td>"
 				command = ""
 				if len(cmds) == 2:
-					command = string.split(cmds[1], '/')[-1]
+					if cmds[1] != "":
+						command = string.split(cmds[1], '/')[-1]
+					else:
+						command = cmds[0]
 				elif len(cmds) == 3:
 					command = cmds[1] + " " + string.split(cmds[2], '/')[-1][0:-12] + ".ctl"
 				elif len(cmds) == 4:
 					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3]
 				elif len(cmds) == 5:
-					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3] + '<br>\nSubject: "' + cmds[4].decode("hex") + '"'
+					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3]
+					if cmds[4] != "":
+						 command += '<br>\nSubject: "' + cmds[4].decode("hex") + '"'
 				elif len(cmds) == 6:
 					command = string.split(cmds[1], '/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
 				elif len(cmds) == 7:
-					command = string.split(cmds[1], '/')[-1] + " " + cmds[4] + "<br>" + cmds[5] + '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
+					command = string.split(cmds[1], '/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
+					if cmd[6] != "":
+						command += '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
 				print "<td>", command, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[0] + '">kill</a></td>'
 				print "</tr>"
