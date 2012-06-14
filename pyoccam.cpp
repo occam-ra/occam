@@ -577,6 +577,7 @@ DefinePyFunction(ocVBMManager, printBasicStatistics) {
     ocVBMManager *mgr = ObjRef(self, ocVBMManager);
     mgr->printBasicStatistics();
     Py_INCREF(Py_None);
+    fflush(stdout);
     return Py_None;
 }
 
@@ -1132,6 +1133,7 @@ DefinePyFunction(ocSBMManager, printBasicStatistics) {
     ocSBMManager *mgr = ObjRef(self, ocSBMManager);
     mgr->printBasicStatistics();
     Py_INCREF(Py_None);
+    fflush(stdout);
     return Py_None;
 }
 

@@ -659,6 +659,8 @@ class ocUtils:
             self.printOption("Report preference", self.__sortDir)
         if self.__HTMLFormat:
             print "</table>"
+        sys.stdout.flush()
+
 
 # End class ocUtils
 
