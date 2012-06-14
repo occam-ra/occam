@@ -31,7 +31,7 @@ class JobControl:
 				print "<td>", len(cmds), "</td>"
 				command = ""
 				if len(cmds) == 3:
-					command == cmds[1] + " " + string.split(cmds[2],"/")[-1]
+					command == cmds[1] + " " + string.split(cmds[2],'/')
 				if len(cmds) == 5:
 					command = cmds[1] + " " + cmds[2] + " " + cmds[3] + ' "' + cmds[4].decode("hex") + '"'
 				if len(cmds) == 7:
@@ -40,6 +40,7 @@ class JobControl:
 					field = fields[fieldID]
 					print "<td>", field, "</td>"
 				print "<td>", cmds, "</td>"
+				print "<td>", command, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
 				print "</tr>"
 		print "</table>"
