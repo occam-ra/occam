@@ -15,15 +15,15 @@ class JobControl:
 						fields = re.split("[ \t]+", proc, 2)
 						if int(fields[0]) == int(pid):
 							os.system('kill -9 %d' % (int(pid)))
-							print "<b>Job " + pid + " killed!</b><p>"
+							print "<b>Job " + pid + " killed.</b><p>"
 							killed = True
 							break
 			except Exception, inst:
-				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed</b><p><p>"
+				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed.</b><p><p>"
 			except:
-				print "<b>Kill of " + pid + " failed</b><p><p>"
+				print "<b>Kill of " + pid + " failed.</b><p><p>"
 			if not killed:
-				print "<b>Kill of " + pid + " failed</b><p><p>"
+				print "<b>Kill of " + pid + " failed.</b><p><p>"
 			
 
 		# Show active occam-related jobs
@@ -42,7 +42,7 @@ class JobControl:
 				del fields[-1]
 				fields[1] = " ".join(fields[1:4]) + " " + fields[5] + "<br>" + fields[4]
 				del fields[2:6]
-				print "<tr>"
+				print "<tr valign='top'>"
 				for n in range(0, len(fields)):
 					print "<td>", fields[n], "</td>"
 				command = ""

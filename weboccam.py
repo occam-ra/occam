@@ -10,7 +10,7 @@ from jobcontrol import JobControl
 #import urllib2
 #import platform, traceback
 
-VERSION = "3.3.6"
+VERSION = "3.3.7"
 
 false = 0; true = 1
 # perhaps we should do some check that this directory exists?
@@ -616,7 +616,7 @@ if formFields.has_key("printoptions"):
     printOptions = "true"
 
 printTop(template, textFormat)
-
+sys.stdout.flush()
 #print sys.executable + "<br>" + platform.python_version() + "<br>"
 
 # If this is not an output page, or reporting a batch job, then print the header form
