@@ -53,7 +53,7 @@ class JobControl:
 					print "<td>", fields[n], "</td>"
 				command = ""
 				if len(cmds) == 2:
-					command = cmds[1]
+					command = string.split(cmds[1], '/')[-1]
 				elif len(cmds) == 3:
 					command = cmds[1] + " " + string.split(cmds[2], '/')[-1][0:-12] + ".ctl"
 				elif len(cmds) == 4:
