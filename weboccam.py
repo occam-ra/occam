@@ -133,11 +133,10 @@ def actionForm(form, errorText):
 #---- getDataFile ---- get the posted data and store to temp file
 #
 def getDataFile(formFields):
-    datafile = os.path.join(datadir, getDataFileName(formFields))
-    if datafile == "":
+    if getDataFileName(formFields) == "":
         print "ERROR: No data file specified."
         sys.exit()
-    datafile = getUniqueFilename(datafile)
+    datafile = getUniqueFilename(os.path.join(datadir, getDataFileName(formFields)))
     try:
         outf = open(datafile, "w", 0660)
         data = formFields["data"]
