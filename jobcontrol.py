@@ -5,6 +5,7 @@ class JobControl:
 		# Kill job if requested
 		pid = formFields.get("pid", 0)
 		if pid <> 0:
+			killed = False
 			try:
 				procfd = os.popen("ps -o pid,command")
 				procstat = procfd.read()
@@ -15,10 +16,13 @@ class JobControl:
 						if int(fields[0]) == int(pid):
 							os.system('kill -9 %d' % (int(pid)))
 							print "<b>Job " + pid + " killed!</b><p>"
+							killed = True
 							break
 			except Exception, inst:
 				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed</b><p>"
 			except:
+				print "<b>Kill of " + pid + " failed</b><p>"
+			if not killed:
 				print "<b>Kill of " + pid + " failed</b><p>"
 			
 
