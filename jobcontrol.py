@@ -17,16 +17,18 @@ class JobControl:
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
 		print "<table class='form'>"
-		print "<tr><td><b>Process</b></td><td><b>Start Time</b></td><td><b>Elapsed Time</b></td>td><b>%CPU</b></td>td><b>%Mem</b></td><td><b>Command</b></td><td> </td></tr>"
+		print "<tr><td><b>Process</b></td><td><b>Start Time</b></td><td><b>Elapsed Time</b></td><td><b>%CPU</b></td><td><b>%Mem</b></td><td><b>Command</b></td><td> </td></tr>"
 		procfd = os.popen("ps -o pid,lstart,etime,pcpu,pmem,command")
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
 		for proc in procs:
 			if string.find(proc, "occam") >= 0:
 				fields = re.split("[ \t]+", proc, 5)
-				cmds = string.split(fields[5], ' ')
+				cmds = string.split(fields[-1], '\t')
 				if len(cmds) < 3:
 					continue
+				fields[2] = " ".join(fields[2:6])
+				del fields[3:6]
 				print "<tr>"
 				for n in range(0,len(fields)-1):
 					print "<td>", fields[n], "</td>"
