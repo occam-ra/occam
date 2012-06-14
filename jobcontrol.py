@@ -39,7 +39,7 @@ class JobControl:
 				for fieldID in fieldIDs:
 					field = fields[fieldID]
 					print "<td>", field, "</td>"
-				print "<td>", command, "</td>"
+				print "<td>", cmds, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
 				print "</tr>"
 		print "</table>"
