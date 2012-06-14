@@ -96,7 +96,7 @@ util.setSortName("information")
 #util.setNoIPF(1)
 # For ref=bottom, use something like this:
 #util.setReportVariables("Level$i, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
-util.setReportVariables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id")
+util.setReportVariables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, ipf_iterations, ipf_error")
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
