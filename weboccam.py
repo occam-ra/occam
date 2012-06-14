@@ -134,6 +134,9 @@ def actionForm(form, errorText):
 #
 def getDataFile(formFields):
     datafile = os.path.join(datadir, getDataFileName(formFields))
+    if datafile == "":
+        print "ERROR: No data file specified."
+        sys.exit()
     datafile = getUniqueFilename(datafile)
     try:
         outf = open(datafile, "w", 0660)
