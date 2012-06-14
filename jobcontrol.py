@@ -31,7 +31,7 @@ class JobControl:
 				print "<td>", len(cmds), "</td>"
 				command = ""
 				if len(cmds) == 3:
-					command == cmds[1] + " " + string.split(cmds[2],'/')
+					command == cmds[1] + " " + string.split(cmds[2],'/')[-1]
 				if len(cmds) == 5:
 					command = cmds[1] + " " + cmds[2] + " " + cmds[3] + ' "' + cmds[4].decode("hex") + '"'
 				if len(cmds) == 7:
