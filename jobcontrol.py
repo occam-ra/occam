@@ -6,8 +6,16 @@ class JobControl:
 		pid = formFields.get("pid", 0)
 		if pid <> 0:
 			try:
-				os.system('kill -9 %d' % (int(pid)))
-				print "<b>Job " + pid + " killed!</b><p>"
+				procfd = os.popen("ps -o pid,command")
+				procstat = procfd.read()
+				procs = string.split(procstat, '\n');
+				for proc in procs:
+					if string.find(proc, "occam") >= 0:
+						fields = re.split("[ \t]+", proc, 2)
+						if int(fields[0]) == int(pid):
+							os.system('kill -9 %d' % (int(pid)))
+							print "<b>Job " + pid + " killed!</b><p>"
+							break
 			except Exception, inst:
 				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed</b><p>"
 			except:
@@ -28,7 +36,7 @@ class JobControl:
 				if len(cmds) < 3:
 					continue
 				del fields[-1]
-				fields[1] = " ".join(fields[1:6])
+				fields[1] = " ".join(fields[1:4]) + " " + fields[5] + "<br>" + fields[4]
 				del fields[2:6]
 				print "<tr>"
 				for n in range(0, len(fields)):
@@ -37,13 +45,13 @@ class JobControl:
 				if len(cmds) == 3:
 					command = cmds[1] + " " + string.split(cmds[2], '/')[-1][0:-12] + ".ctl"
 				if len(cmds) == 4:
-					command = cmds[1] + " " + cmds[2] + " " + cmds[3]
+					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3]
 				if len(cmds) == 5:
-					command = cmds[1] + " " + cmds[2] + " " + cmds[3] + '<br>\nSubject: "' + cmds[4].decode("hex") + '"'
+					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3] + '<br>\nSubject: "' + cmds[4].decode("hex") + '"'
 				if len(cmds) == 6:
-					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + " " + cmds[5]
+					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + "<br>" + cmds[5]
 				if len(cmds) == 7:
-					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + " " + cmds[5] + '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
+					command = cmds[1] + " " + cmds[2] + " " + cmds[4] + "<br>" + cmds[5] + '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
 				print "<td>", command, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[1] + '">kill</a></td>'
 				print "</tr>"
