@@ -28,11 +28,12 @@ class JobControl:
 
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
-		print "<table class='form' width='100%'>"
-		print "<tr><td><b>Process</b></td><td><b>Start Time</b></td><td><b>Elapsed Time</b></td><td><b>%CPU</b></td><td><b>%Mem</b></td><td width='40%'><b>Command</b></td><td> </td></tr>"
+		print "<table class='data' width='100%'>"
+		print "<th class=em><td>Process</td><td>Start Time</td><td>Elapsed Time</td><td>%CPU</td><td>%Mem</td><td width='40%'>Command</td><td> </td></th>"
 		procfd = os.popen("ps -o pid,lstart,etime,pcpu,pmem,command")
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
+		evenRow = False
 		for proc in procs:
 			if string.find(proc, "occam") >= 0:
 				fields = re.split("[ \t]+", proc, 9)
@@ -42,7 +43,12 @@ class JobControl:
 				del fields[-1]
 				fields[1] = " ".join(fields[1:4]) + " " + fields[5] + "<br>" + fields[4]
 				del fields[2:6]
-				print "<tr valign='top'>"
+				if evenRow:
+					print "<tr valign='top'>"
+					evenRow = False
+				else:
+					print "<tr class=r1 valign='top'>"
+					evenRow = True
 				for n in range(0, len(fields)):
 					print "<td>", fields[n], "</td>"
 				command = ""
