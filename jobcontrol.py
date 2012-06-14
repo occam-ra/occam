@@ -29,7 +29,7 @@ class JobControl:
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
 		print "<table class='data' width='100%'>"
-		print "<th class=em><td>Process</td><td>Start Time</td><td>Elapsed Time</td><td>%CPU</td><td>%Mem</td><td width='40%'>Command</td><td> </td></th>"
+		print "<tr class=em><th>Process</th><th>Start Time</th><th>Elapsed Time</th><td>%CPU</th><th>%Mem</th><th width='40%'>Command</th><th> </th></tr>"
 		procfd = os.popen("ps -o pid,lstart,etime,pcpu,pmem,command")
 		procstat = procfd.read()
 		procs = string.split(procstat, '\n');
