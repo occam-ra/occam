@@ -1116,6 +1116,18 @@ DefinePyFunction(ocSBMManager, getSampleSz) {
     return Py_BuildValue("d", ss);
 }
 
+//long computePercentCorrect(ocModel)
+DefinePyFunction(ocSBMManager, computePercentCorrect) {
+    PyObject *Pmodel;
+    PyArg_ParseTuple(args, "O!", &TocModel, &Pmodel);
+    ocModel *model = ObjRef(Pmodel, ocModel);
+    if (model == NULL)
+        onError("Model is NULL!");
+    ObjRef(self, ocSBMManager)->computePercentCorrect(model);
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
 //long getMemUsage()
 // This memory usage function doesn't work on Mac OS X, and perhaps other platforms.
 DefinePyFunction(ocSBMManager, getMemUsage) {
@@ -1137,6 +1149,14 @@ DefinePyFunction(ocSBMManager, printBasicStatistics) {
     return Py_None;
 }
 
+//int hasTestData()
+DefinePyFunction(ocSBMManager, hasTestData) {
+    PyArg_ParseTuple(args, "");
+    ocSBMManager *mgr = ObjRef(self, ocSBMManager);
+    int result = (mgr->getTestData() != NULL);
+    return Py_BuildValue("i", result);
+}
+
 static struct PyMethodDef ocSBMManager_methods[] = { PyMethodDef(ocSBMManager, initFromCommandLine),
         PyMethodDef(ocSBMManager, searchOneLevel), PyMethodDef(ocSBMManager, makeSbModel),
         PyMethodDef(ocSBMManager, setFilter), PyMethodDef(ocSBMManager, setSearchType),
@@ -1152,8 +1172,8 @@ static struct PyMethodDef ocSBMManager_methods[] = { PyMethodDef(ocSBMManager, i
         PyMethodDef(ocSBMManager, ocReport), PyMethodDef(ocSBMManager, makeFitTable),
         PyMethodDef(ocSBMManager, isDirected), PyMethodDef(ocSBMManager, printOptions),
         PyMethodDef(ocSBMManager, deleteModelFromCache), PyMethodDef(ocSBMManager, deleteTablesFromCache),
-        PyMethodDef(ocSBMManager, getSampleSz), PyMethodDef(ocSBMManager, getMemUsage),
-        PyMethodDef(ocSBMManager, printBasicStatistics), { NULL, NULL, 0 } };
+        PyMethodDef(ocSBMManager, computePercentCorrect), PyMethodDef(ocSBMManager, getSampleSz), PyMethodDef(ocSBMManager, getMemUsage),
+        PyMethodDef(ocSBMManager, printBasicStatistics), PyMethodDef(ocSBMManager, hasTestData), { NULL, NULL, 0 } };
 
 /****** Basic Type Operations ******/
 static void ocSBMManager_dealloc(PocSBMManager *self) {
