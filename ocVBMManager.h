@@ -111,7 +111,7 @@ public:
     //-- compute all statistics based on BP_T
     void computeBPStatistics(ocModel *model);
 
-    //-- compute percentage correct of a model for adirected system
+    //-- compute percentage correct of a model for a directed system
     void computePercentCorrect(ocModel *model);
 
     //-- Filter definitions. If a filter is set on a search object, then

@@ -722,9 +722,7 @@ void ocVBMManager::computeBPStatistics(ocModel *model) {
         refModelL2 = 0.0;
 
     double refL2Prob = csa(refModelL2, refDDF);
-
     double critX2 = 0, refL2Power = 0;
-
     errcode = 0;
     double alpha;
     if (!getOptionFloat("palpha", NULL, &alpha))
