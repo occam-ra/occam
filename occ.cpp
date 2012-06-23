@@ -25,11 +25,19 @@ int main(int argc, char* argv[]) {
     mgr->initFromCommandLine(argc, argv);
     ocReport *report = new ocReport(mgr);
     report->setSeparator(3);
+    const char *action = "";
+    mgr->getOptionString("action", NULL, &action);
+    printf("Action %s\n", action);
 
-    if (false) {
+    if (strncmp(action, "fit", 3) == 0) {    // Fit
         mgr->printBasicStatistics();
         mgr->setRefModel("bottom");
-        ocModel *fit = mgr->makeSbModel("ABC:D:A1D:B2D", 1);
+        const char *model;
+        if (!mgr->getOptionString("short-model", NULL, &model)) {
+            printf("No model to fit specified. (Use -m.)\n");
+            return 1;
+        }
+        ocModel *fit = mgr->makeSbModel(model, 1);
         mgr->computeL2Statistics(fit);
         mgr->computeDFStatistics(fit);
         mgr->computeDependentStatistics(fit);
@@ -39,7 +47,7 @@ int main(int argc, char* argv[]) {
         report->printResiduals(stdout, fit);
         report->printConditional_DV(stdout, fit, false);
 
-    } else {
+    } else {    // Search
         double width;
         if (!mgr->getOptionFloat("optimize-search-width", NULL, &width))
             width = 3.0;
@@ -49,8 +57,7 @@ int main(int argc, char* argv[]) {
             levels = 3.0;
 
         mgr->printBasicStatistics();
-
-        mgr->setSearch("sb-loopless-up");
+        mgr->setSearch("sb-full-up");
         mgr->setRefModel("bottom");
         ocModel* start = mgr->getBottomRefModel();
         mgr->computeL2Statistics(start);
