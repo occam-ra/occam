@@ -524,6 +524,72 @@ void ocSBMManager::computeBPStatistics(ocModel *model) {
     model->setAttribute(ATTRIBUTE_BP_T, t);
 }
 
+void ocSBMManager::computePercentCorrect(ocModel *model) {
+    double total;
+    long long count, i;
+    ocRelation *indRel = getIndRelation();
+    ocRelation *depRel = getDepRelation();
+
+    //-- if either of these is empty, then we don't have a directed system
+    if (indRel == 0 || depRel == 0)
+        return;
+
+    ((ocManagerBase*) this)->makeProjection(depRel);
+
+    if (!makeFitTable(model))
+        printf("ERROR\n");
+    ocTable *modelTable = fitTable1;
+    ocTable *maxTable = new ocTable(modelTable->getKeySize(), modelTable->getTupleCount());
+
+    int maxCount = varList->getVarCount();
+    int varindices[maxCount], varcount;
+    getPredictingVars(model, varindices, varcount, false);
+    ocRelation *predRelNoDV = getRelation(varindices, varcount);
+    getPredictingVars(model, varindices, varcount, true);
+    ocRelation *predRelWithDV = getRelation(varindices, varcount);
+    ocTable *predModelTable = new ocTable(keysize, modelTable->getTupleCount());
+
+    ocTable *predInputTable = new ocTable(keysize, modelTable->getTupleCount());
+    ocManagerBase::makeProjection(modelTable, predModelTable, predRelWithDV);
+    ocManagerBase::makeProjection(inputData, predInputTable, predRelWithDV);
+
+    ocTable *inputsOnly = new ocTable(keysize, modelTable->getTupleCount());
+    ocManagerBase::makeProjection(inputData, inputsOnly, predRelNoDV);
+    model->setAttribute(ATTRIBUTE_PCT_COVERAGE,
+            (double) inputsOnly->getTupleCount() / (double) predRelNoDV->getNC() * 100.0);
+    delete inputsOnly;
+
+    // "missedValues" is passed as NULL, to signify that this is inputData.  In this case,
+    // there is no need to check for missed values, so that step can be skipped.
+    makeMaxProjection(predModelTable, maxTable, predInputTable, predRelNoDV, depRel, NULL);
+
+    total = 0.0;
+    count = maxTable->getTupleCount();
+    for (i = 0; i < count; i++) {
+        total += maxTable->getValue(i);
+    }
+    model->setAttribute(ATTRIBUTE_PCT_CORRECT_DATA, 100 * total);
+
+    if (testData) {
+        //-- for test data, use projections involving only the predicting variables
+        ocTable *predTestTable = new ocTable(keysize, testData->getTupleCount());
+        ocManagerBase::makeProjection(testData, predTestTable, predRelWithDV);
+        maxTable->reset(keysize);
+        double missedTest = 0;
+        makeMaxProjection(predModelTable, maxTable, predTestTable, predRelNoDV, depRel, &missedTest);
+        total = 0.0;
+        count = maxTable->getTupleCount();
+        for (i = 0; i < count; i++) {
+            total += maxTable->getValue(i);
+        }
+        model->setAttribute(ATTRIBUTE_PCT_CORRECT_TEST, 100 * total);
+        model->setAttribute(ATTRIBUTE_PCT_MISSED_TEST, 100 * missedTest);
+        delete predTestTable;
+    }
+    delete maxTable;
+    delete predModelTable, predInputTable;
+}
+
 void ocSBMManager::setFilter(const char *attrname, double attrvalue, RelOp op) {
     if (filterAttr)
         delete filterAttr;

@@ -96,6 +96,9 @@ class ocSBMManager: public ocManagerBase {
         //-- compute BP-based transmission
         void computeBPStatistics(ocModel *model);
 
+        //-- compute percentage correct of a model for a directed system
+        void computePercentCorrect(ocModel *model);
+
         //-- Filter definitions. If a filter is set on a search object, then
         //-- generated models which do not pass the filter are not kept.
         enum RelOp {
