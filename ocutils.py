@@ -460,7 +460,7 @@ class ocUtils:
         elif self.__startModel == "bottom":
             start = self.__manager.getBottomRefModel()
         else:
-            start = self.__manager.makeModel(self.__startModel, 1)
+            start = self.__manager.makeSbModel(self.__startModel, 1)
         self.__manager.setRefModel(self.__refModel)
         #self.__manager.setUseInverseNotation(self.__useInverseNotation)
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
@@ -578,7 +578,7 @@ class ocUtils:
             self.__report.printResiduals(model)
             if self.__defaultFitModel != "":
                 try:
-                    defaultModel = self.__manager.makeModel(self.__defaultFitModel, 1)
+                    defaultModel = self.__manager.makeSbModel(self.__defaultFitModel, 1)
                 except:
                     print "\nERROR: Unable to create model " + self.__defaultFitModel
                     sys.exit(0)
