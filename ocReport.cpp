@@ -290,8 +290,7 @@ void ocReport::print(FILE *fd) {
             if (!htmlMode)
                 fprintf(fd, "(No Best Model by Information, since none have Alpha < 0.05.)\n");
             else
-                fprintf(
-                        fd,
+                fprintf(fd,
                         "<tr><td colspan=8><b>(No Best Model by Information, since none have Alpha < 0.05.)</b></td></tr>\n");
         } else {
             if (!htmlMode)
@@ -312,8 +311,7 @@ void ocReport::print(FILE *fd) {
             if (!htmlMode)
                 fprintf(fd, "Best Model(s) by Information, with all Inc. Alpha < 0.05:\n");
             else
-                fprintf(
-                        fd,
+                fprintf(fd,
                         "<tr><td colspan=8><b>Best Model(s) by Information, with all Inc. Alpha < 0.05</b>:</td></tr>\n");
             for (int m = 0; m < modelCount; m++) {
                 if (models[m]->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInfoIncr)
@@ -917,12 +915,6 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
     int *ind_vars = new int[var_count];
     int iv_count = iv_rel->getIndependentVariables(ind_vars, var_count);
-    // Check that all the variables we're counting are IVs, not DVs.
-    //int new_count = iv_count;
-    //for (int i=0; i < iv_count; i++) {
-    //if (var_list->getVariable(ind_vars[i])->dv) new_count--;
-    //}
-    //iv_count = new_count;
     if (rel == NULL) {
         fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s.", model->getPrintName());
         fprintf(fd, new_line);
@@ -939,17 +931,17 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
         fprintf(fd, ").");
     } else {
         fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s.", rel->getPrintName());
+        fprintf(fd, new_line);
+        fprintf(fd, "(For component relations, the data is equal to the model.)");
     }
     if (defaultFitModel != NULL) {
         fprintf(fd, new_line);
         if (use_alt_default == false) {
             if (model == defaultFitModel) {
-                fprintf(
-                        fd,
+                fprintf(fd,
                         "The specified alternate default model cannot be identical to the fitted model. Using independence model instead.");
             } else {
-                fprintf(
-                        fd,
+                fprintf(fd,
                         "The specified alternate default model is not a child of the fitted model. Using independence model instead.");
             }
         } else {
@@ -1349,9 +1341,11 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     fprintf(fd, "|%sData%s", head_sep, head_sep);
     for (int i = 0; i < dv_card; i++)
         fprintf(fd, "%s", head_sep);
-    fprintf(fd, "|%sModel", head_sep);
-    for (int i = 0; i < dv_card; i++)
-        fprintf(fd, "%s", head_sep);
+    if (rel == NULL) {
+        fprintf(fd, "|%sModel", head_sep);
+        for (int i = 0; i < dv_card; i++)
+            fprintf(fd, "%s", head_sep);
+    }
     fprintf(fd, "%s%s", head_sep, head_sep);
     if (calcExpectedDV == true)
         fprintf(fd, "%s%s", head_sep, head_sep);
@@ -1367,10 +1361,12 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     if (dv_card > 2)
         for (int i = 2; i < dv_card; i++)
             fprintf(fd, head_sep);
-    fprintf(fd, "|%s%s", head_str1, head_sep);
-    if (dv_card > 2)
-        for (int i = 2; i < dv_card; i++)
-            fprintf(fd, head_sep);
+    if (rel == NULL) {
+        fprintf(fd, "|%s%s", head_str1, head_sep);
+        if (dv_card > 2)
+            for (int i = 2; i < dv_card; i++)
+                fprintf(fd, head_sep);
+    }
     fprintf(fd, "%s%s", head_sep, head_sep);
     if (calcExpectedDV == true)
         fprintf(fd, "%s%s", head_sep, head_sep);
@@ -1387,8 +1383,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     fprintf(fd, "%s", row_start);
     for (int i = 0; i < iv_count; i++)
         fprintf(fd, "%s%s", var_list->getVariable(ind_vars[i])->abbrev, row_sep);
-    fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep,
-            row_sep);
+    fprintf(fd, "|%sfreq%s%s", row_sep, row_sep, dv_header);
+    if (rel == NULL)
+        fprintf(fd, "|%s%s", row_sep, dv_header);
+    fprintf(fd, "rule%s#correct%s%%correct", row_sep, row_sep);
     if (calcExpectedDV == true)
         fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
 
@@ -1439,18 +1437,20 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
             }
             fprintf(fd, "%.3f%s", temp_percent, row_sep);
         }
-        fprintf(fd, "|%s", row_sep);
-        // Print out the percentages for each of the DV states
-        for (int j = 0; j < dv_card; j++) {
-            if (fit_key_prob[i] == 0)
-                temp_percent = 0.0;
-            else {
-                temp_percent = fit_prob[i][dv_order[j]] / fit_key_prob[i] * 100.0;
-                if (calcExpectedDV == true) {
-                    fit_dv_expected[i] += temp_percent / 100.0 * dv_bin_value[dv_order[j]];
+        if (rel == NULL) {
+            fprintf(fd, "|%s", row_sep);
+            // Print out the percentages for each of the DV states
+            for (int j = 0; j < dv_card; j++) {
+                if (fit_key_prob[i] == 0)
+                    temp_percent = 0.0;
+                else {
+                    temp_percent = fit_prob[i][dv_order[j]] / fit_key_prob[i] * 100.0;
+                    if (calcExpectedDV == true) {
+                        fit_dv_expected[i] += temp_percent / 100.0 * dv_bin_value[dv_order[j]];
+                    }
                 }
+                fprintf(fd, "%.3f%s", temp_percent, row_sep);
             }
-            fprintf(fd, "%.3f%s", temp_percent, row_sep);
         }
         // Print the DV state of the best rule. If there was no input to base the rule on, use the default rule.
         fprintf(fd, "%c%s%s", fit_tied[i] ? '*' : ' ', dv_label[fit_rule[i]], row_sep);
@@ -1524,12 +1524,14 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     for (int j = 0; j < dv_card; j++) {
         fprintf(fd, "%.3f%s", input_dv_freq[dv_order[j]] / sample_size * 100.0, row_sep);
     }
-    fprintf(fd, "|%s", row_sep);
-    // Print the marginals for each DV state
-    for (int j = 0; j < dv_card; j++) {
-        fprintf(fd, "%.3f%s", marginal[dv_order[j]] * 100.0, row_sep);
-        if (calcExpectedDV == true)
-            total_expected_value += marginal[dv_order[j]] * dv_bin_value[dv_order[j]];
+    if (rel == NULL) {
+        fprintf(fd, "|%s", row_sep);
+        // Print the marginals for each DV state
+        for (int j = 0; j < dv_card; j++) {
+            fprintf(fd, "%.3f%s", marginal[dv_order[j]] * 100.0, row_sep);
+            if (calcExpectedDV == true)
+                total_expected_value += marginal[dv_order[j]] * dv_bin_value[dv_order[j]];
+        }
     }
     fprintf(fd, "%s%s%.3f%s%.3f", dv_var->valmap[input_default_dv], row_sep, total_correct, row_sep,
             total_correct / sample_size * 100.0);
@@ -1566,8 +1568,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     fprintf(fd, row_start);
     for (int i = 0; i < iv_count; i++)
         fprintf(fd, "%s", row_sep);
-    fprintf(fd, "|%sfreq%s%s|%s%srule%s#correct%s%%correct", row_sep, row_sep, dv_header, row_sep, dv_header, row_sep,
-            row_sep);
+    fprintf(fd, "|%sfreq%s%s", row_sep, row_sep, dv_header);
+    if (rel == NULL)
+        fprintf(fd, "|%s%s", row_sep, dv_header);
+    fprintf(fd, "rule%s#correct%s%%correct", row_sep, row_sep);
     if (calcExpectedDV == true)
         fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
 
@@ -1581,8 +1585,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     // Print out a summary of the performance on the test data, if present.
     if (test_sample_size > 0.0) {
         fprintf(fd, "%s%sPerformance on Test Data%s", block_start, row_start, row_end);
-        fprintf(
-                fd,
+        fprintf(fd,
                 "%sIndependence Model rule:%s%.3f%%%scorrect (using rule from the independence model of the training data)%s",
                 row_start, row_sep, default_percent_on_test, row_sep2, row_end);
         fprintf(fd, "%sModel rule:%s%.3f%%%scorrect%s%s", row_start, row_sep, fit_percent_on_test, row_sep2,
@@ -1688,7 +1691,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     delete[] index_sibs;
     delete[] temp_key_array;
     delete[] ind_vars;
-    for (int i=0; i < iv_statespace; i++) {
+    for (int i = 0; i < iv_statespace; i++) {
         delete[] input_freq[i];
         delete[] input_key[i];
         delete[] alt_key[i];
@@ -1715,7 +1718,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
         delete fit_table;
     }
     if (test_table) {
-        for (int i=0; i < iv_statespace; i++) {
+        for (int i = 0; i < iv_statespace; i++) {
             delete[] test_freq[i];
             delete[] test_key[i];
         }
