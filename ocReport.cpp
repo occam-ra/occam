@@ -23,7 +23,7 @@ static attrDesc attrDescriptions[] = { { ATTRIBUTE_LEVEL, "Level", "%14.0f" }, {
         ATTRIBUTE_T, "T", "%12.4f" }, { ATTRIBUTE_DF, "DF", "%14.0f" }, { ATTRIBUTE_DDF, "dDF", "%14.0f" }, {
         ATTRIBUTE_FIT_H, "H(IPF)", "%12.4f" }, { ATTRIBUTE_ALG_H, "H(ALG)", "%12.4f" }, { ATTRIBUTE_FIT_T, "T(IPF)",
         "%12.4f" }, { ATTRIBUTE_ALG_T, "T(ALG)", "%12.4f" }, { ATTRIBUTE_LOOPS, "LOOPS", "%2.0f" }, {
-        ATTRIBUTE_EXPLAINED_I, "Inf", "%12.8f" }, { ATTRIBUTE_AIC, "dAIC", "%12.4f" },
+        ATTRIBUTE_EXPLAINED_I, "Inf", "%12.4f" }, { ATTRIBUTE_AIC, "dAIC", "%12.4f" },
         { ATTRIBUTE_BIC, "dBIC", "%12.4f" }, { ATTRIBUTE_BP_AIC, "dAIC(BP)", "%12.4f" }, { ATTRIBUTE_BP_BIC, "dBIC(BP)",
                 "%12.4f" }, { ATTRIBUTE_PCT_CORRECT_DATA, "%C(Data)", "%12.4f" }, { ATTRIBUTE_PCT_COVERAGE, "%cover",
                 "%12.4f" }, { ATTRIBUTE_PCT_CORRECT_TEST, "%C(Test)", "%12.4f" }, { ATTRIBUTE_PCT_MISSED_TEST, "%miss",
@@ -163,6 +163,7 @@ void ocReport::sort(class ocModel** models, long modelCount, const char *attr, S
     qsort(models, modelCount, sizeof(ocModel*), sortCompare);
 }
 
+static int maxNameLength;
 // Print a report of the search results
 void ocReport::print(FILE *fd) {
     // To speed things up, we make a list of the indices of the attribute descriptions
@@ -177,6 +178,11 @@ void ocReport::print(FILE *fd) {
                 break;
             }
         }
+    }
+    maxNameLength = 1;
+    for (int m = 0; m < modelCount; m++) {
+        if (strlen(models[m]->getPrintName()) > maxNameLength)
+            maxNameLength = strlen(models[m]->getPrintName());
     }
 
     // Create a mapping for IDs so they are listed in order.
@@ -346,6 +352,7 @@ void ocReport::print(FILE *fd) {
 // Print out the line of column headers for the search output report
 void ocReport::printSearchHeader(FILE *fd, int* attrID) {
     int sepStyle = htmlMode ? 0 : separator;
+    int pad, tlen;
     switch (sepStyle) {
         case 0:
             fprintf(fd, "<tr><th align=left>ID</th><th align=left>MODEL</th>");
@@ -356,10 +363,12 @@ void ocReport::printSearchHeader(FILE *fd, int* attrID) {
         case 1:
         case 3:
         default:
-            fprintf(fd, "  ID   MODEL          ");
+            pad = maxNameLength - 5 + 1;
+            if (pad < 0)
+                pad = 1;
+            fprintf(fd, "  ID   MODEL%*c", pad, ' ');
             break;
     }
-    int pad, tlen;
     const int cwid = 15;
     char titlebuf[1000];
     for (int a = 0; a < attrCount; a++) {
@@ -390,8 +399,8 @@ void ocReport::printSearchHeader(FILE *fd, int* attrID) {
             case 3:
             default:
                 pad = cwid - tlen;
-                if (pad < 0)
-                    pad = 0;
+                if (pad < 1)
+                    pad = 1;
                 //if (a == 0) pad += cwid - 5;
                 fprintf(fd, "%*c%s", pad, ' ', title);
                 break;
@@ -429,7 +438,7 @@ void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID, bool isOddR
         case 1:
         case 3:
         default:
-            pad = cwid - strlen(mname);
+            pad = maxNameLength - strlen(mname) + 1;
             if (pad < 0)
                 pad = 1;
             fprintf(fd, "%4d%s  %s%*c", ID, reachable, mname, pad, ' ');
@@ -440,7 +449,7 @@ void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID, bool isOddR
         if (fmt == NULL) {
             // get format info from name, if present
             const char *pct = strchr(attrs[a], '$');
-            fmt = (pct != NULL && toupper(*(pct + 1)) == 'I') ? "%14.0f" : "%12f";
+            fmt = (pct != NULL && toupper(*(pct + 1)) == 'I') ? "%8.0g" : "%8.4f";
         }
         double attr = model->getAttribute(attrs[a]);
         // -1 means uninitialized, so don't print
