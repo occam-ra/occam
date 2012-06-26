@@ -369,6 +369,7 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel) {
     if (rel->isStateBased()) {
         // now, for SB relations, spread remainder through unused cells
         count = t2->getTupleCount();
+        double spread = remainder / (count - c_count);
         for (i = 0; i < count; i++) {
             is_match = false;
             for (j = 0; j < c_count; j++) {
@@ -379,7 +380,7 @@ bool ocManagerBase::makeProjection(ocTable *t1, ocTable *t2, ocRelation *rel) {
                 }
             }
             if (is_match == false) {
-                t2->setValue(i, remainder / (count - c_count));
+                t2->setValue(i, spread);
             }
         }
     }
@@ -854,6 +855,7 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
     int iter, r;
     long long i, j;
     long long tupleCount;
+    double newValue, value, relvalue, projvalue;
     for (iter = 0; iter < maxiter; iter++) {
         error = 0.0; // abs difference between original proj and computed values
         for (r = 0; r < model->getRelationCount(); r++) {
@@ -871,18 +873,18 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
             tupleCount = fitTable1->getTupleCount();
             fitTable2->reset(keysize);
             for (i = 0; i < tupleCount; i++) {
-                double newValue = 0.0;
+                newValue = 0.0;
                 fitTable1->copyKey(i, key);
-                double value = fitTable1->getValue(i);
+                value = fitTable1->getValue(i);
                 for (k = 0; k < keysize; k++)
                     key[k] |= mask[k];
                 j = relp->indexOf(key);
                 if (j >= 0) {
-                    double relvalue = relp->getValue(j);
+                    relvalue = relp->getValue(j);
                     if (relvalue > 0.0) {
                         j = projTable->indexOf(key);
                         if (j >= 0) {
-                            double projvalue = projTable->getValue(j);
+                            projvalue = projTable->getValue(j);
                             if (projvalue > 0.0) {
                                 newValue = value * relvalue / projvalue;
                             }
