@@ -267,9 +267,13 @@ void ocSBMManager::computeDFStatistics(ocModel *model) {
 }
 
 void ocSBMManager::computeInformationStatistics(ocModel *model) {
-    //printf("compute H in SB computeInformationStat\n");
-    computeH(model, IPF, 1);
-    computeTransmission(model, IPF, 1);
+    if (model == topRef || model == bottomRef) {
+        computeH(model, ALGEBRAIC, 1);
+        computeTransmission(model, ALGEBRAIC, 1);
+    } else {
+        computeH(model, IPF, 1);
+        computeTransmission(model, IPF, 1);
+    }
     computeExplainedInformation(model);
     computeUnexplainedInformation(model);
 }
@@ -277,10 +281,8 @@ void ocSBMManager::computeInformationStatistics(ocModel *model) {
 void ocSBMManager::computeL2Statistics(ocModel *model) {
     //-- make sure we have the fitted table (needed for some statistics)
     //-- this will return immediately if the table was already created.
-
     //-- make sure the other attributes are there
     computeDFStatistics(model);
-
     computeInformationStatistics(model);
     //-- compute chi-squared statistics and related statistics. L2 = 2*n*sum(p(ln p/q))
     //-- which is 2*n*ln(2)*T
