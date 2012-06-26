@@ -969,75 +969,77 @@ unsigned chistat(unsigned ntab, double* obs, double* fit, double* g2_ptr, double
 double ocDegreesOfFreedomStateBased(ocModel *model) {
     int nrows = 0, ncols = 0;
     int i = 0, j = 0;
-    double **struct_matrix = NULL;
-    int **matrix = model->getStructMatrix(&ncols, &nrows);
-    if (matrix == NULL) {
+    double **matrix = NULL;
+    int **struct_matrix = model->getStructMatrix(&ncols, &nrows);
+    if (struct_matrix == NULL) {
         fprintf(stderr, "ocDegreesOfFreedomStateBased(): Error. Model %s: struct matrix not found.\n", model->getPrintName());
         exit(1);
     }
     // create a copy of the matrix to manipulate
-    struct_matrix = new double *[nrows];
+    matrix = new double *[nrows];
     for (i = 0; i < nrows; i++) {
-        struct_matrix[i] = new double[ncols];
+        matrix[i] = new double[ncols];
     }
     for (i = 0; i < nrows; i++) {
         if (i < nrows - 1) {
             for (j = 0; j < ncols; j++) {
-                struct_matrix[i + 1][j] = (double)matrix[i][j];
+                matrix[i + 1][j] = (double)struct_matrix[i][j];
             }
         } else {
             for (j = 0; j < ncols; j++) {
-                struct_matrix[0][j] = (double)matrix[i][j];
+                matrix[0][j] = (double)struct_matrix[i][j];
             }
         }
     }
-    int ir, jr, ic, jc;
+    int irow, jrow, icol, jcol;
     bool have_pivot = false;
-    int rmax = 0;
-    ic = 0;
+    int rowmax = 0;
+    icol = 0;
     int i1, j1;
     double *temp_ptr;
-    for (ir = 0; ir < nrows; ir++) {    // Find pivot in column j, starting in row i:
+    for (irow = 0; irow < nrows; irow++) {    // Find pivot in column j, starting in row i:
         have_pivot = false;
         do {
-            rmax = ir;
-            if (ic >= ncols) break;
-            for (jr = ir + 1; jr < nrows; jr++) {
-                if (fabs(struct_matrix[jr][ic]) > fabs(struct_matrix[rmax][ic])) {
-                    rmax = jr;
+            rowmax = irow;
+            if (icol >= ncols) break;
+            for (jrow = irow + 1; jrow < nrows; jrow++) {
+                if (fabs(matrix[jrow][icol]) > fabs(matrix[rowmax][icol])) {
+                    rowmax = jrow;
                 }
             }
-            if (fabs(struct_matrix[rmax][ic]) > 0.0) {
+            if (fabs(matrix[rowmax][icol]) > DBL_EPSILON) {
                 have_pivot = true;
-                if (rmax != ir) {   //switch rows ir and rmax
-                    temp_ptr = struct_matrix[ir];
-                    struct_matrix[ir] = struct_matrix[rmax];
-                    struct_matrix[rmax] = temp_ptr;
+                if (rowmax != irow) {   //switch rows irow and rowmax
+                    temp_ptr = matrix[irow];
+                    matrix[irow] = matrix[rowmax];
+                    matrix[rowmax] = temp_ptr;
                 }
-            } else
-                ic = ic + 1;
-        } while ((!have_pivot) && (ic < ncols));
-        if (ic >= ncols) {
-            //printf("Error: Pivot not found\n");
-            //exit(0);
+            } else {
+                matrix[rowmax][icol] = 0.0;
+                icol = icol + 1;
+            }
+        } while ((!have_pivot) && (icol < ncols));
+        if (icol >= ncols) {
             break;
         }
-        if (fabs(struct_matrix[ir][ic]) > 0) {
-            for (jr = ir+1; jr < nrows; jr++) {
-                for (jc = ic+1; jc < ncols; jc++) {
-                    struct_matrix[jr][jc] -= struct_matrix[ir][jc] * struct_matrix[jr][ic] / struct_matrix[ir][ic];
+        double factor;
+        if (fabs(matrix[irow][icol]) > DBL_EPSILON) {
+            for (jrow = irow+1; jrow < nrows; jrow++) {
+                factor = matrix[jrow][icol] / matrix[irow][icol];
+                for (jcol = icol+1; jcol < ncols; jcol++) {
+                    matrix[jrow][jcol] -= matrix[irow][jcol] * factor;
                 }
-                //printf("cols: %d, rows: %d, jr: %d, ic: %d\n", ncols, nrows, jr, ic); fflush(stdout);
-                struct_matrix[jr][ic] = 0.0;
+                matrix[jrow][icol] = 0.0;
             }
         }
-        ic++;
+        icol++;
     }
     double rank = 0;
+    double limit = pow(FLT_RADIX, DBL_MANT_DIG);
     for (i = 0; i < nrows; i++) {
         for (j = i; j < ncols; j++) {
-            if (fabs(struct_matrix[i][j]) > 0) {
-                if (rank >= pow(FLT_RADIX, DBL_MANT_DIG)) {
+            if (fabs(matrix[i][j]) > DBL_EPSILON) {
+                if (rank >= limit) {
                     fprintf(stderr, "ocDegreesOfFreedomStateBased(): Error. DF exceeds current limits of State-based OCCAM.\n");
                     exit(1);
                 } else {
@@ -1048,9 +1050,9 @@ double ocDegreesOfFreedomStateBased(ocModel *model) {
         }
     }
     for (i = 0; i < nrows; i++) {
-        delete[] struct_matrix[i];
+        delete[] matrix[i];
     }
-    delete[] struct_matrix;
+    delete[] matrix;
     return rank - 1;
 }
 
