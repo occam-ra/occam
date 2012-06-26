@@ -23,7 +23,7 @@ static attrDesc attrDescriptions[] = { { ATTRIBUTE_LEVEL, "Level", "%14.0f" }, {
         ATTRIBUTE_T, "T", "%12.4f" }, { ATTRIBUTE_DF, "DF", "%14.0f" }, { ATTRIBUTE_DDF, "dDF", "%14.0f" }, {
         ATTRIBUTE_FIT_H, "H(IPF)", "%12.4f" }, { ATTRIBUTE_ALG_H, "H(ALG)", "%12.4f" }, { ATTRIBUTE_FIT_T, "T(IPF)",
         "%12.4f" }, { ATTRIBUTE_ALG_T, "T(ALG)", "%12.4f" }, { ATTRIBUTE_LOOPS, "LOOPS", "%2.0f" }, {
-        ATTRIBUTE_EXPLAINED_I, "Inf", "%12.4f" }, { ATTRIBUTE_AIC, "dAIC", "%12.4f" },
+        ATTRIBUTE_EXPLAINED_I, "Inf", "%1.8f" }, { ATTRIBUTE_AIC, "dAIC", "%12.4f" },
         { ATTRIBUTE_BIC, "dBIC", "%12.4f" }, { ATTRIBUTE_BP_AIC, "dAIC(BP)", "%12.4f" }, { ATTRIBUTE_BP_BIC, "dBIC(BP)",
                 "%12.4f" }, { ATTRIBUTE_PCT_CORRECT_DATA, "%C(Data)", "%12.4f" }, { ATTRIBUTE_PCT_COVERAGE, "%cover",
                 "%12.4f" }, { ATTRIBUTE_PCT_CORRECT_TEST, "%C(Test)", "%12.4f" }, { ATTRIBUTE_PCT_MISSED_TEST, "%miss",
