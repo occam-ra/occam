@@ -425,18 +425,6 @@ bool ocSearchSbFullUp::addToCache(ocModel *model, int &models_found, ocModel **m
             break;
         }
     }
-    // This next part is slow, and I think unnecessary, given that the _width_
-    // of selected models will be checked for equivalence. [JSF]
-//    if (!found) {
-//        for (int j = 0; j < models_found; j++) {
-//            if (fabs(manager->computeDF(model_list[j]) - manager->computeDF(model)) < 1e-36) {
-//                if (model_list[j]->containsModel(model)) {
-//                    found = true;
-//                    break;
-//                }
-//            }
-//        }
-//    }
     if (!found) {
         if (((ocSBMManager *) manager)->applyFilter(model))
             model_list[models_found++] = model;
