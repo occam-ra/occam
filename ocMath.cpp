@@ -991,6 +991,7 @@ double ocDegreesOfFreedomStateBased(ocModel *model) {
             }
         }
     }
+    model->deleteStructMatrix();
     int irow, jrow, icol, jcol;
     bool have_pivot = false;
     int rowmax = 0;
