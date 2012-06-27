@@ -27,7 +27,6 @@ int main(int argc, char* argv[]) {
     report->setSeparator(3);
     const char *action = "";
     mgr->getOptionString("action", NULL, &action);
-    printf("Action %s\n", action);
 
     if (strncmp(action, "fit", 3) == 0) {    // Fit
         mgr->printBasicStatistics();
@@ -113,6 +112,9 @@ int main(int argc, char* argv[]) {
                         }
                         i++;
                     }
+                    for (; i < count; i++) {
+                        mgr->deleteModelFromCache(models[i]);
+                    }
                     delete[] models;
                 }
             }
@@ -121,7 +123,8 @@ int main(int argc, char* argv[]) {
             keptModels = new ocModel*[keptCount];
             printf("models: %d\tkept: %d\n", levelCount, keptCount); fflush(stdout);
             ocReport::sort(nextModels, nextCount, mgr->getSortAttr(), ocReport::DESCENDING);
-            for (int i=0; i < keptCount; i++) {
+            int i;
+            for (i=0; i < keptCount; i++) {
                 nextModels[i]->setAttribute("level", (double)j+1);
                 nextModels[i]->setID(nextID++);
                 mgr->computeDFStatistics(nextModels[i]);
