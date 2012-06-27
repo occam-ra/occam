@@ -9,8 +9,8 @@ import heapq
 #from time import clock
 totalgen=0
 totalkept=0
-# don't exceed 2 GB
-maxMemoryToUse = 2 * 2**30
+# don't exceed 8 GB
+maxMemoryToUse = 8 * 2**30
 
 class ocUtils:
 
