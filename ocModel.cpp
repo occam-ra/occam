@@ -36,10 +36,7 @@ ocModel::ocModel(int size) {
 
 ocModel::~ocModel() {
     if (structMatrix) {
-        for (int i = 0; i < totalConstraints; i++) {
-            delete[] structMatrix[i];
-        }
-        delete[] structMatrix;
+        this->deleteStructMatrix();
     }
     if (printName) {
         delete printName;
@@ -51,10 +48,20 @@ ocModel::~ocModel() {
     }
     if (relations)
         delete[] relations;     // only pointers; actual relations deleted by the relCache
-    if (fitTable)
+    if (fitTable) {
         delete fitTable;
+        fitTable = NULL;
+    }
     if (attributeList)
         delete attributeList;
+}
+
+void ocModel::deleteStructMatrix() {
+    for (int i = 0; i < totalConstraints; i++) {
+        delete[] structMatrix[i];
+    }
+    delete[] structMatrix;
+    structMatrix = NULL;
 }
 
 long ocModel::size() {
@@ -208,57 +215,56 @@ void ocModel::completeSbModel() {
     if (structMatrix != NULL) return;
     ocVariableList *varList = getRelation(0)->getVariableList();
     int stateSpace = (int) ocDegreesOfFreedom(varList) + 1; // ought to be using something longer than int
-    int **stateSpaceArr = ocModel::makeStateSpaceArr(varList, stateSpace);
-    this->makeStructMatrix(stateSpace, varList, stateSpaceArr);
+    int **stateSpaceArray = ocModel::makeStateSpaceArray(varList, stateSpace);
+    this->makeStructMatrix(stateSpace, varList, stateSpaceArray);
     for (int i=0; i < stateSpace; i++) {
-        delete[] stateSpaceArr[i];
+        delete[] stateSpaceArray[i];
     }
-    delete[] stateSpaceArr;
+    delete[] stateSpaceArray;
 }
 
-int** ocModel::makeStateSpaceArr(ocVariableList *varList, int statespace) {
-    int **stateSpaceArr = new int *[statespace];
+int** ocModel::makeStateSpaceArray(ocVariableList *varList, int statespace) {
+    int **stateSpaceArray = new int *[statespace];
     int varCount = varList->getVarCount();
     for (int i = 0; i < statespace; i++) {
-        stateSpaceArr[i] = new int[varCount];
+        stateSpaceArray[i] = new int[varCount];
     }
 
     for (int i = 0; i < statespace; i++) {
         for (int j = 0; j < varCount; j++) {
-            stateSpaceArr[i][j] = 0;
+            stateSpaceArray[i][j] = 0;
         }
     }
     for (int k = 0; k < varCount; k++) {
-        stateSpaceArr[0][k] = 0;
+        stateSpaceArray[0][k] = 0;
     }
     int l = varCount - 1;
     int i = 0;
     int loop1 = 0;
-    while (i < statespace - 1) {
-        // first copy from previous state
+    while (i < statespace - 1) {    // first copy from previous state
         for (int j = 0; j < varCount; j++) {
-            stateSpaceArr[i + 1][j] = stateSpaceArr[i][j];
+            stateSpaceArray[i + 1][j] = stateSpaceArray[i][j];
         }
         rap: if (i + 1 == statespace)
             break;
         ocVariable *var = varList->getVariable(l);
         int card = var->cardinality;
-        if (stateSpaceArr[i][l] == (card - 1)) {
-            stateSpaceArr[i + 1][l] = 0;
+        if (stateSpaceArray[i][l] == (card - 1)) {
+            stateSpaceArray[i + 1][l] = 0;
             l--;
             if (l < 0)
                 break;
             goto rap;
         } else {
-            stateSpaceArr[i + 1][l]++;
+            stateSpaceArray[i + 1][l]++;
             l = varCount - 1;
         }
         i++;
     }
-    return stateSpaceArr;
+    return stateSpaceArray;
 }
 
-// get/set relations
+
 void ocModel::addRelation(ocRelation *newRelation, bool normalize, ocModelCache *cache) {
     if (newRelation == NULL)
         return;
@@ -275,8 +281,7 @@ void ocModel::addRelation(ocRelation *newRelation, bool normalize, ocModelCache 
                     // don't need this one. Assuming caching we don't explicitly delete it since it
                     // may be referenced elsewhere.
                     return;
-                } else if (newRelation->contains(relations[i])) {
-                    // remove this relation from model
+                } else if (newRelation->contains(relations[i])) {       // remove this relation from model
                     for (j = i; j < relationCount - 1; j++) {
                         relations[j] = relations[j + 1];
                     }
@@ -286,13 +291,11 @@ void ocModel::addRelation(ocRelation *newRelation, bool normalize, ocModelCache 
             }
         }
     }
-    //-- grow storage if needed
-    while (relationCount >= maxRelationCount) {
+    while (relationCount >= maxRelationCount) {     //-- grow storage if needed
         relations = (ocRelation**) growStorage(relations, maxRelationCount*sizeof(ocRelation*), FACTOR);
         maxRelationCount *= FACTOR;
     }
-    //-- now find the spot for this newRelation and add it in
-    for (i = 0; i < relationCount; i++) {
+    for (i = 0; i < relationCount; i++) {       // now find the spot for this newRelation and add it in
         if (newRelation->compare(relations[i]) < 0)
             break;
     }
@@ -518,6 +521,15 @@ void ocModel::printStructMatrix() {
             printf("\n");
         }
     }
+}
+
+int **ocModel::getStructMatrix(int *statespace, int *totalConst) {
+    if (structMatrix == NULL) {
+        this->completeSbModel();
+    }
+    *statespace = stateSpaceSize;
+    *totalConst = totalConstraints;
+    return structMatrix;
 }
 
 void ocModel::dump(bool detail) {

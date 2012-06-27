@@ -402,6 +402,7 @@ class ocModel {
         // initialize model, with space for the given number of relations
         ocModel(int size = 2);
         ~ocModel();
+        void deleteStructMatrix();
         long size();
 
         bool isStateBased();
@@ -469,14 +470,14 @@ class ocModel {
         int* getIndicesFromKey(ocKeySegment *key, ocVariableList *vars, int statespace,
                 int **stateSpaceArr, int *counter);
         void completeSbModel();
-        int** makeStateSpaceArr(ocVariableList *varList, int statespace = 0);
+        int** makeStateSpaceArray(ocVariableList *varList, int statespace = 0);
 
         void printStructMatrix();
-        int **getStructMatrix(int *statespace, int *totalConst) {
-            *statespace = stateSpaceSize;
-            *totalConst = totalConstraints;
-            return structMatrix;
-        }
+        int **getStructMatrix(int *statespace, int *totalConst);
+//            *statespace = stateSpaceSize;
+//            *totalConst = totalConstraints;
+//            return structMatrix;
+//        }
 
     private:
         ocRelation **relations;
