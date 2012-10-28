@@ -19,7 +19,7 @@ ARCH = $(shell uname)
 INCLUDES = ocCore.h _ocCore.h
 WEB_ROOT = ../html	# root for the web install
 CL_ROOT = install	# root for the command-line install
-PY_INCLUDE = /usr/include/python2.6		# location of python include files
+PY_INCLUDE = /usr/include/python2.7		# location of python include files
 CL = occ	# command-line executable
 DEFS = -I.	# include the current directory
 
@@ -32,8 +32,8 @@ ifeq ($(ARCH), Linux)
 endif
 
 ifeq ($(ARCH), Darwin)
-#    CFLAGS = -w -Wall -O1 -arch x86_64 -g -flat_namespace -undefined suppress
     CFLAGS = -w -Wall -O3 -arch x86_64 -flat_namespace -undefined suppress
+#    CFLAGS = -w -Wall -O2 -g -arch x86_64 -flat_namespace -undefined suppress
     LFLAGS = -bundle
 	DEFS = -I.
     WEB_ROOT = ~/Sites/occam
@@ -100,6 +100,7 @@ clean:
 	-test -z "*.a" || rm -f *.a
 	-test -z "*.so" || rm -f *.so
 	-test -z "*~" || rm -f *~
+	-test -z "occ" || rm -f occ
 
 .cpp.o: $(INCLUDES)
 	$(COMPILE) -c $<
