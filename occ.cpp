@@ -71,7 +71,11 @@ int main(int argc, char* argv[]) {
             levels = 3.0;
 
         mgr->printBasicStatistics();
+#ifdef SB
+        mgr->setSearch("sb-full-up");
+#else
         mgr->setSearch("full-up");
+#endif
         mgr->setRefModel("bottom");
         ocModel* start = mgr->getBottomRefModel();
         mgr->computeL2Statistics(start);
