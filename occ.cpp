@@ -14,14 +14,25 @@
 #include <stdio.h>
 #include <time.h>
 
+#undef SB
+
 int main(int argc, char* argv[]) {
     if (argc <= 1) {
-        printf("usage: %s [options] data_file\n", argv[0]);
+        printf("usage: %s [options] data-afile\n", argv[0]);
+        printf("\tOptions:\n");
+        printf("\t-a search | fit (default=search)\n");
+        printf("\t-L search-levels\n");
+        printf("\t-w search-width\n");
+        printf("\t-m fit-model (required with -a fit)\n");
         return 1;
     }
     time_t  t0, t1;
     t0 = clock();
+#ifdef SB
     ocSBMManager *mgr = new ocSBMManager();
+#else
+    ocVBMManager *mgr = new ocVBMManager();
+#endif
     mgr->initFromCommandLine(argc, argv);
     ocReport *report = new ocReport(mgr);
     report->setSeparator(3);
@@ -36,7 +47,11 @@ int main(int argc, char* argv[]) {
             printf("No model to fit specified. (Use -m.)\n");
             return 1;
         }
+#ifdef SB
         ocModel *fit = mgr->makeSbModel(model, 1);
+#else
+        ocModel *fit = mgr->makeModel(model, 1);
+#endif
         mgr->computeL2Statistics(fit);
         mgr->computeDFStatistics(fit);
         mgr->computeDependentStatistics(fit);
@@ -56,7 +71,7 @@ int main(int argc, char* argv[]) {
             levels = 3.0;
 
         mgr->printBasicStatistics();
-        mgr->setSearch("sb-full-up");
+        mgr->setSearch("full-up");
         mgr->setRefModel("bottom");
         ocModel* start = mgr->getBottomRefModel();
         mgr->computeL2Statistics(start);
