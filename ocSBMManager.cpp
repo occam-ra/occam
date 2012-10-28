@@ -531,13 +531,10 @@ void ocSBMManager::computePercentCorrect(ocModel *model) {
     long long count, i;
     ocRelation *indRel = getIndRelation();
     ocRelation *depRel = getDepRelation();
-
     //-- if either of these is empty, then we don't have a directed system
     if (indRel == 0 || depRel == 0)
         return;
-
     ((ocManagerBase*) this)->makeProjection(depRel);
-
     if (!makeFitTable(model))
         printf("ERROR\n");
     ocTable *modelTable = fitTable1;
@@ -545,10 +542,15 @@ void ocSBMManager::computePercentCorrect(ocModel *model) {
 
     int maxCount = varList->getVarCount();
     int varindices[maxCount], varcount;
+    int stateindices[maxCount];
     getPredictingVars(model, varindices, varcount, false);
-    ocRelation *predRelNoDV = getRelation(varindices, varcount);
+    for (int i = 0; i < varcount; i++)
+        stateindices[i] = DONT_CARE;
+    ocRelation *predRelNoDV = getRelation(varindices, varcount, false, stateindices);
     getPredictingVars(model, varindices, varcount, true);
-    ocRelation *predRelWithDV = getRelation(varindices, varcount);
+    for (int i = 0; i < varcount; i++)
+        stateindices[i] = DONT_CARE;
+    ocRelation *predRelWithDV = getRelation(varindices, varcount, false, stateindices);
     ocTable *predModelTable = new ocTable(keysize, modelTable->getTupleCount());
 
     ocTable *predInputTable = new ocTable(keysize, modelTable->getTupleCount());
