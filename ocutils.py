@@ -249,7 +249,7 @@ class ocUtils:
                 key = newModel.get(self.__sortName)
                 if self.__searchSortDir == "descending":
                     key = -key
-                heapq.heappush(newModelsHeap, (key , newModel))
+                heapq.heappush(newModelsHeap, ([key, newModel.get("name")] , newModel))     # appending the model name makes sort alphabet-consistent
                 addCount += 1
             else:
                 if self.__IncrementalAlpha:
@@ -268,16 +268,16 @@ class ocUtils:
             fullCount += self.processModel(level, newModelsHeap, model)
         # if searchWidth < heapsize, pop off searchWidth and add to bestModels
         bestModels = []
-        while (len(bestModels) < self.__searchWidth) and (len(newModelsHeap) > 0):
+        lastKey = ['','']
+        while len(newModelsHeap) > 0:
             # make sure that we're adding unique models to the list (mostly for state-based)
-            candidate = heapq.heappop(newModelsHeap)[1]
-            match = False
-            for accepted in bestModels:
-                if accepted.isEquivalentTo(candidate):
-                    match = True
-                    break
-            if not match:
-                bestModels.append(candidate)
+            key, candidate = heapq.heappop(newModelsHeap)
+            if (len(bestModels) < self.__searchWidth) or key[0] == lastKey[0]:      # comparing keys allows us to select more than <width> models,
+                if True not in [n.isEquivalentTo(candidate) for n in bestModels]:   # in the case of ties
+                    bestModels.append(candidate)
+                    lastKey = key
+            else:
+                break
         truncCount = len(bestModels)
         self.totalgen  = fullCount + self.totalgen
         self.totalkept = truncCount + self.totalkept
