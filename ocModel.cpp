@@ -176,13 +176,9 @@ void ocModel::makeStructMatrix(int statespace, ocVariableList *vars, int **state
     int totalConstraintCount = 0;
     for (i = 0; i < relCount; i++) {
         ocRelation *rel = getRelation(i);
-        if (rel == NULL) {
-            printf("error happened in file : ocModel.cpp after getRelation\n");
-            exit(1);
-        }
         ocStateConstraint *sc = rel->getStateConstraints();
         if (sc == NULL) {
-            printf("error happened in file : ocModel.cpp after getStateConstraints\n");
+            printf("error happened in file : ocModel.cpp after getStateConstraints for rel: %s\n", rel->getPrintName());
             exit(1);
         }
         constraintCount = sc->getConstraintCount();

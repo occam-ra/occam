@@ -461,7 +461,6 @@ void ocRelation::dump() {
             printf(" %d", states[i]);
         printf("\n");
     }
-
     getAttributeList()->dump();
     printf("\n");
     if (getTable()) {

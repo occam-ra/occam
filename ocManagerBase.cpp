@@ -166,14 +166,12 @@ ocManagerBase::~ocManagerBase() {
 long ocManagerBase::calcStateConstSize(int varcount, int *varindices, int *stateindices) {
     long size = 1;
     ocVariable *var;
-    int card = 0;
     if (varindices == NULL || stateindices == NULL)
         return -1;
     for (int i = 0; i < varcount; i++) {
         if (stateindices[i] == DONT_CARE) {
             var = varList->getVariable(varindices[i]);
-            card = var->cardinality;
-            size = size * card;
+            size *= var->cardinality;
         }
     }
     return size;
@@ -834,6 +832,10 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
         }
     }
     makeOrthoExpansion(model->getRelation(startRel), fitTable1);
+//    fitTable1->addConstant(1.0);
+//    fitTable1->sort();
+//    fitTable1->normalize();
+//    fitTable1->dump();
 
     //-- configurable fitting parameters
     //-- convergence error. This is approximately in units of samples.
@@ -856,10 +858,11 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
     long long i, j;
     long long tupleCount;
     double newValue, value, relvalue, projvalue;
+    ocRelation *rel;
     for (iter = 0; iter < maxiter; iter++) {
         error = 0.0; // abs difference between original proj and computed values
         for (r = 0; r < model->getRelationCount(); r++) {
-            ocRelation *rel = model->getRelation(r);
+            rel = model->getRelation(r);
             ocTable *relp = rel->getTable();
             ocKeySegment *mask = rel->getMask();
             // create a projection of the computed data, based on the variables in the relation
@@ -899,13 +902,11 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
                     fitTable2->addTuple(key, newValue);
                 }
             }
-            // swap fitTable1 and fitTable2 for next pass
-            ocTable *ftswap = fitTable1;
+            ocTable *ftswap = fitTable1;        // swap fitTable1 and fitTable2 for next pass
             fitTable1 = fitTable2;
             fitTable2 = ftswap;
         }
-        // check convergence
-        if (error < delta2)
+        if (error < delta2)         // check convergence
             break;
     }
     fitTable1->sort();
@@ -933,7 +934,7 @@ void ocManagerBase::expandTuple(double tupleValue, ocKeySegment *key, int *missi
         for (varvalue = 0; varvalue < cardinality; varvalue++) {
             ocKey::copyKey(key, newKey, keysize);
             ocKey::setKeyValue(newKey, keysize, getVariableList(), var, varvalue);
-            //-- If we have set all the values, then add this tuple. Otherwise recurse
+            //-- If we have set all the values, then add this tuple. Otherwise recurse.
             if (currentMissingVar >= missingCount) {
                 outTable->addTuple(newKey, tupleValue);
             } else {
