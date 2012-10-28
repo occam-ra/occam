@@ -59,7 +59,7 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
     bool gotLine = false;
     int b_lostvar = 0;
     int flag = KEEP;
-    char var[MAXCARDINALITY];
+    char var[MAXLINE];
     char newvalue[MAXLINE];
     bool keepval = true;
     values = new int[varCount];
@@ -112,7 +112,7 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
                 j++;
             } else { //Anjali
                 //check if it is in LostVar list, if yes then if all its values are valid then this row of table can go
-                //otherwise mark it for being rmoved from building a key
+                //otherwise mark it for being removed from building a key
                 if (lostvarp != NULL) {
                     b_lostvar = isLostVar(i, &lostvarpt, lostvarp);
                     if (b_lostvar) {
@@ -314,8 +314,8 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                     //looking for semicolon***************var lost************
                     //variable will be lost
                     int ret = 0;
-                    char number[MAXLINE]; //a 10 digit long number
-                    char rest[MAXLINE]; //space for 100 rest of the string
+                    char number[MAXLINE]; //a MAXLINE-digit long number
+                    char rest[MAXLINE]; //space for rest of the string
                     int ind = 0;
                     vars->markForNoUse();
                     if (flag_1 == 0) {
@@ -611,13 +611,13 @@ int ocReadFile(FILE *fd, ocOptions *options, ocTable **indata, ocTable **testdat
     ocRebinDefineVar(options, varp, &lostvarp);
     //-- If not at end of file, there is data in this file
     if (!feof(fd)) {
-        *indata = indatap = new ocTable(varp->getKeySize(), 100);
+        *indata = indatap = new ocTable(varp->getKeySize(), 64);
         dataLines = ocReadData(fd, varp, indatap, lostvarp);
         indatap->sort();
     }
     //-- If there's still data, then it must be test data
     if (!feof(fd)) {
-        *testdata = testdatap = new ocTable(varp->getKeySize(), 100);
+        *testdata = testdatap = new ocTable(varp->getKeySize(), 64);
         testLines = ocReadData(fd, varp, testdatap, lostvarp);
         testdatap->sort();
     }
