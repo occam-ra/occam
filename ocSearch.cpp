@@ -672,7 +672,7 @@ bool ocSearchSbLooplessUp::addToCache(ocModel *model, int &models_found, ocModel
         }
     }
     if (!found) {
-        if (((ocSBMManager *)manager)->applyFilter(model)) {
+        if (((ocSBMManager *) manager)->applyFilter(model)) {
             model->completeSbModel();
             model_list[models_found++] = model;
             return true;
@@ -695,25 +695,28 @@ ocModel **ocSearchSbLooplessUp::search(ocModel *start) {
         printf("ocSearchSbLooplessUp: Error. Cannot complete a loopless search starting from a model with a loop.\n");
         exit(1);
     }
+    ocVariable *DV = var_list->getVariable(var_list->getDV());
     if (var_list->isDirected()) {
         // Directed system
         // "start" must either have 2 relations (IV:DV) or 3 (IV:DV:...). In the first case, we add a third relation,
         // while in the second case, we add new states/vars to the existing third relation.
-        if (rel_count == 2) {
-            if (!start->getRelation(0)->isIndependentOnly() && !start->getRelation(1)->isIndependentOnly()) {
+        if ((rel_count == 2) && (DV->cardinality != 2 || start == manager->getBottomRefModel())) {
+            if (!start->getRelation(0)->isIndependentOnly() && !start->getRelation(1)->isIndependentOnly()) {   // Not sure if this case ever happens now
                 model_list = new ocModel *[2];
                 memset(model_list, 0, sizeof(ocModel *) * 2);
                 addToCache(manager->getTopRefModel(), models_found, model_list);
                 return model_list;
             }
             // New relations can consist of one or more IVs and the DV, each with only one state.
+            // In the case of a binary DV, the DV-only relation is consumed, and new relations contain the full DV.
             int *var_indices = new int[var_count];
             int *state_indices = new int[var_count];
             memset(var_indices, 0, var_count * sizeof(int));
             memset(state_indices, 0, var_count * sizeof(int));
             // compute number of models we're going to generate
-            ocVariable *DV = var_list->getVariable(var_list->getDV());
             max_models = DV->cardinality;
+            if (DV->cardinality == 2)
+                max_models = 1;
             // (If this list is too large, we could start smaller and use growStorage)
             for (int i = 0; i < var_count; i++) {
                 if (i == var_list->getDV())
@@ -724,21 +727,35 @@ ocModel **ocSearchSbLooplessUp::search(ocModel *start) {
             memset(model_list, 0, sizeof(ocModel *) * (max_models + 1));
             int cur_var = 0, cur_index = 0, model_count = 0;
             var_indices[cur_index] = var_list->getDV();
-            for (int i = 0; i < DV->cardinality; i++) {
-                state_indices[cur_index] = i;
+            if (DV->cardinality > 2) {
+                for (int i = 0; i < DV->cardinality; i++) {
+                    state_indices[cur_index] = i;
+                    recurseDirected(cur_var, cur_index + 1, var_indices, state_indices, models_found, model_list);
+                }
+            } else {
+                state_indices[cur_index] = DONT_CARE;
                 recurseDirected(cur_var, cur_index + 1, var_indices, state_indices, models_found, model_list);
             }
             delete[] var_indices;
             delete[] state_indices;
-
-        } else if (rel_count == 3) {
+        } else if ((rel_count == 3) || (rel_count == 2 && DV->cardinality == 2 && start != manager->getBottomRefModel())) {
             // Identify the relation to modify. It should have a DV and one or more IVs, each with either a single
             // state or the entire variable.  The relation is modified by replacing a single-state variable with a
             // complete variable, or by adding a new complete variable.
+            // For DV with card=2, we use whichever relation is not ind-only
             ocRelation* rel = NULL;
             for (int i = 0; i < rel_count; i++) {
-                if (!start->getRelation(i)->isIndependentOnly() && !start->getRelation(i)->isDependentOnly())
-                    rel = start->getRelation(i);
+                if (DV->cardinality == 2) {
+                    if (!start->getRelation(i)->isIndependentOnly()) {
+                        rel = start->getRelation(i);
+                        break;
+                    }
+                } else {
+                    if (!start->getRelation(i)->isIndependentOnly() && !start->getRelation(i)->isDependentOnly()) {
+                        rel = start->getRelation(i);
+                        break;
+                    }
+                }
             }
             if (rel == NULL) {
                 printf("ocSearchSbLooplessUp: Error. Model lacks the appropriate component to continue search.\n");
@@ -764,18 +781,42 @@ ocModel **ocSearchSbLooplessUp::search(ocModel *start) {
                 if (var_indices[i] == var_list->getDV())
                     continue;
                 if (state_indices[i] != DONT_CARE) {
-                    new_rel_count++;
                     old_value = state_indices[i];
                     state_indices[i] = DONT_CARE;
+                    new_relation = manager->getRelation(var_indices, rel_var_count, true, state_indices);
+                    if (new_relation == manager->getTopRefModel()->getRelation(0))
+                        break;
+                    new_rel_count++;
                     model = new ocModel(3);
                     model->addRelation(manager->getIndRelation(), false);
                     model->addRelation(manager->getDepRelation(), false);
-                    new_relation = manager->getRelation(var_indices, rel_var_count, true, state_indices);
-                    model->addRelation(new_relation, true, manager->getModelCache());
+                    model->addRelation(new_relation, false, manager->getModelCache());
                     addToCache(model, models_found, model_list);
                     state_indices[i] = old_value;
                 }
             }
+            // Next, look for missing variables, and add them in whole.
+            memset(var_indices, 0, (rel_var_count + 1) * sizeof(int));
+            memset(state_indices, 0, (rel_var_count + 1) * sizeof(int));
+            memcpy(var_indices, rel->getVariables(), rel_var_count * sizeof(int));
+            memcpy(state_indices, rel->getStateIndices(), rel_var_count * sizeof(int));
+            int missing_vars[var_count];
+            int miss_count = rel->copyMissingVariables(missing_vars, var_count);
+            for (int i = 0; i < miss_count; i++) {
+                var_indices[rel_var_count] = missing_vars[i];
+                state_indices[rel_var_count] = DONT_CARE;
+                new_relation = manager->getRelation(var_indices, rel_var_count+1, true, state_indices);
+                if (new_relation == manager->getTopRefModel()->getRelation(0))
+                    break;
+                new_rel_count++;
+                model = new ocModel(3);
+                model->addRelation(manager->getIndRelation(), false);
+                model->addRelation(manager->getDepRelation(), false);
+                model->addRelation(new_relation, false, manager->getModelCache());
+                addToCache(model, models_found, model_list);
+            }
+            // If the relation has all of the variables possible, and no new relations are found, then
+            // the next step is the top model.
             if (rel_var_count == manager->getVariableList()->getVarCount() && new_rel_count == 0) {
                 model = new ocModel(1);
                 model->addRelation(manager->getTopRefModel()->getRelation(0), false);
