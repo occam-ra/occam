@@ -3,7 +3,7 @@
  * an ocReport object holds a list of models, and a list of attributes to print.
  * The collection can be sorted and/or filtered, and the resulting models printed.
  */
- 
+
 #ifndef OCREPORT_H
 #define OCREPORT_H
 #include <stdio.h>
@@ -30,7 +30,7 @@ class ocReport {
 	//-- Add a model to the list of models. The model is added at the end. Run sort() after
 	//-- all models are added to sort them.
 	void addModel(class ocModel *model);
-	
+
 	void setDefaultFitModel(class ocModel *model);
 
 	//-- Set the attributes to report. This is a comma-separated list, from those in
@@ -56,6 +56,8 @@ class ocReport {
 
 	//-- Print residual table
 	void printResiduals(FILE *fd, ocModel *model);
+    void printResiduals(FILE *fd, ocRelation *rel);
+    void printResiduals(FILE *fd, ocModel *model, ocRelation* rel);
 
 	//-- Print conditional DVs
 	//-- Print conditionals for a model.

@@ -22,7 +22,7 @@ struct attrDesc {
 static attrDesc attrDescriptions[] = { { ATTRIBUTE_LEVEL, "Level", "%14.0f" }, { ATTRIBUTE_H, "H", "%12.4f" }, {
         ATTRIBUTE_T, "T", "%12.4f" }, { ATTRIBUTE_DF, "DF", "%14.0f" }, { ATTRIBUTE_DDF, "dDF", "%14.0f" }, {
         ATTRIBUTE_FIT_H, "H(IPF)", "%12.4f" }, { ATTRIBUTE_ALG_H, "H(ALG)", "%12.4f" }, { ATTRIBUTE_FIT_T, "T(IPF)",
-        "%12.4f" }, { ATTRIBUTE_ALG_T, "T(ALG)", "%12.4f" }, { ATTRIBUTE_LOOPS, "LOOPS", "%2.0f" }, {
+        "%12.4f" }, { ATTRIBUTE_ALG_T, "T(ALG)", "%12.4f" }, { ATTRIBUTE_LOOPS, "Loops", "%2.0f" }, {
         ATTRIBUTE_EXPLAINED_I, "Inf", "%1.8f" }, { ATTRIBUTE_AIC, "dAIC", "%12.4f" },
         { ATTRIBUTE_BIC, "dBIC", "%12.4f" }, { ATTRIBUTE_BP_AIC, "dAIC(BP)", "%12.4f" }, { ATTRIBUTE_BP_BIC, "dBIC(BP)",
                 "%12.4f" }, { ATTRIBUTE_PCT_CORRECT_DATA, "%C(Data)", "%12.4f" }, { ATTRIBUTE_PCT_COVERAGE, "%cover",
@@ -238,7 +238,7 @@ void ocReport::print(FILE *fd) {
 
     // Only show percent correct on test data when it's present.
     bool showPercentCorrect = false;
-    if (models[0]->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST) != -1.0)
+    if ((models[0]->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST) != -1.0) && manager->getTestSampleSize() > 0.0)
         showPercentCorrect = true;
 
     for (int m = 0; m < modelCount; m++) {
@@ -449,7 +449,7 @@ void ocReport::printSearchRow(FILE *fd, ocModel* model, int* attrID, bool isOddR
         if (fmt == NULL) {
             // get format info from name, if present
             const char *pct = strchr(attrs[a], '$');
-            fmt = (pct != NULL && toupper(*(pct + 1)) == 'I') ? "%8.0g" : "%8.4f";
+            fmt = (pct != NULL && toupper(*(pct + 1)) == 'I') ? "%8.0f" : "%8.4f";
         }
         double attr = model->getAttribute(attrs[a]);
         // -1 means uninitialized, so don't print
@@ -492,89 +492,118 @@ void ocReport::print(int fd) {
 }
 
 void ocReport::printResiduals(FILE *fd, ocModel *model) {
-    ocTable *refData = manager->getInputData();
-    ocTable *table1 = manager->getFitTable();
-    ocTable *testData = manager->getTestData();
-    ocVariableList *varlist = model->getRelation(0)->getVariableList();
-    if (htmlMode)
-        fprintf(fd, "<br><br>\n");
-    if (varlist->isDirected()) {
-        //printf("(Residuals not calculated for directed systems.)");
-        //if (htmlMode) fprintf(fd, "<br>\n");
+    printResiduals(fd, model, NULL);
+}
+
+void ocReport::printResiduals(FILE *fd, ocRelation *rel) {
+    printResiduals(fd, NULL, rel);
+}
+
+void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
+    ocVariableList *varlist = manager->getVariableList();
+    if (varlist->isDirected())
         return;
-    } else {
-        fprintf(fd, "RESIDUALS for model %s\n", model->getPrintName());
-        if (htmlMode)
-            fprintf(fd, "<br>");
-    }
-    if (table1 == NULL) {
-        fprintf(fd, "Error: no fitted table computed\n");
-        return;
-    }
+    ocTable *input_data = manager->getInputData();
+    ocTable *test_data = manager->getTestData();
+    ocTable *input_table, *fit_table, *test_table;
     long var_count = varlist->getVarCount();
     double sample_size = manager->getSampleSz();
     double test_sample_size = manager->getTestSampleSize();
-    int keysize = refData->getKeySize();
-    const char *format, *header, *footer, *traintitle, *testtitle, *delim;
+    int keysize = input_data->getKeySize();
+    const char *format, *format_r, *header, *header_r, *footer, *traintitle, *testtitle, *delim;
     char *keystr;
-
+    if (htmlMode)
+        fprintf(fd, "<br><br>\n");
+    if (rel == NULL) {
+        fprintf(fd, "RESIDUALS for model %s\n", model->getPrintName());
+        fit_table = manager->getFitTable();
+        test_table = test_data;
+        input_table = input_data;
+    } else {
+        fprintf(fd, "RESIDUALS for relation %s\n", rel->getPrintName());
+        // make refData and testData point to projections
+        fit_table = rel->getTable();
+        input_table = new ocTable(keysize, input_data->getTupleCount());
+        manager->makeProjection(input_data, input_table, rel);
+        if (test_sample_size > 0.0) {
+            test_table = new ocTable(keysize, test_data->getTupleCount());
+            manager->makeProjection(test_data, test_table, rel);
+        }
+    }
+    if (fit_table == NULL) {
+        fprintf(fd, "Error: no fitted table computed\n");
+        return;
+    }
+    if (htmlMode)
+        fprintf(fd, "<br>");
     //-- set appropriate format
     int sepStyle = htmlMode ? 0 : separator;
     switch (sepStyle) {
         case 0:
             header =
                     "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs.Prob.</th><th>Obs.Freq.</th><th>Calc.Prob.</th><th>Calc.Freq.</th><th>Residual</th></tr>\n";
+            header_r =
+                    "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs.Prob.</th><th>Obs.Freq.</th></tr>\n";
             traintitle = "<br>Training Data\n";
             testtitle = "Test Data\n";
             format =
                     "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
+            format_r =
+                    "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
             footer = "</table><br><br>";
             delim = "";
             break;
         case 1:
             header = "Cell\tObs.Prob.\tObs.Freq.\tCalc.Prob.\tCalc.Freq.\tResidual\n";
+            header_r = "Cell\tObs.Prob.\tObs.Freq.\n";
             traintitle = "\nTraining Data\n";
             testtitle = "\nTest Data\n";
             format = "%s\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\n";
+            format_r = "%s\t%#6.8g\t%#6.8g\n";
             footer = "";
             delim = "\t";
             break;
         case 2:
             header = "Cell,Obs.Prob.,Obs.Freq.,Calc.Prob.,Calc.Freq.,Residual\n";
+            header_r = "Cell,Obs.Prob.,Obs.Freq.\n";
             traintitle = "\nTraining Data\n";
             testtitle = "\nTest Data\n";
             format = "%s,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g\n";
+            format_r = "%s,%#6.8g,%#6.8g\n";
             footer = "";
             delim = ",";
             break;
         case 3:
             header =
                     " Cell   Obs.Prob.    Obs.Freq.    Calc.Prob.    Calc.Freq.    Residual\n    ---------------------------------------------\n";
+            header_r =
+                    " Cell   Obs.Prob.    Obs.Freq.\n    ---------------------------------------------\n";
             traintitle = "\nTraining Data\n";
             testtitle = "\nTest Data\n";
             format = "%8s  %#6.8g   %#6.8g   %#6.8g   %#6.8g   %#6.8g\n";
+            format_r = "%8s  %#6.8g   %#6.8g\n";
             footer = "";
             delim = " ";
             break;
     }
+    if (rel != NULL)
+        header = header_r;
     keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
-
-    if (htmlMode)
-        fprintf(fd, "<br>\n");
-    fprintf(fd, "Variable order: ");
-    for (int i = 0; i < var_count; i++) {
-        fprintf(fd, "%s", varlist->getVariable(i)->abbrev);
+    if (rel == NULL) {
+        if (htmlMode)
+            fprintf(fd, "<br>\n");
+        fprintf(fd, "Variable order: ");
+        for (int i = 0; i < var_count; i++) {
+            fprintf(fd, "%s", varlist->getVariable(i)->abbrev);
+        }
+        fprintf(fd, "\n");
+        if (htmlMode)
+            fprintf(fd, "<br>");
     }
-    fprintf(fd, "\n");
-    if (htmlMode)
-        fprintf(fd, "<br>");
-
     long long dataCount, index, refindex, compare;
     ocKeySegment *refkey, *key;
     double value, refvalue, res;
-
     double adjustConstant = manager->getFunctionConstant() + manager->getNegativeConstant();
-
     // Walk through both lists. Missing values are zero.
     // We don't print anything if missing in both lists.
     index = 0;
@@ -584,48 +613,66 @@ void ocReport::printResiduals(FILE *fd, ocModel *model) {
         fprintf(fd, delim);
     }
     fprintf(fd, header);
-    dataCount = refData->getTupleCount();
+    dataCount = input_table->getTupleCount();
     for (long long i = 0; i < dataCount; i++) {
-
-        refkey = refData->getKey(i);
-        refvalue = refData->getValue(i);
-        index = table1->indexOf(refkey, true);
-        if (index == -1) {
-            value = 0.0;
-        } else {
-            value = table1->getValue(index);
-        }
-        res = value - refvalue;
+        refkey = input_table->getKey(i);
+        refvalue = input_table->getValue(i);
         ocKey::keyToUserString(refkey, varlist, keystr, delim);
-        fprintf(fd, format, keystr, refvalue, refvalue * sample_size - adjustConstant, value,
-                value * sample_size - adjustConstant, res);
+        if (rel == NULL) {
+            index = fit_table->indexOf(refkey, true);
+            if (index == -1) {
+                value = 0.0;
+            } else {
+                value = fit_table->getValue(index);
+            }
+            res = value - refvalue;
+            fprintf(fd, format, keystr, refvalue, refvalue * sample_size - adjustConstant, value,
+                    value * sample_size - adjustConstant, res);
+        } else {
+            fprintf(fd, format_r, keystr, refvalue, refvalue * sample_size - adjustConstant);
+        }
     }
     fprintf(fd, footer);
-    if (testData != NULL) {
+    if (test_table != NULL) {
         fprintf(fd, testtitle);
         for (int i = 1; i < var_count; i++) {
             fprintf(fd, delim);
         }
         fprintf(fd, header);
-        long long testCount = testData->getTupleCount();
+        long long testCount = test_table->getTupleCount();
         for (long long i = 0; i < testCount; i++) {
-
-            refkey = testData->getKey(i);
-            refvalue = testData->getValue(i);
-            index = table1->indexOf(refkey, true);
-            if (index == -1) {
-                value = 0.0;
-            } else {
-                value = table1->getValue(index);
-            }
-            res = value - refvalue;
+            refkey = test_table->getKey(i);
+            refvalue = test_table->getValue(i);
             ocKey::keyToUserString(refkey, varlist, keystr, delim);
-            fprintf(fd, format, keystr, refvalue, refvalue * test_sample_size - adjustConstant, value,
-                    value * test_sample_size - adjustConstant, res);
+            if (rel == NULL) {
+                index = fit_table->indexOf(refkey, true);
+                if (index == -1) {
+                    value = 0.0;
+                } else {
+                    value = fit_table->getValue(index);
+                }
+                res = value - refvalue;
+                fprintf(fd, format, keystr, refvalue, refvalue * test_sample_size - adjustConstant, value,
+                        value * test_sample_size - adjustConstant, res);
+            } else {
+                fprintf(fd, format_r, keystr, refvalue, refvalue * test_sample_size - adjustConstant);
+            }
         }
         fprintf(fd, footer);
     }
     delete keystr;
+    if (rel != NULL) {
+        if (test_sample_size > 0.0) {
+            delete test_table;
+        }
+        delete input_table;
+    } else {
+        if (model->getRelationCount() > 1) {
+            for (int i = 0; i < model->getRelationCount(); i++) {
+                printResiduals(fd, model->getRelation(i));
+            }
+        }
+    }
 }
 
 static void orderIndices(const char **stringArray, int len, int *order) {
@@ -677,10 +724,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     double sample_size = manager->getSampleSz();
     double test_sample_size = manager->getTestSampleSize();
     ocVariableList *var_list = manager->getVariableList();
-    if (!var_list->isDirected()) {
-        //fprintf(fd, "(DV calculation not possible for neutral systems.)\n");
+    if (!var_list->isDirected())
         return;
-    }
 
     int dv_index = var_list->getDV(); // Get the first DV's index
     ocVariable *dv_var = var_list->getVariable(dv_index); // Get the (first) DV itself
@@ -925,6 +970,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     int *ind_vars = new int[var_count];
     int iv_count = iv_rel->getIndependentVariables(ind_vars, var_count);
     if (rel == NULL) {
+//        model->printStructMatrix();        fprintf(fd, new_line);
         fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s.", model->getPrintName());
         fprintf(fd, new_line);
         fprintf(fd, "IV order: ");
