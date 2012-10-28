@@ -263,11 +263,15 @@ void ocVariableList::getPrintName(char *str, int maxlength, int count, int *vars
             // left here needs modification
             stateID = states[i];
             if (stateID != DONT_CARE) {
-                char **map = vars[varID].valmap;
-                int len1 = strlen(map[stateID]);
-                strncpy(cp, map[stateID], maxlength);
-                maxlength -= len1;
-                cp += len1;
+                if (vars[varID].dv && vars[varID].cardinality == 2) {
+                    // do nothing
+                } else {
+                    char **map = vars[varID].valmap;
+                    int len1 = strlen(map[stateID]);
+                    strncpy(cp, map[stateID], maxlength);
+                    maxlength -= len1;
+                    cp += len1;
+                }
             }
         }
         if (i < count - 1) { // at least one more to go
