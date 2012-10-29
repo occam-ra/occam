@@ -394,7 +394,7 @@ void ocSearchSbFullUp::recurseDirected(ocModel *start, int cur_var, int cur_inde
         // first call recursion without this variable, to skip it
         recurseDirected(start, cur_var + 1, cur_index, var_indices, state_indices, models_found, model_list);
         // then call it with each of the states
-        if (!is_directed || (cur_var != var_list->getDV())) {
+        if (!is_directed || (is_directed && (cur_var != var_list->getDV()))) {
             var_indices[cur_index] = cur_var;
             for (int i = 0; i < var->cardinality; i++) {
                 state_indices[cur_index] = i;
@@ -447,6 +447,7 @@ ocModel** ocSearchSbFullUp::search(ocModel* start) {
         if (rel_count > 1) {
             // We attempt to add all possible states, skipping those that are already included.
             // New relations can consist of one or more IVs and the DV, each with only one state.
+            // In the case of a binary DV, new relations contain the full DV.
             // The model creation process should take care of states that combine to larger relations.
             int *var_indices = new int[var_count];
             int *state_indices = new int[var_count];
@@ -455,6 +456,8 @@ ocModel** ocSearchSbFullUp::search(ocModel* start) {
             // compute number of models we're going to generate
             ocVariable *DV = var_list->getVariable(var_list->getDV());
             max_models = DV->cardinality;
+            if (DV->cardinality == 2)
+                max_models = 1;
             // (If this list is too large, we could start smaller and use growStorage)
             for (int i = 0; i < var_count; i++) {
                 if (i == var_list->getDV())
@@ -465,15 +468,20 @@ ocModel** ocSearchSbFullUp::search(ocModel* start) {
             memset(models, 0, sizeof(ocModel *) * (max_models + 1));
             int cur_var = 0, cur_index = 0, model_count = 0;
             var_indices[cur_index] = var_list->getDV();
-            for (int i = 0; i < DV->cardinality; i++) {
-                state_indices[cur_index] = i;
+            if (DV->cardinality > 2) {
+                for (int i = 0; i < DV->cardinality; i++) {
+                    state_indices[cur_index] = i;
+                    recurseDirected(start, cur_var, cur_index + 1, var_indices, state_indices, models_found, models);
+                }
+            } else {
+                state_indices[cur_index] = DONT_CARE;
                 recurseDirected(start, cur_var, cur_index + 1, var_indices, state_indices, models_found, models);
             }
             delete[] var_indices;
             delete[] state_indices;
         } else {
             printf("ocSearchSbFullUp: Error. %s ", start->getPrintName());
-            printf("is not an appropriate starting model for an upward, directed state-based search.\n");
+            printf("is not an appropriate starting model for an upward, directed, state-based search.\n");
             exit(1);
         }
     } else {
@@ -708,7 +716,7 @@ ocModel **ocSearchSbLooplessUp::search(ocModel *start) {
                 return model_list;
             }
             // New relations can consist of one or more IVs and the DV, each with only one state.
-            // In the case of a binary DV, the DV-only relation is consumed, and new relations contain the full DV.
+            // In the case of a binary DV, new relations contain the full DV.
             int *var_indices = new int[var_count];
             int *state_indices = new int[var_count];
             memset(var_indices, 0, var_count * sizeof(int));
