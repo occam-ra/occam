@@ -272,7 +272,7 @@ class ocUtils:
         while len(newModelsHeap) > 0:
             # make sure that we're adding unique models to the list (mostly for state-based)
             key, candidate = heapq.heappop(newModelsHeap)
-            if (len(bestModels) < self.__searchWidth) or key[0] == lastKey[0]:      # comparing keys allows us to select more than <width> models,
+            if (len(bestModels) < self.__searchWidth): # or key[0] == lastKey[0]:      # comparing keys allows us to select more than <width> models,
                 if True not in [n.isEquivalentTo(candidate) for n in bestModels]:   # in the case of ties
                     bestModels.append(candidate)
                     lastKey = key
