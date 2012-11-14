@@ -34,12 +34,13 @@ class JobControl:
 		print "<tr class=em align=left><th>Process</th><th>Start Time</th><th>Elapsed Time</th><td>%CPU</th><th>%Mem</th><th width='40%'>Command</th><th> </th></tr>"
 		procfd = os.popen("ps -o pid,lstart,etime,pcpu,pmem,command")
 		procstat = procfd.read()
-		procs = string.split(procstat, '\n');
+		procs = procstat.split('\n');
+		del(procs[0])
 		evenRow = False
 		for proc in procs:
-			if string.find(proc, "occam") >= 0:
+			if proc.find("occam") >= 0:
 				fields = re.split("[ \t]+", proc.lstrip(), 9)
-				cmds = string.split(fields[-1], ' ')
+				cmds = fields[-1].split(' ')
 				if len(cmds) < 2:
 					continue
 				del fields[-1]
@@ -56,11 +57,11 @@ class JobControl:
 				command = ""
 				if len(cmds) == 2:
 					if cmds[1] != "":
-						command = string.split(cmds[1], '/')[-1]
+						command = cmds[1].split('/')[-1]
 					else:
 						command = cmds[0]
 				elif len(cmds) == 3:
-					command = cmds[1] + " " + string.split(cmds[2], '/')[-1][0:-12] + ".ctl"
+					command = cmds[1] + " " + cmds[2].split('/')[-1][0:-12] + ".ctl"
 				elif len(cmds) == 4:
 					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3]
 				elif len(cmds) == 5:
@@ -68,9 +69,9 @@ class JobControl:
 					if cmds[4] != "":
 						 command += '<br>\nSubject: "' + cmds[4].decode("hex") + '"'
 				elif len(cmds) == 6:
-					command = string.split(cmds[1], '/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
+					command = cmds[1].split('/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
 				elif len(cmds) == 7:
-					command = string.split(cmds[1], '/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
+					command = cmds[1].split('/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
 					if cmds[6] != "":
 						command += '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
 				print "<td>", command, "</td>"
