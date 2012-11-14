@@ -10,6 +10,7 @@ class JobControl:
 				procfd = os.popen("ps -o pid,command")
 				procstat = procfd.read()
 				procs = procstat.split('\n');
+				del(procs[0])
 				for proc in procs:
 					if proc.find("occam") >= 0:
 						fields = re.split("[ \t]+", proc.lstrip(), 2)
