@@ -18,8 +18,9 @@ class JobControl:
 							print "<b>Job " + pid + " killed.</b><p>"
 							killed = True
 							break
-			except Exception, inst:
+			except Exception as inst:
 				print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed.</b><p><p>"
+				print inst.args
 			except:
 				print "<b>Kill of " + pid + " failed.</b><p><p>"
 			if not killed:
