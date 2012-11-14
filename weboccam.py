@@ -23,14 +23,15 @@ def getDataFileName(formFields, trim=false):
     # extract the file name (minus directory) and seed the download dialog with it
     # we have to handle both forward and backward slashes here.
     datafile = formFields['datafilename']
-    if string.find(datafile, "\\") >= 0:
-        datapath = string.split(datafile, "\\")
+    if datafile.find("\\") >= 0:
+        datapath = datafile.split("\\")
     else:
-        datapath = string.split(datafile, "/")
+        datapath = datafile.split("/")
     datafile = datapath[len(datapath)-1]
     #datafile = os.path.basename(formFields['datafilename'])
     if trim:
         datafile = os.path.splitext(datafile)[0]
+    datafile = '_'.join(datafile.split())
     return datafile
 
 #
@@ -586,7 +587,7 @@ def printBatchLog(email):
     try:
         f = open(file)
         logcontents = f.readlines()
-        theLog = string.join(logcontents, '<BR>')
+        theLog = '<BR>'.join(logcontents)
         f.close()
         print theLog
     except:
