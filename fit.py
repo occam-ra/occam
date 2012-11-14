@@ -21,11 +21,12 @@ oc.initFromCommandLine(sys.argv[0:2]) # initialize with the data file
 oc.setFitModel(sys.argv[2])
 oc.setAction("fit")
 oc.setReportSeparator(3)
+oc.setSkipNominal(1)
 oc.setDDFMethod(1)
 #oc.setDefaultFitModel("IV:CD")
 
 t2 = time.time()
-oc.doAction(0)
+oc.doAction(1)
 t3 = time.time()
 
 print "start:  %8f" % (t2 - t1)
