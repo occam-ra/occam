@@ -13,7 +13,7 @@ class JobControl:
 				for proc in procs:
 					if string.find(proc, "occam") >= 0:
 						fields = re.split("[ \t]+", proc, 2)
-						if int(fields[0]) == int(pid):
+						if fields[0] != "" and int(fields[0]) == int(pid):
 							os.kill(int(pid), 9)
 							print "<b>Job " + pid + " killed.</b><p>"
 							killed = True
