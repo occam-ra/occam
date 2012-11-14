@@ -7,6 +7,6 @@ BATCHFILE="batchlogs/$3"
 
 echo "`date` Job started: $2" >>$BATCHFILE
 
-nice -n 5 $PYTHON $1 "$2" 2>>$BATCHFILE | $PYTHON occammail.py "$3" "$4" "$5"
+nice -n 10 $PYTHON $1 "$2" 2>>$BATCHFILE | $PYTHON occammail.py "$3" "$4" "$5"
 
 echo "`date` Results for $2 sent to $3" >>$BATCHFILE
