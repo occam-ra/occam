@@ -9,10 +9,10 @@ class JobControl:
 			try:
 				procfd = os.popen("ps -o pid,command")
 				procstat = procfd.read()
-				procs = string.split(procstat, '\n');
+				procs = procstat.split('\n');
 				for proc in procs:
-					if string.find(proc, "occam") >= 0:
-						fields = re.split("[ \t]+", proc, 2)
+					if proc.find("occam") >= 0:
+						fields = re.split("[ \t]+", proc.lstrip(), 2)
 						if fields[0] != "" and int(fields[0]) == int(pid):
 							os.kill(int(pid), 9)
 							print "<b>Job " + pid + " killed.</b><p>"
