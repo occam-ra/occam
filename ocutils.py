@@ -387,7 +387,7 @@ class ocUtils:
         self.__manager.computeDependentStatistics(start)
         if self.__BPStatistics:
             self.__manager.computeBPStatistics(start)
-        if self.__PercentCorrect:
+        if self.__PercentCorrect and not self.__manager.isDirected():
             self.__manager.computePercentCorrect(start)
         if self.__IncrementalAlpha:
             self.__manager.computeIncrementalAlpha(start)
@@ -472,7 +472,7 @@ class ocUtils:
         self.__manager.printBasicStatistics()
         self.__manager.computeL2Statistics(start)
         self.__manager.computeDependentStatistics(start)
-        if self.__PercentCorrect:
+        if self.__PercentCorrect and not self.__manager.isDirected():
             self.__manager.computePercentCorrect(start)
         if self.__IncrementalAlpha:
             self.__manager.computeIncrementalAlpha(start)

@@ -363,14 +363,15 @@ def actionSearch(formFields):
         reportvars += ", incr_alpha, prog_id"
     if formFields.get("show_bp", "") and formFields["evalmode"] <> "bp":
         reportvars += ", bp_t"
-    if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
-        reportvars += ", pct_correct_data"
-        if formFields.get("show_pct_cover", ""):
-            reportvars += ", pct_coverage"
-        if oc.hasTestData():
-            reportvars += ", pct_correct_test"
-            if formFields.get("show_pct_miss", ""):
-                reportvars += ", pct_missed_test"
+    if oc.isDirected():
+        if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
+            reportvars += ", pct_correct_data"
+            if formFields.get("show_pct_cover", ""):
+                reportvars += ", pct_coverage"
+            if oc.hasTestData():
+                reportvars += ", pct_correct_test"
+                if formFields.get("show_pct_miss", ""):
+                    reportvars += ", pct_missed_test"
     oc.setReportSortName(reportSort)
     oc.setSortName(searchSort)
     oc.setReportVariables(reportvars)
@@ -466,14 +467,15 @@ def actionSBSearch(formFields):
         reportvars += ", incr_alpha, prog_id"
     if formFields.get("show_bp", "") and formFields["evalmode"] <> "bp":
         reportvars += ", bp_t"
-    if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
-        reportvars += ", pct_correct_data"
-        if formFields.get("show_pct_cover", ""):
-            reportvars += ", pct_coverage"
-        if oc.hasTestData():
-            reportvars += ", pct_correct_test"
-            if formFields.get("show_pct_miss", ""):
-                reportvars += ", pct_missed_test"
+    if oc.isDirected():
+        if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
+            reportvars += ", pct_correct_data"
+            if formFields.get("show_pct_cover", ""):
+                reportvars += ", pct_coverage"
+            if oc.hasTestData():
+                reportvars += ", pct_correct_test"
+                if formFields.get("show_pct_miss", ""):
+                    reportvars += ", pct_missed_test"
     oc.setReportSortName(reportSort)
     oc.setSortName(searchSort)
     oc.setReportVariables(reportvars)
@@ -517,6 +519,7 @@ def getFormFields(form):
 def getUniqueFilename(file_name):
     dirname, filename = os.path.split(file_name)
     prefix, suffix = os.path.splitext(filename)
+    prefix.replace(" ", "_")
 
     fd, filename = tempfile.mkstemp(suffix, prefix+"__", dirname)
     os.chmod(filename, 0660)
