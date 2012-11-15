@@ -520,7 +520,6 @@ def getFormFields(form):
 def getUniqueFilename(file_name):
     dirname, filename = os.path.split(file_name)
     prefix, suffix = os.path.splitext(filename)
-    print prefix, suffix
     prefix = '_'.join(prefix.split())
     fd, filename = tempfile.mkstemp(suffix, prefix+"__", dirname)
     os.chmod(filename, 0660)
