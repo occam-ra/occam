@@ -876,76 +876,66 @@ ocModel **ocSearchLooplessUp::search(ocModel *start) {
     if (!varList->isDirected()) {
         maxChildren = varcount * relcount;
         ocModel **models = new ocModel *[maxChildren + 1];
-        ocModel *model;
+        ocModel *model, *cachedModel;
         memset(models, 0, (maxChildren + 1) * sizeof(ocModel*));
-
-        int relvarcount, missvarcount;
         int modelsFound = 0;
-        int j, v1, v2;
-        int *relvars, *missvars, *newvars;
-        int *testvars = new int[2];
+        int *pair = new int[2];
+        int *newRelVars = new int[varcount+1];
+        int newRelVarCount = 0;
+        ocRelation *pairRel, *newRel;
         bool found;
-        ocRelation *rel, *newRel, *testRel;
-        for (i = 0; i < relcount; i++) {
-            rel = start->getRelation(i);
-            rel->sort();
-            relvarcount = rel->getVariableCount();
-            if (rel->getVariableCount() == varcount)
-                continue;
-            missvarcount = varcount - relvarcount;
-            relvars = new int[relvarcount];
-            newvars = new int[relvarcount + 1];
-            missvars = new int[missvarcount];
-            // for each variable in the relation
-            for (v1 = 0; v1 < relvarcount; v1++) {
-                // for each variable missing from the relation
-                for (v2 = 0; v2 < missvarcount; v2++) {
-                    // must refresh each variable list each time through, because getRelation()
-                    // sorts the lists in place, messing up the positional indexing of v1 & v2
-                    rel->copyVariables(relvars, relvarcount);
-                    rel->copyVariables(newvars, relvarcount);
-                    rel->copyMissingVariables(missvars, missvarcount);
-                    testvars[0] = relvars[v1];
-                    testvars[1] = missvars[v2];
-                    // the two vars (v1 and v2) must not exist together anywhere in the model
-                    testRel = manager->getRelation(testvars, 2, false);
-                    if (start->containsRelation(testRel))
-                        continue;
-                    // make a new relation (rel - v1 + v2)
-                    relvars[v1] = missvars[v2];
-                    newRel = manager->getRelation(relvars, relvarcount, false);
-                    // only proceed if the starting model contains the new relation
-                    if (start->containsRelation(newRel)) {
-                        // make a new model, adding a relation of (rel+v2)
-                        model = new ocModel(relcount);
-                        model->copyRelations(*start);
-                        newvars[relvarcount] = missvars[v2];
-                        newRel = manager->getRelation(newvars, relvarcount + 1, true);
-                        model->addRelation(newRel, true);
-                        // put the model in the cache, or use the cached one if already there
-                        ocModelCache *cache = manager->getModelCache();
-                        if (!cache->addModel(model)) {
-                            ocModel *cachedModel = cache->findModel(model->getPrintName());
-                            delete model;
-                            model = cachedModel;
-                        }
-                        // check if this model is in the return list, so we don't add a duplicate
-                        found = false;
-                        for (j = 0; j < modelsFound; j++) {
-                            if (models[j] == model) {
-                                found = true;
-                                break;
+        for (int i = 0; i < varcount; i++) {
+            for (int j = i+1; j < varcount; j++) {
+                pair[0] = i;
+                pair[1] = j;
+                pairRel = manager->getRelation(pair, 2, false);
+                if (start->containsRelation(pairRel))
+                    continue;
+                for (int m = 0; m < relcount; m++) {
+                    if (start->getRelation(m)->findVariable(i) != -1) {
+                        for (int n = 0; n < relcount; n++) {
+                            if (start->getRelation(n)->findVariable(j) != -1) {
+                                newRelVarCount = 2;
+                                newRelVars[0] = i;
+                                newRelVars[1] = j;
+                                for (int k = 0; k < start->getRelation(m)->getVariableCount(); k++) {
+                                    if (start->getRelation(n)->findVariable(start->getRelation(m)->getVariable(k)) != -1) {
+                                        newRelVars[newRelVarCount] = start->getRelation(m)->getVariable(k);
+                                        newRelVarCount++;
+                                    }
+                                }
+                                model = new ocModel(relcount+1);
+                                model->copyRelations(*start);
+                                newRel = manager->getRelation(newRelVars, newRelVarCount, true);
+                                model->addRelation(newRel, true);
+                                // put the model in the cache, or use the cached one if already there
+                                ocModelCache *cache = manager->getModelCache();
+                                if (!cache->addModel(model)) {
+                                    cachedModel = cache->findModel(model->getPrintName());
+                                    delete model;
+                                    model = cachedModel;
+                                }
+                                if (manager->hasLoops(model))
+                                    continue;
+                                // check if this model is in the return list, so we don't add a duplicate
+                                found = false;
+                                for (int l = 0; l < modelsFound; l++) {
+                                    if (models[j] == model) {
+                                        found = true;
+                                        break;
+                                    }
+                                }
+                                if (!found) {
+                                    if (((ocVBMManager *) manager)->applyFilter(model))
+                                        models[modelsFound++] = model;
+                                }
                             }
-                        }
-                        if (!found) {
-                            if (((ocVBMManager *) manager)->applyFilter(model))
-                                models[modelsFound++] = model;
                         }
                     }
                 }
             }
-            delete relvars, missvars, newvars, testvars;
         }
+        delete pair, newRelVars;
         return models;
     }
 
