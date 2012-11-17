@@ -52,6 +52,7 @@ util.setDataFile(sys.argv[1:2])
 
 # Set separator between report fields.  [1=tab, 2=comma, 3=space fill, 4=HTML]
 util.setReportSeparator(3)
+util.setSkipNominal(1)
 
 # Set the sorting direction for reporting.
 util.setSortDir("descending")
@@ -95,8 +96,8 @@ util.setSortName("information")
 #util.setReportVariables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
 #util.setNoIPF(1)
 # For ref=bottom, use something like this:
-#util.setReportVariables("Level$i, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
-util.setReportVariables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, ipf_iterations, ipf_error")
+util.setReportVariables("Level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id, pct_correct_data")
+#util.setReportVariables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, ipf_iterations, ipf_error")
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
