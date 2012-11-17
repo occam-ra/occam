@@ -450,7 +450,7 @@ class ocUtils:
         if self.__manager.isDirected() and self.__searchDir == "default":
             self.__searchDir = "up"
         if not self.__manager.isDirected() and self.__searchDir == "default":
-            self.__searchDir = "down"
+            self.__searchDir = "up"
         if (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "down":
             self.__startModel = "top"
         elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "up":
