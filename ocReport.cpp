@@ -491,6 +491,39 @@ void ocReport::print(int fd) {
     fclose(f);
 }
 
+static ocVariableList *sort_var_list;
+static int sort_count;
+static int *sort_vars;
+static ocKeySegment **sort_keys;
+static ocTable *sort_table;
+int sortKeys(const void *d1, const void *d2) {
+    int keysize = sort_var_list->getKeySize();
+    ocKeySegment *k1, *k2;
+    if (sort_keys == NULL) {
+        k1 = sort_table->getKey((long long)*(int*) d1);
+        k2 = sort_table->getKey((long long)*(int*) d2);
+    } else {
+        k1 = sort_keys[*(int*) d1];
+        k2 = sort_keys[*(int*) d2];
+    }
+    const char *s1, *s2;
+    int test;
+    int v;
+    for (int j = 0; j < sort_count; j++) {
+        if (sort_vars == NULL) {
+            v = j;
+        } else {
+            v = sort_vars[j];
+        }
+        s1 = sort_var_list->getVarValue(v, ocKey::getKeyValue(k1, keysize, sort_var_list, v));
+        s2 = sort_var_list->getVarValue(v, ocKey::getKeyValue(k2, keysize, sort_var_list, v));
+        test = strcmp(s1, s2);
+        if (test != 0)
+            return test;
+    }
+    return 0;
+}
+
 void ocReport::printResiduals(FILE *fd, ocModel *model) {
     printResiduals(fd, model, NULL);
 }
@@ -520,7 +553,7 @@ void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
         test_table = test_data;
         input_table = input_data;
     } else {
-        fprintf(fd, "RESIDUALS for relation %s\n", rel->getPrintName());
+        fprintf(fd, "Residuals for relation %s\n", rel->getPrintName());
         // make refData and testData point to projections
         fit_table = rel->getTable();
         input_table = new ocTable(keysize, input_data->getTupleCount());
@@ -547,11 +580,10 @@ void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
             traintitle = "<br>Training Data\n";
             testtitle = "Test Data\n";
             format =
-                    "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
-            format_r =
-                    "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
+                    "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%+#6.8g</td></tr>\n";
+            format_r = "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
             footer = "</table><br><br>";
-            delim = "";
+            delim = " ";
             break;
         case 1:
             header = "Cell\tObs.Prob.\tObs.Freq.\tCalc.Prob.\tCalc.Freq.\tResidual\n";
@@ -614,7 +646,19 @@ void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
     }
     fprintf(fd, header);
     dataCount = input_table->getTupleCount();
+    int *key_order = new int[dataCount];
     for (long long i = 0; i < dataCount; i++) {
+        key_order[i] = i;
+    }
+    sort_var_list = varlist;
+    sort_count = var_count;
+    sort_vars = NULL;
+    sort_keys = NULL;
+    sort_table = input_table;
+    qsort(key_order, dataCount, sizeof(int), sortKeys);
+    int i;
+    for (long long order_i = 0; order_i < dataCount; order_i++) {
+        i = key_order[order_i];
         refkey = input_table->getKey(i);
         refvalue = input_table->getValue(i);
         ocKey::keyToUserString(refkey, varlist, keystr, delim);
@@ -640,7 +684,15 @@ void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
         }
         fprintf(fd, header);
         long long testCount = test_table->getTupleCount();
+        int *key_order = new int[testCount];
         for (long long i = 0; i < testCount; i++) {
+            key_order[i] = i;
+        }
+        sort_count = var_count;
+        sort_table = test_table;
+        qsort(key_order, testCount, sizeof(int), sortKeys);
+        for (long long order_i = 0; order_i < testCount; order_i++) {
+            i = key_order[order_i];
             refkey = test_table->getKey(i);
             refvalue = test_table->getValue(i);
             ocKey::keyToUserString(refkey, varlist, keystr, delim);
@@ -675,10 +727,10 @@ void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
     }
 }
 
+// Figure out the alphabetical order for an array of strings (such as the dv states)
+// (This isn't the most efficient algorithm, but it's simple, and enough to sort a few string values.)
+// Maybe could/should be using the DVOrder() from ocManagerBase
 static void orderIndices(const char **stringArray, int len, int *order) {
-    // Figure out the alphabetical order for an array of strings (such as the dv states)
-    // (This isn't the most efficient algorithm, but it's simple, and enough to sort a few string values.)
-
     // Find the last value in the order list, to initialize the other searches with
     int last = 0;
     for (int i = 0; i < len; i++) {
@@ -736,6 +788,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
 
     ocTable *input_table, *test_table = NULL;
     ocRelation *iv_rel; // A pointer to the IV component of a model, or the relation itself
+    ocModel *relModel;
 
     input_table = new ocTable(key_size, input_data->getTupleCount());
     if (test_sample_size > 0.0)
@@ -757,13 +810,36 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
             manager->makeProjection(test_data, test_table, predRelWithDV);
         //iv_rel = model->getRelation(0);
         iv_rel = predRelWithDV;
-    } else {
-        // Else, if we are working with a relation, make projections of the input and test tables.
-        fit_table = rel->getTable();
-        manager->makeProjection(input_data, input_table, rel);
-        if (test_sample_size > 0.0)
-            manager->makeProjection(test_data, test_table, rel);
-        iv_rel = rel;
+    } else {        // Else, if we are working with a relation, make projections of the input and test tables.
+        if (rel->isStateBased()) {
+            relModel = new ocModel(3);            // make a model of IV and the relation and the DV
+            relModel->addRelation(manager->getIndRelation());
+            relModel->addRelation(rel);
+            relModel->addRelation(manager->getDepRelation());
+            // make a fit table for the model
+            manager->makeFitTable(relModel);
+            // point table links to this new model
+            ocTable* orig_table = manager->getFitTable();
+            if (orig_table == NULL) {
+                fprintf(fd, "Error: no fitted table computed.\n");
+                return;
+            }
+            int var_indices[var_count], return_count;
+            manager->getPredictingVars(relModel, var_indices, return_count, true);
+            ocRelation *predRelWithDV = manager->getRelation(var_indices, return_count);
+            fit_table = new ocTable(key_size, orig_table->getTupleCount());
+            manager->makeProjection(orig_table, fit_table, predRelWithDV);
+            manager->makeProjection(input_data, input_table, predRelWithDV);
+            if (test_sample_size > 0.0)
+                manager->makeProjection(test_data, test_table, predRelWithDV);
+            iv_rel = predRelWithDV;
+        } else {
+            fit_table = rel->getTable();
+            manager->makeProjection(input_data, input_table, rel);
+            if (test_sample_size > 0.0)
+                manager->makeProjection(test_data, test_table, rel);
+            iv_rel = rel;
+        }
     }
 
     bool use_alt_default = false;
@@ -885,13 +961,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
             dv_bin_value[i] = strtod(dv_label[i], (char **) NULL);
     }
 
-    const char *new_line, *blank_line;
+    const char *new_line = "\n", *blank_line = "\n";
     if (htmlMode) {
         new_line = "<br>\n";
         blank_line = "<br><br>\n";
-    } else {
-        new_line = "\n";
-        blank_line = "\n\n";
     }
 
     const char *block_start, *head_start, *head_sep, *head_end, *head_str1, *head_str2, *head_str3, *head_str4;
@@ -970,7 +1043,6 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     int *ind_vars = new int[var_count];
     int iv_count = iv_rel->getIndependentVariables(ind_vars, var_count);
     if (rel == NULL) {
-//        model->printStructMatrix();        fprintf(fd, new_line);
         fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Model %s.", model->getPrintName());
         fprintf(fd, new_line);
         fprintf(fd, "IV order: ");
@@ -985,9 +1057,15 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
         }
         fprintf(fd, ").");
     } else {
-        fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s.", rel->getPrintName());
-        fprintf(fd, new_line);
-        fprintf(fd, "(For component relations, the data is equal to the model.)");
+        if (rel->isStateBased()) {
+            fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Submodel %s.", relModel->getPrintName());
+            fprintf(fd, new_line);
+//            fprintf(fd, "(For component relations, the Data and Model parts of the table are equal, so only one is given.)");
+        } else {
+            fprintf(fd, "Conditional DV (D) (%%) for each IV composite state for the Relation %s.", rel->getPrintName());
+            fprintf(fd, new_line);
+            fprintf(fd, "(For component relations, the Data and Model parts of the table are equal, so only one is given.)");
+        }
     }
     if (defaultFitModel != NULL) {
         fprintf(fd, new_line);
@@ -1396,7 +1474,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     fprintf(fd, "|%sData%s", head_sep, head_sep);
     for (int i = 0; i < dv_card; i++)
         fprintf(fd, "%s", head_sep);
-    if (rel == NULL) {
+    if (rel == NULL || rel->isStateBased()) {
         fprintf(fd, "|%sModel", head_sep);
         for (int i = 0; i < dv_card; i++)
             fprintf(fd, "%s", head_sep);
@@ -1416,7 +1494,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     if (dv_card > 2)
         for (int i = 2; i < dv_card; i++)
             fprintf(fd, head_sep);
-    if (rel == NULL) {
+    if (rel == NULL || rel->isStateBased()) {
         fprintf(fd, "|%s%s", head_str1, head_sep);
         if (dv_card > 2)
             for (int i = 2; i < dv_card; i++)
@@ -1439,7 +1517,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     for (int i = 0; i < iv_count; i++)
         fprintf(fd, "%s%s", var_list->getVariable(ind_vars[i])->abbrev, row_sep);
     fprintf(fd, "|%sfreq%s%s", row_sep, row_sep, dv_header);
-    if (rel == NULL)
+    if (rel == NULL || rel->isStateBased())
         fprintf(fd, "|%s%s", row_sep, dv_header);
     fprintf(fd, "rule%s#correct%s%%correct", row_sep, row_sep);
     if (calcExpectedDV == true)
@@ -1459,8 +1537,19 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     int keyval;
     int keysize = input_data->getKeySize();
     const char *keyvalstr;
-    // For each of the model's keys (ie, each row of the table)...
-    for (int i = 0; i < iv_statespace; i++) {
+
+    int *key_order = new int[iv_statespace];        // Created a sorted order for the IV states, so they appear in order in the table
+    for (int i = 0; i < iv_statespace; i++)
+        key_order[i] = i;
+    sort_var_list = var_list;
+    sort_count = iv_count;
+    sort_vars = ind_vars;
+    sort_keys = fit_key;
+    qsort(key_order, iv_statespace, sizeof(int), sortKeys);
+    int i;
+    // For each of the model's keys (i.e., each row of the table)...
+    for (int order_i = 0; order_i < iv_statespace; order_i++) {
+        i = key_order[order_i];
         if (input_key_freq[i] == 0.0) {
             if (test_sample_size > 0.0) {
                 if (test_key_freq[i] == 0.0) {
@@ -1492,7 +1581,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
             }
             fprintf(fd, "%.3f%s", temp_percent, row_sep);
         }
-        if (rel == NULL) {
+        if (rel == NULL || rel->isStateBased()) {
             fprintf(fd, "|%s", row_sep);
             // Print out the percentages for each of the DV states
             for (int j = 0; j < dv_card; j++) {
@@ -1579,7 +1668,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     for (int j = 0; j < dv_card; j++) {
         fprintf(fd, "%.3f%s", input_dv_freq[dv_order[j]] / sample_size * 100.0, row_sep);
     }
-    if (rel == NULL) {
+    if (rel == NULL || rel->isStateBased()) {
         fprintf(fd, "|%s", row_sep);
         // Print the marginals for each DV state
         for (int j = 0; j < dv_card; j++) {
@@ -1624,7 +1713,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     for (int i = 0; i < iv_count; i++)
         fprintf(fd, "%s", row_sep);
     fprintf(fd, "|%sfreq%s%s", row_sep, row_sep, dv_header);
-    if (rel == NULL)
+    if (rel == NULL || rel->isStateBased())
         fprintf(fd, "|%s%s", row_sep, dv_header);
     fprintf(fd, "rule%s#correct%s%%correct", row_sep, row_sep);
     if (calcExpectedDV == true)
@@ -1729,8 +1818,8 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     }
 
     // If this is the entire model (not just a relation), print tables for each of the component relations,
-    // if there are more than two of them.
-    if ((rel == NULL) && (model->getRelationCount() > 2)) {
+    // if there are more than two of them (for VB) or more than 3 (for SB).
+    if ((rel == NULL) && ((model->getRelationCount() > 2 && !model->isStateBased()) || (model->isStateBased() && model->getRelationCount() > 3))) {
         for (int i = 0; i < model->getRelationCount(); i++) {
             if (model->getRelation(i)->isIndependentOnly())
                 continue;
