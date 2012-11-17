@@ -361,7 +361,7 @@ class ocUtils:
         if self.__manager.isDirected() and self.__searchDir == "default":
             self.__searchDir = "up"
         if not self.__manager.isDirected() and self.__searchDir == "default":
-            self.__searchDir = "down"
+            self.__searchDir = "up"
         # set start model. For chain search, ignore any specific starting model
         # otherwise, if not set, set the start model based on search direction
         if (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "down":
