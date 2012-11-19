@@ -1560,7 +1560,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
             }
         }
         // Also, switch the bgcolor of each row from grey to white, every other row. (If not in HTML, this does nothing.)
-        if (i % 2)
+        if (order_i % 2)
             fprintf(fd, row_start);
         else
             fprintf(fd, row_start2);
