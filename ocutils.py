@@ -616,7 +616,7 @@ class ocUtils:
             self.__refModel = "bottom"
 
         if not self.__manager.isDirected() and self.__refModel == "default":
-            self.__refModel = "top"
+            self.__refModel = "bottom"
 
         option = self.__action
         if option == "search":
