@@ -613,11 +613,15 @@ class ocUtils:
     def doAction(self, printOptions):
         # set reporting variables based on ref model
         if self.__manager.isDirected() and self.__refModel == "default":
-            self.__refModel = "bottom"
-
+            if self.__startModel == "top":
+                self.__refModel = "top"
+            else:
+                self.__refModel = "bottom"
         if not self.__manager.isDirected() and self.__refModel == "default":
-            self.__refModel = "bottom"
-
+            if self.__startModel == "top":
+                self.__refModel = "top"
+            else:
+                self.__refModel = "bottom"
         option = self.__action
         if option == "search":
             self.__manager.setDDFMethod(self.__DDFMethod)
