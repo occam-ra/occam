@@ -613,12 +613,12 @@ class ocUtils:
     def doAction(self, printOptions):
         # set reporting variables based on ref model
         if self.__manager.isDirected() and self.__refModel == "default":
-            if self.__startModel == "top":
+            if self.__searchDir == "down":
                 self.__refModel = "top"
             else:
                 self.__refModel = "bottom"
         if not self.__manager.isDirected() and self.__refModel == "default":
-            if self.__startModel == "top":
+            if self.__searchDir == "down":
                 self.__refModel = "top"
             else:
                 self.__refModel = "bottom"
