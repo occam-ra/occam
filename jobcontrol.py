@@ -43,6 +43,8 @@ class JobControl:
 				cmds = fields[-1].split(' ')
 				if len(cmds) < 2:
 					continue
+				if "[" in cmds[0] or "defunct" in cmds[1] or "cgi" in cmds[0]:
+					continue
 				del fields[-1]
 				fields[1] = " ".join(fields[1:4]) + " " + fields[5] + "<br>" + fields[4]
 				del fields[2:6]
