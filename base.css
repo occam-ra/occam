@@ -2,7 +2,7 @@
 #PSUBody { background:#6A7F10 none repeat scroll 0%; }
 #PSUContentBackground {background:#FFFFFF; padding:1px 0 0 0;}
 #PSUContent {background:#FFFFFF; font-size:.8em; height:100%; padding:1.5em; min-width:828px;}
-#PSUMarginRight { background:#E7E8E4 url(http://www.pdx.edu/lib/img/PSUMarginRight.png) repeat-y scroll 0%; width:72px; }
+#PSUMarginRight { background:#E7E8E4 repeat-y scroll 0%; width:72px; }
 #PSUColumnMain {vertical-align:top; width:100%;}
 #PSUBrandingBackground {background:#6A7F10;}
 #PSUBranding {background:#6A7F10 url(http://webdev.pdx.edu/images/header/PSUGreen.gif) no-repeat; height:75px; width:878px;}
