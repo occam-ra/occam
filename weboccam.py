@@ -656,4 +656,6 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
 
 if not textFormat:
     printBottom()
+    sys.stdout.flush()
+    sys.stdout.close()
 
