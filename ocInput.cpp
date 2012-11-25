@@ -176,6 +176,7 @@ void ocDefineVariables(ocOptions *options, ocVariableList *vars) {
         // Should probably check if the abbrev inlcudes numbers here, rather than just ignoring them
         if (count != 4) {
             fprintf(stdout, "Error in variable definition: %s\n", vardef);
+            fflush(stdout);
         } else {
             if (type != 0) { //Anjali
                 isdv = type == 2;

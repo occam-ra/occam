@@ -175,7 +175,8 @@ bool isSuperset(bool *first, bool *second, int length) {
 
 bool ocSbHasLoops(ocModel *model) {
     if (model == NULL) {
-        fprintf(stderr, "ocSbHasLoops(): Error. Model is NULL.\n");
+        fprintf(stdout, "ocSbHasLoops(): Error. Model is NULL.\n");
+        fflush(stdout);
         exit(1);
     }
     int rel_count = model->getRelationCount();
@@ -184,7 +185,8 @@ bool ocSbHasLoops(ocModel *model) {
     if (rel_count > 0) {
         var_list = model->getRelation(0)->getVariableList();
     } else {
-        fprintf(stderr, "ocSbHasLoops(): Error. Model has no relations.\n");
+        fprintf(stdout, "ocSbHasLoops(): Error. Model has no relations.\n");
+        fflush(stdout);
         exit(1);
     }
     int i, j, k;
@@ -313,7 +315,8 @@ bool ocSbHasLoops(ocModel *model) {
 
 bool ocHasLoops(ocModel *model) {
     if (model == NULL) {
-        fprintf(stderr, "ocHasLoops(): Error. Model is NULL.\n");
+        fprintf(stdout, "ocHasLoops(): Error. Model is NULL.\n");
+        fflush(stdout);
         exit(1);
     }
     if (model->isStateBased())
@@ -972,7 +975,8 @@ double ocDegreesOfFreedomStateBased(ocModel *model) {
     double **matrix = NULL;
     int **struct_matrix = model->getStructMatrix(&ncols, &nrows);
     if (struct_matrix == NULL) {
-        fprintf(stderr, "ocDegreesOfFreedomStateBased(): Error. Model %s: struct matrix not found.\n", model->getPrintName());
+        fprintf(stdout, "ocDegreesOfFreedomStateBased(): Error. Model %s: struct matrix not found.\n", model->getPrintName());
+        fflush(stdout);
         exit(1);
     }
     // create a copy of the matrix to manipulate
@@ -1041,7 +1045,8 @@ double ocDegreesOfFreedomStateBased(ocModel *model) {
         for (j = i; j < ncols; j++) {
             if (fabs(matrix[i][j]) > DBL_EPSILON) {
                 if (rank >= limit) {
-                    fprintf(stderr, "ocDegreesOfFreedomStateBased(): Error. DF exceeds current limits of State-based OCCAM.\n");
+                    fprintf(stdout, "ocDegreesOfFreedomStateBased(): Error. DF exceeds current limits of State-based OCCAM.\n");
+                    fflush(stdout);
                     exit(1);
                 } else {
                     rank++;

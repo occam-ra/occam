@@ -344,7 +344,8 @@ int ocVariableList::getVariableList(const char *name, int *varlist) {
                 break;
         }
         if (i >= varCount) {
-            fprintf(stderr, "variable %s not found\n", vname);
+            fprintf(stdout, "variable %s not found\n", vname);
+            fflush(stdout);
             return 0; // bad name
         } else {
             varlist[pos++] = i;
@@ -380,7 +381,8 @@ int ocVariableList::getVarStateList(const char *name, int *varlist, int *stlist)
                 break;
         }
         if (i >= varCount) {
-            fprintf(stderr, "variable %s not found\n", vname);
+            fprintf(stdout, "variable %s not found\n", vname);
+            fflush(stdout);
             return 0; // bad name
         } else {
             varlist[pos] = i;

@@ -205,7 +205,8 @@ void ocModel::makeStructMatrix(int statespace, ocVariableList *vars, int **state
 
 void ocModel::completeSbModel() {
     if (getRelationCount() == 0) {
-        fprintf(stderr, "Error. completeSbModel(): Model contains no relations.\n");
+        fprintf(stdout, "Error. completeSbModel(): Model contains no relations.\n");
+        fflush(stdout);
         exit(1);
     }
     if (structMatrix != NULL) return;
