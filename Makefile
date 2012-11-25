@@ -26,7 +26,7 @@ DEFS = -I.	# include the current directory
 ifeq ($(ARCH), Linux)
 # check if we're on one of the research machines, which use python 2.4 still
     HOST = $(shell uname -n | sed -e "s/[^.]*\.//")
-    ifeq ($(HOST), research.pdx.edu)
+    ifeq ($(HOST), rc.pdx.edu)
         PY_INCLUDE = /usr/include/python2.4
     endif
 endif
