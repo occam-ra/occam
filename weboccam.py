@@ -153,7 +153,7 @@ def getDataFile(formFields):
     if os.path.splitext(datafile)[1] == ".zip":
         oldfile = datafile
         zipdata = zipfile.ZipFile(datafile)
-        # ignore any directories or files in them, such as those OSX likes to make
+        # ignore any directories, or files in them, such as those OSX likes to make
         ilist = [item for item in zipdata.infolist() if item.filename.find("/") == -1]
         # make sure there is only one file left
         if len(ilist) != 1:
@@ -323,10 +323,10 @@ def actionSearch(formFields):
     oc.setStartModel(formFields.get("model", "default"))
     refModel = formFields.get("refmodel", "default")
     #specificRefModel = ""
-    if refModel == "specific" and formFields.has_key("specificrefmodel"):
-        refModel = formFields["specificrefmodel"]
+    #if refModel == "specific" and formFields.has_key("specificrefmodel"):
+    #    refModel = formFields["specificrefmodel"]
         #specificRefModel = refModel
-    elif refModel == "starting":
+    if refModel == "starting":
         refModel = oc.getStartModel()
     oc.setRefModel(refModel)
     oc.setSearchDir(formFields.get("searchdir", "default"))

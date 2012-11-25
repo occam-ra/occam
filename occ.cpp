@@ -15,6 +15,7 @@
 #include <time.h>
 
 #undef SB
+//#define SB
 
 int main(int argc, char* argv[]) {
     if (argc <= 1) {
