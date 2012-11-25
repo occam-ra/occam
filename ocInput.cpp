@@ -175,7 +175,7 @@ void ocDefineVariables(ocOptions *options, ocVariableList *vars) {
         int count = sscanf(vardef, " %[^, \t] , %d , %d , %[A-Za-z]", name, &cardinality, &type, abbrev);
         // Should probably check if the abbrev inlcudes numbers here, rather than just ignoring them
         if (count != 4) {
-            fprintf(stderr, "Error in variable definition: %s\n", vardef);
+            fprintf(stdout, "Error in variable definition: %s\n", vardef);
         } else {
             if (type != 0) { //Anjali
                 isdv = type == 2;
