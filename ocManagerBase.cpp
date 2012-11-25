@@ -737,7 +737,6 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
         for (int ri = 0; ri < fitIntersectCount; ri++) {        // check that all relations in intersectArray have projections
             makeProjection(fitIntersectArray[ri].rel);
         }
-        //inputData->normalize();
         long long inSize = inputData->getTupleCount();
         ocTable *algTable = new ocTable(keysize, inSize);
 
@@ -817,29 +816,32 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
     double error = 0;
 
     makeProjections(model);
+    int relCount = model->getRelationCount();
+    ocRelation *relList[relCount];
+    ocTable *tableList[relCount];
+    ocKeySegment *maskList[relCount];
+    for (int r = 0; r < relCount; r++) {
+        relList[r] = model->getRelation(r);
+        tableList[r] = model->getRelation(r)->getTable();
+        maskList[r] = model->getRelation(r)->getMask();
+    }
 
-    //-- compute the number of nonzero tuples in the expansion
-    //-- of each relation, and start with the one where this is
-    //-- smallest (to minimize memory usage)
+    // compute the number of nonzero tuples in the expansion of each relation, and start
+    // with the one where this is smallest (to minimize memory usage)
     int startRel = 0;
-    double expsize = model->getRelation(0)->getExpansionSize();
+    double expsize = relList[0]->getExpansionSize();
     double newexpsize;
-    for (int r = 1; r < model->getRelationCount(); r++) {
-        newexpsize = model->getRelation(r)->getExpansionSize();
+    for (int r = 1; r < relCount; r++) {
+        newexpsize = relList[r]->getExpansionSize();
         if (newexpsize < expsize) {
             startRel = r;
             expsize = newexpsize;
         }
     }
-    makeOrthoExpansion(model->getRelation(startRel), fitTable1);
-//    fitTable1->addConstant(1.0);
-//    fitTable1->sort();
-//    fitTable1->normalize();
-//    fitTable1->dump();
+    makeOrthoExpansion(relList[startRel], fitTable1);
 
-    //-- configurable fitting parameters
-    //-- convergence error. This is approximately in units of samples.
-    //-- if initial data was probabilities, an artificial scale of 1000 is used
+    // configurable fitting parameters:  convergence error. This is approximately in units of samples.
+    // if initial data was probabilities, an artificial scale of 1000 is used.
     double delta2;
     getOptionFloat("ipf-maxdev", NULL, &delta2);
     if (this->sampleSize > 0) {
@@ -847,24 +849,24 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
     } else {
         delta2 /= 1000;
     }
-
-    double maxiter;
+    double maxiter = 1;
     if (hasLoops(model) || (model->isStateBased() && (model->getRelationCount() > 1))) {
         getOptionFloat("ipf-maxit", NULL, &maxiter);
-    } else {
-        maxiter = 1;
     }
+
     int iter, r;
     long long i, j;
     long long tupleCount;
-    double newValue, value, relvalue, projvalue;
+    double newValue, value, relValue, projValue;
     ocRelation *rel;
+    ocTable *table;
+    ocKeySegment *mask;
     for (iter = 0; iter < maxiter; iter++) {
-        error = 0.0; // abs difference between original proj and computed values
-        for (r = 0; r < model->getRelationCount(); r++) {
-            rel = model->getRelation(r);
-            ocTable *relp = rel->getTable();
-            ocKeySegment *mask = rel->getMask();
+        error = 0.0; // absolute difference between original projection and computed values
+        for (r = 0; r < relCount; r++) {
+            rel = relList[r];
+            table = tableList[r];
+            mask = maskList[r];
             // create a projection of the computed data, based on the variables in the relation
             projTable->reset(keysize);
             makeProjection(fitTable1, projTable, rel);
@@ -881,19 +883,19 @@ bool ocManagerBase::makeFitTable(ocModel *model) {
                 value = fitTable1->getValue(i);
                 for (k = 0; k < keysize; k++)
                     key[k] |= mask[k];
-                j = relp->indexOf(key);
+                j = table->indexOf(key);
                 if (j >= 0) {
-                    relvalue = relp->getValue(j);
-                    if (relvalue > 0.0) {
+                    relValue = table->getValue(j);
+                    if (relValue > 0.0) {
                         j = projTable->indexOf(key);
                         if (j >= 0) {
-                            projvalue = projTable->getValue(j);
-                            if (projvalue > 0.0) {
-                                newValue = value * relvalue / projvalue;
+                            projValue = projTable->getValue(j);
+                            if (projValue > 0.0) {
+                                newValue = value * relValue / projValue;
                             }
-                            error = fmax(error, fabs(relvalue - projvalue));
+                            error = fmax(error, fabs(relValue - projValue));
                         } else {
-                            error = fmax(error, relvalue);
+                            error = fmax(error, relValue);
                         }
                     }
                 }
