@@ -186,7 +186,7 @@ void ocVBMManager::makeReferenceModels(ocRelation *top) {
 
     //-- set default reference model depending on whether
     //-- the system is directed or neutral
-    refModel = varList->isDirected() ? bottomRef : topRef;
+    refModel = varList->isDirected() ? bottomRef : bottomRef;
     delete[] varindices;
 }
 
@@ -987,33 +987,33 @@ void ocVBMManager::printFitReport(ocModel *model, FILE *fd) {
     value = model->getAttribute("t");
     fprintf(fd, "%s%s%s%g%s", beginLine, label, separator, value, endLine);
     fprintf(fd, footer);
-//    //-- print top and bottom reference tables
-//    const char *topFields1[] = { "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, "Pearson X2", ATTRIBUTE_P2,
-//            ATTRIBUTE_P2_ALPHA, "Delta DF (dDF)", ATTRIBUTE_DDF, "", };
-//    const char *bottomFields1[] = { "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, "Pearson X2", ATTRIBUTE_P2,
-//            ATTRIBUTE_P2_ALPHA, "Delta DF (dDF)", ATTRIBUTE_DDF, "", };
-//    //-- compute attributes for top and bottom references
-//    double h1 = model->getAttribute(ATTRIBUTE_ALG_H);
-//    double h2 = model->getAttribute(ATTRIBUTE_H);
-//    model->getAttributeList()->reset();
-//    model->setAttribute(ATTRIBUTE_ALG_H, h1);
-//    model->setAttribute(ATTRIBUTE_H, h2);
-//    setRefModel("top");
-//    computeInformationStatistics(model);
-//    computeDependentStatistics(model);
-//    computeL2Statistics(model);
-//    computePearsonStatistics(model);
-//    printRefTable(model, fd, "TOP", topFields1, 3);
-//
-//    model->getAttributeList()->reset();
-//    model->setAttribute(ATTRIBUTE_ALG_H, h1);
-//    model->setAttribute(ATTRIBUTE_H, h2);
-//    setRefModel("bottom");
-//    computeInformationStatistics(model);
-//    computeDependentStatistics(model);
-//    computeL2Statistics(model);
-//    computePearsonStatistics(model);
-//    printRefTable(model, fd, "BOTTOM", bottomFields1, 3);
+    //-- print top and bottom reference tables
+    const char *topFields1[] = { "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, "Pearson X2", ATTRIBUTE_P2,
+            ATTRIBUTE_P2_ALPHA, "Delta DF (dDF)", ATTRIBUTE_DDF, "", };
+    const char *bottomFields1[] = { "Log-Likelihood (LR)", ATTRIBUTE_LR, ATTRIBUTE_ALPHA, "Pearson X2", ATTRIBUTE_P2,
+            ATTRIBUTE_P2_ALPHA, "Delta DF (dDF)", ATTRIBUTE_DDF, "", };
+    //-- compute attributes for top and bottom references
+    double h1 = model->getAttribute(ATTRIBUTE_ALG_H);
+    double h2 = model->getAttribute(ATTRIBUTE_H);
+    model->getAttributeList()->reset();
+    model->setAttribute(ATTRIBUTE_ALG_H, h1);
+    model->setAttribute(ATTRIBUTE_H, h2);
+    setRefModel("top");
+    computeInformationStatistics(model);
+    computeDependentStatistics(model);
+    computeL2Statistics(model);
+    computePearsonStatistics(model);
+    printRefTable(model, fd, "TOP", topFields1, 3);
+
+    model->getAttributeList()->reset();
+    model->setAttribute(ATTRIBUTE_ALG_H, h1);
+    model->setAttribute(ATTRIBUTE_H, h2);
+    setRefModel("bottom");
+    computeInformationStatistics(model);
+    computeDependentStatistics(model);
+    computeL2Statistics(model);
+    computePearsonStatistics(model);
+    printRefTable(model, fd, "BOTTOM", bottomFields1, 3);
     fprintf(fd, line_sep);
 }
 
