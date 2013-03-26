@@ -553,7 +553,7 @@ void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
         test_table = test_data;
         input_table = input_data;
     } else {
-        fprintf(fd, "Residuals for relation %s\n", rel->getPrintName());
+        fprintf(fd, "\nResiduals for relation %s\n", rel->getPrintName());
         // make refData and testData point to projections
         fit_table = rel->getTable();
         input_table = new ocTable(keysize, input_data->getTupleCount());
