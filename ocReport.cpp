@@ -538,7 +538,7 @@ void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
         return;
     ocTable *input_data = manager->getInputData();
     ocTable *test_data = manager->getTestData();
-    ocTable *input_table, *fit_table, *test_table;
+    ocTable *input_table = NULL, *fit_table = NULL, *test_table = NULL;
     long var_count = varlist->getVarCount();
     double sample_size = manager->getSampleSz();
     double test_sample_size = manager->getTestSampleSize();
@@ -558,7 +558,7 @@ void ocReport::printResiduals(FILE *fd, ocModel *model, ocRelation *rel) {
         fit_table = rel->getTable();
         input_table = new ocTable(keysize, input_data->getTupleCount());
         manager->makeProjection(input_data, input_table, rel);
-        if (test_sample_size > 0.0) {
+        if (test_data != NULL && test_sample_size > 0.0) {
             test_table = new ocTable(keysize, test_data->getTupleCount());
             manager->makeProjection(test_data, test_table, rel);
         }
