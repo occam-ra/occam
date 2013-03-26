@@ -19,7 +19,7 @@
 
 int main(int argc, char* argv[]) {
     if (argc <= 1) {
-        printf("usage: %s [options] data-afile\n", argv[0]);
+        printf("usage: %s [options] datafile\n", argv[0]);
         printf("\tOptions:\n");
         printf("\t-a search | fit (default=search)\n");
         printf("\t-L search-levels\n");
