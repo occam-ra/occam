@@ -138,9 +138,9 @@ static void getComplement(int *innerList, int innerListCount, int *outerList, in
         if (i != index) {
             *(outp++) = i;
         }
-        assert(outp - outerList <= maxcount - innerListCount);
+        //assert(outp - outerList <= maxcount - innerListCount);
     }
-    assert(outp - outerList == maxcount - innerListCount);
+    //assert(outp - outerList == maxcount - innerListCount);
 }
 
 //-- check the given variable list to see if it is a subset of the given relation
@@ -874,10 +874,10 @@ ocModel **ocSearchLooplessUp::search(ocModel *start) {
     }
     // Neutral loopless up
     if (!varList->isDirected()) {
-        maxChildren = varcount * relcount;
-        ocModel **models = new ocModel *[maxChildren + 1];
+        maxChildren = 4;
+        ocModel **models = new ocModel *[maxChildren];
         ocModel *model, *cachedModel;
-        memset(models, 0, (maxChildren + 1) * sizeof(ocModel*));
+        memset(models, 0, maxChildren * sizeof(ocModel*));
         int modelsFound = 0;
         int *pair = new int[2];
         int *newRelVars = new int[varcount+1];
@@ -920,14 +920,22 @@ ocModel **ocSearchLooplessUp::search(ocModel *start) {
                                 // check if this model is in the return list, so we don't add a duplicate
                                 found = false;
                                 for (int l = 0; l < modelsFound; l++) {
-                                    if (models[j] == model) {
+                                    if (models[l] == model) {
                                         found = true;
                                         break;
                                     }
                                 }
                                 if (!found) {
-                                    if (((ocVBMManager *) manager)->applyFilter(model))
+                                    if (((ocVBMManager *) manager)->applyFilter(model)) {
+                                        if (modelsFound >= maxChildren - 1) {
+                                            const int GROWTH_FACTOR = 2;
+                                            while (modelsFound >= maxChildren - 1) {
+                                                models = (ocModel**) growStorage(models, maxChildren*sizeof(ocModel*), GROWTH_FACTOR);
+                                                maxChildren *= GROWTH_FACTOR;
+                                            }
+                                        }
                                         models[modelsFound++] = model;
+                                    }
                                 }
                             }
                         }
@@ -935,7 +943,7 @@ ocModel **ocSearchLooplessUp::search(ocModel *start) {
                 }
             }
         }
-        delete pair, newRelVars;
+        delete[] pair; delete[] newRelVars;
         return models;
     }
 
