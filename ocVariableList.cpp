@@ -61,6 +61,8 @@ ocVariableList::~ocVariableList() {
         for (int j = 0; j < varp->cardinality; j++) {
             delete varp->valmap[j];
         }
+        if (varp->exclude)
+            delete[] varp->exclude;
     }
     if (vars)
         delete vars;

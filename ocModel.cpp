@@ -23,6 +23,8 @@
 ocModel::ocModel(int size) {
     maxRelationCount = size;
     relationCount = 0;
+    stateSpaceSize = 0;
+    totalConstraints = 0;
     relations = new ocRelation*[size];
     fitTable = NULL;
     attributeList = new ocAttributeList(6);
@@ -100,6 +102,7 @@ void ocModel::setAttribute(const char *name, double value) {
 }
 
 double ocModel::getAttribute(const char *name) {
+    //printf("Attr name: %s\n", name); fflush(stdout);
     return attributeList->getAttribute(name);
 }
 

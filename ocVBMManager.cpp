@@ -560,6 +560,8 @@ double ocVBMManager::computeBPT(ocModel *model) {
                 keysize = inputData->getKeySize();
                 qData = new ocTable(keysize, inputData->getTupleCount());
                 fullDimension = fullDim;
+                originTerms = 0;
+                relCount = 0;
             }
 
             void reset(int rels) {

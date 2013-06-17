@@ -41,6 +41,8 @@ ocAttributeList::ocAttributeList(int size)
     maxAttrCount = size;
     names = new const char*[maxAttrCount];
     values = new double[maxAttrCount];
+    memset(names,0,maxAttrCount*sizeof(char));
+    memset(values,0,maxAttrCount*sizeof(double));
 }
 
 

@@ -160,7 +160,6 @@ struct ocVariable { // internal use only - see ocVariableList
         char * oldnew[2][MAXCARDINALITY];
         int old_card;
         char *exclude;
-
 };
 
 class ocVariableList {

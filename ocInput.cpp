@@ -269,7 +269,6 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                 //////////correct this....
                 sscanf(cp, "%[^) ]", myvalue);
                 cp = cp + strlen(myvalue);
-                //printf("exclude the value %s from the variable %s\n",myvalue,abbrev);
                 while (*cp && isspace(*cp))
                     cp++;
                 if (*cp != ')') {

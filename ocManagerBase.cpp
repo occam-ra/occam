@@ -43,6 +43,7 @@ ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input) :
     options = new ocOptions();
     inputH = -1;
     stateSpaceSize = 0;
+    dataLines = 0;
     fitTable1 = NULL;
     fitTable2 = NULL;
     projTable = NULL;
