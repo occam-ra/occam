@@ -111,12 +111,12 @@ long ocReadData(FILE *fin, ocVariableList *vars, ocTable *indata, LostVar *lostv
                     cp++; // now at next value
                 j++;
             } else { //Anjali
-                //check if it is in LostVar list, if yes then if all its values are valid then this row of table can go
-                //otherwise mark it for being removed from building a key
+                // check if it is in LostVar list, if yes then if all its values are valid then this row of table can go
+                // otherwise mark it for being removed from building a key
                 if (lostvarp != NULL) {
                     b_lostvar = isLostVar(i, &lostvarpt, lostvarp);
                     if (b_lostvar) {
-                        int ret = sscanf(cp, "%[^\t ]", var);
+                        int ret = sscanf(cp, "%[^\t, ]", var);
                         if (ret == 1) {
                             keepval = KeepVal(lostvarpt, var);
                             if (!keepval)
@@ -285,10 +285,10 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                 //	printf("exclude %s\n",varpt->exclude);
             } else if ((cp[0] != '\0') && (cp[0] != '[') && (type != 0)) {
                 //*****************single value to be considered
-                //printf("the string to be kept %s for variable %s\n",cp,abbrev);
+                //printf("The variable value to be kept is %s for variable %s\n",cp,abbrev);
                 vars->markForNoUse();
                 if (flag_1 == 0) {
-                    lostvarp1 = new LostVar; //this might have some issues
+                    lostvarp1 = new LostVar; // this might have some issues
                     if (lostvarp1 == NULL) {
                         printf("error allocating mem\n");
                         exit(1);
@@ -297,7 +297,7 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                     *lostvarp = lostvarp1;
                     lostvarp1->next = NULL;
                 } else {
-                    lostvarp1->next = new LostVar; //ithis might have issues
+                    lostvarp1->next = new LostVar; // this might have issues
                     lostvarp1 = lostvarp1->next;
                     lostvarp1->next = NULL;
                 }
@@ -319,7 +319,7 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                     int ind = 0;
                     vars->markForNoUse();
                     if (flag_1 == 0) {
-                        lostvarp1 = new LostVar; //this might have some issues
+                        lostvarp1 = new LostVar; // this might have some issues
                         if (lostvarp1 == NULL) {
                             printf("error allocating mem\n");
                             exit(1);
@@ -328,7 +328,7 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                         *lostvarp = lostvarp1;
                         lostvarp1->next = NULL;
                     } else {
-                        lostvarp1->next = new LostVar; //ithis might have issues
+                        lostvarp1->next = new LostVar; // this might have issues
                         lostvarp1 = lostvarp1->next;
                         lostvarp1->next = NULL;
                     }
@@ -436,7 +436,7 @@ void ocRebinDefineVar(ocOptions *options, ocVariableList *vars, LostVar ** lostv
                 } else {
                     //variable is kept*********************var kept*************
                     //Though cardinality might need adjusting
-                    //The cardinality (if rebinning is used)is eq to the number of ';'+1
+                    //The cardinality (if rebinning is used) is equal to the number of ';'+1
                     //int oldnewTable[2][MAXCARDINALITY];
                     ocVariable *varpt = NULL;
                     int card = 1;
