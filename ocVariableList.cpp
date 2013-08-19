@@ -234,7 +234,7 @@ void ocVariableList::dump() {
         printf("\t%d\t%d\t%d\t%d\t%d\t%8s\t%s\t%0*lx\t", v->dv, v->cardinality, v->segment, v->size, v->shift, v->name,
                 v->abbrev, sizeof(ocKeySegment) * 2, v->mask);
         for (int j = 0; j < v->cardinality; j++) {
-            printf("%s\t", v->valmap[j]);
+            printf("%s\t", getVarValue(i,j));
         }
         printf("\n");
     }
