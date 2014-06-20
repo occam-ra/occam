@@ -330,10 +330,14 @@ void ocReport::print(FILE *fd) {
     }
 
     if (showPercentCorrect) {
-        if (!htmlMode)
-            fprintf(fd, "Best Model(s) by %%C(Test):\n");
-        else
+        if (!htmlMode) {
+            fprintf(fd, "Best Model(s) by %%C(Test):\n"); 
+            fprintf(fd, "Warning: models should not be selected based on %%correct(test).\n");
+        }
+        else {
             fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by %%C(Test)</b>:</td></tr>\n");
+            fprintf(fd, "<tr><td colspan=16><b>Warning</b>: models should not be selected based on %%correct(test).</td></tr>\n");
+        }
         for (int m = 0; m < modelCount; m++) {
             if (models[m]->getAttribute(ATTRIBUTE_PCT_CORRECT_TEST) != bestTest)
                 continue;
