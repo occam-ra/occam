@@ -58,6 +58,8 @@ class ocManagerBase {
         // initialize an ocManagerBase object, reading in standard options and data files.
         bool initFromCommandLine(int argc, char **argv);
 
+	void setAlphaThreshold(double thresh);
+
         // delete this object
         virtual ~ocManagerBase();
 
@@ -246,6 +248,7 @@ class ocManagerBase {
 
         //-- print out all relations
         void dumpRelations();
+        double alpha_threshold = 0.05;
 
     protected:
         ocModel *topRef;

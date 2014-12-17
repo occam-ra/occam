@@ -427,6 +427,7 @@ def actionSearch(formFields):
     oc.setSearchDir(formFields.get("searchdir", "default"))
     oc.setSearchSortDir(formFields.get("searchsortdir", ""))
     oc.setSearchFilter(formFields.get("searchtype", "all"))
+    oc.setAlphaThreshold(formFields.get("alpha-threshold", "0.05"))
     oc.setAction("search")
     if formFields["evalmode"] == "bp":
         reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"

@@ -38,7 +38,7 @@ static attrDesc attrDescriptions[] = { { ATTRIBUTE_LEVEL, "Level", "%14.0f" }, {
                 "LR Ind", "%12.4f" }, { ATTRIBUTE_COND_LR, "LR|Model", "%12.4f" }, { ATTRIBUTE_COND_H_PROB, "H|Model",
                 "%12.4f" }, { ATTRIBUTE_P2, "P2", "%12.4f" }, { ATTRIBUTE_P2_ALPHA, "P2 Alpha", "%12.4f" }, {
                 ATTRIBUTE_P2_BETA, "P2 Beta", "%12.4f" }, { ATTRIBUTE_LR, "dLR", "%12.4f" }, { ATTRIBUTE_INCR_ALPHA,
-                "Inc.Alpha", "%12.4f" }, { ATTRIBUTE_INCR_ALPHA_REACHABLE, "Inc.A.<0.05", "%1.0f" }, {
+                "Inc.Alpha", "%12.4f" }, { ATTRIBUTE_INCR_ALPHA_REACHABLE, "Inc.A.<threshold", "%1.0f" }, {
                 ATTRIBUTE_PROG_ID, "Prog.", "%14.0f" }, { ATTRIBUTE_ALPHA, "Alpha", "%12.4f" }, { ATTRIBUTE_BETA,
                 "Beta", "%12.4f" }, { ATTRIBUTE_BP_T, "T(BP)", "%12.4f" }, { ATTRIBUTE_BP_H, "est. H(BP)", "%12.4f" }, {
                 ATTRIBUTE_BP_UNEXPLAINED_I, "est. Unexplained(BP)", "%12.4f" }, { ATTRIBUTE_BP_ALPHA, "Alpha(BP)",
@@ -250,7 +250,7 @@ void ocReport::print(FILE *fd) {
             bestAIC = tempAIC;
         tempInf = models[m]->getAttribute(ATTRIBUTE_EXPLAINED_I);
         if (checkAlpha) {
-            if (models[m]->getAttribute(ATTRIBUTE_ALPHA) < 0.05) {
+            if (models[m]->getAttribute(ATTRIBUTE_ALPHA) < manager->alpha_threshold) {
                 showAlpha = true;
                 if (tempInf > bestInfoAlpha)
                     bestInfoAlpha = tempInf;
@@ -294,19 +294,19 @@ void ocReport::print(FILE *fd) {
     if (checkAlpha) {
         if (!showAlpha) {
             if (!htmlMode)
-                fprintf(fd, "(No Best Model by Information, since none have Alpha < 0.05.)\n");
+                fprintf(fd, "(No Best Model by Information, since none have Alpha < %g.)\n", manager->alpha_threshold);
             else
                 fprintf(fd,
-                        "<tr><td colspan=8><b>(No Best Model by Information, since none have Alpha < 0.05.)</b></td></tr>\n");
+                        "<tr><td colspan=8><b>(No Best Model by Information, since none have Alpha < %g.)</b></td></tr>\n", manager->alpha_threshold);
         } else {
             if (!htmlMode)
-                fprintf(fd, "Best Model(s) by Information, with Alpha < 0.05:\n");
+                fprintf(fd, "Best Model(s) by Information, with Alpha < %g:\n", manager->alpha_threshold);
             else
-                fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < 0.05</b>:</td></tr>\n");
+                fprintf(fd, "<tr><td colspan=8><b>Best Model(s) by Information, with Alpha < %g</b>:</td></tr>\n", manager->alpha_threshold);
             for (int m = 0; m < modelCount; m++) {
                 if (models[m]->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInfoAlpha)
                     continue;
-                if (models[m]->getAttribute(ATTRIBUTE_ALPHA) > 0.05)
+                if (models[m]->getAttribute(ATTRIBUTE_ALPHA) > manager->alpha_threshold)
                     continue;
                 printSearchRow(fd, models[m], attrID, 0);
             }
@@ -315,10 +315,10 @@ void ocReport::print(FILE *fd) {
     if (checkIncr) {
         if (showIncr) {
             if (!htmlMode)
-                fprintf(fd, "Best Model(s) by Information, with all Inc. Alpha < 0.05:\n");
+                fprintf(fd, "Best Model(s) by Information, with all Inc. Alpha < %g:\n", manager->alpha_threshold);
             else
                 fprintf(fd,
-                        "<tr><td colspan=8><b>Best Model(s) by Information, with all Inc. Alpha < 0.05</b>:</td></tr>\n");
+                        "<tr><td colspan=8><b>Best Model(s) by Information, with all Inc. Alpha < %g</b>:</td></tr>\n", manager->alpha_threshold);
             for (int m = 0; m < modelCount; m++) {
                 if (models[m]->getAttribute(ATTRIBUTE_EXPLAINED_I) != bestInfoIncr)
                     continue;

@@ -1,4 +1,4 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
+/* Copyright
  */
 
 #include <math.h>
@@ -59,6 +59,11 @@ ocManagerBase::ocManagerBase(ocVariableList *vars, ocTable *input) :
     negativeConstant = 0;
 }
 
+void ocManagerBase::setAlphaThreshold(double thresh)
+{
+	alpha_threshold = thresh;
+}
+
 bool ocManagerBase::initFromCommandLine(int argc, char **argv) {
     ocTable *input = NULL, *test = NULL;
     ocVariableList *vars;
@@ -80,6 +85,11 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv) {
     }
     varList = vars;
 
+    if (!getOptionFloat("alpha-threshold", NULL, &alpha_threshold))
+    {
+        alpha_threshold = 0.05;
+    };
+
     if (!varList->isDirected()) {
         if (getOptionFloat("function-constant", NULL, &functionConstant)) {
             input->addConstant(functionConstant);
@@ -90,6 +100,7 @@ bool ocManagerBase::initFromCommandLine(int argc, char **argv) {
             functionConstant = 0;
         }
     }
+
 
     const char *option;
     if (getOptionString("function-values", NULL, &option)) {
@@ -1341,7 +1352,7 @@ void ocManagerBase::computeIncrementalAlpha(ocModel *model) {
             double prog_ddf = computeDDF(progen);
             double prog_lr = computeLR(progen);
             incr_alpha = csa(fabs(prog_lr - refL2), fabs(prog_ddf - refDDF));
-            if ((incr_alpha < 0.05) && (progen->getAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE) == 1)) {
+            if ((incr_alpha < alpha_threshold) && (progen->getAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE) == 1)) {
                 ia_reachable = 1;
             } else {
                 ia_reachable = 0;
@@ -1591,9 +1602,11 @@ ocModel *ocManagerBase::makeSbModel(const char *name, bool makeProject) {
 void ocManagerBase::printOptions(bool printHTML, bool skipNominal) {
     options->write(NULL, printHTML, skipNominal);
     if (printHTML) {
+        printf("<tr><td>Alpha threshold</td><td>%.3g</td></tr>\n", alpha_threshold);
         printf("<tr><td>Data Lines Read</td><td>%d</td></tr>\n", dataLines);
     } else {
         printf("Data Lines Read\t%d\n", dataLines);
+        printf("Alpha threshold\t%.3g\n", alpha_threshold);
     }
 }
 

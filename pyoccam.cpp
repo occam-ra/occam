@@ -435,6 +435,16 @@ DefinePyFunction(ocVBMManager, setDDFMethod) {
     return Py_None;
 }
 
+// void setAlphaThreshold(double thresh)
+DefinePyFunction(ocVBMManager, setAlphaThreshold) {
+	double thresh;
+    PyArg_ParseTuple(args, "d", &thresh);
+    ObjRef(self, ocVBMManager)->setAlphaThreshold(thresh);
+    Py_INCREF(Py_None);
+	return Py_None;
+}
+
+
 // void setUseInverseNotation(int method)
 DefinePyFunction(ocVBMManager, setUseInverseNotation) {
     int flag;
@@ -750,6 +760,7 @@ static struct PyMethodDef ocVBMManager_methods[] = { PyMethodDef(ocVBMManager, i
         PyMethodDef(ocVBMManager, computeDependentStatistics), PyMethodDef(ocVBMManager, computeBPStatistics),
         PyMethodDef(ocVBMManager, computeIncrementalAlpha), PyMethodDef(ocVBMManager, compareProgenitors),
         PyMethodDef(ocVBMManager, setDDFMethod), PyMethodDef(ocVBMManager, setUseInverseNotation),
+        PyMethodDef(ocVBMManager, setAlphaThreshold),
         PyMethodDef(ocVBMManager, setValuesAreFunctions), PyMethodDef(ocVBMManager, setSearchDirection),
         PyMethodDef(ocVBMManager, printFitReport), PyMethodDef(ocVBMManager, getOption),
         PyMethodDef(ocVBMManager, getOptionList), PyMethodDef(ocVBMManager, ocReport),

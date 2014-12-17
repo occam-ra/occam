@@ -35,6 +35,7 @@ class ocUtils:
         self.__reportSortName = ""
         self.__sortDir = "ascending"
         self.__searchSortDir = "ascending"
+	self.__alphaThreshold = 0.05
         self.__searchWidth = 3
         self.__searchLevels = 7
         self.__searchDir = "default"
@@ -157,6 +158,9 @@ class ocUtils:
 
     def setSearchFilter(self, searchFilter):
         self.__searchFilter = searchFilter
+
+    def setAlphaThreshold(self, alphaThreshold):
+ 	self.__alphaThreshold = float(alphaThreshold)
 
     def setRefModel(self, refModel):
         self.__refModel = refModel
@@ -379,6 +383,7 @@ class ocUtils:
         self.__manager.setRefModel(self.__refModel)
         self.__manager.setUseInverseNotation(self.__useInverseNotation)
         self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
+	self.__manager.setAlphaThreshold(self.__alphaThreshold)
         if self.__searchDir == "down":
             self.__manager.setSearchDirection(1)
         else:
