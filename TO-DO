@@ -1,9 +1,0 @@
-To do list:
-
-- Set ipf-maxit, ipf-maxdev for IPF, verify usage of these from old Occam.
-
-- Residual table
-
-- Residual plot
-
-- CGI Scripts for fit and search

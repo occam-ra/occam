@@ -4,10 +4,6 @@ CC = gcc
 CFLAGS = -w -Wall -O3 -fPIC
 LFLAGS = -shared
 
-# -arch x86_64 to force 64-bit intel compile
-# -arch i386 to force 32-bit intel compile
-# -g for debugging
-# -pg for gprof (profiler)
 
 ARCH = $(shell uname)
 # `uname` gives "Linux" or "Darwin" for linux or OSX, respectively
@@ -17,29 +13,10 @@ ARCH = $(shell uname)
 # ra: ra
 
 INCLUDES = ocCore.h _ocCore.h
-WEB_ROOT = ../html	# root for the web install
-CL_ROOT = install	# root for the command-line install
+WEB_ROOT = install/web	# root for the web install
+CL_ROOT = install/cl # root for the command-line install
 PY_INCLUDE = /usr/include/python2.7		# location of python include files
 CL = occ	# command-line executable
-DEFS = -I.	# include the current directory
-
-ifeq ($(ARCH), Linux)
-# check if we're on one of the research machines, which use python 2.4 still
-    HOST = $(shell uname -n | sed -e "s/[^.]*\.//")
-    ifeq ($(HOST), rc.pdx.edu)
-        PY_INCLUDE = /usr/include/python2.4
-    endif
-endif
-
-ifeq ($(ARCH), Darwin)
-    CFLAGS = -w -Wall -O3 -arch x86_64 -flat_namespace -undefined suppress
-#    CFLAGS = -w -Wall -O2 -g -arch x86_64 -flat_namespace -undefined suppress
-    LFLAGS = -bundle
-	DEFS = -I.
-    WEB_ROOT = ~/Sites/occam
-    CL_ROOT = ~/Documents/Research/Occam/install
-    PY_INCLUDE = /Library/Frameworks/Python.framework/Versions/2.7/include/python2.7 
-endif
 
 RANLIB = ranlib		  # tool to add or update the table of contents of archive libraries
 LDFLAGS = -lm -lstdc++	  # link libm and libstdc++ libs
@@ -78,7 +55,7 @@ WEB_FILES = weboccam.py header.html switchform.html searchform.html fitform.html
     weboccam.cgi OpagCGI.py
 
 AR = ar
-COMPILE = $(CC) $(DEFS) $(CFLAGS)		 # = gcc -I. -w
+COMPILE = $(CC) $(CFLAGS)		 # = gcc -I. -w
 #CCLD = $(CC)
 #LINK = $(CCLD) $(CFLAGS) $(LDFLAGS) -o $@
 
@@ -86,6 +63,8 @@ install: all export
 all: $(LIB) $(PY_OCCAM) $(CL)
 
 export:
+	mkdir -p $(WEB_ROOT)
+	mkdir -p $(CL_ROOT)
 	cp $(WEB_FILES) $(WEB_ROOT)
 	cp $(CORE_FILES) $(WEB_ROOT)
 	cp $(CORE_FILES) $(CL_ROOT)
