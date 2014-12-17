@@ -1042,12 +1042,31 @@ void ocVBMManager::printBasicStatistics() {
     double sampleSz1 = getSampleSz();
     double testSampleSize = getTestSampleSize();
     printf("%s%s%s%8lg%s\n", beginLine, "State Space Size", separator, stateSpace, endLine);
+    
+    bool no_freq = false;
+    const char *option;
+    if (getOptionString("no-frequency", NULL, &option)) {
+        no_freq = true;
+    }
+    
     if (!getValuesAreFunctions()) {
         printf("%s%s%s%8lg%s\n", beginLine, "Sample Size", separator, sampleSz1, endLine);
+        if (no_freq && sampleSz1 != dataLines)
+        {
+            printf("%s%s%g%s%d%s\n", beginLine, 
+                   "Warning: option 'no-frequency' is set and sample size (", 
+                   sampleSz1, ") does not equal number of lines read (", dataLines,
+                   "); this may be due to lines being excluded due to missing values,"
+                   " or the selection of specific variable states for analysis,"
+                   " or the presence of a frequency column"
+                   " (which may be due to a missing variable declaration)");
+        }
+
         if (testSampleSize > 0) {
             printf("%s%s%s%8lg%s\n", beginLine, "Sample Size (test)", separator, testSampleSize, endLine);
         }
     }
+
     printf("%s%s%s%8lg%s\n", beginLine, "H(data)", separator, topH, endLine);
     int varLineBreaks = 0;
     if (directed) {
