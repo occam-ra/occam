@@ -1,7 +1,7 @@
 SHELL = /bin/sh
 
 CC = gcc
-CFLAGS = -w -Wall -O3 -fPIC
+CFLAGS = -w -Wall -O3 -fPIC -std=c++11
 LFLAGS = -shared
 
 
