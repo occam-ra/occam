@@ -1,4 +1,4 @@
-#! python
+#! python:
 ##--
 # ocutils - utility scripts for common operations,
 # such as processing old format occam files
@@ -28,6 +28,7 @@ class ocUtils:
             self.__manager = occam.ocVBMManager()
         else:           
             self.__manager = occam.ocSBMManager()
+        self.__hide_intermediate_output = False
         self.__report = self.__manager.ocReport()
         self.__DDFMethod = 0
         self.__sortName = "ddf"
@@ -282,7 +283,8 @@ class ocUtils:
         self.totalgen  = fullCount + self.totalgen
         self.totalkept = truncCount + self.totalkept
         memUsed = self.__manager.getMemUsage()
-        print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (fullCount, truncCount, self.totalgen+1, self.totalkept+1, memUsed/1024),
+        if not self.__hide_intermediate_output:
+            print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (fullCount, truncCount, self.totalgen+1, self.totalkept+1, memUsed/1024),
         sys.stdout.flush()
         if clear_cache_flag:
             for item in newModelsHeap:
@@ -665,6 +667,47 @@ class ocUtils:
             print "</table>"
         sys.stdout.flush()
 
+    def findBestModel(self):
+        self.__hide_intermediate_output = True
+
+        # Initialize a manager and the starting model
+        self.__manager.setRefModel(self.__refModel)
+        self.__manager.setSearchDirection(1 if (self.__searchDir == "down") else 0)
+        self.__manager.setSearchType(self.searchType())
+       
+        # Set up the starting model
+        start = self.__manager.getTopRefModel() if (self.__searchDir == "down") else self.__manager.getBottomRefModel()
+        start.level = 0
+        self.__manager.computeL2Statistics(start)
+        self.__manager.computeDependentStatistics(start)
+        self.__report.addModel(start)
+        self.__nextID = 1
+        start.setID(self.__nextID)
+        start.setProgenitor(start)
+        
+        # Perform the search to find the best model
+        oldModels = [start]
+        for i in xrange(1, self.__searchLevels + 1):
+            newModels = self.processLevel(i, oldModels, i != self.__searchLevels)
+            for model in newModels:
+                self.__manager.computeL2Statistics(model)
+                self.__manager.computeDependentStatistics(model)
+                self.__nextID += 1
+                model.setID(self.__nextID)
+                self.__report.addModel(model)
+            oldModels = newModels
+
+        self.__report.sort(self.__sortName, self.__sortDir)
+        best = self.__report.bestModelName()
+        self.__hide_intermediate_output = False
+        return best
+
+    def computeUnaryStatistic(self, model, key, modname):
+        return self.__manager.computeUnaryStatistic(model, key, modname)
+
+    def computeBinaryStatistic(self, compare_order, key):
+        file_Ref, model_Ref, file_Comp, model_Comp = compare_order
+        return self.__manager.computeBinaryStatistic(file_Ref, model_Ref, file_Comp, model_Comp, key)
 
 # End class ocUtils
 

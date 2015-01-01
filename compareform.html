@@ -1,0 +1,121 @@
+<FORM method="POST" target="_blank" enctype="multipart/form-data">
+	<TABLE class="form" width="100%">
+        <TR> <TD colspan="3" align="center" class="formtitle"> Compare Settings </TD> </TR>
+		<TR>
+            <TD> Data File (zipped datafile pairs): </TD>
+			<TD colspan="4"> <INPUT type="file" name="data" size="50"> </TD>
+		</TR>
+
+		<TR> <TD colspan="3"> <HR> </TD> </TR>
+        <TR> <TD colspan="3" align="center" class="formtitle"> Search Settings </TD> </TR>
+		<TR>
+			<TD> Starting Model and Search Direction: </TD>
+			<TD>
+				<INPUT type="radio" checked name="direction" value="bottom up">Bottom up
+                &nbsp;&nbsp;&nbsp;
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="direction" value="top down">Top down
+			</TD>
+		</TR>
+        <TR>
+			<TD> Models to Consider: </TD>
+			<TD>
+				<INPUT type="radio" name="type" value="all">All
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" checked name="type" value="loopless">Loopless
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="type" value="disjoint">Disjoint
+				&nbsp;&nbsp;&nbsp;
+				<INPUT type="radio" name="type" value="chain">Chain
+			</TD>
+		</TR>
+		
+        <TR>
+			<TD>During Search, Sort By:</TD>
+			<TD>
+				<INPUT type="radio" checked name="sort by" value="AIC">AIC
+				<INPUT type="radio" name="sort by" value="BIC">BIC&nbsp;
+			</TD>
+		</TR>
+
+		<TR>
+			<TD> Search Width:<br>(models to keep at each level)</TD>
+			<TD> <INPUT type="text" size="4" name="width" value="3"></TD>
+		</TR>
+
+		<TR>
+			<TD>Search Levels: </TD>
+			<TD><INPUT type="text" size="4" name="levels" value="7">&nbsp;&nbsp;(leave blank to use settings from data file)</TD>
+		</TR>
+
+		<TR> <TD colspan="3"> <HR> </TD> </TR>
+
+		<TR>
+			<TD colspan="3" align="center" class="formtitle"> Report Settings </TD>
+		</TR>
+
+        <TR>
+            <TD>Pairwise selection function:</TD>
+            <TD> 
+                <INPUT type="radio" name="selection function" value="min(dAIC)">min dAIC&nbsp;
+			    <INPUT type="radio" name="selection function" value="min(dBIC)">min dBIC&nbsp;
+                <INPUT type="radio" name="selection function" value="max(DF)">max DF&nbsp;
+                <INPUT type="radio" name="selection function" value="min(H)" checked>min H&nbsp;
+            </TD>
+        <TR>
+            <TD>Include in Report (data statistics):</TD>
+            <TD>
+                <INPUT type="checkbox" name="DF(data)" value="yes">DF&nbsp;
+                <INPUT type="checkbox" name="H(data)" value="yes" checked>H&nbsp;
+            </TD>
+
+		<TR>
+		 	<TD>Include in Report (model statistics):</TD>
+			<TD>
+			    <INPUT type="checkbox" name="dAIC(model)" value="yes" checked>dAIC&nbsp;
+			    <INPUT type="checkbox" name="dBIC(model)" value="yes">dBIC&nbsp;
+                <INPUT type="checkbox" name="DF(model)" value="yes">DF&nbsp;
+                <INPUT type="checkbox" name="H(model)" value="yes" checked>H&nbsp;
+            </TD>
+        </TR>
+        <TR>
+            <TD>Include in Report (distances between models):</TD>
+			<TD>
+                <INPUT checked type="checkbox" name="Absolute dist" value="yes" >Absolute&nbsp;
+                <INPUT type="checkbox" name="Euclidean dist" value="yes" >Euclidean&nbsp;
+                <INPUT type="checkbox" name="Maximum dist" value="yes">Max
+            </TD></TR>
+        <TR>
+            <TD></TD><TD>
+                <INPUT type="checkbox" name="Hellinger dist" value="yes">Hellinger&nbsp;
+                <INPUT type="checkbox" name="Information dist" value="yes" >Information&nbsp;
+			    <INPUT type="checkbox" name="Kullback-Leibler dist" value="yes" >Kullback-Leibler
+            </TD>
+        </TR>
+
+		<TR>
+			<TD colspan="2"><INPUT type="checkbox" name='format' value='y'>Return data in spreadsheet format</TD>
+		</TR>
+
+		<TR>
+			<TD colspan="2">
+                <INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings &nbsp; &nbsp; </TD>
+		</TR>
+
+		<TR>
+			<TD>Run in background, email results to:</TD>
+			<TD><INPUT type="text" name="batchOutput" size="50"></TD>
+		</TR>
+
+		<TR>
+			<TD>Subject line for email (optional):</TD>
+			<TD><INPUT type"text" name="emailSubject" size="50"></TD>						    
+			<TD><INPUT type="SUBMIT" value="Send"></TD>
+		</TR>
+	</table>
+
+<input type="hidden" name="action" value="compare">
+</form>
+
+Documentation for OCCAM Compare mode is not yet in the OCCAM manual, and can be found
+<a href="https://docs.google.com/document/d/1OVuvyMchAMG0V7aPJkWgwR9L725P7OVikHfYbZOpCwM/edit?usp=sharing">here</a>.

@@ -44,6 +44,8 @@ class ocReport {
 	static void sort(class ocModel** models, long modelCount, const char *attr, SortDir dir);
 
 
+    const char* bestModelName() { return models[0]->getPrintName(); }
+
 	//-- Print a tabular output format.
 	void print(FILE *fd);
 	void print(int fnum);	// use a file number instead of FILE*

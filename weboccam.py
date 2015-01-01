@@ -1,8 +1,7 @@
-#! python
+#! /usr/bin/env pyth n
 
 import os, cgi, sys, occam, time, string, pickle, zipfile, datetime, tempfile
 import cgitb; cgitb.enable(display=1)
-
 from ocutils import ocUtils
 #from time import clock
 from OpagCGI import OpagCGI
@@ -93,31 +92,11 @@ def printForm(formFields):
     template.set_template('switchform.html')
     template.out(formFields)
 
-    if action == "fit":
-        template.set_template('fitform.html')
+    if action in ["fit", "search", "SBsearch", "SBfit", "fitbatch", "log", "compare"]:
+        template.set_template(action + 'form.html')
         template.out(formFields)
 
-    elif action == "search" or action == "advanced" :
-        template.set_template('searchform.html')
-        template.out(formFields)
-    
-    elif action == "SBsearch":
-        template.set_template('SBsearchform.html')
-        template.out(formFields)
-        
-    elif action == "SBfit":
-        template.set_template('SBfitform.html')
-        template.out(formFields)
-        
-    elif action == "fitbatch":
-        template.set_template('fitbatchform.html')
-        template.out(formFields)
-        
-    elif action == "showlog":
-        template.set_template('logform.html')
-        template.out(formFields)
-
-    elif action == "jobcontrol":
+    if action == "jobcontrol":
         jc = JobControl()
         jc.showJobs(formFields)
 
@@ -133,7 +112,7 @@ def actionForm(form, errorText):
 #
 #---- getDataFile ---- get the posted data and store to temp file
 #
-def getDataFile(formFields):
+def getDataFileAlloc(formFields):
     if getDataFileName(formFields) == "":
         print "ERROR: No data file specified."
         sys.exit()
@@ -149,6 +128,13 @@ def getDataFile(formFields):
         else:
             print "ERROR: Problems reading data file %s." % datafile
         sys.exit()
+    return datafile
+
+def getDataFile(formFields):
+    return unzipDataFile(getDataFileAlloc(formFields))
+
+
+def unzipDataFile(datafile):
     # If it appears to be a zipfile, unzip it
     if os.path.splitext(datafile)[1] == ".zip":
         oldfile = datafile
@@ -384,6 +370,278 @@ def actionSearch(formFields):
         oc.doAction(printOptions)
         print "</div>"
     os.remove(fn)
+
+
+def actionBatchCompare(formFields):
+    # Get data from the form
+
+    # Get Occam search parameters
+    search_assoc_list = []
+    search_fields = ["type", "direction", "levels", "width", "sort by", "selection function"]
+
+    for key in search_fields:
+        search_assoc_list.append((key, formFields.get(key)))
+    
+    search = dict(search_assoc_list)
+ 
+    # Get Occam report parameters
+    report_1 = []
+    report_2 = []
+    report_fields_1 = ["DF(data)", "H(data)", "dBIC(model)", "dAIC(model)", "DF(model)", "H(model)"]
+    report_fields_2 = ["Absolute dist", "Information dist", "Kullback-Leibler dist", "Euclidean dist", "Maximum dist", "Hellinger dist"]
+    
+    d = {"max(DF)":"DF(model)", "min(H)":"H(model)",
+         "min(dAIC)":"dAIC(model)", "min(dBIC)":"dBIC(model)"}
+
+    for r, rf in [(report_1, report_fields_1), (report_2, report_fields_2)]:
+        for key in sorted(rf):
+            if formFields.get(key, "") == "yes" or d[search["selection function"]] == key:
+                r.append(key)
+
+
+    # Check if the datafile field has a file in it.
+    fn = getDataFileAlloc(formFields)
+   
+    # Validate the datafile as a zip file containing the proper named pairs.
+    if not zipfile.is_zipfile(fn):
+        print "ERROR: " + fn + " is not a zipped archive."
+        sys.exit()
+
+    def makePairs(zip_data):
+        pairs = []
+        sorted_data = sorted(zip_data, key = lambda s: s.filename)
+        
+        if len(sorted_data) == 0:
+            print "ERROR: Empty zip archive."
+            sys.exit()
+
+        if len(sorted_data) % 2 != 0:
+            print "ERROR: Expected an even number of datafiles inside the zip archive."
+            sys.exit()
+        for ix in range(len(sorted_data) / 2):
+            g = lambda i : os.path.splitext(sorted_data[i].filename)[0]
+            a = g(2*ix)
+            b = g(2*ix + 1)
+            if not (a[:-1] == b[:-1]):
+                print "ERROR: Expected matching paired data, but got<br></br>"
+                print "&emsp;&emsp;'" + sorted_data[2*ix].filename + "',<br></br>"
+                print "&emsp;&emsp;'" + sorted_data[2*ix+1].filename + "'.<br></br>"
+                print "For each pair in the zipfile, the 2 filenames must be the same"
+                print "except for exactly 1 character immediately before the extension which differs<br></br>"
+                print "&emsp;&emsp;(e.g. 'fileA.txt', 'fileB.txt')."
+                sys.exit()
+            pairs.append((a[:-1], sorted_data[2*ix], sorted_data[2*ix+1]))
+        return pairs
+
+    zip_data = zipfile.ZipFile(fn)
+    pairs = makePairs([i for i in zip_data.infolist() if i.filename.find("/") == -1])
+    
+    # Define the analysis.
+    # Steps: 
+    # * Read out one pair at a time into the directory, and analyze it:
+    #   * Search to find the best model for each file
+    #   * Compare the two best models
+    #   * Save a data row
+
+    def extract(x):
+        try:
+            d = getUniqueFilename(os.path.join(datadir, x.filename))
+            outf = open(d, "w")
+            outf.write(zip_data.read(x.filename))
+            outf.close()
+            return d
+        except:
+            print "ERROR: Extracting zip file failed."
+            sys.exit()
+
+    # Figure out what statistics to include (and in what reporting order)
+    def getStatHeaders():
+        headers = []
+        candidate = ["H(data)", "H(model)", "DF(data)", "DF(model)", 
+                     "dAIC(model)", "dBIC(model)"]
+        for i in report_1 + report_2:
+            if i in candidate:
+                headers.append(i[:-1] + "(A))")
+                headers.append(i[:-1] + "(B))")
+            if i in report_fields_2:
+                headers.append(i + "(model(A), model(B))")
+        return headers
+
+    global textFormat, printOptions
+   
+    # Definitions used in the report
+    def bracket(s, hl, hr, tl, tr):
+        if textFormat:
+            return tl + s + tr
+        else:
+            return hl + s + hr
+    
+
+    line = lambda s: bracket(s, "<br>", "</br>", "", "")
+    tab_row = lambda s: bracket(s, "<tr>", "</tr>", "", "")
+    tab_col = lambda s: bracket(s, "<td>", "</td>", "\t", ",")
+    tab_head = lambda s: bracket(s, "<th align=left>", "</th>", "\t", ",")
+
+    table_start = "<br><table border=0 cellpadding=0 cellspacing=0>"
+    table_end = "</table>"
+
+
+    def computeBestModel(filename): 
+        oc = ocUtils("VB")
+        oc.initFromCommandLine(["occam", filename])
+        oc.setDataFile(filename)
+        oc.setAction("search")
+        
+        # Hardcoded settings (for now):
+        oc.setSortDir("descending")
+        oc.setSearchSortDir("descending") # try to maximize dBIC or dAIC. 
+        oc.setRefModel("bottom") # Always uses bottom as reference. 
+
+        # Parameters from the web form 
+        oc.setSortName(search["sort by"])
+        oc.setSearchLevels(int(search["levels"]))
+        oc.setSearchWidth(int(search["width"]))
+        oc.setSearchFilter(search["type"])
+
+        [i, d] = search["direction"].split(" ")
+        oc.setSearchDir(d)
+        oc.setStartModel(i)
+
+        return oc.findBestModel()
+
+    def selectBest(stats):
+        sel = search["selection function"]
+        d = 0
+        s = ""
+        if sel == "min(H)":
+            d = -1
+            s = "H(model)"
+        elif sel == "max(DF)":
+            d = 1
+            s = "DF(model)"
+        elif sel == "min(dBIC)":
+            d = -1
+            s = "dBIC(model)"
+        elif sel == "min(dAIC)":
+            d = -1
+            s = "dAIC(model)"
+        return d, s
+
+
+    def computeModelStats(file_A, model_A, file_B, model_B):
+        stats_1 = dict([(k,[0,0]) for k in report_1])
+        stats_2 = {}
+
+        for (f, m, i) in [(file_A, model_A, 0), (file_B, model_B, 1)]:
+            oc = ocUtils("VB")
+            oc.initFromCommandLine(["occam,", f])
+            for k in report_1:
+                stat, rest = k.split("(")
+                mod = rest.strip(")")
+                stats_1[k][i] = oc.computeUnaryStatistic(m, stat, mod) 
+
+        # Find the best model based on the single-model stats
+        best_d, best_s = selectBest(stats_1)
+       
+        a, b  = stats_1[best_s]
+        best = ""
+        if best_d == -1:
+            best = "A" if a <= b else "B"
+        elif best_d == 1:
+            best = "A" if a >= b else "B"
+        comp_order = [file_A, model_A, file_B, model_B] if best == "A" else [file_B, model_B, file_A, model_A]
+
+        oc = ocUtils("VB")
+        for k in report_2:
+            stats_2[k] = oc.computeBinaryStatistic(comp_order, k)
+
+        return best, stats_1, stats_2
+
+
+    def runAnalysis(pair_name, file_A, file_B): 
+        model_A = computeBestModel(file_A)
+        model_B = computeBestModel(file_B)
+
+        best, stats_1, stats_2 = computeModelStats(file_A, model_A, file_B, model_B)
+
+        return ([pair_name, model_A, model_B, best], stats_1, stats_2)
+
+    
+    # Print out the report
+    # * Print out options if requested
+    # * Print out the file name
+    # * Print out the header
+    # * For each data row, pretty print it
+    # * Print out the header again as a footer
+
+
+    def ppOptions():
+        for (k, v) in search_assoc_list:
+            if v != '': 
+                print tab_row(tab_col(k + ": ") + tab_col(v))
+       
+    def ppColumnList():
+        print tab_row(tab_col("columns in report: ") + tab_col(", ".join(report_1 + report_2)))
+
+    def ppAnalysis(row):
+        return "".join(map(tab_col, row))
+
+    def ppStats(stats_1, stats_2):
+        s = ""
+        fmt = "%.6g"
+        for (k,v) in sorted(stats_1.items()):
+            for i in [0, 1]:
+                if (k[:2] == "DF"):
+                    s += tab_col("%.0f" % v[i])
+                else: 
+                    s += tab_col(fmt % v[i])
+        for (k,v) in sorted(stats_2.items()):
+            s += tab_col(fmt % v)
+        return s 
+
+    def ppHeader():
+        col_headers = ["pair name", "model(A)", "model(B)", search["selection function"]] + getStatHeaders()
+        return "".join(map(tab_head, col_headers))
+
+    
+    # Layout the document
+    if not textFormat: 
+        print "<hr><p>"
+        print '<div class="data">'
+    if not textFormat: print table_start
+    print tab_row(tab_head("Input archive: ") + tab_col(getDataFileName(formFields)))
+    if printOptions:
+        print tab_row(tab_head("Options:"))
+        ppOptions()
+        ppColumnList()
+    if not textFormat:
+        print table_end
+
+    if not textFormat:
+        print table_start
+    print tab_row(tab_head("Results:"))
+    print tab_row(ppHeader())
+
+    # Perform and print the analysis on each pair in the zip file.
+    for pair_name, A, B in pairs:
+        file_A = extract(A)
+        file_B = extract(B)
+        l, s1, s2 = runAnalysis(pair_name, file_A, file_B)
+        print tab_row(ppAnalysis(l) + ppStats(s1, s2))
+        os.remove(file_A)
+        os.remove(file_B)
+
+
+    # If there was more than one pair, print a footer
+    if len(pairs) > 1:
+        print tab_row(ppHeader())
+        if not textFormat:
+            print table_end
+            print "</div>"
+    
+    # Remove the zip file
+    os.remove(fn)
+
 
 def actionSBSearch(formFields):
     global textFormat
@@ -646,8 +904,10 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
                 actionFitBatch(formFields)
             elif formFields["action"] == "search" or formFields["action"] == "advanced":
                 actionSearch(formFields)
-            elif formFields["action"] == "showlog":
+            elif formFields["action"] == "log":
                 actionShowLog(formFields)
+            elif formFields["action"] == "compare":
+                actionBatchCompare(formFields)
             else:
                 actionError()
             printTime(textFormat)

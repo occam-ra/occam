@@ -25,6 +25,11 @@ double ocEntropy(ocTable *p);
  * zero if either pi or qi are zero.
  */
 double ocTransmission(ocTable *p, ocTable *q);
+double ocInfoDist(ocTable* p1, ocTable* q1, ocTable* q2);
+double ocAbsDist(ocTable *p, ocTable *q);
+double ocEucDist(ocTable *p, ocTable *q);
+double ocHellingerDist(ocTable *p, ocTable *q);
+double ocMaxDist(ocTable *p, ocTable *q);
 
 /**
  * Compute Pearson chisquare measure, 2*nsum((p-q)^2/q). The P table is assumed

@@ -9,6 +9,7 @@
 #include "ocSBMManager.h"
 #include "ocSearchBase.h"
 #include "ocReport.h"
+#include "ocMath.h"
 //#include "ocWin32.h"
 #include "unistd.h"
 
@@ -620,6 +621,123 @@ DefinePyFunction(ocVBMManager, dumpRelations) {
     return Py_BuildValue("i", 0);
 }
 
+// TODO
+DefinePyFunction(ocVBMManager, computeUnaryStatistic) {
+
+    char* modelname;
+    char* statisticname;
+    char* modname;
+    
+    PyArg_ParseTuple(args, "sss", &modelname, &statisticname, &modname);
+
+    ocVBMManager* mgr = ObjRef(self, ocVBMManager);
+    
+    ocModel* model;
+    if (!strcmp(modname,"data")) {
+        model = mgr->getTopRefModel();
+    } else if (!strcmp(modname, "model")) {
+        model = mgr->makeModel(modelname, true);
+    }
+
+    mgr->makeFitTable(model);
+
+    double ret = 0; 
+    if (!strcmp(statisticname, "H")) {
+        mgr->computeH(model);
+        ret = model->getAttribute(ATTRIBUTE_H);
+    } else if (!strcmp(statisticname, "dAIC")) {
+        mgr->computeL2Statistics(model);
+        ret = model->getAttribute(ATTRIBUTE_AIC);
+    } else if (!strcmp(statisticname, "dBIC")) {
+        mgr->computeL2Statistics(model);
+        ret = model->getAttribute(ATTRIBUTE_BIC);
+    } else if (!strcmp(statisticname, "DF")) {
+        mgr->computeDDF(model);
+        ret = model->getAttribute(ATTRIBUTE_DF);
+    } else {
+        printf("Error: unknown statistic %s(%s)\n", statisticname, modname);
+        exit(1);
+    }
+
+    return Py_BuildValue("f", ret);
+}
+
+DefinePyFunction(ocVBMManager, computeBinaryStatistic) {
+    char* file1;
+    char* model1;
+    char* file2;
+    char* model2;
+    char* statistic;
+
+    PyArg_ParseTuple(args, "sssss", &file1, &model1, &file2, &model2, &statistic);
+    
+    ocVBMManager mgr1;
+    ocVBMManager mgr2;
+
+    constexpr int argc = 2;
+    char* nm = "occam";
+    char* argv1[argc] = {nm, file1};
+    char* argv2[argc] = {nm, file2};
+    mgr1.initFromCommandLine(argc, argv1);
+    mgr2.initFromCommandLine(argc, argv2);
+
+    ocModel* mod1 = mgr1.makeModel(model1, true);
+    mgr1.makeFitTable(mod1);
+    ocTable* fit1 = new ocTable(mgr1.getKeySize(), mgr1.getFitTable()->getTupleCount());
+    fit1->copy(mgr1.getFitTable()); 
+    fit1->normalize();
+   
+   /* debugging output, not used */
+    /*
+    printf("Fit table for %s %s: ", model1, statistic);
+    fit1->dump(0);
+    printf("<br></br>");
+    */
+
+    ocModel* mod2 = mgr2.makeModel(model2, true);
+    mgr2.makeFitTable(mod2);
+    ocTable* fit2 = mgr2.getFitTable();
+    fit2->normalize();
+    
+    /*
+    printf("Fit table for %s %s: ", model2, statistic);
+    fit2->dump(0);
+    printf("<br></br>");
+    */
+    
+    double ret = 0;
+    if (!strcmp(statistic,"Information dist")) {
+        ocModel* ref1;
+        ocTable* ref1Tab;
+        ref1 = mgr1.getTopRefModel();
+        mgr1.makeFitTable(ref1);
+        ref1Tab = new ocTable(mgr1.getKeySize(), mgr1.getFitTable()->getTupleCount());
+        ref1Tab->copy(mgr1.getFitTable());
+        ret = ocInfoDist(ref1Tab, fit1, fit2);
+        delete ref1Tab;
+    } else if (!strcmp(statistic, "Hellinger dist")) {
+        ret = ocHellingerDist(fit1, fit2);
+    } else if (!strcmp(statistic, "Euclidean dist")) {
+        ret = ocEucDist(fit1, fit2);
+    } else if (!strcmp(statistic, "Maximum dist")) {
+        ret = ocMaxDist(fit1, fit2);
+    } else if (!strcmp(statistic, "Kullback-Leibler dist")) {
+        ret = ocTransmission(fit1, fit2);
+    } else if (!strcmp(statistic, "Absolute dist")) {
+        ret = ocAbsDist(fit1, fit2);
+    
+    } else {
+        printf("Error: invalid pairwise comparison statistic '%s'.\n", statistic);
+        exit(1);
+    }
+
+    //delete fit1;
+    //delete fit2;
+    return Py_BuildValue("f", ret);
+}
+
+
+
 static struct PyMethodDef ocVBMManager_methods[] = { PyMethodDef(ocVBMManager, initFromCommandLine),
         PyMethodDef(ocVBMManager, makeAllChildRelations), PyMethodDef(ocVBMManager, makeChildModel),
         PyMethodDef(ocVBMManager, makeModel), PyMethodDef(ocVBMManager, setFilter),
@@ -640,7 +758,10 @@ static struct PyMethodDef ocVBMManager_methods[] = { PyMethodDef(ocVBMManager, i
         PyMethodDef(ocVBMManager, deleteModelFromCache), PyMethodDef(ocVBMManager, getSampleSz),
         PyMethodDef(ocVBMManager, printBasicStatistics), PyMethodDef(ocVBMManager, computePercentCorrect),
         PyMethodDef(ocVBMManager, printSizes), PyMethodDef(ocVBMManager, getMemUsage),
-        PyMethodDef(ocVBMManager, hasTestData), PyMethodDef(ocVBMManager, dumpRelations), { NULL, NULL, 0 } };
+        PyMethodDef(ocVBMManager, hasTestData), PyMethodDef(ocVBMManager, dumpRelations),
+        PyMethodDef(ocVBMManager, computeUnaryStatistic),
+        PyMethodDef(ocVBMManager, computeBinaryStatistic),
+        { NULL, NULL, 0 } };
 
 /****** Basic Type Operations ******/
 
@@ -1676,7 +1797,14 @@ DefinePyFunction(ocReport, printConditional_DV) {
     return Py_None;
 }
 
-static struct PyMethodDef ocReport_methods[] = { PyMethodDef(ocReport, get), PyMethodDef(ocReport, addModel),
+
+DefinePyFunction(ocReport, bestModelName) { 
+    ocReport* report = ObjRef(self, ocReport);
+    const char* ret = report->bestModelName();
+    return Py_BuildValue("s", ret);
+}
+
+static struct PyMethodDef ocReport_methods[] = { PyMethodDef(ocReport, bestModelName), PyMethodDef(ocReport, get), PyMethodDef(ocReport, addModel),
         PyMethodDef(ocReport, setDefaultFitModel), PyMethodDef(ocReport, setAttributes), PyMethodDef(ocReport, sort),
         PyMethodDef(ocReport, printReport), PyMethodDef(ocReport, writeReport), PyMethodDef(ocReport, setSeparator),
         PyMethodDef(ocReport, printResiduals), PyMethodDef(ocReport, printConditional_DV), { NULL, NULL, 0 } };
