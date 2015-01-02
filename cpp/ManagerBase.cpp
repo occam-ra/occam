@@ -1,6 +1,7 @@
+#define _GNU_SOURCE
+#include <fenv.h>
 
 #include <math.h>
-
 #include "Input.h"
 #include "Key.h"
 #include "ManagerBase.h"
@@ -15,10 +16,96 @@
 #include "_Core.h"
 
 #include <assert.h>
+#include <cxxabi.h>
+#include <execinfo.h>
+#include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "ocWin32.h"
+#include <unistd.h>
+#include <algorithm>
+using std::min;
+// Based on helpful answers at
+// http://stackoverflow.com/questions/77005/how-to-generate-a-stacktrace-when-my-gcc-c-app-crashes
+void backtrace_symbols_err(void** trace, size_t size) {
+    char** messages = backtrace_symbols(trace, size);
+    for (size_t i = 0; i < size && messages != nullptr; ++i) {
+        char* mangled_name = nullptr;
+        char* offset_begin = nullptr;
+        char* offset_end = nullptr;
+
+        for (char* p = messages[i]; *p; ++p) {
+            if (*p == '(') {
+                mangled_name = p;
+            } else if (*p == '+') {
+                offset_begin = p;
+            } else if (*p == ')') {
+                offset_end = p;
+                break;
+            }
+        }
+
+        if (mangled_name && offset_begin && offset_end && mangled_name < offset_begin) {
+            *mangled_name++ = '\0';
+            *offset_begin++ = '\0';
+            *offset_end++ = '\0';
+            
+            int status;
+            char* real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
+
+
+
+            const char* name = status == 0 \
+                             ? (*real_name != '\0'    ? real_name 
+                                                      : messages[i]) 
+                             : (*mangled_name != '\0' ? mangled_name 
+                                                      : messages[i]);
+            
+            fprintf(stderr, "[frame %d]: %s<br/>\n", i, name);
+        
+            const char* py_prefix = "Py";
+            if (!strncmp(py_prefix, name, strlen(py_prefix))) {
+                fprintf(stderr, "[frames %d - %d]: (%d more frames...)<br/>\n", i + 1, size, size - i - 1);
+                break;
+            }
+        }
+    }
+}
+
+constexpr char* errorReportingTip = 
+"For help resolving this error,"
+" please send an email to 'h.forrest.alexander@gmail.com'"
+" including a copy of the OCCAM output so far and your input data.";
+
+
+void segfault_handler(int sig) {
+    size_t trace_n = 256;
+    void* trace[trace_n];
+    size_t size = backtrace(trace, trace_n);
+    fflush(stdout);
+    fflush(stderr);
+    fprintf(stderr, "Error: segmentation fault.\n"
+            "Partial stack trace follows.<br/>\n\n");
+    backtrace_symbols_err(trace, min<size_t>(20, size));
+    fprintf(stderr, "\n<br/>End stack trace.<br/>\n\n");
+    fprintf(stderr, "%s\n", errorReportingTip); 
+    exit(1);
+}
+
+void fpe_handler(int sig) {
+    size_t trace_n = 256;
+    void* trace[trace_n];
+    size_t size = backtrace(trace, trace_n);
+    fflush(stdout);
+    fflush(stderr);
+    fprintf(stderr, "ERROR: floating point exception (likely due to a numerical inaccuracy).\n"
+            "Partial stack trace follows.\n\n<br/>");
+    backtrace_symbols_err(trace, min<size_t>(20, size));
+    fprintf(stderr, "<br/>\nEnd stack trace.\n\n<br/>");
+    fprintf(stderr, "%s\n", errorReportingTip);  
+    exit(1); 
+
+}
 
 const int defaultRelSize = 10;
 
@@ -39,6 +126,11 @@ void logProjection(const char *name) {
 
 ManagerBase::ManagerBase(VariableList *vars, Table *input) :
         varList(vars), inputData(input), keysize(vars ? vars->getKeySize() : 0) {
+    signal(SIGSEGV, segfault_handler);
+    
+    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW);
+    signal(SIGFPE, fpe_handler);
+
     topRef = bottomRef = refModel = NULL;
     relCache = new RelCache;
     modelCache = new ModelCache;
@@ -61,6 +153,7 @@ ManagerBase::ManagerBase(VariableList *vars, Table *input) :
     intersectMax = 1;
     functionConstant = 0;
     negativeConstant = 0;
+    signal(SIGSEGV, segfault_handler);
 }
 
 void ManagerBase::setAlphaThreshold(double thresh)
