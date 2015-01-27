@@ -178,6 +178,24 @@ double ocPearsonChiSquared(ocTable *p, ocTable *q, long sampleSize) {
     return p2;
 }
 
+double ocPearsonChiSquaredFlat(int card, double* p, double* q, long sampleSize) {
+
+    double p2 = 0.0;
+    for (unsigned i = 0; i < card; ++i) {
+
+        double pi = p[i];
+        double qi = q[i];
+        if (pi < PROB_MIN) {
+            p2 += qi; // works even if q1 near zero
+        } else if (qi > PROB_MIN) {
+            p2 += (pi - qi) * (pi - qi) / qi;
+        }
+    }
+    p2 *= sampleSize;
+    //if (isnan(p2)) return 1;
+    return csa(p2, card - 1);
+}
+
 double ocDegreesOfFreedom(ocRelation *rel) {
     double df = 1.0;
     int count = rel->getVariableCount();

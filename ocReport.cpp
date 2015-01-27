@@ -1487,7 +1487,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     if (calcExpectedDV == true)
         fprintf(fd, "%s%s", head_sep, head_sep);
     if (test_sample_size > 0.0)
-        fprintf(fd, "%s|%s%s%s", head_sep, head_str4, head_sep, head_sep);
+        fprintf(fd, "%s%s%s|%s%s%s", head_sep, head_sep, head_sep, head_str4, head_sep, head_sep);
     fprintf(fd, head_end);
 
     // Header, Row 2
@@ -1508,7 +1508,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     if (calcExpectedDV == true)
         fprintf(fd, "%s%s", head_sep, head_sep);
     if (test_sample_size > 0.0) {
-        fprintf(fd, "%s|%s%s", head_sep, head_sep, head_str2);
+        fprintf(fd, "%s%s%s|%s%s", head_sep, head_sep, head_sep, head_sep, head_str2);
         if (dv_card > 2)
             for (int i = 2; i < dv_card; i++)
                 fprintf(fd, head_sep);
@@ -1526,7 +1526,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     fprintf(fd, "rule%s#correct%s%%correct", row_sep, row_sep);
     if (calcExpectedDV == true)
         fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
+    
+    fprintf(fd, "%sp(rule)%sp(margin)", row_sep, row_sep);
 
+    
     if (test_sample_size > 0.0) {
         fprintf(fd, "%s|%sfreq%s%sby rule%sbest", row_sep, row_sep, row_sep, dv_header, row_sep);
         if (calcExpectedDV == true)
@@ -1550,6 +1553,22 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     sort_vars = ind_vars;
     sort_keys = fit_key;
     qsort(key_order, iv_statespace, sizeof(int), sortKeys);
+
+    // Prep for P-MARGIN, P-RULE
+    // Make table containing univorm distribution of DV cardinality
+    double* uniform = new double[dv_card];
+    for (unsigned j = 0; j < dv_card; ++j) {
+        uniform[j] = 1.0 / dv_card;
+    }
+    
+    // Make table containing the marginal DV probabilities
+    // probability of a given dv state j: marginal[dv_order[j]]
+    double* marginal_tab = new double[dv_card];
+    for (unsigned j = 0; j < dv_card; ++j) {
+        marginal_tab[j] = marginal[dv_order[j]];
+    }
+
+
     int i;
     // For each of the model's keys (i.e., each row of the table)...
     for (int order_i = 0; order_i < iv_statespace; order_i++) {
@@ -1602,6 +1621,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
         }
         // Print the DV state of the best rule. If there was no input to base the rule on, use the default rule.
         fprintf(fd, "%c%s%s", fit_tied[i] ? '*' : ' ', dv_label[fit_rule[i]], row_sep);
+
         // Number correct (of the input data, based on the rule from fit)
         fprintf(fd, "%.3f%s", input_freq[i][fit_rule[i]], row_sep);
         // Percent correct (of the input data, based on the rule from fit)
@@ -1622,6 +1642,22 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
                 mean_squared_error = 0;
             fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
         }
+
+        // Print out P-MARGIN and P-RULE
+        
+        // Make table containing the calculated DV probabilities at this IV state
+        // probability of a given dv state j: fit_prob[i][dv_order[j]] / fit_key_prob[i];
+        double* calculated = new double[dv_card];
+        for (unsigned j = 0; j < dv_card; ++j) {
+            calculated[j] = fit_key_prob[i] == 0 ? 0 : fit_prob[i][dv_order[j]] / fit_key_prob[i];
+        }
+
+        double p_rule = ocPearsonChiSquaredFlat(dv_card, calculated, uniform, input_key_freq[i]);
+        double p_margin = ocPearsonChiSquaredFlat(dv_card, calculated, marginal_tab, input_key_freq[i]);
+
+        delete [] calculated;
+
+        fprintf(fd, "%s%.3f%s%.3f", row_sep, p_rule, row_sep, p_margin);
 
         // Print test results, if present
         if (test_sample_size > 0.0) {
@@ -1681,6 +1717,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
                 total_expected_value += marginal[dv_order[j]] * dv_bin_value[dv_order[j]];
         }
     }
+    // Print out zeroes for p-margin and p-rule here
     fprintf(fd, "%s%s%.3f%s%.3f", dv_var->valmap[input_default_dv], row_sep, total_correct, row_sep,
             total_correct / sample_size * 100.0);
     if (calcExpectedDV == true) {
@@ -1693,6 +1730,10 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
         mean_squared_error /= sample_size;
         fprintf(fd, "%s%.3f", row_sep, mean_squared_error);
     }
+
+    // Print out blank cells for P-MARGIN and P-RULE
+    fprintf(fd, "%s%s", row_sep, row_sep);
+
     double default_percent_on_test = 0.0;
     double best_percent_on_test = 0.0;
     double fit_percent_on_test = 0.0;
@@ -1723,6 +1764,7 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     if (calcExpectedDV == true)
         fprintf(fd, "%sE(DV)%sMSE", row_sep, row_sep);
 
+    fprintf(fd, "%sp(rule)%sp(margin)", row_sep, row_sep);
     if (test_sample_size > 0.0) {
         fprintf(fd, "%s|%sfreq%s%sby rule%sbest", row_sep, row_sep, row_sep, dv_header, row_sep);
         if (calcExpectedDV == true)
@@ -1862,6 +1904,9 @@ void ocReport::printConditional_DV(FILE *fd, ocModel *model, ocRelation *rel, bo
     delete[] fit_tied;
     delete[] fit_rule;
     delete[] fit_dv_expected;
+
+    delete [] uniform;
+    delete [] marginal_tab;
     if (rel == NULL) {
         delete fit_table;
     }

@@ -36,7 +36,7 @@ double ocMaxDist(ocTable *p, ocTable *q);
  * to be the input data.
  */
 double ocPearsonChiSquared(ocTable *p, ocTable *q, long sampleSize);
-
+double ocPearsonChiSquaredFlat(int card, double* p, double* q, long sampleSize);
 /**
  * Determine whether the relations in a model have overlaps
  */
