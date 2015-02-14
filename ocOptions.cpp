@@ -380,7 +380,7 @@ bool ocOptions::readOptions(FILE *fd) {
                 break; // data values follow
             currentOptDef = findOptionByName(cp + 1);
             if (currentOptDef == NULL) {
-                printf("[%d] Error: option %s not recognized\n", lineno, cp);
+                printf("[%d] Warning: option '%s' not recognized\n", lineno, cp);
             } else {
                 //-- for boolean option, set value as "Y"
                 if (currentOptDef->values == NULL) {
@@ -401,6 +401,7 @@ bool ocOptions::readOptions(FILE *fd) {
                     currentOptDef = NULL;
             } else {
                 printf("[%d] Error: '%s' unexpected\n", lineno, cp);
+                exit(1);
             }
         }
         gotLine = getLine(fd, line, &lineno);
