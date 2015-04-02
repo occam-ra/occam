@@ -2,27 +2,33 @@
 <FORM method="POST">
 	<TABLE class="form" width="100%">
 		<TR class="form">
-			<TD width="14%">
-				<INPUT type="radio" name="action" value="fit" {action=fit} onClick='parent.location="weboccam.cgi?action=fit";'>Do Fit
+			<TD width="20%">
+				<INPUT type="radio" name="action" value="search" {action=search} onClick='parent.location="weboccam.cgi?action=search" + "&cached=" + cached.checked;'>Do Search
 			</TD>
-			<TD width="14%">
-				<INPUT type="radio" name="action" value="search" {action=search} onClick='parent.location="weboccam.cgi?action=search";'>Do Search
+			<TD width="20%">
+				<INPUT type="radio" name="action" value="SBsearch" {action=SBsearch} onClick='parent.location="weboccam.cgi?action=SBsearch" + "&cached=" + cached.checked;'>Do SB-Search
 			</TD>
-			<TD width="14%">
-				<INPUT type="radio" name="action" value="SBfit" {action=SBfit} onClick='parent.location="weboccam.cgi?action=SBfit";'>Do SB-Fit
+			<TD width="20%">
+				<INPUT type="radio" name="action" value="fit" {action=fit} onClick='parent.location="weboccam.cgi?action=fit" + "&cached=" + cached.checked;'>Do Fit
 			</TD>
-			<TD width="14%">
-				<INPUT type="radio" name="action" value="SBsearch" {action=SBsearch} onClick='parent.location="weboccam.cgi?action=SBsearch";'>Do SB-Search
+			<TD width="20%">
+				<INPUT type="radio" name="action" value="SBfit" {action=SBfit} onClick='parent.location="weboccam.cgi?action=SBfit" + "&cached=" + cached.checked;'>Do SB-Fit
 			</TD>
-            <TD width="14%">
-				<INPUT type="radio" name="action" value="compare" {action=compare} onClick='parent.location="weboccam.cgi?action=compare";'>Do Compare
+            <TD><div class="vert-line" style="height: 20"/></TD>
+            <TD width="20%">
+				<INPUT type="radio" name="action" value="compare" {action=compare} onClick='parent.location="weboccam.cgi?action=compare" + "&cached=" + cached.checked;'>Do Compare
 			</TD>
-            <TD width="14%">
-				<INPUT type="radio" name="action" value="log" {action=log} onClick='parent.location="weboccam.cgi?action=log";'>Show Log
+        </TR>
+        <TR> <TD> </TD> </TR> 
+        <TR>
+            <TD>
+				<INPUT type="radio" name="action" value="log" {action=log} onClick='parent.location="weboccam.cgi?action=log" + "&cached=" + cached.checked;'>Show Log
 			</TD>
-			<TD width="14%">
-				<INPUT type="radio" name="action" value="jobcontrol" {action=jobcontrol} onClick='parent.location="weboccam.cgi?action=jobcontrol";'>Manage Jobs
+			<TD colspan=3>
+				<INPUT type="radio" name="action" value="jobcontrol" {action=jobcontrol} onClick='parent.location="weboccam.cgi?action=jobcontrol" + "&cached=" + cached.checked;'>Manage Jobs
 			</TD>
-		</TR>
+            <TD colspan=2>
+            <INPUT type="checkbox" name="cached"  {cached=true} onClick='parent.location="weboccam.cgi?action=" + action.value + "&cached=" + cached.checked;'> Cached Data Mode
+    </TD> </TR>
 	</TABLE>
 </FORM>

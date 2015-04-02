@@ -1,0 +1,50 @@
+<b>
+   To Upload and Cache Data and Test Files:
+</b>
+<br/>
+Given:
+<ul>
+    <li>variable declarations file (containing everything except the :data and :test blocks) </li>
+    <li>data file (containing only the :data block)</li>
+    <li>(optional) test file (containing only the :test block)</li>
+</ul>
+
+OCCAM will cache the data file on the server.
+The file will be saved using a new name (<i>Cached Data Name</i>)
+made by concatenating the original file name and a timestamp.
+
+Optionally, OCCAM can also cache a test file in the same fashion.
+<br/><br/>
+
+Then, OCCAM will print the <i>Cached Data Name</i> and, if used, the <i>Cached Test Name</i>
+for future reference,
+concatenate the variable declarations and data, 
+and run as normal on the combined file.
+
+If a <i>Data File</i> is submitted and the <i>Cached Data Name</i> field is not empty,
+OCCAM will terminate immediately (to avoid uploading the data).
+
+<br/><br/>
+
+<b>
+  To Use Previously Cached Files:
+</b>
+<br/>
+Given:
+<ul>
+    <li>variable declaration file </li>
+    <li><i>Cached Data Name</i> from a previous OCCAM run</li>
+    <li>(optional) <i>Cached Test Name</i> from a previous OCCAM run</li>
+</ul>
+
+OCCAM will search for the cached data file by the <i>Cached Data Name</i>.
+If given, OCCAM will search for a corresponding test file by the <i>Cached Test Name</i>.
+
+<br/>
+If the files are found, OCCAM will attempt use the variable declaration file
+and the previously cached files to run as normal.
+<br/>
+
+If the variable declarations, data, and test (if given) are incompatible,
+or no cached file is found corresponding to the names given,
+OCCAM will fail and emit an error message.

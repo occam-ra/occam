@@ -1,40 +1,83 @@
 <FORM method="POST" target="_blank" enctype="multipart/form-data">
 	<TABLE class="form" width="100%">
-		<TR>
-			<TD colspan="3" align="center" class="formtitle">
-				General Settings
-			</TD>
+        <tr>
+            <td colspan="9" align="center" class="formtitle">
+                Cached Data Settings
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                Variable Declarations File:
+            </td>
+            <td>
+                <input type="file" name="decls" />
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                Data File:
+            </td>
+            <td>
+                <input type="file" name="data" />
+            </td>
+            <td colspan="2">
+                <em>or</em>
+            </td>
+            <td colspan="2">
+                Cached Data Name:
+            </td>
+            <td>
+                <input type="text" name="refr" value="" />
+            </td>
+        </tr>
+        <tr>
+            <td></td>
+        </tr>
+        <tr>
+            <td colspan="2">
+                Test File:
+            </td>
+            <td>
+                <input type="file" name="test" />
+            </td>
+            <td colspan="2">
+                <em>or</em>
+            </td>
+            <td colspan="2">
+                Cached Test Name:
+            </td>
+            <td>
+                <input type="text" name="testrefr" value="" />
+            </td>
+        </tr>
+        <TR>
+            <TD colspan="9"><HR/></TD>
+        </TR>
+        <TR>
+			<TD colspan="9" align="center" class="formtitle">General Settings</TD>
 		</TR>
-		<TR>
-			<TD>
-				Data File:
-			</TD>
-			<TD colspan="4">
-				<INPUT type="file" name="data" size="50">
-			</TD>
-		</TR>
-		<TR>
-			<TD>
+        <TR>
+			<TD colspan="2">
 				Starting Model:
 			</TD>
-			<TD>
+			<TD colspan="7">
 				<INPUT type="text" name="model" value="{model}" size="50">
 			</TD>
 		</TR>
 		<TR>
-	 	 	<TD>
+	 	 	<TD colspan="2">
 			 	Composition Method:
 			</TD>
-			<TD>
+			<TD colspan="7">
 			 	<INPUT type="radio" checked name="evalmode" value="info">Standard
-				<INPUT type="radio" name="evalmode" value="bp" disabled="disabled">Back Projection (Fourier)
+				<INPUT type="radio" name="evalmode" value="bp">Back Projection (Fourier)
 			</TD>
 		</TR>
 		<TR>
-			<TD>
+			<TD colspan="2">
 				Reference Model:
 			</TD>
-			<TD>
+			<TD colspan="7">
 				<INPUT type="radio" checked name="refmodel" value="default">Default
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="refmodel" value="top">Top
@@ -45,46 +88,46 @@
 			</TD>
 		</TR>
 		<TR>
-			<TD colspan="3">
+			<TD colspan="9">
 				<HR>
 			</TD>
 		</TR>
 		<TR>
-			<TD colspan="3" align="center" class="formtitle">
-				State-Based Search Settings
+			<TD colspan="9" align="center" class="formtitle">
+				Search Settings
 			</TD>
 		</TR>
 		<TR>
-			<TD>
+			<TD colspan="2">
 				Models to Consider:
 			</TD>
-			<TD>
+			<TD colspan="7">
 				<INPUT type="radio" name="searchtype" value="all">All
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchtype" value="loopless" checked>Loopless
+				<INPUT type="radio" checked name="searchtype" value="loopless">Loopless
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchtype" value="disjoint" disabled="disabled">Disjoint
+				<INPUT type="radio" name="searchtype" value="disjoint">Disjoint
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchtype" value="chain" disabled="disabled">Chain
+				<INPUT type="radio" name="searchtype" value="chain">Chain
 			</TD>
 		</TR>
 		<TR>
-			<TD>
+			<TD colspan="2">
 				Search Direction:
 			</TD>
-			<TD>
-				<INPUT type="radio" name="searchdir" value="default" disabled="disabled">Default
+			<TD colspan="7">
+				<INPUT type="radio" checked name="searchdir" value="default">Default
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" checked name="searchdir" value="up">Up
+				<INPUT type="radio" name="searchdir" value="up">Up
 				&nbsp;&nbsp;&nbsp;
-				<INPUT type="radio" name="searchdir" value="down" disabled="disabled">Down
+				<INPUT type="radio" name="searchdir" value="down">Down
 			</TD>
 		</TR>
 		<TR>
-			<TD>
+			<TD colspan="2">
 				During Search, Sort By:
 			</TD>
-			<TD>
+			<TD colspan="7">
 				<INPUT type="radio" name="sortby" value="aic">dAIC&nbsp;
 				<INPUT type="radio" checked name="sortby" value="bic">dBIC
 				<INPUT type="radio" name="sortby" value="information">Information&nbsp;
@@ -93,42 +136,42 @@
 			</TD>
 		</TR>
 		<TR>
-			<TD>
+			<TD colspan="2">
 				When Searching, Prefer:
 			</TD>
-			<TD>
+			<TD colspan="7">
 				<INPUT type="radio" checked name="searchsortdir" value="descending">Larger Values
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="searchsortdir" value="ascending">Smaller Values</TD>
 		</TR>
 		<TR>
-			<TD>
+			<TD colspan="2">
 				Search Width:<br>(models to keep at each level)</TD>
-			<TD>
+			<TD colspan="7">
 				<INPUT type="text" size="4" name="searchwidth" value="3"></TD>
 		</TR>	
 		<TR>
-			<TD>
+			<TD colspan="2">
 				Search Levels:
 			</TD>
-			<TD>
+			<TD colspan="7">
 				<INPUT type="text" size="4" name="searchlevels" value="7">&nbsp;&nbsp;(leave blank to use settings from data file)</TD>
 		</TR>
 		<TR>
-			<TD colspan="3">
+			<TD colspan="9">
 				<HR>
 			</TD>
 		</TR>
 		<TR>
-			<TD colspan="3" align="center" class="formtitle">
+			<TD colspan="9" align="center" class="formtitle">
 				Report Settings
 			</TD>
 		</TR>
 		<TR>
-			<TD>
+			<TD colspan="2">
 				In Report, Sort By:
 			</TD>
-			<TD colspan="2">
+			<TD colspan="7">
 				<INPUT type="radio" checked name="sortreportby" value="information">Information&nbsp;
 				<INPUT type="radio" name="sortreportby" value="alpha">Alpha&nbsp;
 				<INPUT type="radio" name="sortreportby" value="ddf">dDF&nbsp;
@@ -139,16 +182,16 @@
 			</TD>
 		</TR>
 		<TR>
-			<TD>In Report, Sort:</TD>
-			<TD>
+			<TD colspan="2">In Report, Sort:</TD>
+			<TD colspan="7">
 				<INPUT type="radio" checked name="sortdir" value="descending">Descending
 				&nbsp;&nbsp;&nbsp;
 				<INPUT type="radio" name="sortdir" value="ascending">Ascending
 			</TD>
 		</TR>
 		<TR>
-		 	<TD>Include in Report:</TD>
-			<TD><INPUT type="checkbox" name="show_h" value="yes" checked>H&nbsp;
+		 	<TD colspan="2">Include in Report:</TD>
+			<TD colspan="7"><INPUT type="checkbox" name="show_h" value="yes" checked>H&nbsp;
 			    <INPUT type="checkbox" name="show_dlr" value="yes" checked>dLR&nbsp;
 			    <INPUT type="checkbox" name="show_alpha" value="yes" checked>Alpha&nbsp;
 			    <INPUT type="checkbox" name="show_pct_dh" value="yes" checked>% dH(DV)&nbsp;
@@ -156,13 +199,13 @@
 			    <INPUT type="checkbox" name="show_bic" value="yes" checked>dBIC</TD>
 		</TR>
 		<TR>
-		 	<TD>&nbsp;</TD>
-			<TD><INPUT type="checkbox" name="show_bp" value="yes" disabled="disabled">BP-based Transmission&nbsp;
+		 	<TD colspan="2">&nbsp;</TD>
+			<TD colspan="7"><INPUT type="checkbox" name="show_bp" value="yes">BP-based Transmission&nbsp;
 			    <INPUT type="checkbox" name="show_incr_a" value="yes" checked>Incremental Alpha</TD>
 		</TR>
 		<TR>
-		 	<TD>&nbsp;</TD>
-			<TD><INPUT type="checkbox" name="show_pct" value="yes" checked>% Correct&nbsp;
+		 	<TD colspan="2">&nbsp;</TD>
+			<TD colspan="7"><INPUT type="checkbox" name="show_pct" value="yes" checked>% Correct&nbsp;
 			    <INPUT type="checkbox" name="show_pct_cover" value="yes" checked>% Coverage of Data&nbsp;
 			    <INPUT type="checkbox" name="show_pct_miss" value="yes" checked>% Missing in Test</TD>
 		</TR>
@@ -172,19 +215,23 @@
 		<TR>
 			<TD colspan="2"><INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings &nbsp; &nbsp; <INPUT type='checkbox' name='skipnominal' value='y'>(but don't print variable definitions)</TD>
 		</TR>
+		<TR>
+			<TD colspan="2"><INPUT type="checkbox" name='inversenotation' value='y'>Use inverse notation for models</TD>
+		</TR>
 <!--		<TR>
 			<TD colspan="2"><INPUT type="checkbox" name='functionvalues' value='y'>Data specifies function values, not frequencies</TD>
 		</TR> -->
 		<TR>
-			<TD>Run in Background, Email Results To:</TD>
-			<TD><INPUT type="text" name="batchOutput" size="50"></TD>
+			<TD colspan="2">Run in Background, Email Results To:</TD>
+			<TD colspan="7"><INPUT type="text" name="batchOutput" size="50"></TD>
 		</TR>
 		<TR>
-			<TD>Subject line for email (optional):</TD>
-			<TD><INPUT type"text" name="emailSubject" size="50"></TD>						    
-			<TD><INPUT type="SUBMIT" value="Send"></TD>
+			<TD colspan="2">Subject line for email (optional):</TD>
+			<TD colspan="6"><INPUT type"text" name="emailSubject" size="50"></TD>						    
+			<TD colspan="1"><INPUT type="SUBMIT" value="Send"></TD>
 		</TR>
 	</table>
-<input type="hidden" name='inversenotation' value='n'>
-<input type="hidden" name="action" value="SBsearch">
+<input type="hidden" name="action" value="search">
 </form>
+
+<object height=500 width=100% type="text/html" data="cached_data_doc.html" />

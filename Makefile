@@ -54,7 +54,9 @@ CL_FILES = basic.py fit.py sbfit.py sbsearch.py $(CL)
 
 WEB_FILES = weboccam.py header.html switchform.html searchform.html fitform.html logform.html base.css \
     header.txt footer.html index.html jobcontrol.py SBsearchform.html SBfitform.html fitbatchform.html \
-    weboccam.cgi OpagCGI.py compareform.html
+    weboccam.cgi OpagCGI.py compareform.html \
+	search_cachedform.html fit_cachedform.html SBsearch_cachedform.html SBfit_cachedform.html \
+	cached_data_doc.html
 
 AR = ar
 COMPILE = $(CC) $(CFLAGS)		 # = gcc -I. -w

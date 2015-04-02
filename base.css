@@ -90,3 +90,11 @@ background-color: #e0e0e0;
 .data TR.em TD, .data TD.em, .data TH.em {
 font-weight: bold;
 }
+
+div.vert-line { 
+    width: 0px;
+    background-color: black;
+    height: 100%;
+    float: left;
+    border: 1px inset;
+}

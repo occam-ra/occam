@@ -2,6 +2,7 @@
 
 import os, cgi, sys, occam, time, string, pickle, zipfile, datetime, tempfile
 import cgitb; cgitb.enable(display=1)
+import datetime
 from ocutils import ocUtils
 #from time import clock
 from OpagCGI import OpagCGI
@@ -18,10 +19,10 @@ datadir = "data"
 #
 #---- getDataFileName -- get the original name of the data file
 #
-def getDataFileName(formFields, trim=false):
+def getDataFileName(formFields, trim=false, key='datafilename'):
     # extract the file name (minus directory) and seed the download dialog with it
     # we have to handle both forward and backward slashes here.
-    datafile = formFields['datafilename']
+    datafile = formFields[key]
     if datafile.find("\\") >= 0:
         datapath = datafile.split("\\")
     else:
@@ -32,6 +33,7 @@ def getDataFileName(formFields, trim=false):
         datafile = os.path.splitext(datafile)[0]
     datafile = '_'.join(datafile.split())
     return datafile
+
 
 #
 #---- printHeaders ---- Print HTTP Headers
@@ -93,13 +95,15 @@ def printForm(formFields):
     template.out(formFields)
 
     if action in ["fit", "search", "SBsearch", "SBfit", "fitbatch", "log", "compare"]:
+        cached = formFields.get("cached", "")
+        if cached=="true" and action in ["fit", "search", "SBsearch", "SBfit"]:
+            action = action + "_cached"
         template.set_template(action + 'form.html')
         template.out(formFields)
 
     if action == "jobcontrol":
         jc = JobControl()
         jc.showJobs(formFields)
-
 
 #
 #---- actionForm ---- put up the input form
@@ -112,8 +116,8 @@ def actionForm(form, errorText):
 #
 #---- getDataFile ---- get the posted data and store to temp file
 #
-def getDataFileAlloc(formFields):
-    if getDataFileName(formFields) == "":
+def getDataFileAlloc(formFields, key='datafilename'):
+    if getDataFileName(formFields, key=key) == "":
         print "ERROR: No data file specified."
         sys.exit()
     datafile = getUniqueFilename(os.path.join(datadir, getDataFileName(formFields)))
@@ -130,9 +134,113 @@ def getDataFileAlloc(formFields):
         sys.exit()
     return datafile
 
-def getDataFile(formFields):
-    return unzipDataFile(getDataFileAlloc(formFields))
+def getDataFileAllocByName(fn, data):
+    if fn == "":
+        print "ERROR: No data file specified."
+        sys.exit()
+    datafile = getTimestampedFilename(os.path.join(datadir, fn))
+    try:
+        outf = open(datafile, "w", 0660)
+        outf.write(data)
+        outf.close()
+    except:
+        print "ERROR: Problems reading data file %s." % datafile
+        sys.exit()
+    return datafile
 
+def getDataFile(formFields):
+    
+    if formFields.get("cached") != "true":
+        return unzipDataFile(getDataFileAlloc(formFields))
+    else:
+        return prepareCachedData(formFields)
+
+def prepareCachedData(formFields):
+    # Get relevant data from the form
+    declsFileName = formFields.get("declsfilename") 
+    declsFile = formFields.get("decls") 
+    dataFileName  = formFields.get("datafilename")
+    dataFile  = formFields.get("data")
+    testFileName  = formFields.get("testfilename")
+    testFile  = formFields.get("test")
+    dataRefrName  = formFields.get("refr")
+    testRefrName  = formFields.get("testrefr")
+  
+    # Check that a vars file was submitted
+    if declsFileName == "":
+        print "ERROR: No variable declarations file submitted."
+        sys.exit(1)
+
+    # Check that exactly 1 of datafile, refr were chosen
+    if (dataFileName == "" and dataRefrName == "") or (dataFileName != "" and dataRefrName != ""):
+        print "ERROR: Exactly 1 of 'Data File' and 'Cached Data Name' must be filled out."
+        sys.exit(1)
+
+    # Check that at most 1 of testfile, testrefr were chosen
+    if testFileName != "" and testRefrName != "":
+        print "ERROR: At most 1 of 'Test File' and 'Cached Test Name' must be filled out."
+        sys.exit(1)
+    
+    def unpackToString(fn, data):
+        rn = unzipDataFile(getDataFileAllocByName(fn, data))
+        return open(rn).read(), rn
+
+    decls, declsRn = unpackToString(declsFileName, declsFile)
+    
+    data = ""
+    if dataFileName == "": # search for the Cached Data Name and combine.
+        drn = os.path.join(datadir, dataRefrName)
+        if not os.path.isfile(drn):
+            print "ERROR: Data file corresponding to Cached Data Name, '" + dataRefrName + "', does not exist"
+            sys.exit(1)
+        data = open(drn).read()
+
+    else:
+        data, dataRefrName = unpackToString(dataFileName, dataFile)
+
+    test = ""
+    if testFileName == "" and testRefrName != "": 
+        trn = os.path.join(datadir, testRefrName)
+        print trn
+        if not os.path.isfile(trn):
+            print "ERROR: Test file corresponding to Cached Test Name, '" + testRefrName + "', does not exist"
+            sys.exit(1)
+        test = open(trn).read()
+   
+    elif testFileName != "":
+        test, testRefrName = unpackToString(testFileName, testFile)
+    
+    dataRefrTag = os.path.split(dataRefrName)[1] 
+    testRefrTag = os.path.split(testRefrName)[1]
+
+    finalDataFile = decls + "\n" + data + "\n" + test
+
+    finalDataFileName = declsFileName + "." + dataRefrTag
+    finalDataFileName = finalDataFileName + ".txt"
+    finalDataFileName = os.path.join(datadir,finalDataFileName)
+
+    with open(finalDataFileName, "w") as f:
+        f.write(finalDataFile)
+    
+    formFields['datafilename'] = finalDataFileName
+
+    # Print out the (fresh or reference) cached data name to the report.
+    r = ""
+    if not textFormat: r += "<TABLE><TR><TD><B>"
+    r += "Cached Data Name:"
+    if textFormat: r += "\t"
+    else: r += "</B></TD><TD>"
+    r += dataRefrTag
+    if textFormat: r += "\n"
+    else: r += "</TD></TR><TR><TD><B>"
+    if testRefrName != "": r += "Cached Test Name: "
+    if textFormat: r += "\t"
+    else: r += "</B></TD><TD>"
+    r += testRefrTag 
+    if not textFormat: r += "</TD></TR></TABLE>"
+    print r
+    # Return the new datafile.
+    return finalDataFileName
 
 def unzipDataFile(datafile):
     # If it appears to be a zipfile, unzip it
@@ -148,7 +256,7 @@ def unzipDataFile(datafile):
         # try to extract the file
         try:
             datafile = os.path.join(datadir, ilist[0].filename)
-            datafile = getUniqueFilename(datafile)
+            datafile = getTimestampedFilename(datafile)
             outf = open(datafile, "w")
             outf.write(zipdata.read(ilist[0].filename))
             outf.close()
@@ -263,6 +371,7 @@ def actionSBFit(formFields):
         oc.setSkipNominal(1)
     processSBFit(fn, formFields["model"], oc)
     os.remove(fn)
+
 
 #
 #---- processSearch ---- Do search operation
@@ -767,9 +876,9 @@ def getFormFields(form):
     formFields = {}
     keys = form.keys()
     for key in keys:
-        if key == 'data':
-            formFields['datafilename'] = form[key].filename
-            formFields['data'] = form[key].value
+        if key in ['data', 'decls', 'test']:
+            formFields[key+'filename'] = form[key].filename
+            formFields[key] = form[key].value
         else:
             formFields[key] = form.getfirst(key)
     return formFields
@@ -781,6 +890,14 @@ def getUniqueFilename(file_name):
     prefix = '_'.join(prefix.split())
     fd, filename = tempfile.mkstemp(suffix, prefix+"__", dirname)
     os.chmod(filename, 0660)
+    return filename
+
+def getTimestampedFilename(file_name):
+    dirname, filename = os.path.split(file_name)
+    prefix, suffix = os.path.splitext(filename)
+    prefix = '_'.join(prefix.split())
+    timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
+    filename = os.path.join(dirname, prefix+"_"+timestamp+suffix)
     return filename
 
 #
