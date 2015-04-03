@@ -1,4 +1,4 @@
-#! /usr/bin/env pyth n
+#! /usr/bin/env python
 
 import os, cgi, sys, occam, time, string, pickle, zipfile, datetime, tempfile
 import cgitb; cgitb.enable(display=1)
