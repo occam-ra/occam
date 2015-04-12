@@ -1,0 +1,6 @@
+deploy-last: FORCE
+	cd occam && make install && cp -pv install/web/* ~/public_html/occam/last
+	cd ~/public_html/occam/last && chmod ugo+rx * && chmod go-w * && chmod ugo+rwx batchlogs data
+
+.SILENT:
+FORCE:

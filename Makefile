@@ -4,6 +4,8 @@ CC = gcc
 CFLAGS = -w -Wall -O3 -fPIC -std=c++11
 LFLAGS = -shared
 
+test: 
+	cd .. && make 
 
 ARCH = $(shell uname)
 # `uname` gives "Linux" or "Darwin" for linux or OSX, respectively
@@ -133,7 +135,6 @@ $(PY_OCCAM): $(LIB) $(PY_WRAPPER)
 $(CL): occ.cpp $(LIB)
 	$(COMPILE) -o $(CL) occ.cpp $(LIBOBJECTS) $(LDFLAGS)
 #$(COMPILE) -shared -I $(PY_INCLUDE) -o $(PY_OCCAM) $(PY_WRAPPER) $(LIB) $(LDFLAGS)
-
 
 # Otherwise a system limit (for SysV at least) may be exceeded.
 .NOEXPORT:
