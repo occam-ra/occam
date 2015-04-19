@@ -1010,6 +1010,11 @@ if formFields.has_key("action") and ( formFields.has_key("data") or formFields.h
     if formFields.has_key("batchOutput") and formFields["batchOutput"]:
         startBatch(formFields)
     else:
+
+        # if any subject line was supplied, print it
+        if formFields.has_key("emailSubject") and formFields["emailSubject"]:
+            print "Subject line:," + formFields["emailSubject"]
+
         try:
             if formFields["action"] == "fit" :
                 actionFit(formFields)
