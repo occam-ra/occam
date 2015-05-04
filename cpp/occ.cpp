@@ -52,7 +52,7 @@ int main(int argc, char* argv[]) {
         mgr->printFitReport(fit, stdout);
         mgr->makeFitTable(fit);
         report->printResiduals(stdout, fit);
-        report->printConditional_DV(stdout, fit, false);
+        report->printConditional_DV(stdout, fit, false, "");
 
     } else {    // Search
         double width;

@@ -26,23 +26,33 @@
 			<TD>
 				<INPUT type="text" name="defaultmodel" value="" size="50"></TD>
 		</TR>
-		<TR>
-			<TD colspan="2">
+ <tr><TD colspan=2>
+                Directed systems: default ("negative") DV state <i>(after rebinning)</i> for confusion matrices:
+                <INPUT type="text" name="negativeDVforConfusion" value="" size=3>
+            </TD>
+        </TR>
+
+
+
+
+        <TR>
+			<TD colspan=2>
 				<INPUT type="checkbox" name='format' value='y'>Return data in spreadsheet format</TD>
 		</TR>
-		<TR>
+        <TR>
 			<TD colspan="2">
 				<INPUT type="checkbox" name='printoptions' checked value='y'>Print option settings &nbsp; &nbsp; <INPUT type='checkbox' name='skipnominal' value='y'>(but don't print variable definitions)</TD>
 		</TR>
 		<TR>
-			<TD colspan="2">
+			<TD colspan=1>
 				<INPUT type="checkbox" name='calcExpectedDV' value='y'>Calculate expected DV</TD>
-		</TR>
-<!--		<TR>
+        </tr>
+               
+        <!--		<TR>
 			<TD colspan="2">
 				<INPUT type="checkbox" name='functionvalues' value='y'>Data specifies function values, not frequencies</TD>
 		</TR>-->
-		<TR>
+        <TR>
 			<TD>Run in Background, Email Results To:</TD>
 			<TD><INPUT type="text" name="batchOutput" size="50"></TD>
 			<TD> </TD>

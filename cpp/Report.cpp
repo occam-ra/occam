@@ -431,4 +431,139 @@ void Report::print(int fd) {
     fclose(f);
 }
 
+void printd(double d) {
+    if (isnan(d)) {
+        printf("undefined");
+    } else {
+        printf("%0.3f", d);
+    }
+}
 
+void printConfusionMatrixHTML(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    printf("<table style='text-align:right' border=0><tr><th>Actual</th><th>|</th><th colspan=2 align=center>Rule</th></tr>");
+    printf("<tr><td></td><td>|</td><td class=r1>%s%s%s</td><td class=r1>%s%s%s</td></tr>", dv_name, equals_sign(true), dv_target, dv_name, not_equals_sign(true), dv_target);
+    printf("<tr><td>%s%s%s</td><td>|</td><td>TN=%0.3f</td><td>FP=%0.3f</td><td><b>AN=%0.3f</b></tr>", dv_name, equals_sign(true), dv_target, tn, fp, tn + fp);
+    printf("<tr class=r1><td>%s%s%s</td><td>|</td><td>FN=%0.3f</td><td>TP=%0.3f</td><td><b>AP=%0.3f</b></tr>",dv_name, not_equals_sign(true), dv_target, fn, tp, fn + tp);
+    printf("<tr><td></td><td>|</td><td><b>RN=%0.3f</b></td><td><b>RP=%0.3f</b></td><td><b>#correct=%0.3f</b></td></tr>", tn + fn, tp + fp, tp + tn);
+    printf("</table>");
+}
+
+void printConfusionMatrixStatsHTML(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    // TODO: DRY this out
+    // Population totals
+    const double pop = tp + fp + tn + fn;
+    const double rule_pos = tp + fp;
+    const double rule_neg = tn + fn;
+    const double real_pos = tp + fn;
+    const double real_neg = tn + fp;
+
+    const double right = tp + tn;
+    const double wrong = fp + fn;
+    const double prevalence = double(real_pos) / pop;
+    const double accuracy = double(right) / pop;
+
+    // By test outcome:
+    const double precision = double(tp) / rule_pos;
+    const double npv = double(tn) / rule_neg;
+
+    // By real condition:
+    const double sensitivity = double(tp) / real_pos;
+    const double specificity = double(tn) / real_neg;
+
+    // F-measure
+    const double f_1 = 2 * (precision * sensitivity) / (precision + sensitivity);
+
+    // TODO : what's missing? 
+    printf("<table style='text-align:right;'>");
+    // TODO: comment out or remove the line below - accuracy is reported elsewhere
+    printf("<tr><th>Statistic</th><th>Definition</th><th>Value</th>");
+    printf("<tr class=r1><td>%%correct</td><td> correct / sample size</td><td>%.03f</td></tr>", accuracy);
+    printf("<tr><td>Sensitivity (aka Recall)</td><td> (TP / AP)</td><td>");printd(sensitivity); printf("</td></tr>");
+    printf("<tr class=r1><td>Specificity</td><td> (TN / AN)</td><td>"); printd(specificity); printf("</td></tr>");
+    printf("<tr><td>Precision</td><td> (TP / RP)</td><td>"); printd(precision); printf("</td></tr>");
+    printf("<tr class=r1><td>Negative Predictive Value</td><td> (TN / RN)</td><td>"); printd(npv); printf("</td></tr>");
+    printf("<tr><td>F1 score</td><td> (precision * sensitivity) / (precision + sensitivity) </td><td>%.03f</td></tr>", f_1);
+    printf("</table>");
+}
+
+void printConfusionMatrixCSV(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+      printf(",Actual,|,Rule\n");
+    printf(",,|,%s%s%s,,%s%s%s\n", dv_name, equals_sign(false), dv_target, dv_name, not_equals_sign(false), dv_target);
+    printf(",%s%s%s,|,TN=,%0.3f,FP=,%0.3f,AN=,%0.3f\n", dv_name, equals_sign(false), dv_target, tn, fp, tn + fp);
+    printf(",%s%s%s,|,FN=,%0.3f,TP=,%0.3f,AP=,%0.3f\n",dv_name, not_equals_sign(false), dv_target, fn, tp, fn + tp);
+    printf(",,|,RN=,%0.3f,RP=,%0.3f,#correct=,%0.3f\n\n", tn + fn, tp + fp, tp + tn);
+}
+void printConfusionMatrixStatsCSV(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    const double pop = tp + fp + tn + fn;
+    const double rule_pos = tp + fp;
+    const double rule_neg = tn + fn;
+    const double real_pos = tp + fn;
+    const double real_neg = tn + fp;
+    const double right = tp + tn;
+    const double wrong = fp + fn;
+    const double prevalence = double(real_pos) / pop;
+    const double accuracy = double(right) / pop;
+    const double precision = double(tp) / rule_pos;
+    const double npv = double(tn) / rule_neg;
+    const double sensitivity = double(tp) / real_pos;
+    const double specificity = double(tn) / real_neg;
+    const double f_1 = 2 * (precision * sensitivity) / (precision + sensitivity);
+    printf(",Statistic,Definition,Value\n");
+    printf(",%%correct,correct / sample size,%.03f\n", accuracy);
+
+    printf(",Sensitivity (aka Recall), (TP / AP),"); printd(sensitivity); printf("\n");
+    printf(",Specificity,(TN / AN),"); printd(specificity); printf("\n");
+    printf(",Precision,(TP / RP),"); printd(precision); printf("\n");
+    printf(",Negative Predictive Value,(TN / RN),"); printd(npv); printf("\n");
+    printf(",>F1 score,(precision * sensitivity) / (precision + sensitivity),%.03f\n", f_1);
+    printf("\n");
+}
+
+void Report::printConfusionMatrix(Model* model, Relation* rel, 
+                                  const char* dv_name, const char* dv_target,
+                                  double trtp, double trfp, 
+                                  double trtn, double trfn,
+                                  bool test, double tetp,  double tefp, 
+                                  double tetn, double tefn) {
+    if (dv_target < 0) { return; }
+  
+
+    if (htmlMode) printf("<br><br>"); else printf("\n\n");
+    if (model == NULL) {
+        const char *relname = rel->getPrintName(manager->getUseInverseNotation());
+        printf("Confusion Matri%s for the Relation %s with default ('negative') state (after rebinning) %s%s%s.\n", test ? "ces" : "x", relname, dv_name, equals_sign(htmlMode), dv_target);
+    } else {
+        const char *mname = model->getPrintName(manager->getUseInverseNotation());
+        printf("Confusion Matri%s for the Model %s with default ('negative') state (after rebinning) %s%s%s.\n", test ? "ces" : "x", mname, dv_name, equals_sign(htmlMode), dv_target);
+    }
+
+    if (htmlMode) { printf("<br><br>&nbsp;&nbsp;"); }
+
+    printf("Confusion Matrix for Fit Rule (Training)\n");
+
+    if(htmlMode) {
+        printf("<br><br>");
+        printConfusionMatrixHTML(dv_name, dv_target, trtp, trfp, trtn, trfn);
+        printf("<br>&nbsp;&nbsp;Additional Statistics (Training)\n");
+        printConfusionMatrixStatsHTML(dv_name, dv_target, trtp,trfp,trtn,trfn);
+    } else {
+        printConfusionMatrixCSV(dv_name, dv_target, trtp,trfp,trtn,trfn);
+        printf(",Additional Statistics (Training)\n");
+        printConfusionMatrixStatsCSV(dv_name, dv_target, trtp,trfp,trtn,trfn);
+    }
+
+    if(htmlMode) { printf("<br><br>&nbsp;&nbsp;"); }
+    if(test) {
+        printf("Confusion Matrix for Fit Rule (Test)\n");
+        if(htmlMode) {
+            printf("<br><br>");
+            printConfusionMatrixHTML(dv_name, dv_target, tetp, tefp, tetn, tefn);
+            printf("<br>&nbsp;&nbsp;Additional Statistics (Test)\n");
+            printConfusionMatrixStatsHTML(dv_name, dv_target, tetp,tefp,tetn,tefn);
+        } else {
+            printConfusionMatrixCSV(dv_name, dv_target, tetp,tefp,tetn,tefn);
+            printf(",Additional Statistics (Test)\n");
+            printConfusionMatrixStatsCSV(dv_name, dv_target, tetp,tefp,tetn,tefn);
+        }
+    }
+}

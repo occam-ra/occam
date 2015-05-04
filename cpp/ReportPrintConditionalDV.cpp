@@ -4,16 +4,17 @@
 #include <cstring>
 #include <cmath>
 #include "Math.h"
+#include <climits>
 
-void Report::printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV) {
-    printConditional_DV(fd, model, NULL, calcExpectedDV);
+void Report::printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget) {
+    printConditional_DV(fd, model, NULL, calcExpectedDV, classTarget);
 }
 
-void Report::printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV) {
-    printConditional_DV(fd, NULL, rel, calcExpectedDV);
+void Report::printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, char* classTarget) {
+    printConditional_DV(fd, NULL, rel, calcExpectedDV, classTarget);
 }
 
-void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV) {
+void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, char* classTarget) {
     if (model == NULL && rel == NULL) {
         fprintf(fd, "No model or relation specified.\n");
         return;
@@ -141,6 +142,9 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
         test_key_freq = new double[iv_statespace];
         test_rule = new int[iv_statespace];
     }
+
+    // Training and test confusion matrix values
+    double trtp, trfp, trtn, trfn, tetp, tefp, tetn, tefn;
 
     // Allocate space for keys and frequencies
     KeySegment *temp_key;
@@ -685,6 +689,53 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
         total_correct += input_freq[i][fit_rule[i]];
     }
 
+    // Determine whether the classifier target is valid for confusion matrix
+    bool checkTarget = false;
+    int dv_target = -1;
+    /* TODO: get dv_target from dv_label[dv_order[classTarget]]*/
+    for (int i = 0; i < dv_card; i++) {
+        if (!strcmp(dv_label[i], classTarget)) {
+            dv_target = i;
+            checkTarget = true;
+        }
+    }
+
+
+    // Compute sums for the confusion matrix
+    if (checkTarget) {
+            double ftrtp = 0.0;
+            double ftrfp = 0.0;
+            double ftrtn = 0.0;
+            double ftrfn = 0.0;
+            for (int i = 0; i < iv_statespace; i++) {
+
+                /* For each IV state,
+                 *  if the DV rule is the target class,
+                 *  then the portion predicted correctly are TP
+                 *  and  the portion predicted incorrectly are FP.
+                 *  The portion predicted correctly are
+                 *  `input_freq[i][fit_rule[i]]`, 
+                 *  as in the computation of `total_correct` above.
+                 *  The portion predicted incorrectly are the complement within the population,
+                 *  i.e. `input_key_freq[i]` minus the portion predicted correctly.
+                 *  Similarly when the DV rule is not the target class,
+                 *  correct results are TN and incorrect are FN.
+                 */
+                if (fit_rule[i] == dv_target) {
+                    ftrtp += input_freq[i][fit_rule[i]];
+                    ftrfp += input_key_freq[i] - input_freq[i][fit_rule[i]];
+                } else {
+                    ftrtn += input_freq[i][fit_rule[i]];
+                    ftrfn += input_key_freq[i] - input_freq[i][fit_rule[i]];
+                }
+                
+            }
+            trtp = ftrtp;
+            trfp = ftrfp;
+            trtn = ftrtn;
+            trfn = ftrfn;
+    }
+   
     // Compute marginals & sums for test data, if present.
     double test_by_fit_rule, test_by_test_rule;
     if (test_sample_size > 0.0) {
@@ -701,18 +752,44 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
         }
     }
 
+
+    // Compute sums for the confusion matrix for TEST DATA BY FIT RULE
+    if (checkTarget && test_sample_size > 0.0) {
+            double ftetp = 0.0;
+            double ftefp = 0.0;
+            double ftetn = 0.0;
+            double ftefn = 0.0;
+            for (int i = 0; i < iv_statespace; i++) {
+                if (fit_rule[i] == dv_target) {
+                    ftetp += test_freq[i][fit_rule[i]];
+                    ftefp += test_key_freq[i] - test_freq[i][fit_rule[i]];
+                } else {
+                    ftetn += test_freq[i][fit_rule[i]];
+                    ftefn += test_key_freq[i] - test_freq[i][fit_rule[i]];
+                }
+                
+            }
+            tetp = ftetp;
+            tefp = ftefp;
+            tetn = ftetn;
+            tefn = ftefn;
+    }
+
     int dv_ccount = 0;
     int dv_head_len = 0;
     for (int i = 0; i < dv_card; i++) {
         dv_head_len += strlen(dv_label[dv_order[i]]);
     }
     dv_head_len += dv_card * (strlen(row_sep) + strlen(dv_var->abbrev) + 1) + 1;
-    char *dv_header = new char[dv_head_len];
-    memset(dv_header, 0, dv_head_len * sizeof(char));
+    const char* eq_sign = equals_sign(htmlMode);
+    int eq_sign_len = strlen(eq_sign);
+    int buf_len = dv_head_len * eq_sign_len;
+    char *dv_header = new char[buf_len];
+    memset(dv_header, 0, buf_len * sizeof(char));
     for (int i = 0; i < dv_card; i++) {
-        dv_ccount += snprintf(dv_header + dv_ccount, dv_head_len - dv_ccount, "%s=", dv_var->abbrev);
-        dv_ccount += snprintf(dv_header + dv_ccount, dv_head_len - dv_ccount, "%s", dv_label[dv_order[i]]);
-        dv_ccount += snprintf(dv_header + dv_ccount, dv_head_len - dv_ccount, row_sep);
+        dv_ccount += snprintf(dv_header + dv_ccount, buf_len - dv_ccount, "%s%s", dv_var->abbrev, eq_sign);
+        dv_ccount += snprintf(dv_header + dv_ccount, buf_len - dv_ccount, "%s", dv_label[dv_order[i]]);
+        dv_ccount += snprintf(dv_header + dv_ccount, buf_len - dv_ccount, row_sep);
     }
 
     // Header, Row 1
@@ -1110,17 +1187,35 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
         fprintf(fd, "%s%s", row_end, block_end);
     }
 
+    // PRINT CONFUSION MATRICES
+
+    if (!strcmp(classTarget, "") && model) {
+        printf("Note: no default state selected, so confusion matrices will not be printed.");
+    } else if (!checkTarget && model || trtp + trfn <= 0)  { 
+            printf("Note: selected default state '%s=%s' is not among states occurring in the DV in the data, so confusion matrices will not be printed", dv_var->abbrev, classTarget);
+    } else if (trtn + trfp <= 0) {
+        printf("Note: there are no occurrences of any non-default (\"positive\") conditional DV state (that is, any state other than '%s=%s'), in the training data, so confusion matrices will not be printed", dv_var->abbrev, classTarget);
+    } else if (checkTarget) {
+        // Print out the confusion matrix and associated statistics
+        // Do this for the dual problem: flip positive and negative param order
+        printConfusionMatrix(model, rel, dv_var->abbrev, classTarget, trtn, trfn, trtp, trfp, (test_sample_size > 0.0), tetn, tefn, tetp, tefp);
+    }
+
+
     // If this is the entire model (not just a relation), print tables for each of the component relations,
     // if there are more than two of them (for VB) or more than 3 (for SB).
+ 
     if ((rel == NULL) && ((model->getRelationCount() > 2 && !model->isStateBased()) || (model->isStateBased() && model->getRelationCount() > 3))) {
         for (int i = 0; i < model->getRelationCount(); i++) {
             if (model->getRelation(i)->isIndependentOnly())
                 continue;
             if (model->getRelation(i)->isDependentOnly())
                 continue;
-            printConditional_DV(fd, model->getRelation(i), calcExpectedDV);
+            printConditional_DV(fd, model->getRelation(i), calcExpectedDV, classTarget);
         }
     }
+
+
 
     delete[] dv_order;
     delete[] dv_header;

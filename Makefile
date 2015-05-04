@@ -67,8 +67,6 @@ CORE_FILES = \
 	cpp/occam.so \
 	py/occammail.py \
 	py/ocutils.py \
-	script/occam3 \
-	script/occambatch
 
 CL_FILES = \
 	cpp/occ \

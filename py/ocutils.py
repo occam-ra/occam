@@ -23,7 +23,8 @@ class ocUtils:
         self.__reportSortName = ""
         self.__sortDir = "ascending"
         self.__searchSortDir = "ascending"
-	self.__alphaThreshold = 0.05
+        self.__alphaThreshold = 0.05
+        self.__fitClassifierTarget = ""
         self.__searchWidth = 3
         self.__searchLevels = 7
         self.searchDir = "default"
@@ -76,6 +77,9 @@ class ocUtils:
         occam.setHTMLMode(format == ocUtils.HTMLFORMAT)
         self.__report.setSeparator(format)
         self.__HTMLFormat = (format == ocUtils.HTMLFORMAT)
+
+    def setFitClassifierTarget(self, target):
+        self.__fitClassifierTarget = target
 
     def setSkipNominal(self, useFlag):
         flag = int(useFlag)
@@ -503,10 +507,15 @@ class ocUtils:
             self.__report.printReport()
         #-- self.__manager.dumpRelations()
 
+    def newl(self):
+        if self.__HTMLFormat: print "<br>"
+
     def doFit(self,printOptions):
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if printOptions: self.printOptions(0)
+        
         self.__manager.printBasicStatistics()
+        
         for modelName in self.__fitModels:
             self.__manager.setRefModel(self.__refModel)
             model = self.__manager.makeModel(modelName, 1)
@@ -518,7 +527,7 @@ class ocUtils:
                     print "\nERROR: Unable to create model " + self.__defaultFitModel
                     sys.exit(0)
                 self.__report.setDefaultFitModel(defaultModel)
-            self.__report.printConditional_DV(model, self.__calcExpectedDV)
+            self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
             print
             print
 
@@ -546,7 +555,7 @@ class ocUtils:
                     print "\nERROR: Unable to create model " + self.__defaultFitModel
                     sys.exit(0)
                 self.__report.setDefaultFitModel(defaultModel)
-            self.__report.printConditional_DV(model, self.__calcExpectedDV)
+            self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
             print
             print
 
@@ -612,6 +621,9 @@ class ocUtils:
             print "<br><table border=0 cellpadding=0 cellspacing=0>"
         self.__manager.printOptions(self.__HTMLFormat, self.__skipNominal)
         self.printOption("Input data file", self.__dataFile)
+
+        if self.__fitClassifierTarget != "":
+            self.printOption("Default ('negative') state for confusion matrices", self.__fitClassifierTarget)
         if r_type==1:   
             self.printOption("Starting model", self.__startModel)
             self.printOption("Search direction", self.searchDir)

@@ -246,10 +246,7 @@ def unzipDataFile(datafile):
             sys.exit()
     return datafile
 
-#
-#---- processFit ---- Do fit operation
-#
-def processFit(fn, model, oc):
+def processFit(fn, model, negativeDVforConfusion, oc):
     global datafile, textFormat, printOptions
 
     if textFormat:
@@ -260,6 +257,8 @@ def processFit(fn, model, oc):
 
     if model <> "":
         oc.setFitModel(model)
+    
+    oc.setFitClassifierTarget(negativeDVforConfusion)
     oc.setAction("fit")
     oc.doAction(printOptions)
 
@@ -269,7 +268,7 @@ def processFit(fn, model, oc):
 #
 #---- processSBFit ---- Do state based fit operation
 #
-def processSBFit(fn, model, oc):
+def processSBFit(fn, model, negativeDVforConfusion, oc):
     global datafile, textFormat, printOptions
     if textFormat:
         oc.setReportSeparator(ocUtils.COMMASEP)
@@ -279,6 +278,8 @@ def processSBFit(fn, model, oc):
 
     if model <> "":
         oc.setFitModel(model)
+    
+    oc.setFitClassifierTarget(negativeDVforConfusion)
     oc.setAction("SBfit")
     oc.doAction(printOptions)
 
@@ -307,12 +308,14 @@ def actionFit(formFields):
 #functionFlag = formFields.get("functionvalues", "")
 #if functionFlag:
 #oc.setValuesAreFunctions(1)
+    
+    target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
+        
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
         return
-    processFit(fn, formFields["model"], oc)
+    processFit(fn, formFields["model"], target, oc) 
     os.remove(fn)
-
 #
 #---- actionFitBatch ---- Report on several Fit models
 #
@@ -349,7 +352,8 @@ def actionSBFit(formFields):
     skipNominalFlag = formFields.get("skipnominal", "")
     if skipNominalFlag:
         oc.setSkipNominal(1)
-    processSBFit(fn, formFields["model"], oc)
+    target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
+    processSBFit(fn, formFields["model"], target, oc) 
     os.remove(fn)
 
 
@@ -985,7 +989,7 @@ if not formFields.has_key("data") and not formFields.has_key("email"):
     actionForm(formFields, None)
 
 # If there is an action, and either data or an email address, proceed
-if formFields.has_key("action") and ( formFields.has_key("data") or formFields.has_key("email") ) :
+if formFields.has_key("action"):
     
     # If this is running from web server, and batch mode requested, then start a background task
     if formFields.has_key("batchOutput") and formFields["batchOutput"]:

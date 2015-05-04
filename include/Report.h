@@ -5,6 +5,14 @@
 
 #include <stdio.h>
 
+constexpr const char* equals_sign(bool html) {
+    return html ?  "<b style='font-size:110%;'>=</b>" : "=";
+}
+
+constexpr const char* not_equals_sign(bool html) { 
+    return html ? "<b style='font-size:110%;'>&ne;</b>" : "=not";
+}
+
 class dv_Data{
   public:
     KeySegment **key;
@@ -60,13 +68,17 @@ class Report {
 
 	//-- Print conditional DVs
 	//-- Print conditionals for a model.
-	void printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV);
+	void printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget);
 	//-- Print conditionals for a relation.
-	void printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV);
+	void printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, char* classTarget);
 	//-- This function is called by both of the others above.
 	//-- If both model and relation are present, the relation is printed.
-	void printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV);
+	void printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, char* classTarget);
 
+    void printConfusionMatrix(Model* model, Relation* rel, const char* dv_name, const char* dv_target,
+        double trtp, double trfp, double trtn, double trfn,
+        bool test, double tetp, double tefp, double tetn, double tefn);
+        
     // static variables
     // used several places, such as Report::print
     static int maxNameLength;
@@ -82,6 +94,7 @@ class Report {
 	int separator;
 	void printSearchHeader(FILE *fd, int* attrID);
 	void printSearchRow(FILE *fd, Model* model, int* attrID, bool isOddRow);
+    char* alloc_dv_header();
 };
 
 

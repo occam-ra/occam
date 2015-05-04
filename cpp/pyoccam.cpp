@@ -1809,12 +1809,13 @@ DefinePyFunction(Report, printResiduals) {
 DefinePyFunction(Report, printConditional_DV) {
     PyObject *Pmodel;
     int calcExpectedDV;
+    char* classTarget;
     bool bCalcExpectedDV = false;
-    PyArg_ParseTuple(args, "O!i", &TModel, &Pmodel, &calcExpectedDV);
+    PyArg_ParseTuple(args, "O!is", &TModel, &Pmodel, &calcExpectedDV, &classTarget);
     if (calcExpectedDV != 0)
         bCalcExpectedDV = true;
     Model *model = ObjRef(Pmodel, Model);
-    ObjRef(self, Report)->printConditional_DV(stdout, model, bCalcExpectedDV);
+    ObjRef(self, Report)->printConditional_DV(stdout, model, bCalcExpectedDV, classTarget);
     Py_INCREF(Py_None);
     return Py_None;
 }
