@@ -692,9 +692,15 @@ DefinePyFunction(VBMManager, computeBinaryStatistic) {
     mgr2.initFromCommandLine(argc, argv2);
 
     Model* mod1 = mgr1.makeModel(model1, true);
+    mgr1.computeL2Statistics(mod1);
+    mgr1.computeDFStatistics(mod1);
+    mgr1.computeDependentStatistics(mod1);
+
+    //mgr1.printFitReport(mod1, stdout);
+    Report report1(&mgr1);
+    report1.setHTMLMode(true);
     mgr1.makeFitTable(mod1);
-    Table* fit1 = new Table(mgr1.getKeySize(), mgr1.getFitTable()->getTupleCount());
-    fit1->copy(mgr1.getFitTable()); 
+    Table* fit1 = mgr1.getFitTable();
     fit1->normalize();
    
    /* debugging output, not used */
@@ -705,6 +711,8 @@ DefinePyFunction(VBMManager, computeBinaryStatistic) {
     */
 
     Model* mod2 = mgr2.makeModel(model2, true);
+    Report report2(&mgr2);
+    report2.setHTMLMode(true);
     mgr2.makeFitTable(mod2);
     Table* fit2 = mgr2.getFitTable();
     fit2->normalize();
