@@ -13,6 +13,8 @@
 //-- packed into one key segment.
 typedef unsigned long KeySegment;
 typedef double ocTupleValue;
+enum class Direction { Ascending, Descending };
+enum class TableType { InformationTheoretic, SetTheoretic };
 
 /**
  * Table - defines a data table, which is a collection of tuples. The tuples are stored
@@ -22,10 +24,7 @@ typedef double ocTupleValue;
 class Table {
     public:
         //-- table types
-        enum TableType {
-            INFO_TYPE, SET_TYPE
-        };
-        Table(int keysz, long long maxTuples, TableType typ = INFO_TYPE); // initialize the table and allocate tuple space
+        Table(int keysz, long long maxTuples, TableType typ =TableType:: InformationTheoretic); // initialize the table and allocate tuple space
         ~Table();
         long long size();
 
@@ -146,7 +145,6 @@ const int DISCARD = -1;
 #define OLD_ROW 0
 #define NEW_ROW 1
 
-enum SortDir {ASCENDING, DESCENDING};
 
 struct ocVariable { // internal use only - see VariableList
         int cardinality; // number of values of the variable

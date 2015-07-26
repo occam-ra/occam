@@ -42,7 +42,7 @@ static KeySegment *KeyPtr(void *data, int keysize, long long index)
 }
 
 
-Table::Table(int keysz, long long maxTuples, Table::TableType typ)
+Table::Table(int keysz, long long maxTuples, TableType typ)
 {
     keysize = keysz;
     type = typ;
@@ -89,7 +89,7 @@ void Table::addTuple(KeySegment *key, double value)
     KeySegment *keyptr = KeyPtr(data, keysize, tupleCount);
     memcpy(keyptr, key, sizeof(KeySegment) * keysize);			// copy key
     //-- for set relations, only values are 1 or 0
-    if (type == SET_TYPE && value != 0.0) value = 1.0;
+    if (type == TableType::SetTheoretic && value != 0.0) value = 1.0;
     *(ValuePtr(data, keysize, tupleCount)) = (ocTupleValue) value;		// copy value
     tupleCount++;
 }
@@ -115,7 +115,7 @@ void Table::insertTuple(KeySegment *key, double value, long long index)
     KeySegment *keyptr = KeyPtr(data, keysize, index);
     memcpy(keyptr, key, sizeof(KeySegment) * keysize);	// copy key
     //-- for set relations, only values are 1 or 0
-    if (type == SET_TYPE && value != 0.0) value = 1.0;
+    if (type == TableType::SetTheoretic && value != 0.0) value = 1.0;
     *(ValuePtr(data, keysize, index)) = (ocTupleValue) value;						// copy value
     tupleCount++;
 }
@@ -134,7 +134,7 @@ void Table::sumTuple(KeySegment *key, double value)
     } else {
         ocTupleValue *valuep = ValuePtr(data, keysize, index);
         value += *valuep;
-        if (type == SET_TYPE && value != 0.0) value = 1.0;
+        if (type == TableType::SetTheoretic && value != 0.0) value = 1.0;
         *valuep = (ocTupleValue) value;
     }
 }

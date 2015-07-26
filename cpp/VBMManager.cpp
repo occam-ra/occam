@@ -308,7 +308,7 @@ double VBMManager::computeDDF(Model *model) {
     // If we know the progenitor, and its dDF, then we only need to compute the small step between them.
     if (prog_ddf >= 0) {
         // If search is up, the model is higher than its progenitor.
-        if (searchDirection == 0) { // up
+        if (searchDirection == Direction::Ascending) { // up
             hiModel = model;
             loModel = progen;
             // However, if the ref is the top, then DDF(model) is DDF(progen) minus the space between them.
@@ -335,7 +335,7 @@ double VBMManager::computeDDF(Model *model) {
         } else {
             // If ref is not the top or bottom, it must be a custom starting model.
             // In this case, we can use the search direction to tell which is higher on the model.
-            if (searchDirection == 0) { // up
+            if (searchDirection == Direction::Ascending) { // up
                 hiModel = model;
                 loModel = refModel;
             } else { // down
@@ -471,7 +471,7 @@ void VBMManager::computeL2Statistics(Model *model) {
     // If the top model is the reference, or if there is a custom start model and we're searching down,
     // we flip the signs of dAIC and dBIC.  (A custom start occurs when ref is neither top nor bottom.)
     // (That is, flip signs in cases when the reference is above the model in the lattice.)
-    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == 1))) {
+    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == Direction::Descending))) {
         dAIC = -dAIC;
         dBIC = -dBIC;
     }

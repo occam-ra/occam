@@ -337,7 +337,7 @@ void SBMManager::computeL2Statistics(Model *model) {
     // If the top model is the reference, or if there is a custom start model and we're searching down,
     // we flip the signs of dAIC and dBIC.  (A custom start occurs when ref is neither top nor bottom.)
     // (That is, flip signs in cases when the reference is above the model in the lattice.)
-    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == 1))) {
+    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == Direction::Descending))) {
         dAIC = -dAIC;
         dBIC = -dBIC;
     }

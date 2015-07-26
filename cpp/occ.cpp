@@ -86,7 +86,7 @@ int main(int argc, char* argv[]) {
         report->addModel(start);
         int nextID = 0;
         mgr->setSortAttr("information");
-        mgr->setSearchDirection(0);
+        mgr->setSearchDirection(Direction::Ascending);
         start->setID(nextID++);
 
         Model **nextModels, **keptModels;
@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
                     for (int i=0; i < count; i++) {
                         mgr->computeInformationStatistics(models[i]);
                     }
-                    Report::sort(models, count, mgr->getSortAttr(), DESCENDING);
+                    Report::sort(models, count, mgr->getSortAttr(), Direction::Descending);
                     foundCount = 0;
                     int i = 0;
                     while ((foundCount < (width < count ? width : count)) && (i < count)) {
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
             keptCount = width < nextCount ? width : nextCount;
             keptModels = new Model*[keptCount];
             printf("models: %d\tkept: %d\n", levelCount, keptCount); fflush(stdout);
-            Report::sort(nextModels, nextCount, mgr->getSortAttr(), DESCENDING);
+            Report::sort(nextModels, nextCount, mgr->getSortAttr(), Direction::Descending);
             int i;
             for (i=0; i < keptCount; i++) {
                 nextModels[i]->setAttribute("level", (double)j+1);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
         delete[] keptModels;
 
         report->setAttributes("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id");
-        report->sort("information", DESCENDING);
+        report->sort("information", Direction::Descending);
         report->print(stdout);
     }
     delete report;

@@ -49,7 +49,7 @@ ManagerBase::ManagerBase(VariableList *vars, Table *input) :
     projTable = NULL;
     inputData = testData = NULL;
     DVOrder = NULL;
-    searchDirection = 0;
+    searchDirection = Direction::Ascending;
     useInverseNotation = 0;
     valuesAreFunctions = false;
     intersectArray = NULL;
@@ -1006,11 +1006,8 @@ bool ManagerBase::hasLoops(Model *model) {
 
 // For information purposes, tells us the direction of the search.
 // 0 = up, 1 = down
-void ManagerBase::setSearchDirection(int dir) {
-    if ((dir == 0) || (dir == 1))
-        searchDirection = dir;
-    else
-        searchDirection = 0;
+void ManagerBase::setSearchDirection(Direction dir) {
+    searchDirection = dir;
 }
 
 double ManagerBase::computeDF(Relation *rel) { // degrees of freedom
@@ -1390,7 +1387,7 @@ void ManagerBase::compareProgenitors(Model *model, Model *newProgen) {
     // searchDirection: 0=up, 1=down.  When searching up, prefer small incr.alpha;  when down, large.
     // Also, when searching up, we first prefer models that are reachable, i.e., every step has IA <= 0.05.
     // If the reference is the top (or is a custom start model above these ones), then prefer large alpha.
-    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == 1))) {
+    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == Direction::Descending))) {
         if (old_IA <= new_IA)
             return;
     } else {

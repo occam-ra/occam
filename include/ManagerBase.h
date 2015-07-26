@@ -148,10 +148,8 @@ class ManagerBase {
         // Sets the direction in which search is occurring, which is mostly used for information.
         // 0 = up, 1 = down.  This doesn't actually control the direction of search, but it's
         // useful for determining other things, such as DDF.
-        void setSearchDirection(int dir);
-        int getSearchDirection() {
-            return searchDirection;
-        }
+        void setSearchDirection(Direction dir);
+        Direction getSearchDirection() { return searchDirection; }
 
         double computeDfSb(Model *model);
 
@@ -277,7 +275,7 @@ class ManagerBase {
         double functionConstant;
         double negativeConstant;
         bool valuesAreFunctions;
-        int searchDirection;
+        Direction searchDirection;
 };
 
 #endif

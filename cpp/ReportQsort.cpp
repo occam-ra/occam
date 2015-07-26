@@ -11,8 +11,8 @@ int *sort_vars;
 KeySegment **sort_keys;
 Table *sort_table;
 const char *sortAttr;
-SortDir sortDir;
-int searchDir;
+Direction sortDir;
+Direction searchDir;
 
 
 int sortCompare(const void *k1, const void *k2) {
@@ -23,16 +23,10 @@ int sortCompare(const void *k1, const void *k2) {
     double l1 = m1->getAttribute("Level");
     double l2 = m2->getAttribute("Level");
     int levelPref = 0;
-    if (searchDir == 0) {
-        levelPref = (l1 > l2) ? -1 : (l1 < l2) ? 1 : 0;
-    } else if (searchDir == 1) {
-        levelPref = (l1 < l2) ? -1 : (l1 > l2) ? 1 : 0;
-    }
-    if (sortDir == DESCENDING) {
-        return (a1 > a2) ? -1 : (a1 < a2) ? 1 : levelPref;
-    } else {
-        return (a1 < a2) ? -1 : (a1 > a2) ? 1 : levelPref;
-    }
+    if      (searchDir == Direction::Ascending)  { levelPref = (l1 > l2) ? -1 : (l1 < l2) ? 1 : 0; } 
+    else if (searchDir == Direction::Descending) { levelPref = (l1 < l2) ? -1 : (l1 > l2) ? 1 : 0; }
+    if (sortDir == Direction::Descending) { return (a1 > a2) ? -1 : (a1 < a2) ? 1 : levelPref; }
+    else                       { return (a1 < a2) ? -1 : (a1 > a2) ? 1 : levelPref; }
 }
 int sortKeys(const void *d1, const void *d2) {
     int keysize = sort_var_list->getKeySize();

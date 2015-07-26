@@ -41,10 +41,10 @@ class Report {
 	void setAttributes(const char *attrlist);
 
 	//-- One-time sort of models, based on the given attribute.
-	void sort(const char *attr, SortDir dir);
+	void sort(const char *attr, Direction dir);
 
 	//-- Static function others can use to sort model lists
-	static void sort(class Model** models, long modelCount, const char *attr, SortDir dir);
+	static void sort(class Model** models, long modelCount, const char *attr, Direction dir);
     const char* bestModelName() { return models[0]->getPrintName(); }
 
 	//-- Print a tabular output format.

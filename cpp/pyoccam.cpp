@@ -140,7 +140,7 @@ DefinePyFunction(VBMManager, searchOneLevel) {
             count++;
     //-- sort them if sort was requested
     if (mgr->getSortAttr()) {
-        Report::sort(models, count, mgr->getSortAttr(), (SortDir) mgr->getSortDirection());
+        Report::sort(models, count, mgr->getSortAttr(), (Direction) mgr->getDirectionection());
     }
     //-- make a PyList
     PyObject *list = PyList_New(count);
@@ -415,9 +415,9 @@ DefinePyFunction(VBMManager, setFilter) {
  VBMManager *mgr = ObjRef(self, VBMManager);
  mgr->setSortAttr(attrName);
  if (strcasecmp(dir, "ascending") == 0)
- mgr->setSortDirection(ASCENDING);
+ mgr->setDirectionection(Direction::Ascending);
  else if (strcasecmp(dir, "descending") == 0)
- mgr->setSortDirection(DESCENDING);
+ mgr->setDirectionection(Direction::Descending);
  else {
  onError("Invalid sort direction");
  }
@@ -466,8 +466,9 @@ DefinePyFunction(VBMManager, setValuesAreFunctions) {
 // void setSearchDirection(int dir)
 // 0 = up, 1 = down
 DefinePyFunction(VBMManager, setSearchDirection) {
-    int dir;
-    PyArg_ParseTuple(args, "i", &dir);
+    int dir_raw;
+    PyArg_ParseTuple(args, "i", &dir_raw);
+    Direction dir = (dir_raw ==  1) ? Direction::Descending : Direction::Ascending;
     ObjRef(self, VBMManager)->setSearchDirection(dir);
     Py_INCREF(Py_None);
     return Py_None;
@@ -883,7 +884,7 @@ DefinePyFunction(SBMManager, searchOneLevel) {
             count++;
     //-- sort them if sort was requested
     if (mgr->getSortAttr()) {
-        Report::sort(models, count, mgr->getSortAttr(), (SortDir) mgr->getSortDirection());
+        Report::sort(models, count, mgr->getSortAttr(), (Direction) mgr->getDirectionection());
     }
     //-- make a PyList
     PyObject *list = PyList_New(count);
@@ -1138,9 +1139,9 @@ DefinePyFunction(SBMManager, setFilter) {
  SBMManager *mgr = ObjRef(self, SBMManager);
  mgr->setSortAttr(attrName);
  if (strcasecmp(dir, "ascending") == 0)
- mgr->setSortDirection(ASCENDING);
+ mgr->setDirectionection(Direction::Ascending);
  else if (strcasecmp(dir, "descending") == 0)
- mgr->setSortDirection(DESCENDING);
+ mgr->setDirectionection(Direction::Descending);
  else {
  onError("Invalid sort direction");
  }
@@ -1152,8 +1153,9 @@ DefinePyFunction(SBMManager, setFilter) {
 // void setSearchDirection(int dir)
 // 0 = up, 1 = down
 DefinePyFunction(SBMManager, setSearchDirection) {
-    int dir;
-    PyArg_ParseTuple(args, "i", &dir);
+    int dir_raw;
+    PyArg_ParseTuple(args, "i", &dir_raw);
+    Direction dir = (dir_raw ==  1) ? Direction::Descending : Direction::Ascending;
     ObjRef(self, SBMManager)->setSearchDirection(dir);
     Py_INCREF(Py_None);
     return Py_None;
@@ -1744,9 +1746,9 @@ DefinePyFunction(Report, sort) {
     char *direction;
     PyArg_ParseTuple(args, "ss", &attr, &direction);
     if (strcasecmp(direction, "ascending") == 0) {
-        report->sort(attr, ASCENDING);
+        report->sort(attr, Direction::Ascending);
     } else if (strcasecmp(direction, "descending") == 0) {
-        report->sort(attr, DESCENDING);
+        report->sort(attr, Direction::Descending);
     } else {
         onError("Invalid sort direction");
     }

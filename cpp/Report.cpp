@@ -84,19 +84,19 @@ void Report::setAttributes(const char *attrlist) {
     }
 }
 
-void Report::sort(const char *attr, SortDir dir) {
+void Report::sort(const char *attr, Direction dir) {
     extern const char *sortAttr;
-    extern SortDir sortDir;
-    extern int searchDir;
+    extern Direction sortDir;
+    extern Direction searchDir;
     sortAttr = attr;
     sortDir = dir;
     searchDir = manager->getSearchDirection();
     qsort(models, modelCount, sizeof(Model*), sortCompare);
 }
 
-void Report::sort(class Model** models, long modelCount, const char *attr, SortDir dir) {
+void Report::sort(class Model** models, long modelCount, const char *attr, Direction dir) {
     extern const char *sortAttr;
-    extern SortDir sortDir;
+    extern Direction sortDir;
     sortAttr = attr;
     sortDir = dir;
     qsort(models, modelCount, sizeof(Model*), sortCompare);
@@ -126,7 +126,7 @@ void Report::print(FILE *fd) {
     // Create a mapping for IDs so they are listed in order.
     int idOrder[modelCount + 1];
     idOrder[0] = 0;
-    if (manager->getSearchDirection() == 1) {
+    if (manager->getSearchDirection() == Direction::Descending) {
         for (int m = 0; m < modelCount; m++) {
             idOrder[models[m]->getID()] = m + 1;
             models[m]->setID(m + 1);
@@ -170,7 +170,8 @@ void Report::print(FILE *fd) {
 //    }
     bool checkIncr = false;
     bool showIncr = false;
-    if ((manager->getSearchDirection() == 0) && (models[0]->getAttribute(ATTRIBUTE_INCR_ALPHA) != -1)) {
+    if ((manager->getSearchDirection() == Direction::Ascending) 
+     && (models[0]->getAttribute(ATTRIBUTE_INCR_ALPHA) != -1)) {
         checkIncr = true;
     }
 
