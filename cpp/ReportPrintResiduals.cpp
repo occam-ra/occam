@@ -2,28 +2,6 @@
 #include "ManagerBase.h"
 #include <cstring>
 
-template <typename F>
-void tableIteration(Table* input_table, VariableList* varlist, Relation* rel,
-                    Table* fit_table, long var_count, F action) {
-    long long dataCount = input_table->getTupleCount();
-    int *key_order = new int[dataCount];
-    for (long long i = 0; i < dataCount; i++) { key_order[i] = i; }
-    sort_var_list = varlist;
-    sort_count = var_count;
-    sort_vars = NULL;
-    sort_keys = NULL;
-    sort_table = input_table;
-    qsort(key_order, dataCount, sizeof(int), sortKeys);
-    for (long long order_i = 0; order_i < dataCount; order_i++) {
-        int i = key_order[order_i];
-        KeySegment* refkey = input_table->getKey(i);
-        double refvalue = input_table->getValue(i);
-        long long index = fit_table->indexOf(refkey, true);
-        double value = index == -1 ? 0.0 : fit_table->getValue(index);
-        action(rel, index, value, refkey, refvalue);
-    }
-}
-
 void Report::printResiduals(FILE *fd, Model *model) {
     printResiduals(fd, model, NULL);
 }
@@ -34,12 +12,11 @@ void Report::printResiduals(FILE *fd, Relation *rel) {
 
 void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
     VariableList *varlist = manager->getVariableList();
-    if (varlist->isDirected())
-        return;
+    if (varlist->isDirected()) {  return; }
+    long var_count = varlist->getVarCount();
     Table *input_data = manager->getInputData();
     Table *test_data = manager->getTestData();
     Table *input_table = NULL, *fit_table = NULL, *test_table = NULL;
-    long var_count = varlist->getVarCount();
     double sample_size = manager->getSampleSz();
     double test_sample_size = manager->getTestSampleSize();
     int keysize = input_data->getKeySize();
@@ -145,9 +122,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
     }
     fprintf(fd, header);
  
-    // factor from here?
-    
-
     auto tableAction = [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue) {
         char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
         Key::keyToUserString(refkey, varlist, keystr, delim);
@@ -160,7 +134,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
     };
     
     tableIteration(input_table, varlist, rel, fit_table, var_count, tableAction);  
-    // factor to here?
 
     fprintf(fd, footer);
     if (test_table != NULL) {

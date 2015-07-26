@@ -11,6 +11,7 @@ HEADERS = \
 	include/attrDescs.h \
 	include/_Core.h \
 	include/Core.h \
+	include/FlatTable.h \
 	include/Input.h \
 	include/ManagerBase.h \
 	include/Math.h \

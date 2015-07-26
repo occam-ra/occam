@@ -43,121 +43,86 @@ double ocTransmission(Table *p, Table *q) {
     return h;
 }
 
-double ocAbsDist(Table *p, Table *q) {
+long long unifySize(const flat_table& p, const flat_table& q) {
+    if (p.size() != q.size()) {
+        printf("Error: the two tables have somehow ended up with a different number of tuples...\n");
+        exit(1);
+    }
+    else return p.size();
+}
+
+double ocTransmissionFlat(const flat_table& p, const flat_table& q) {
+    double h = 0.0;
+    long long count = unifySize(p, q);
+    for (long long i = 0; i < count; i++) {
+        double pv = p[i];
+        double qv = q[i];
+        double a = (qv > PROB_MIN && pv > PROB_MIN)
+                 ? (pv * log(pv / qv)) : 0;
+        h += a;
+    }
+    return h / log(2.0);
+}
+
+double ocAbsDist(const flat_table& p, const flat_table& q) {
+    long long size = unifySize(p, q);
+
 
     double h = 0.0;
-    // Find all tuples in p and also q, and assume value of 0 for tuples not in q
-    long long count = p->getTupleCount();
-    for (long long i = 0; i < count; i++) {
-        double pv = p->getValue(i);
-        KeySegment *pv_key = p->getKey(i);
-        long long qi_index = q->indexOf(pv_key); // find matching entry in q
-        double qv = qi_index >= 0 ? q->getValue(qi_index) : 0.0;   
-        
-        
-        //printf("%g-%g = %g<br>", pv, qv, fabs(pv-qv));
-        h += fabs(pv - qv);
-    }
+    for (long long i = 0; i < size; i++) { h += fabs(p[i] - q[i]); }
 
-    // Now cover the tuples in q and not in p (and assume value of 0 for the p tuple)
-    count = q->getTupleCount();
-    for (long long i = 0; i < count; i++) {
-        KeySegment *qv_key = q->getKey(i);
-        long long pi_index = p->indexOf(qv_key); // find matching entry in p
-        double qv = pi_index < 0 ? q->getValue(i) : 0.0;   
-
-        //printf("%g<br>", qv);
-        h += qv;
-    }
     return h;
 }
 
-double ocEucDist(Table *p, Table *q) {
+double ocEucDist(const flat_table& p, const flat_table& q) {
+    long long count = unifySize(p, q);
     double h = 0.0;
-    // Find all tuples in p and also q, and assume value of 0 for tuples not in q
-    long long count = p->getTupleCount();
     for (long long i = 0; i < count; i++) {
-        double pv = p->getValue(i);
-        KeySegment *pv_key = p->getKey(i);
-        long long qi_index = q->indexOf(pv_key); // find matching entry in q
-        double qv = qi_index >= 0 ? q->getValue(qi_index) : 0.0;   
+        double pv = p[i];
+        double qv = q[i];
         h += (pv - qv) * (pv - qv);
-    }
-
-    // Now cover the tuples in q and not in p (and assume value of 0 for the p tuple)
-    count = q->getTupleCount();
-    for (long long i = 0; i < count; i++) {
-        KeySegment *qv_key = q->getKey(i);
-        long long pi_index = p->indexOf(qv_key); // find matching entry in p
-        double qv = pi_index < 0 ? q->getValue(i) : 0.0;   
-        h += qv * qv;
     }
     return sqrt(h);
 }
 
-double ocHellingerDist(Table *p, Table *q) {
+double ocHellingerDist(const flat_table& p, const flat_table& q) {
+    long long count = unifySize(p, q);
     double h = 0.0;
-    // Find all tuples in p and also q, and assume value of 0 for tuples not in q
-    long long count = p->getTupleCount();
     for (long long i = 0; i < count; i++) {
-        double pv = p->getValue(i);
-        KeySegment *pv_key = p->getKey(i);
-        long long qi_index = q->indexOf(pv_key); // find matching entry in q
-        double qv = qi_index >= 0 ? q->getValue(qi_index) : 0.0;   
+        double pv = p[i];
+        double qv = q[i];
         h += sqrt(pv * qv);
     }
     return sqrt(1-h);
 }
 
-
-double ocMaxDist(Table *p, Table *q) {
-
+double ocMaxDist(const flat_table& p, const flat_table& q) {
     double h = 0.0;
-    // Find all tuples in p and also q, and assume value of 0 for tuples not in q
-    long long count = p->getTupleCount();
+    long long count = unifySize(p, q);
     for (long long i = 0; i < count; i++) {
-        double pv = p->getValue(i);
-        KeySegment *pv_key = p->getKey(i);
-        long long qi_index = q->indexOf(pv_key); // find matching entry in q
-        double qv = qi_index >= 0 ? q->getValue(qi_index) : 0.0;   
+        double pv = p[i];
+        double qv = q[i];
         double t = fabs(pv - qv);
         if (t > h) h = t;
     }
-
-    // Now cover the tuples in q and not in p (and assume value of 0 for the p tuple)
-    count = q->getTupleCount();
-    for (long long i = 0; i < count; i++) {
-        KeySegment *qv_key = q->getKey(i);
-        long long pi_index = p->indexOf(qv_key); // find matching entry in p
-        double qv = pi_index < 0 ? q->getValue(i) : 0.0;   
-        if (qv > h) h = qv;
-    }
     return h;
 }
 
-double ocInfoDist(Table* p1, Table* q1, Table* q2) {
+double ocInfoDist(const flat_table& p1, const flat_table& q1, const flat_table& q2) {
     double h = 0.0;
-    auto count = p1->getTupleCount();
+    auto count = unifySize(q1, q2);
+    count = unifySize(p1, q1);
     /* For each state in `p1` */
     for (auto i = 0; i < count; ++i) {
-        /* Find the value of the state in `p1` */
-        auto p1v = p1->getValue(i);
-        /* Find the key describing the state name */
-        auto p1k = p1->getKey(i);
-        /* Find the indices for the corresponding states in `q1` and `q2` */
-        auto q1i = q1->indexOf(p1k);
-        auto q2i = q2->indexOf(p1k);
-        /* Find the values at the indices for the states in `q1` and `q2` */
-        auto q1v = q1i >= 0 ? q1->getValue(q1i) : 0.0;
-        auto q2v = q2i >= 0 ? q2->getValue(q2i) : 0.0;
-        /* If all three values are greater than 0, they contribute to the sum */
-        if (p1v > PROB_MIN && q1v > PROB_MIN && q2v > PROB_MIN) h += p1v * log(q1v / q2v);
+        auto p1v = p1[i];
+        auto q1v = q1[i];
+        auto q2v = q2[i];
+        if (p1v > PROB_MIN && q1v > PROB_MIN && q2v > PROB_MIN) {
+            h += p1v * log(q1v / q2v);
+        }
     }
-    /* Convert the sum to correspond to log base 2 */
-    h /= log(2.0);
-    return h;
+    return h / log(2.0);
 }
-
 
 double ocPearsonChiSquared(Table *p, Table *q, long sampleSize) {
     // To prevent underflow errors, probabilities
@@ -1195,4 +1160,3 @@ double ocDegreesOfFreedomStateBased(Model *model) {
     delete[] matrix;
     return rank - 1;
 }
-

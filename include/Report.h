@@ -88,12 +88,6 @@ class Report {
 	void printSearchRow(FILE *fd, Model* model, int* attrID, bool isOddRow);
 };
 
-extern VariableList* sort_var_list;
-extern int sort_count;
-extern int* sort_vars;
-extern KeySegment** sort_keys;
-extern Table* sort_table;
-
 
 
 #endif

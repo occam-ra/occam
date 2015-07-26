@@ -5,6 +5,8 @@
 
 #include <float.h>
 #include "Core.h"
+#include "VBMManager.h"
+#include "FlatTable.h"
 
 /**
  * The functions below are common mathematical operations, where the input
@@ -25,11 +27,13 @@ double ocEntropy(Table *p);
  * zero if either pi or qi are zero.
  */
 double ocTransmission(Table *p, Table *q);
-double ocInfoDist(Table* p1, Table* q1, Table* q2);
-double ocAbsDist(Table *p, Table *q);
-double ocEucDist(Table *p, Table *q);
-double ocHellingerDist(Table *p, Table *q);
-double ocMaxDist(Table *p, Table *q);
+
+double ocInfoDist(const flat_table& p1, const flat_table& q1, const flat_table& q2);
+double ocAbsDist(const flat_table& p, const flat_table& q);
+double ocTransmissionFlat(const flat_table& p, const flat_table& q);
+double ocEucDist(const flat_table& p, const flat_table& q);
+double ocHellingerDist(const flat_table& p, const flat_table& q);
+double ocMaxDist(const flat_table& p, const flat_table& q);
 
 /**
  * Compute Pearson chisquare measure, 2*nsum((p-q)^2/q). The P table is assumed

@@ -10,6 +10,8 @@
 #include "SearchBase.h"
 #include "Report.h"
 #include "Math.h"
+
+#include "FlatTable.h"
 //#include "Win32.h"
 #include "unistd.h"
 
@@ -674,91 +676,93 @@ DefinePyFunction(VBMManager, computeUnaryStatistic) {
 }
 
 DefinePyFunction(VBMManager, computeBinaryStatistic) {
+
+    /* Lambda functions used throughout the procedure */
+    /* todo: adapt this */
+   
+    // not even slightly thread safe
+    auto mkTableAction = [](VariableList* varlist, long long var_count, flat_table& out) {
+        static int i; i = 0; // these statements must be separate so that i gets set when this is called,
+                             // otherwise i will not be reset for sequential calls to the function.
+        return [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue) {
+            out[i] = value; i += 1;
+        };
+    };
+
+    auto getTable = [&](VBMManager& mgr, char* file, char* model) {
+        // initialize OCCAM
+        char* nm = "occam";
+        char* argv[2] = {nm, file};
+        mgr.initFromCommandLine(2, argv);
+        Table* input = mgr.getInputData();
+        VariableList* varlist = mgr.getVariableList();
+        long var_count = varlist->getVarCount();
+        Model* mod = mgr.makeModel(model, true) ;
+
+        mgr.computeL2Statistics(mod);
+        mgr.computeDFStatistics(mod);
+        mgr.computeDependentStatistics(mod);
+        mgr.makeFitTable(mod);
+        Table* fit = mgr.getFitTable();
+        fit->sort();
+        fit->normalize();
+        
+        int tupleCount = fit->getTupleCount();
+        flat_table table(tupleCount);
+        auto tableAction = mkTableAction(varlist, var_count, table);
+        tableIteration(input, varlist, NULL, fit, var_count, tableAction);
+        
+        /* debugging output - DISABLE */
+        // printf("Fit table for %s: \n<br/>", model);
+        // for(int i = 0; i < tupleCount; ++i) {
+        //     printf("%g\n<br/>", table[i]);
+        // }      
+        // printf("End fit table for %s\n<br/>", model);
+        /* end debugging output */
+
+        // copy the table values, in order, into a normal array
+        /* is rel == null here? */
+        return table;
+    };
+
+    /* Get the arguments from Python-land */
     char* file1;
     char* model1;
     char* file2;
     char* model2;
     char* statistic;
-
     PyArg_ParseTuple(args, "sssss", &file1, &model1, &file2, &model2, &statistic);
     
+
+    /* Initialize the fit tables */
     VBMManager mgr1;
     VBMManager mgr2;
-
-    constexpr int argc = 2;
-    char* nm = "occam";
-    char* argv1[argc] = {nm, file1};
-    char* argv2[argc] = {nm, file2};
-    mgr1.initFromCommandLine(argc, argv1);
-    mgr2.initFromCommandLine(argc, argv2);
-
-    Model* mod1 = mgr1.makeModel(model1, true);
-    mgr1.computeL2Statistics(mod1);
-    mgr1.computeDFStatistics(mod1);
-    mgr1.computeDependentStatistics(mod1);
-
-    //mgr1.printFitReport(mod1, stdout);
-    Report report1(&mgr1);
-    report1.setHTMLMode(true);
-    mgr1.makeFitTable(mod1);
-    report1.printResiduals(stdout, mod1);
-
-    Table* fit1 = mgr1.getFitTable();
-    fit1->sort();
-    fit1->normalize();
-   
-   /* debugging output, not used */
-    printf("Fit table for %s %s: ", model1, statistic);
-    fit1->dump(true);
+    flat_table fit1 = getTable(mgr1, file1, model1); 
+    flat_table fit2 = getTable(mgr2, file2, model2);
     
-    printf("<br></br>");
+    /* do the input table */
+    Table* input1 = mgr1.getInputData();
+    flat_table input1flat(input1->getTupleCount());
+    VariableList* varlist = mgr1.getVariableList();
+    long var_count = varlist->getVarCount();
+    auto tableAction = mkTableAction(varlist, var_count, input1flat);
+    tableIteration(input1, varlist, NULL, NULL, var_count, tableAction);
 
-    Model* mod2 = mgr2.makeModel(model2, true);
-    Report report2(&mgr2);
-    report2.setHTMLMode(true);
-    mgr2.makeFitTable(mod2);
-    report2.printResiduals(stdout, mod2);
-    
-    Table* fit2 = mgr2.getFitTable();
-    fit2->sort();
-    fit2->normalize();
-    
-    printf("Fit table for %s %s: ", model2, statistic);
-    fit2->dump(true);
-    printf("<br></br>");
-    
+    /* Do the actual comparison */
     double ret = 0;
-    if (!strcmp(statistic,"Information dist")) {
-        Model* ref1;
-        Table* ref1Tab;
-        ref1 = mgr1.getTopRefModel();
-        mgr1.makeFitTable(ref1);
-        ref1Tab = new Table(mgr1.getKeySize(), mgr1.getFitTable()->getTupleCount());
-        ref1Tab->copy(mgr1.getFitTable());
-        ret = ocInfoDist(ref1Tab, fit1, fit2);
-        delete ref1Tab;
-    } else if (!strcmp(statistic, "Hellinger dist")) {
-        ret = ocHellingerDist(fit1, fit2);
-    } else if (!strcmp(statistic, "Euclidean dist")) {
-        ret = ocEucDist(fit1, fit2);
-    } else if (!strcmp(statistic, "Maximum dist")) {
-        ret = ocMaxDist(fit1, fit2);
-    } else if (!strcmp(statistic, "Kullback-Leibler dist")) {
-        ret = ocTransmission(fit1, fit2);
-    } else if (!strcmp(statistic, "Absolute dist")) {
-        ret = ocAbsDist(fit1, fit2);
-    
-    } else {
+    if (!strcmp(statistic,"Information dist")) { ret = ocInfoDist(input1flat, fit1, fit2); } else 
+    if (!strcmp(statistic, "Kullback-Leibler dist")) { ret = ocTransmissionFlat(fit1, fit2); } else 
+    if (!strcmp(statistic, "Hellinger dist"))   { ret = ocHellingerDist(fit1, fit2); } else 
+    if (!strcmp(statistic, "Euclidean dist"))   { ret = ocEucDist(fit1, fit2); }       else 
+    if (!strcmp(statistic, "Maximum dist"))     { ret = ocMaxDist(fit1, fit2); }       else
+    if (!strcmp(statistic, "Absolute dist"))    { ret = ocAbsDist(fit1, fit2); } 
+    else {
         printf("Error: invalid pairwise comparison statistic '%s'.\n", statistic);
         exit(1);
     }
 
-    //delete fit1;
-    //delete fit2;
     return Py_BuildValue("f", ret);
 }
-
-
 
 static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initFromCommandLine),
         PyMethodDef(VBMManager, makeAllChildRelations), PyMethodDef(VBMManager, makeChildModel),
