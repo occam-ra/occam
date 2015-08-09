@@ -22,8 +22,7 @@ HEADERS = \
 	include/SBMManager.h \
 	include/SearchBase.h \
 	include/Search.h \
-	include/VBMManager.h \
-	include/Win32.h
+	include/VBMManager.h
 
 CPP_FILES = \
 	cpp/AttributeList.cpp \

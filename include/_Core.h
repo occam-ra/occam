@@ -26,16 +26,4 @@ int ocCompareVariables(int varCount1, int *var1, int varCount2, int *var2);
 bool ocContainsVariables(int varCount1, int *var1, int varCount2, int *var2);
 bool ocContainsStates(int var_count1, int *var1, int *states1, int var_count2, int *var2, int *states2);
 
-#undef TRACE_MEMORY
-
-#ifdef TRACE_MEMORY
-inline void* operator new (size_t inSize) {
-    if (inSize > 1024) {
-        void *addr = __builtin_return_address(0);
-        printf ("new: [%x] size=%ld\n", addr, inSize);
-    }
-    return malloc(inSize);
-}
-#endif
-
 #endif

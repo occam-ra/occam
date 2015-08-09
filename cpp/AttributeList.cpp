@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "Win32.h"
 
 /**
  * AttributeList.cpp - implements an attribute list, a sequence of name/value

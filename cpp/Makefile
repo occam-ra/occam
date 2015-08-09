@@ -69,7 +69,7 @@ $(CL): occ.cpp $(LIB)
 
 # output of g++ -MM *.cpp
 AttributeList.o: AttributeList.cpp ../include/Core.h \
- ../include/ModelCache.h ../include/_Core.h ../include/Win32.h
+ ../include/ModelCache.h ../include/_Core.h
 _Core.o: _Core.cpp ../include/_Core.h ../include/Core.h \
  ../include/ModelCache.h
 Input.o: Input.cpp ../include/Input.h ../include/Core.h \
