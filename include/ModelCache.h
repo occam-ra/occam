@@ -1,5 +1,5 @@
-#ifndef OCMODELCACHE_H
-#define OCMODELCACHE_H
+#ifndef ___ModelCache
+#define ___ModelCache
 
 /**
  * ModelCache.h - defines the model cache.  This provides a way to reuse model

@@ -1,5 +1,5 @@
-#ifndef OCSBM_MANAGER_H
-#define OCSBM_MANAGER_H
+#ifndef ___StateBasedManager
+#define ___StateBasedManager
 
 #include "ManagerBase.h"
 

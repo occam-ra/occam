@@ -1,5 +1,5 @@
-#ifndef _OCCORE_H
-#define _OCCORE_H
+#ifndef ___Core
+#define ___Core
 
 #include "stdlib.h"
 #include "stdio.h"

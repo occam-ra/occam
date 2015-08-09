@@ -1,3 +1,5 @@
+#ifndef ___Search
+#define ___Search
 #include "SearchBase.h"
 
 class SearchFullDown : public SearchBase {
@@ -90,3 +92,5 @@ class SearchChain : public SearchBase {
 	Relation *indOnlyRel; // index of IV relation, -1 for neutral systems
 	bool isDirected;
 };
+
+#endif

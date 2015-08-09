@@ -1,5 +1,5 @@
-#ifndef OCRELCACHE_H
-#define OCRELCACHE_H
+#ifndef ___RelationCache
+#define ___RelationCache
 
 /**
  * RelCache.h - defines the relation cache.  This provides a way to reuse relation

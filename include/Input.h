@@ -1,5 +1,5 @@
-#ifndef OCINPUT_H
-#define OCINPUT_H
+#ifndef ___Input
+#define ___Input
 
 #include "Table.h"
 

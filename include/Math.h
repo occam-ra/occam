@@ -1,5 +1,5 @@
-#ifndef OCMATH_H
-#define OCMATH_H
+#ifndef ___Math
+#define ___Math
 
 #include <float.h>
 #include "VBMManager.h"

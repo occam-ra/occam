@@ -1,5 +1,5 @@
-#ifndef OCVBM_MANAGER_H
-#define OCVBM_MANAGER_H
+#ifndef ___VariableBasedManager
+#define ___VariableBasedManager
 
 #include "ManagerBase.h"
 

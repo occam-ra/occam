@@ -1,5 +1,5 @@
-#ifndef ___flat_table
-#define ___flat_table
+#ifndef ___FlatTable
+#define ___FlatTable
 
 #include <stdlib.h>
 #include <stdio.h>

@@ -1,5 +1,5 @@
-#ifndef OCMANAGER_BASE_H
-#define OCMANAGER_BASE_H
+#ifndef ___ManagerBase
+#define ___ManagerBase
 
 #include "Model.h"
 #include "Options.h"

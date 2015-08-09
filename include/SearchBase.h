@@ -1,5 +1,5 @@
-#ifndef OCSEARCHBASE_H
-#define OCSEARCHBASE_H
+#ifndef ___SearchBase
+#define ___SearchBase
 
 #include "ManagerBase.h"
 #include "VBMManager.h"

@@ -1,5 +1,5 @@
-#ifndef OCREPORT_H
-#define OCREPORT_H
+#ifndef ___Report
+#define ___Report
 
 #include "Model.h"
 
