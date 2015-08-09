@@ -4,7 +4,8 @@
 #include "Constants.h"
 
 // attrDesc: name, title, fmt (all const char*)
-struct attrDesc {
+class attrDesc {
+    public:
         const char *name;
         const char *title;
         const char *fmt;

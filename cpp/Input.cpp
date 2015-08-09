@@ -246,7 +246,7 @@ void ocRebinDefineVar(Options *options, VariableList *vars, LostVar ** lostvarp)
                 cp++;
             if (((v = strncmp(cp, e, 7)) == 0) && type != 0) {
                 //************exclude case**************
-                ocVariable *varpt = NULL;
+                Variable *varpt = NULL;
                 char myvalue[100];
                 //while (*cp && isspace(*cp)) cp++;
                 isdv = type == 2;
@@ -433,7 +433,7 @@ void ocRebinDefineVar(Options *options, VariableList *vars, LostVar ** lostvarp)
                     //Though cardinality might need adjusting
                     //The cardinality (if rebinning is used) is equal to the number of ';'+1
                     //int oldnewTable[2][MAXCARDINALITY];
-                    ocVariable *varpt = NULL;
+                    Variable *varpt = NULL;
                     int card = 1;
                     char* locator = rebin;
                     int index = 0;

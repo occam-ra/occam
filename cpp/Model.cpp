@@ -116,7 +116,7 @@ int * Model::getIndicesFromKey(KeySegment *key, VariableList *vars, int statespa
     //maximum number of states that can constrained by a relation
     int *indices = new int[statespace];
     for (int i = 0; i < varcount; i++) {
-        ocVariable *var = vars->getVariable(i);
+        Variable *var = vars->getVariable(i);
         KeySegment mask = var->mask;
         int segment = var->segment;
         int value = 0;
@@ -249,7 +249,7 @@ int** Model::makeStateSpaceArray(VariableList *varList, int statespace) {
         }
         rap: if (i + 1 == statespace)
             break;
-        ocVariable *var = varList->getVariable(l);
+        Variable *var = varList->getVariable(l);
         int card = var->cardinality;
         if (stateSpaceArray[i][l] == (card - 1)) {
             stateSpaceArray[i + 1][l] = 0;

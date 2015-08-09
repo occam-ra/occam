@@ -22,7 +22,7 @@ class VariableList {
         int getKeySize();
 
         //-- get the information about a variable
-        ocVariable *getVariable(int index);
+        Variable *getVariable(int index);
 
         //-- get the number of variables
         int getVarCount() {
@@ -81,7 +81,7 @@ class VariableList {
         int getNewValue(int, char*, char*);
 
     private:
-        ocVariable *vars;
+        Variable *vars;
         int varCount; // number of variables defined so far
         int varCountDF; //(Anjali) original no. of variables in data file, some may be marked for no use
         int maxVarCount; // max number of variables

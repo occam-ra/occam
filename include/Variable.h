@@ -4,7 +4,8 @@
 #include "Constants.h"
 #include "Types.h"
 
-struct ocVariable { // internal use only - see VariableList
+class Variable { // internal use only - see VariableList
+    public:
         int cardinality; // number of values of the variable
         int segment; // which KeySegment of the key this variable is in
         int shift; // starting rightmost bit position of value in segment

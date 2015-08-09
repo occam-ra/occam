@@ -274,7 +274,7 @@ ManagerBase::~ManagerBase() {
 // stateindices list, a state value of -1 implies a dont_care value
 long ManagerBase::calcStateConstSize(int varcount, int *varindices, int *stateindices) {
     long size = 1;
-    ocVariable *var;
+    Variable *var;
     if (varindices == NULL || stateindices == NULL)
         return -1;
     for (int i = 0; i < varcount; i++) {
@@ -289,7 +289,7 @@ long ManagerBase::calcStateConstSize(int varcount, int *varindices, int *statein
 //--add the constraints for a relation
 int ManagerBase::addConstraint(int varcount, int *varindices, int *stateindices, int* stateindices_c,
         KeySegment* start1, Relation *rel) {
-    ocVariable *var;
+    Variable *var;
     int keysize = getKeySize();
     int count = varcount - 1;
     int card = 0;
@@ -620,7 +620,7 @@ int ManagerBase::getDvOrder(int index) {
 }
 
 static double *sort_freq;
-static ocVariable *sort_dv_var;
+static Variable *sort_dv_var;
 int sortDV(const void *d1, const void *d2) {
     int a = *(int*) d1;
     int b = *(int*) d2;

@@ -386,7 +386,7 @@ void SearchSbFullUp::recurseDirected(Model *start, int cur_var, int cur_index, i
         }
         return;
     } else {
-        ocVariable *var = var_list->getVariable(cur_var);
+        Variable *var = var_list->getVariable(cur_var);
         // first call recursion without this variable, to skip it
         recurseDirected(start, cur_var + 1, cur_index, var_indices, state_indices, models_found, model_list);
         // then call it with each of the states
@@ -450,7 +450,7 @@ Model** SearchSbFullUp::search(Model* start) {
             memset(var_indices, 0, var_count * sizeof(int));
             memset(state_indices, 0, var_count * sizeof(int));
             // compute number of models we're going to generate
-            ocVariable *DV = var_list->getVariable(var_list->getDV());
+            Variable *DV = var_list->getVariable(var_list->getDV());
             max_models = DV->cardinality;
             if (DV->cardinality == 2)
                 max_models = 1;
@@ -644,7 +644,7 @@ void SearchSbLooplessUp::recurseDirected(int cur_var, int cur_index, int *var_in
         }
         return;
     } else {
-        ocVariable *var = var_list->getVariable(cur_var);
+        Variable *var = var_list->getVariable(cur_var);
         // first call recursion without this variable, to skip it
         recurseDirected(cur_var + 1, cur_index, var_indices, state_indices, models_found, model_list);
         // then call it with each of the states
@@ -699,7 +699,7 @@ Model **SearchSbLooplessUp::search(Model *start) {
         printf("SearchSbLooplessUp: Error. Cannot complete a loopless search starting from a model with a loop.\n");
         exit(1);
     }
-    ocVariable *DV = var_list->getVariable(var_list->getDV());
+    Variable *DV = var_list->getVariable(var_list->getDV());
     if (var_list->isDirected()) {
         // Directed system
         // "start" must either have 2 relations (IV:DV) or 3 (IV:DV:...). In the first case, we add a third relation,

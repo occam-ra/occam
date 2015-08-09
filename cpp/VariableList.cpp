@@ -32,7 +32,7 @@ VariableList::VariableList(int maxVars) {
     maxVarCount = maxVars;
     varCount = 0;
     varCountDF = 0;
-    vars = new ocVariable[maxVars];
+    vars = new Variable[maxVars];
     maxAbbrevLen = 0;
     //Anjali
     //maxVarMask = MAX_MASK;
@@ -47,7 +47,7 @@ VariableList::VariableList(int maxVars) {
 
 VariableList::~VariableList() {
     for (int i = 0; i < varCount; i++) {
-        ocVariable *varp = vars + i;
+        Variable *varp = vars + i;
         for (int j = 0; j < varp->cardinality; j++) {
             delete varp->valmap[j];
         }
@@ -61,7 +61,7 @@ VariableList::~VariableList() {
 }
 
 long VariableList::size() {
-    return maxVarCount * sizeof(ocVariable) + sizeof(VariableList);
+    return maxVarCount * sizeof(Variable) + sizeof(VariableList);
 }
 
 /*
@@ -71,10 +71,10 @@ int VariableList::addVariable(const char *name, const char *abbrev, int cardinal
         int old_card) {
     const int GROWTH_FACTOR = 2;
     while (varCount >= maxVarCount) {
-        vars = (ocVariable*) growStorage(vars, maxVarCount*sizeof(ocVariable), GROWTH_FACTOR);
+        vars = (Variable*) growStorage(vars, maxVarCount*sizeof(Variable), GROWTH_FACTOR);
         maxVarCount *= GROWTH_FACTOR;
     }
-    ocVariable *varp = vars + (varCount++);
+    Variable *varp = vars + (varCount++);
     varCountDF++;
     while (varCountDF > noUseMaskSize) {
         noUseMask = (bool*) growStorage(noUseMask, noUseMaskSize*sizeof(bool), GROWTH_FACTOR);
@@ -111,7 +111,7 @@ int VariableList::addVariable(const char *name, const char *abbrev, int cardinal
         varp->shift = KEY_SEGMENT_BITS - varp->size;
     } else {
         //-- see if key will fit in the last segment of the key
-        ocVariable *lastp = varp - 1; // previous entry
+        Variable *lastp = varp - 1; // previous entry
         if (lastp->shift >= varp->size) {
             varp->segment = lastp->segment;
             varp->shift = lastp->shift - varp->size;
@@ -209,7 +209,7 @@ int VariableList::getKeySize() {
 /**
  * getVariable - return a pointer to a variable structure, by index
  */
-ocVariable *VariableList::getVariable(int index) {
+Variable *VariableList::getVariable(int index) {
     return vars + index;
 }
 
@@ -220,7 +220,7 @@ void VariableList::dump() {
     printf("VariableList: varCount = %d, maxVarCount=%d\n", varCount, maxVarCount);
     printf("\tDV\tCard\tSeg\tSiz\tShft\tName\t\tAbb\tMask\n");
     for (int i = 0; i < varCount; i++) {
-        ocVariable *v = vars + i;
+        Variable *v = vars + i;
         printf("\t%d\t%d\t%d\t%d\t%d\t%8s\t%s\t%0*lx\t", v->dv, v->cardinality, v->segment, v->size, v->shift, v->name,
                 v->abbrev, sizeof(KeySegment) * 2, v->mask);
         for (int j = 0; j < v->cardinality; j++) {

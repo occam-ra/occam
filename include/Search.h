@@ -13,7 +13,7 @@ class SearchFullUp : public SearchBase {
 	SearchFullUp(): parentList(0), parentListCount(0), parentListMax(0) {};
 	virtual ~SearchFullUp() {};
 	Model **search(Model *start);
-	void makeCandidate(struct SearchStackEntry *stack, int top, Model *start);
+	void makeCandidate(class SearchStackEntry *stack, int top, Model *start);
 	static SearchBase *make() { return new SearchFullUp(); }
 
     protected:

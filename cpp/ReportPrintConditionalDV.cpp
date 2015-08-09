@@ -28,7 +28,7 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
         return;
 
     int dv_index = var_list->getDV(); // Get the first DV's index
-    ocVariable *dv_var = var_list->getVariable(dv_index); // Get the (first) DV itself
+    Variable *dv_var = var_list->getVariable(dv_index); // Get the (first) DV itself
     int var_count = var_list->getVarCount(); // Get the number of variables
     int key_size = input_data->getKeySize(); // Get the key size from the reference data
     int dv_card = dv_var->cardinality; // Get the cardinality of the DV

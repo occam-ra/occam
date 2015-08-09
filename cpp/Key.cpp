@@ -14,7 +14,7 @@ void Key::buildKey(KeySegment *key, int keysize, class VariableList *vars,
     int i;
     for (i = 0; i < keysize; i++) key[i] = DONT_CARE;
     for (i = 0; i < varcount; i++) {
-        ocVariable *var = vars->getVariable(varindices[i]);
+        Variable *var = vars->getVariable(varindices[i]);
         KeySegment mask = var->mask;
         int segment = var->segment;
         key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
@@ -31,7 +31,7 @@ void Key::buildFullKey(KeySegment *key, int keysize, class VariableList *vars, i
     int varcount = vars->getVarCount();
     for (i = 0; i < keysize; i++) key[i] = DONT_CARE;
     for (i = 0; i < varcount; i++) {
-        ocVariable *var = vars->getVariable(i);
+        Variable *var = vars->getVariable(i);
         KeySegment mask = var->mask;
         int segment = var->segment;
         key[segment] = (key[segment] & ~mask) | ((varvalues[i] << var->shift) & mask);
@@ -44,7 +44,7 @@ void Key::buildFullKey(KeySegment *key, int keysize, class VariableList *vars, i
  */
 void Key::setKeyValue(KeySegment *key, int keysize, class VariableList *vars, int index, int value)
 {
-    ocVariable *var = vars->getVariable(index);
+    Variable *var = vars->getVariable(index);
     int segment = var->segment;
     KeySegment mask = var->mask;
     key[segment] = (key[segment] & ~mask) | ((value << var->shift) & mask);
@@ -57,7 +57,7 @@ void Key::setKeyValue(KeySegment *key, int keysize, class VariableList *vars, in
 int Key::getKeyValue(KeySegment *key, int keysize, class VariableList *vars, int index)
 {
     KeySegment temp = 0;
-    ocVariable *var = vars->getVariable(index);
+    Variable *var = vars->getVariable(index);
     int segment = var->segment;
     temp = (key[segment] & var->mask); 
     int value = temp >> var->shift;
@@ -147,7 +147,7 @@ void Key::keyToString(KeySegment *key, VariableList *vars, char *str)
     int varcount = vars->getVarCount();
     char *cp = str;
     for (i = 0; i < varcount; i++) {
-        ocVariable *var = vars->getVariable(i);
+        Variable *var = vars->getVariable(i);
         KeySegment mask = var->mask;
         int segment = var->segment;
         int value = (key[segment] & mask) >> var->shift;
@@ -171,7 +171,7 @@ void Key::keyToUserString(KeySegment *key, VariableList *vars, char *str, const 
     char *cp = str;
     int dlen = strlen(delim);
     for (i = 0; i < varcount; i++) {
-        ocVariable *var = vars->getVariable(i);
+        Variable *var = vars->getVariable(i);
         char **map = var->valmap;
         KeySegment mask = var->mask;
         int segment = var->segment;
@@ -197,7 +197,7 @@ void Key::getSiblings(KeySegment *key, VariableList *vars, Table *table, long *i
     KeySegment *temp_key = new KeySegment[keySize];
     memcpy((int *)temp_key, (int *)key, keySize * sizeof(long));	
     int j=0;
-    ocVariable *var = vars->getVariable(DV_ind);
+    Variable *var = vars->getVariable(DV_ind);
     int card = var->cardinality;
 
     setKeyValue(temp_key, keySize, vars, DV_ind, 0);

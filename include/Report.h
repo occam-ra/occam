@@ -5,7 +5,8 @@
 
 #include <stdio.h>
 
-struct dv_Data{
+class dv_Data{
+  public:
     KeySegment **key;
     char **dv_value;
     double **cdv_value;
@@ -70,7 +71,7 @@ class Report {
     // used several places, such as Report::print
     static int maxNameLength;
 
-    protected:
+    private:
 	static bool htmlMode;
 	class ManagerBase *manager;
 	Model **models;

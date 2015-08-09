@@ -20,8 +20,8 @@ class Options {
 	//-- then any values for that option.  An option with no values
 	//-- is a boolean (on/off) value.  An option whose value is '#'
 	//-- has a numeric value.
-	struct ocOptionDef *addOptionName(const char *name, const char *abbrev, const char *tip, bool multi=false);
-	void addOptionValue(struct ocOptionDef *option, const char *value, const char *tip);
+	class ocOptionDef *addOptionName(const char *name, const char *abbrev, const char *tip, bool multi=false);
+	void addOptionValue(class ocOptionDef *option, const char *value, const char *tip);
 	ocOptionDef *findOptionByName(const char *name);
 	ocOptionDef *findOptionByAbbrev(const char *abbrev);
 
@@ -47,11 +47,11 @@ class Options {
 	//-- write options to a file
 	void write(FILE *fd=NULL, bool printHTML=false, bool skipNominal=false);
 
-	struct ocOptionDef *defaultOptDef;
+	class ocOptionDef *defaultOptDef;
     private:
 	//-- both of these are singly linked lists.
-	struct ocOptionDef *defs;
-	struct ocOption *options;
+	class ocOptionDef *defs;
+	class ocOption *options;
 	//-- pointer to default option (for file names on command line)
 };
 

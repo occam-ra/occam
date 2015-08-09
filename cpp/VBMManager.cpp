@@ -145,7 +145,7 @@ void VBMManager::makeReferenceModels(Relation *top) {
         //-- first, make a relation with all the independent variables
         model = new Model(2); // typical case: one dep variable
         int pos = 0;
-        ocVariable *var;
+        Variable *var;
         for (i = 0; i < varCount; i++) {
             var = varList->getVariable(i);
             if (!var->dv)
