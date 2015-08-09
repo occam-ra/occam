@@ -1,10 +1,3 @@
-/*
- * main.cpp
- *
- *  Created on: Apr 18, 2012
- *      Author: jfusion
- */
-
 #include "Core.h"
 #include "VBMManager.h"
 #include "SBMManager.h"

@@ -1,7 +1,3 @@
-/*
- * Search.h - contains basic search algorithms for the LM
- */
-
 #include "SearchBase.h"
 
 class SearchFullDown : public SearchBase {

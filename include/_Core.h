@@ -1,6 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
 #ifndef _OCCORE_H
 #define _OCCORE_H
 

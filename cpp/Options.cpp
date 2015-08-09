@@ -1,6 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
 #include "Options.h"
 #include <stdio.h>
 #include <stdlib.h>

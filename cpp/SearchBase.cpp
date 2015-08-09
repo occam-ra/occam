@@ -1,6 +1,3 @@
-/*
- * SearchBase.cpp - implements search base class
- */
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>

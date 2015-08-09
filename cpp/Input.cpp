@@ -1,10 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
-/**
- * Input.cpp - implements functions for processing input.
- */
-
 #include "Input.h"
 #include "Core.h"
 #include "Options.h"

@@ -1,10 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
-/**
- * Input.h - provides functions for managing input data
- */
-
 #ifndef OCINPUT_H
 #define OCINPUT_H
 

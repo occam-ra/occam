@@ -1,6 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
 #include "_Core.h"
 #include "Core.h"
 #include "string.h"

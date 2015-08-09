@@ -1,12 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
-/**
- * Table.cpp - implements the Table class.  A Table consists logically of a list of tuples.
- * In this implementation, the table contains an array of keys (the value part of each
- * tuple) and a separate array of values, all indexed with the same index.
- */
-
 #include "Core.h"
 #include "_Core.h"
 #include <assert.h>

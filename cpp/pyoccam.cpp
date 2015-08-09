@@ -1,8 +1,3 @@
-/*
- * pyoccam.cpp - defines wrapper functions to map C classes to Python
- */
-
-//-- Hack to get around Python platform checking
 #include "Python.h"
 #include "Core.h"
 #include "VBMManager.h"
@@ -12,7 +7,6 @@
 #include "Math.h"
 
 #include "FlatTable.h"
-//#include "Win32.h"
 #include "unistd.h"
 
 #if defined(_WIN32) || defined(__WIN32__)

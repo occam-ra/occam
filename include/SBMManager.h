@@ -1,5 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
 #ifndef OCSBM_MANAGER_H
 #define OCSBM_MANAGER_H
 

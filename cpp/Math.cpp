@@ -1,5 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
 #include "Math.h"
 #include <math.h>
 #include "Core.h"
@@ -7,7 +5,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <float.h>
-//#include "Win32.h"
 
 //-- very small probabilities are considered zero, to avoid underflow
 //-- errors from log functions.

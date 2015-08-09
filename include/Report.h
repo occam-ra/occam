@@ -1,9 +1,3 @@
-/*
- * Report.h - generate reports from model data.
- * an Report object holds a list of models, and a list of attributes to print.
- * The collection can be sorted and/or filtered, and the resulting models printed.
- */
-
 #ifndef OCREPORT_H
 #define OCREPORT_H
 #include <stdio.h>

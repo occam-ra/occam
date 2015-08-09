@@ -1,11 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
-/**
- * Key.cpp - implements the Key class. The class contains only static functions,
- * for key manipulation.
- */
-
 #include "Core.h"
 #include <assert.h>
 #include <stdio.h>

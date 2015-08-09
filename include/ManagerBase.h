@@ -1,5 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
 #ifndef OCMANAGER_BASE_H
 #define OCMANAGER_BASE_H
 

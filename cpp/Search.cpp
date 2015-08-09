@@ -1,7 +1,3 @@
-/*
- * Search.cpp - implements basic LM searches
- */
-
 #include "unistd.h"
 #include <math.h>
 #include <stdlib.h>

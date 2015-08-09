@@ -1,6 +1,3 @@
-/* Copyright
- */
-
 #include <math.h>
 #include "Core.h"
 #include "_Core.h"

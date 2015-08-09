@@ -1,6 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
 #include "Core.h"
 #include "Math.h"
 #include "SBMManager.h"

@@ -1,5 +1,3 @@
-/* Report.cpp - implements model reports */
-
 #include <math.h>
 #include "attrDescs.h"
 #include "Core.h"

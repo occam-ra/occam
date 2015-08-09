@@ -1,6 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
 #ifndef OCOPTIONS_H
 #define OCOPTIONS_H
 

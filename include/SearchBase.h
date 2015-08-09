@@ -1,9 +1,3 @@
-/*
- * SearchBase.h -- base class for search algorithms. Each search step takes a single
- * model as a starting point, and returns a list of models. Some subclasses may have
- * control attributes which affect searches.
- */
- 
 #ifndef OCSEARCHBASE_H
 #define OCSEARCHBASE_H
 

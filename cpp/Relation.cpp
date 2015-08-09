@@ -1,11 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
-/**
- * Relation.cpp - implements the Relation class.  A Relation consists of a list
- * of variables (actually, a list of indices of variables in a VariableList).
- */
-
 #include "Core.h"
 #include "_Core.h"
 #include <assert.h>

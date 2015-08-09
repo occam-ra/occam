@@ -1,12 +1,3 @@
-/* Copyright 2000, Portland State University Systems Science Program.  All Rights Reserved
- */
-
-/**
- * VariableList.cpp - implements the VariableList class. This keeps information about
- * variables in a problem, including name, cardinality, and the position of the variable
- * value in the tuple key.
- */
-
 #include "Core.h"
 #include "_Core.h"
 #include <assert.h>
