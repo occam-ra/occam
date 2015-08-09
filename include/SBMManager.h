@@ -1,7 +1,6 @@
 #ifndef OCSBM_MANAGER_H
 #define OCSBM_MANAGER_H
 
-#include "Core.h"
 #include "ManagerBase.h"
 
 /**

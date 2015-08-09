@@ -1,7 +1,8 @@
 #ifndef OCINPUT_H
 #define OCINPUT_H
 
-#include "Core.h"
+#include "Table.h"
+
 #include <stdio.h>
 
 /**

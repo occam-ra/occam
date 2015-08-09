@@ -1,13 +1,13 @@
-#include "Python.h"
-#include "Core.h"
-#include "VBMManager.h"
+#include "AttributeList.h"
+#include "FlatTable.h"
+#include "Math.h"
+#include "Report.h"
 #include "SBMManager.h"
 #include "SearchBase.h"
-#include "Report.h"
-#include "Math.h"
+#include "VBMManager.h"
 
-#include "FlatTable.h"
-#include "unistd.h"
+#include <unistd.h>
+#include <Python.h>
 
 #if defined(_WIN32) || defined(__WIN32__)
 #	if defined(STATIC_LINKED)

@@ -1,7 +1,6 @@
 #ifndef OCSEARCHBASE_H
 #define OCSEARCHBASE_H
 
-#include "Core.h"
 #include "ManagerBase.h"
 #include "VBMManager.h"
 #include "SBMManager.h"

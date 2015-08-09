@@ -1,5 +1,7 @@
-#include "Core.h"
+#include "Key.h"
+#include "Table.h"
 #include "_Core.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

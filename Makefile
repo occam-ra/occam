@@ -8,21 +8,33 @@ CL_ROOT = install/cl
 PY_INCLUDE = /usr/include/python2.7
 
 HEADERS = \
-	include/attrDescs.h \
-	include/_Core.h \
-	include/Core.h \
-	include/FlatTable.h \
-	include/Input.h \
-	include/ManagerBase.h \
-	include/Math.h \
-	include/ModelCache.h \
-	include/Options.h \
-	include/RelCache.h \
-	include/Report.h \
-	include/SBMManager.h \
-	include/SearchBase.h \
-	include/Search.h \
+	include/attrDescs.h			\
+	include/AttributeList.h		\
+	include/Constants.h			\
+	include/_Core.h				\
+	include/FlatTable.h			\
+	include/Globals.h			\
+	include/Input.h				\
+	include/Key.h				\
+	include/ManagerBase.h		\
+	include/Math.h				\
+	include/ModelCache.h		\
+	include/Model.h				\
+	include/Options.h			\
+	include/Relation.h			\
+	include/RelCache.h			\
+	include/Report.h			\
+	include/SBMManager.h		\
+	include/SearchBase.h		\
+	include/Search.h			\
+	include/StateConstraint.h	\
+	include/Table.h				\
+	include/Types.h				\
+	include/Variable.h			\
+	include/VariableList.h		\
+	include/VarIntersect.h		\
 	include/VBMManager.h
+
 
 CPP_FILES = \
 	cpp/AttributeList.cpp \

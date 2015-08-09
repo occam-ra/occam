@@ -1,5 +1,7 @@
-#include "Report.h"
+#include "Key.h"
 #include "ManagerBase.h"
+#include "Report.h"
+
 #include <cstring>
 
 void Report::printResiduals(FILE *fd, Model *model) {

@@ -1,6 +1,5 @@
 #include <math.h>
 #include "attrDescs.h"
-#include "Core.h"
 #include "_Core.h"
 #include "Report.h"
 #include "ManagerBase.h"

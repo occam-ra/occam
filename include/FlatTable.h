@@ -1,6 +1,8 @@
 #ifndef ___flat_table
 #define ___flat_table
 
+#include <stdlib.h>
+#include <stdio.h>
 #include <utility>
 
 #define get(i) if (i < size_) { return data[i]; } else { out_of_bounds(); }

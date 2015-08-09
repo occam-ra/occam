@@ -1,5 +1,7 @@
+#include "Key.h"
+#include "Model.h"
+
 #include <cstring>
-#include "../include/Core.h"
 //-- support routines for quicksort. The static variables
 //-- are used to communicate between the sort and compare routines
 // The "levelPref" variable is used to sub-sort during a search,

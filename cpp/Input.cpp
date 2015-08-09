@@ -1,6 +1,8 @@
+
 #include "Input.h"
-#include "Core.h"
+#include "Key.h"
 #include "Options.h"
+#include "VariableList.h"
 #include <stdio.h>
 #include <string.h>
 #include <ctype.h>

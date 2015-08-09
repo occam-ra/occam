@@ -1,5 +1,9 @@
-#include "Core.h"
+#include "AttributeList.h"
+#include "Key.h"
+#include "Relation.h"
+#include "StateConstraint.h"
 #include "_Core.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

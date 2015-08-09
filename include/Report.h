@@ -1,7 +1,9 @@
 #ifndef OCREPORT_H
 #define OCREPORT_H
+
+#include "Model.h"
+
 #include <stdio.h>
-#include "Core.h"
 
 struct dv_Data{
     KeySegment **key;
@@ -18,7 +20,6 @@ int sortKeys(const void *d1, const void *d2);
 int sortCompare(const void *k1, const void *k2);
 void orderIndices(const char **stringArray, int len, int *order);
 	
-
 class Report {
     public:
 	Report(class ManagerBase *mgr);

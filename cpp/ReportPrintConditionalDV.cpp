@@ -1,3 +1,4 @@
+#include "Key.h"
 #include "Report.h"
 #include "ManagerBase.h"
 #include <cstring>

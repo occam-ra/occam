@@ -1,4 +1,3 @@
-#include "Core.h"
 #include "VBMManager.h"
 #include "SBMManager.h"
 #include "SearchBase.h"

@@ -1,12 +1,19 @@
+
 #include <math.h>
-#include "Core.h"
-#include "_Core.h"
+
+#include "Input.h"
+#include "Key.h"
 #include "ManagerBase.h"
 #include "Math.h"
-#include "RelCache.h"
+#include "Model.h"
 #include "ModelCache.h"
 #include "Options.h"
-#include "Input.h"
+#include "RelCache.h"
+#include "Relation.h"
+#include "StateConstraint.h"
+#include "VariableList.h"
+#include "_Core.h"
+
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

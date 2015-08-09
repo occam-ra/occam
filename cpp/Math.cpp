@@ -1,7 +1,10 @@
-#include "Math.h"
 #include <math.h>
-#include "Core.h"
+
+#include "Math.h"
+#include "Model.h"
+#include "Relation.h"
 #include "_Core.h"
+
 #include <stdio.h>
 #include <string.h>
 #include <float.h>

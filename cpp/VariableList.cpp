@@ -1,10 +1,9 @@
-#include "Core.h"
+#include "VariableList.h"
 #include "_Core.h"
 #include <assert.h>
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
-//#include "Win32.h"
 
 static const char *findUpper(const char *cp) {
     //-- find next upper case character, indicating beginning of a variable

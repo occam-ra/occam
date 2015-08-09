@@ -1,7 +1,9 @@
 #ifndef OCMANAGER_BASE_H
 #define OCMANAGER_BASE_H
 
+#include "Model.h"
 #include "Options.h"
+#include "VarIntersect.h"
 
 /**
  * ocIntersectProcessor - this is a base class for processing classes

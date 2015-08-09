@@ -1,5 +1,5 @@
+#include "Constants.h"
 #include "_Core.h"
-#include "Core.h"
 #include "string.h"
 #include "stdio.h"
 #include "limits.h"

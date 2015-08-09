@@ -2,7 +2,6 @@
 #define OCMATH_H
 
 #include <float.h>
-#include "Core.h"
 #include "VBMManager.h"
 #include "FlatTable.h"
 

@@ -1,18 +1,17 @@
-#include "Core.h"
+#include "AttributeList.h"
 #include "Math.h"
-#include "VBMManager.h"
 #include "ModelCache.h"
 #include "RelCache.h"
-#include "SearchBase.h"
 #include "Report.h"
+#include "SearchBase.h"
+#include "VBMManager.h"
+
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
 #include <time.h>
-//#include "Win32.h"
-
 VBMManager::VBMManager(VariableList *vars, Table *input) :
         ManagerBase(vars, input) {
     topRef = bottomRef = refModel = NULL;

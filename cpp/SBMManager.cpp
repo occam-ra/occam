@@ -1,15 +1,15 @@
-#include "Core.h"
+#include "AttributeList.h"
 #include "Math.h"
-#include "SBMManager.h"
 #include "ModelCache.h"
-#include "SearchBase.h"
 #include "Report.h"
+#include "SBMManager.h"
+#include "SearchBase.h"
+
 #include <assert.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-//#include "Win32.h"
 
 SBMManager::SBMManager(VariableList *vars, Table *input) :
         ManagerBase(vars, input) {

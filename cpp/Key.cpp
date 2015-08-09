@@ -1,4 +1,7 @@
-#include "Core.h"
+#include "Constants.h"
+#include "Key.h"
+#include "VariableList.h"
+#include "Table.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>

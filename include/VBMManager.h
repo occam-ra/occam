@@ -1,7 +1,6 @@
 #ifndef OCVBM_MANAGER_H
 #define OCVBM_MANAGER_H
 
-#include "Core.h"
 #include "ManagerBase.h"
 
 /**

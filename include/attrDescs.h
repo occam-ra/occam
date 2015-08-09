@@ -1,7 +1,8 @@
 #ifndef ___attrDesc
 #define ___attrDesc
 
-#include "Core.h"
+#include "Constants.h"
+
 // attrDesc: name, title, fmt (all const char*)
 struct attrDesc {
         const char *name;
