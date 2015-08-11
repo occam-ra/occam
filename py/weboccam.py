@@ -22,10 +22,12 @@ def apply_if(predicate, func, val):
     if predicate: return func(val)
     else: return val
 
-# Get the original name of the data file.
-# * formFields:   the form data from the user
-# * trim:         trim the extension from the filename.
 def getDataFileName(formFields, trim=false, key='datafilename'):
+    """
+    Get the original name of the data file.
+    * formFields:   the form data from the user
+    * trim:         trim the extension from the filename.
+    """
     return '_'.join(apply_if(trim, lambda d : os.path.splitext(d)[0], os.path.split(formFields[key])[1]).split())
 
 def printHeaders(formFields, textFormat):
