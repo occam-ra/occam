@@ -1,24 +1,26 @@
 #! /usr/bin/env python
 
-import os, cgi, sys, occam, time, string, pickle, zipfile, datetime, tempfile
-import cgitb; cgitb.enable(display=1)
-import datetime
+import os, cgi, sys, occam, time, string, pickle, zipfile, datetime, tempfile, cgitb, urllib2, platform, traceback
+
+from time import clock
 from ocutils import ocUtils
-#from time import clock
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
-#import urllib2
-#import platform, traceback
 
+cgitb.enable(display=1)
 VERSION = "3.3.11"
 
+# TODO: eliminate the need for this kludgy definition.
 false = 0; true = 1
-# perhaps we should do some check that this directory exists?
+
+# TODO: check that the 'datadir' directory exists.
+# This requires a manual installation step.
+# If it does not exist with correct permissions, OCCAM will not run.
 datadir = "data"
 
-#
-#---- getDataFileName -- get the original name of the data file
-#
+# Get the original name of the data file.
+# * formFields:   the form data from the user
+# * trim:         trim the extension from the filename.
 def getDataFileName(formFields, trim=false, key='datafilename'):
     # extract the file name (minus directory) and seed the download dialog with it
     # we have to handle both forward and backward slashes here.
@@ -28,16 +30,11 @@ def getDataFileName(formFields, trim=false, key='datafilename'):
     else:
         datapath = datafile.split("/")
     datafile = datapath[len(datapath)-1]
-    #datafile = os.path.basename(formFields['datafilename'])
     if trim:
         datafile = os.path.splitext(datafile)[0]
     datafile = '_'.join(datafile.split())
     return datafile
 
-
-#
-#---- printHeaders ---- Print HTTP Headers
-#
 def printHeaders(formFields, textFormat):
     if textFormat:
         datafile = getDataFileName(formFields, true)
@@ -48,9 +45,6 @@ def printHeaders(formFields, textFormat):
         print "Content-type: text/html"
     print ""
 
-#
-#---- printTop ---- Print top HTML part
-#
 def printTop(template, textFormat):
     if textFormat:
         template.set_template('header.txt')
@@ -59,9 +53,6 @@ def printTop(template, textFormat):
     args = {'version':VERSION,'date':datetime.datetime.now().strftime("%c")}
     template.out(args)
 
-#
-#---- printTime ---- Print elapsed time
-#
 def printTime(textFormat):
     now = time.time()
     elapsed_t = now - startt
