@@ -18,22 +18,15 @@ false = 0; true = 1
 # If it does not exist with correct permissions, OCCAM will not run.
 datadir = "data"
 
+def apply_if(predicate, func, val):
+    if predicate: return func(val)
+    else: return val
+
 # Get the original name of the data file.
 # * formFields:   the form data from the user
 # * trim:         trim the extension from the filename.
 def getDataFileName(formFields, trim=false, key='datafilename'):
-    # extract the file name (minus directory) and seed the download dialog with it
-    # we have to handle both forward and backward slashes here.
-    datafile = formFields[key]
-    if datafile.find("\\") >= 0:
-        datapath = datafile.split("\\")
-    else:
-        datapath = datafile.split("/")
-    datafile = datapath[len(datapath)-1]
-    if trim:
-        datafile = os.path.splitext(datafile)[0]
-    datafile = '_'.join(datafile.split())
-    return datafile
+    return '_'.join(apply_if(trim, lambda d : os.path.splitext(d)[0], os.path.split(formFields[key])[1]).split())
 
 def printHeaders(formFields, textFormat):
     if textFormat:
