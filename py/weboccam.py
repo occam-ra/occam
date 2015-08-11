@@ -19,8 +19,7 @@ false = 0; true = 1
 datadir = "data"
 
 def apply_if(predicate, func, val):
-    if predicate: return func(val)
-    else: return val
+    return func(val) if predicate else val
 
 def getDataFileName(formFields, trim=false, key='datafilename'):
     """
@@ -32,10 +31,8 @@ def getDataFileName(formFields, trim=false, key='datafilename'):
 
 def printHeaders(formFields, textFormat):
     if textFormat:
-        datafile = getDataFileName(formFields, true)
-        datafile += ".csv"
         print "Content-type: application/octet-stream"
-        print "Content-disposition: attachment; filename=" + datafile
+        print "Content-disposition: attachment; filename=" + getDataFileName(formFields, true) + ".csv"
     else:
         print "Content-type: text/html"
     print ""
