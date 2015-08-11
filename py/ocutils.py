@@ -531,7 +531,7 @@ class ocUtils:
 
 
 
-    def printReport(self):
+    def printSearchReport(self):
         # sort the report as requested, and print it.
         if self.__reportSortName != "":
             sortName = self.__reportSortName
@@ -633,14 +633,14 @@ class ocUtils:
         if option == "search":
             self.__manager.setDDFMethod(self.__DDFMethod)
             self.doSearch(printOptions)
-            self.printReport()
+            self.printSearchReport()
         elif option == "fit":
             self.__manager.setDDFMethod(self.__DDFMethod)
             self.doFit(printOptions)
         elif option == "SBsearch":
             #self.__manager.setDDFMethod(self.__DDFMethod)
             self.doSbSearch(printOptions)
-            self.printReport()
+            self.printSearchReport()
         elif option == "SBfit":
             self.doSbFit(printOptions)
         else:
