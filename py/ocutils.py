@@ -1,28 +1,16 @@
-#! python:
-##--
-# ocutils - utility scripts for common operations,
-# such as processing old format occam files
+import sys, re, occam, time, heapq
 
-import sys, re, occam, time
-#import resource, os, random
-import heapq
-#from time import clock
 totalgen=0
 totalkept=0
-# don't exceed 8 GB
 maxMemoryToUse = 8 * 2**30
 
 class ocUtils:
-
-#-- separator styles for reporting
+    # Separator styles for reporting
     TABSEP=1
     COMMASEP=2
     SPACESEP=3
     HTMLFORMAT=4
 
-#
-#-- Initialize instance
-#
     def __init__(self,man):
         if man == "VB":
             self.__manager = occam.VBMManager()
@@ -31,14 +19,14 @@ class ocUtils:
         self.__hide_intermediate_output = False
         self.__report = self.__manager.Report()
         self.__DDFMethod = 0
-        self.__sortName = "ddf"
+        self.sortName = "ddf"
         self.__reportSortName = ""
         self.__sortDir = "ascending"
         self.__searchSortDir = "ascending"
 	self.__alphaThreshold = 0.05
         self.__searchWidth = 3
         self.__searchLevels = 7
-        self.__searchDir = "default"
+        self.searchDir = "default"
         self.__searchFilter = "loopless"
         self.__startModel = "default"
         self.__refModel = "default"
@@ -60,16 +48,12 @@ class ocUtils:
         self.totalkept = 0
         self.__nextID = 0
 
-#
-#-- Read command line args and process input file
-#
+    #-- Read command line args and process input file
     def initFromCommandLine(self, argv):
         self.__manager.initFromCommandLine(argv)
         self.occam2Settings()
 
-    #
     #-- Set up report variables
-    #
     def setReportVariables(self, reportAttributes):
         # if the data uses function values, we want to skip the attributes that require a sample size
         option = self.__manager.getOption("function-values")
@@ -79,7 +63,6 @@ class ocUtils:
             reportAttributes = re.sub(r",\slr", '', reportAttributes)
             reportAttributes = re.sub(r",\saic", '', reportAttributes)
             reportAttributes = re.sub(r",\sbic", '', reportAttributes)
-            # should bp_* attributes be pulled out here too?
             pass
         self.__report.setAttributes(reportAttributes)
         if re.search('bp_t', reportAttributes):
@@ -112,20 +95,12 @@ class ocUtils:
             flag = 0
         self.__valuesAreFunctions = flag
 
-    #
     #-- Set control attributes
-    #
     def setDDFMethod(self, DDFMethod):
         method = int(DDFMethod)
         if method != 1:
             method = 0
         self.__DDFMethod = method
-
-    def setSortName(self, sortName):
-        self.__sortName = sortName
-
-    def setReportSortName(self, sortName):
-        self.__reportSortName = sortName
 
     def setSortDir(self, sortDir):
         if sortDir == "": sortDir = "descending"
@@ -143,18 +118,16 @@ class ocUtils:
         width = int(round(float(searchWidth)))
         if width <= 0:
             width = 1
-            #raise AttributeError, "SearchWidth"
         self.__searchWidth = width
 
     def setSearchLevels(self, searchLevels):
         levels = int(round(float(searchLevels)))
         if levels < 0:  # zero is OK here
             levels = 0
-            #raise AttributeError, "SearchLevels"
         self.__searchLevels = levels
 
-    def setSearchDir(self, searchDir):
-        self.__searchDir = searchDir
+    def setReportSortName(self, sortName):
+        self.__reportSortName = sortName
 
     def setSearchFilter(self, searchFilter):
         self.__searchFilter = searchFilter
@@ -195,22 +168,16 @@ class ocUtils:
     def isDirected(self):
         return self.__manager.isDirected()
 
-#   def setOption(self, opt):
-#        return self.__manager.setOption(opt)
-
     def hasTestData(self):
         return self.__manager.hasTestData()
 
-    #
     #-- Search operations
-    #
-
     # compare function for sorting models. The python list sort function uses this
     # the name of the attribute to sort on is given above, as well as ascending or descending
     def __compareModels(self, m1, m2):
         result = 0
-        a1 = m1.get(self.__sortName)
-        a2 = m2.get(self.__sortName)
+        a1 = m1.get(self.sortName)
+        a2 = m2.get(self.sortName)
         if self.__searchSortDir == "ascending":
             if a1 > a2: result = 1
             if a1 < a2: result = -1
@@ -223,13 +190,13 @@ class ocUtils:
     # on how search is sorting the models. We want to avoid any
     # extra expensive computations
     def computeSortStatistic(self, model):
-        if self.__sortName == "h" or self.__sortName == "information" or self.__sortName == "unexplained" or self.__sortName == "alg_t" :
+        if self.sortName == "h" or self.sortName == "information" or self.sortName == "unexplained" or self.sortName == "alg_t" :
             self.__manager.computeInformationStatistics(model)
-        elif self.__sortName == "df" or self.__sortName == "ddf" :
+        elif self.sortName == "df" or self.sortName == "ddf" :
             self.__manager.computeDFStatistics(model)
-        elif self.__sortName == "bp_t" or self.__sortName == "bp_information" or self.__sortName == "bp_alpha" :
+        elif self.sortName == "bp_t" or self.sortName == "bp_information" or self.sortName == "bp_alpha" :
             self.__manager.computeBPStatistics(model)
-        elif self.__sortName == "pct_correct_data":
+        elif self.sortName == "pct_correct_data":
             self.__manager.computePercentCorrect(model)
         # anything else, just compute everything we might need
         else:
@@ -251,7 +218,7 @@ class ocUtils:
                 self.computeSortStatistic(newModel)
     # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
                 # decorate model with a key for sorting, & push onto heap
-                key = newModel.get(self.__sortName)
+                key = newModel.get(self.sortName)
                 if self.__searchSortDir == "descending":
                     key = -key
                 heapq.heappush(newModelsHeap, ([key, newModel.get("name")] , newModel))     # appending the model name makes sort alphabet-consistent
@@ -299,7 +266,7 @@ class ocUtils:
     # This function returns the name of the search strategy to use based on
     # the searchMode and loopless settings above
     def searchType(self):
-        if self.__searchDir == "up":
+        if self.searchDir == "up":
             if self.__searchFilter == "loopless":
                 searchMode = "loopless-up"
             elif self.__searchFilter == "disjoint":
@@ -322,7 +289,7 @@ class ocUtils:
         return searchMode
 
     def sbSearchType(self):
-        if self.__searchDir == "up":
+        if self.searchDir == "up":
             if self.__searchFilter == "loopless":
                 searchMode = "sb-loopless-up"
             elif self.__searchFilter == "disjoint":
@@ -346,14 +313,14 @@ class ocUtils:
 
     def doSearch(self, printOptions):
         if self.__manager.isDirected():
-            if self.__searchDir == "down":
+            if self.searchDir == "down":
                 if self.__searchFilter == "disjoint":
 		            pass
                 elif self.__searchFilter == "chain":
                     print 'ERROR: Directed Down Chain Search not yet implemented.'
                     raise sys.exit()
         else:
-            if self.__searchDir == "up":
+            if self.searchDir == "up":
                 pass
             else:
                 if self.__searchFilter == "disjoint":
@@ -364,15 +331,15 @@ class ocUtils:
 
         if self.__startModel == "":
             self.__startModel = "default"
-        if self.__manager.isDirected() and self.__searchDir == "default":
-            self.__searchDir = "up"
-        if not self.__manager.isDirected() and self.__searchDir == "default":
-            self.__searchDir = "up"
+        if self.__manager.isDirected() and self.searchDir == "default":
+            self.searchDir = "up"
+        if not self.__manager.isDirected() and self.searchDir == "default":
+            self.searchDir = "up"
         # set start model. For chain search, ignore any specific starting model
         # otherwise, if not set, set the start model based on search direction
-        if (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "down":
+        if (self.__searchFilter == "chain" or self.__startModel == "default") and self.searchDir == "down":
             self.__startModel = "top"
-        elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "up":
+        elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.searchDir == "up":
             self.__startModel = "bottom"
         if self.__startModel == "top":
             start = self.__manager.getTopRefModel()
@@ -384,7 +351,7 @@ class ocUtils:
         self.__manager.setUseInverseNotation(self.__useInverseNotation)
         self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
 	self.__manager.setAlphaThreshold(self.__alphaThreshold)
-        if self.__searchDir == "down":
+        if self.searchDir == "down":
             self.__manager.setSearchDirection(1)
         else:
             self.__manager.setSearchDirection(0)
@@ -447,20 +414,16 @@ class ocUtils:
         if self.__HTMLFormat: print '</pre><br>'
         else: print ""
 
-
     def doSbSearch(self,printOptions):
-#if not self.__manager.isDirected():
-#print 'Error: Directed search only.'
-#raise sys.exit()
         if self.__startModel == "":
             self.__startModel = "default"
-        if self.__manager.isDirected() and self.__searchDir == "default":
-            self.__searchDir = "up"
-        if not self.__manager.isDirected() and self.__searchDir == "default":
-            self.__searchDir = "up"
-        if (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "down":
+        if self.__manager.isDirected() and self.searchDir == "default":
+            self.searchDir = "up"
+        if not self.__manager.isDirected() and self.searchDir == "default":
+            self.searchDir = "up"
+        if (self.__searchFilter == "chain" or self.__startModel == "default") and self.searchDir == "down":
             self.__startModel = "top"
-        elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.__searchDir == "up":
+        elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.searchDir == "up":
             self.__startModel = "bottom"
         if self.__startModel == "top":
             start = self.__manager.getTopRefModel()
@@ -469,9 +432,7 @@ class ocUtils:
         else:
             start = self.__manager.makeSbModel(self.__startModel, 1)
         self.__manager.setRefModel(self.__refModel)
-        #self.__manager.setUseInverseNotation(self.__useInverseNotation)
-        #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
-        if self.__searchDir == "down":
+        if self.searchDir == "down":
             self.__manager.setSearchDirection(1)
         else:
             self.__manager.setSearchDirection(0)
@@ -529,21 +490,18 @@ class ocUtils:
         if self.__HTMLFormat: print '</pre><br>'
         else: print ""
 
-
-
     def printSearchReport(self):
         # sort the report as requested, and print it.
         if self.__reportSortName != "":
             sortName = self.__reportSortName
         else:
-            sortName = self.__sortName
+            sortName = self.sortName
         self.__report.sort(sortName, self.__sortDir)
         if self.__reportFile != "":
             self.__report.writeReport(self.__reportFile)
         else:
             self.__report.printReport()
         #-- self.__manager.dumpRelations()
-
 
     def doFit(self,printOptions):
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
@@ -552,13 +510,7 @@ class ocUtils:
         for modelName in self.__fitModels:
             self.__manager.setRefModel(self.__refModel)
             model = self.__manager.makeModel(modelName, 1)
-            self.__manager.computeL2Statistics(model)
-            self.__manager.computeDFStatistics(model)
-            self.__manager.computeDependentStatistics(model)
-            self.__report.addModel(model)
-            self.__manager.printFitReport(model)
-            self.__manager.makeFitTable(model)
-            self.__report.printResiduals(model)
+            self.doAllComputations(model)
             if self.__defaultFitModel != "":
                 try:
                     defaultModel = self.__manager.makeModel(self.__defaultFitModel, 1)
@@ -570,6 +522,15 @@ class ocUtils:
             print
             print
 
+    def doAllComputations(self, model):
+        self.__manager.computeL2Statistics(model)
+        self.__manager.computeDFStatistics(model)
+        self.__manager.computeDependentStatistics(model)
+        self.__report.addModel(model)
+        self.__manager.printFitReport(model)
+        self.__manager.makeFitTable(model)
+        self.__report.printResiduals(model)
+
     def doSbFit(self,printOptions):
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if printOptions: self.printOptions(0);
@@ -577,12 +538,7 @@ class ocUtils:
         for modelName in self.__fitModels:
             self.__manager.setRefModel(self.__refModel)
             model = self.__manager.makeSbModel(modelName, 1)
-            self.__manager.computeL2Statistics(model)
-            self.__manager.computeDependentStatistics(model)
-            self.__report.addModel(model)
-            self.__manager.printFitReport(model)
-            self.__manager.makeFitTable(model)
-            self.__report.printResiduals(model)
+            self.doAllComputations(model)
             if self.__defaultFitModel != "":
                 try:
                     defaultModel = self.__manager.makeSbModel(self.__defaultFitModel, 1)
@@ -609,23 +565,22 @@ class ocUtils:
             self.__refModel = option
         option = self.__manager.getOption("search-direction")
         if option != "":
-            self.__searchDir = option
+            self.searchDir = option
         option = self.__manager.getOptionList("short-model")
         # for search, only one specified model allowed
         if len(option) > 0:
             self.__startModel = option[0]
             self.__fitModels = option
 
-
     def doAction(self, printOptions):
         # set reporting variables based on ref model
         if self.__manager.isDirected() and self.__refModel == "default":
-            if self.__searchDir == "down":
+            if self.searchDir == "down":
                 self.__refModel = "top"
             else:
                 self.__refModel = "bottom"
         if not self.__manager.isDirected() and self.__refModel == "default":
-            if self.__searchDir == "down":
+            if self.searchDir == "down":
                 self.__refModel = "top"
             else:
                 self.__refModel = "bottom"
@@ -659,12 +614,12 @@ class ocUtils:
         self.printOption("Input data file", self.__dataFile)
         if r_type==1:   
             self.printOption("Starting model", self.__startModel)
-            self.printOption("Search direction", self.__searchDir)
+            self.printOption("Search direction", self.searchDir)
             self.printOption("Ref model", self.__refModel)
             self.printOption("Models to consider", self.__searchFilter)
             self.printOption("Search width", self.__searchWidth)
             self.printOption("Search levels", self.__searchLevels)
-            self.printOption("Search sort by", self.__sortName)
+            self.printOption("Search sort by", self.sortName)
             self.printOption("Search preference", self.__searchSortDir)
             self.printOption("Report sort by", self.__reportSortName)
             self.printOption("Report preference", self.__sortDir)
@@ -677,11 +632,11 @@ class ocUtils:
 
         # Initialize a manager and the starting model
         self.__manager.setRefModel(self.__refModel)
-        self.__manager.setSearchDirection(1 if (self.__searchDir == "down") else 0)
+        self.__manager.setSearchDirection(1 if (self.searchDir == "down") else 0)
         self.__manager.setSearchType(self.searchType())
        
         # Set up the starting model
-        start = self.__manager.getTopRefModel() if (self.__searchDir == "down") else self.__manager.getBottomRefModel()
+        start = self.__manager.getTopRefModel() if (self.searchDir == "down") else self.__manager.getBottomRefModel()
         start.level = 0
         self.__manager.computeL2Statistics(start)
         self.__manager.computeDependentStatistics(start)
@@ -702,7 +657,7 @@ class ocUtils:
                 self.__report.addModel(model)
             oldModels = newModels
 
-        self.__report.sort(self.__sortName, self.__sortDir)
+        self.__report.sort(self.sortName, self.__sortDir)
         best = self.__report.bestModelName()
         self.__hide_intermediate_output = False
         return best
@@ -713,7 +668,3 @@ class ocUtils:
     def computeBinaryStatistic(self, compare_order, key):
         file_Ref, model_Ref, file_Comp, model_Comp = compare_order
         return self.__manager.computeBinaryStatistic(file_Ref, model_Ref, file_Comp, model_Comp, key)
-
-# End class ocUtils
-
-

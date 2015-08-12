@@ -68,9 +68,6 @@ def printBottom():
 def printForm(formFields):
     template = OpagCGI()
     action = formFields.get("action", "")
-    datafile = formFields.get("datafile", "")
-    model = formFields.get("model", "")
-    specificRefModel = formFields.get("specificrefmodel")
 
     formatText = ""
     if formFields.has_key("formatText"): formFields['formatText'] = "checked"
@@ -407,7 +404,7 @@ def actionSearch(formFields):
     if refModel == "starting":
         refModel = oc.getStartModel()
     oc.setRefModel(refModel)
-    oc.setSearchDir(formFields.get("searchdir", "default"))
+    oc.searchDir = formFields.get("searchdir", "default")
     oc.setSearchSortDir(formFields.get("searchsortdir", ""))
     oc.setSearchFilter(formFields.get("searchtype", "all"))
     oc.setAlphaThreshold(formFields.get("alpha-threshold", "0.05"))
@@ -453,7 +450,7 @@ def actionSearch(formFields):
                 if formFields.get("show_pct_miss", ""):
                     reportvars += ", pct_missed_test"
     oc.setReportSortName(reportSort)
-    oc.setSortName(searchSort)
+    oc.sortName = searchSort
     oc.setReportVariables(reportvars)
     if textFormat:
         oc.doAction(printOptions)
@@ -591,13 +588,13 @@ def actionBatchCompare(formFields):
         oc.setRefModel("bottom") # Always uses bottom as reference. 
 
         # Parameters from the web form 
-        oc.setSortName(search["sort by"])
+        oc.sortName = search["sort by"]
         oc.setSearchLevels(int(search["levels"]))
         oc.setSearchWidth(int(search["width"]))
         oc.setSearchFilter(search["type"])
 
         [i, d] = search["direction"].split(" ")
-        oc.setSearchDir(d)
+        oc.searchDir = d
         oc.setStartModel(i)
 
         return oc.findBestModel()
@@ -784,7 +781,7 @@ def actionSBSearch(formFields):
     elif refModel == "starting":
         refModel = oc.getStartModel()
     oc.setRefModel(refModel)
-    oc.setSearchDir(formFields.get("searchdir", "default"))
+    oc.searchDir =  formFields.get("searchdir", "default")
     oc.setSearchSortDir(formFields.get("searchsortdir", ""))
     oc.setSearchFilter(formFields.get("searchtype", "all"))
     oc.setAction("SBsearch")
@@ -829,7 +826,7 @@ def actionSBSearch(formFields):
                 if formFields.get("show_pct_miss", ""):
                     reportvars += ", pct_missed_test"
     oc.setReportSortName(reportSort)
-    oc.setSortName(searchSort)
+    oc.sortName = searchSort
     oc.setReportVariables(reportvars)
     if textFormat:
         oc.doAction(printOptions)
