@@ -56,7 +56,7 @@ clean:
 # liboccam3.a depends on all the .o files
 $(LIB): $(LIBOBJECTS)
 	-rm -f $(LIB)			     # remove old lib
-	$(AR) cru $(LIB) $(LIBOBJECTS)	     # create a new lib with all the objects
+	$(AR) crU $(LIB) $(LIBOBJECTS)	     # create a new lib with all the objects
 	$(RANLIB) $(LIB)		     # update the table of contents for the lib
 
 # occam.so depends on liboccam3.a and pyoccam.cpp
