@@ -1,3 +1,4 @@
+#include <new>
 #include "AttributeList.h"
 #include "Math.h"
 #include "ModelCache.h"
@@ -429,50 +430,57 @@ void VBMManager::calculateBP_AicBic(Model *model) {
 }
 
 void VBMManager::computeL2Statistics(Model *model) {
-    //-- make sure the other attributes are there
-    computeInformationStatistics(model);
-    //-- compute chi-squared statistics and related statistics. L2 = 2*n*sum(p(ln p/q)) = 2*n*ln(2)*T
-    // L2 (or dLR) is computed to always be positive
-    // The values that depend on it (BIC and AIC) have their signs corrected below
-    double refL2 = computeLR(model);
-    double refDDF = computeDDF(model);
+    try {
+        //-- make sure the other attributes are there
+        computeInformationStatistics(model);
+        //-- compute chi-squared statistics and related statistics. L2 = 2*n*sum(p(ln p/q)) = 2*n*ln(2)*T
+        // L2 (or dLR) is computed to always be positive
+        // The values that depend on it (BIC and AIC) have their signs corrected below
+        double refL2 = computeLR(model);
+        double refDDF = computeDDF(model);
 
-    double refL2Prob = model->getAttribute(ATTRIBUTE_ALPHA);
-    if (refL2Prob < 0) {
-        refL2Prob = csa(refL2, refDDF);
-        model->setAttribute(ATTRIBUTE_ALPHA, refL2Prob);
+        double refL2Prob = model->getAttribute(ATTRIBUTE_ALPHA);
+        if (refL2Prob < 0) {
+            refL2Prob = csa(refL2, refDDF);
+            model->setAttribute(ATTRIBUTE_ALPHA, refL2Prob);
+        }
+
+        double refL2Power = model->getAttribute(ATTRIBUTE_BETA);
+        if (refL2Power < 0) {
+            refL2Power = 0;
+            double critX2 = 0;
+            int errcode = 0;
+            double alpha;
+            if (!getOptionFloat("palpha", NULL, &alpha))
+                alpha = 0.0;
+            if (alpha > 0)
+                critX2 = ppchi(alpha, refDDF, &errcode);
+            else
+                critX2 = refL2;
+            if (errcode)
+                printf("ppchi: errcode=%d\n", errcode);
+            refL2Power = 1.0 - chin2(critX2, refDDF, refL2, &errcode);
+            model->setAttribute(ATTRIBUTE_BETA, refL2Power);
+        }
+
+        double dAIC = refL2 - 2.0 * computeDDF(model);
+        double dBIC = refL2 - log(sampleSize) * computeDDF(model);
+
+        // If the top model is the reference, or if there is a custom start model and we're searching down,
+        // we flip the signs of dAIC and dBIC.  (A custom start occurs when ref is neither top nor bottom.)
+        // (That is, flip signs in cases when the reference is above the model in the lattice.)
+        if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == Direction::Descending))) {
+            dAIC = -dAIC;
+            dBIC = -dBIC;
+        }
+        model->setAttribute(ATTRIBUTE_AIC, dAIC);
+        model->setAttribute(ATTRIBUTE_BIC, dBIC);
+
     }
-
-    double refL2Power = model->getAttribute(ATTRIBUTE_BETA);
-    if (refL2Power < 0) {
-        refL2Power = 0;
-        double critX2 = 0;
-        int errcode = 0;
-        double alpha;
-        if (!getOptionFloat("palpha", NULL, &alpha))
-            alpha = 0.0;
-        if (alpha > 0)
-            critX2 = ppchi(alpha, refDDF, &errcode);
-        else
-            critX2 = refL2;
-        if (errcode)
-            printf("ppchi: errcode=%d\n", errcode);
-        refL2Power = 1.0 - chin2(critX2, refDDF, refL2, &errcode);
-        model->setAttribute(ATTRIBUTE_BETA, refL2Power);
+    catch (std::bad_alloc& ba) {
+        printf("Error: OCCAM requested memory allocation that exceeds the current available resources of the computer running Occam. Terminating.");
+        exit(1);
     }
-
-    double dAIC = refL2 - 2.0 * computeDDF(model);
-    double dBIC = refL2 - log(sampleSize) * computeDDF(model);
-
-    // If the top model is the reference, or if there is a custom start model and we're searching down,
-    // we flip the signs of dAIC and dBIC.  (A custom start occurs when ref is neither top nor bottom.)
-    // (That is, flip signs in cases when the reference is above the model in the lattice.)
-    if ((refModel == topRef) || ((refModel != bottomRef) && (searchDirection == Direction::Descending))) {
-        dAIC = -dAIC;
-        dBIC = -dBIC;
-    }
-    model->setAttribute(ATTRIBUTE_AIC, dAIC);
-    model->setAttribute(ATTRIBUTE_BIC, dBIC);
 }
 
 void VBMManager::computePearsonStatistics(Model *model) {
