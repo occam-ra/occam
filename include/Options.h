@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 // maximum line length in input file
-#define MAXLINE 1500
+#define MAXLINE 65535
 
 /**
  * Defines a class which maintains the options specified by the user.

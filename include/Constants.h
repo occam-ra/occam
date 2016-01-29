@@ -8,7 +8,7 @@ const int KEY_SEGMENT_BITS = 32; // number of usable bits in a key segment
 
 const int MAXNAMELEN = 32;
 const int MAXABBREVLEN = 8;
-const int MAXCARDINALITY = 100;
+const int MAXCARDINALITY = 65535;
 
 const int ALL = 1;
 const int REST_ALL = -1;
