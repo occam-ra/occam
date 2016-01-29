@@ -22,15 +22,6 @@
 			</TD>
 		</TR>
 		<TR>
-	 	 	<TD>
-			 	Composition Method:
-			</TD>
-			<TD>
-			 	<INPUT type="radio" checked name="evalmode" value="info">Standard
-				<INPUT type="radio" name="evalmode" value="bp" disabled="disabled">Back Projection (Fourier)
-			</TD>
-		</TR>
-		<TR>
 			<TD>
 				Reference Model:
 			</TD>
@@ -159,15 +150,17 @@
 		 	<TD>Include in Report:</TD>
 			<TD><INPUT type="checkbox" name="show_h" value="yes" checked>H&nbsp;
 			    <INPUT type="checkbox" name="show_dlr" value="yes" checked>dLR&nbsp;
-			    <INPUT type="checkbox" name="show_alpha" value="yes" checked>Alpha&nbsp;
 			    <INPUT type="checkbox" name="show_pct_dh" value="yes" checked>% dH(DV)&nbsp;
 			    <INPUT type="checkbox" name="show_aic" value="yes" checked>dAIC&nbsp;
-			    <INPUT type="checkbox" name="show_bic" value="yes" checked>dBIC</TD>
+			    <INPUT type="checkbox" name="show_bic" value="yes" checked>dBIC
+            </TD>
 		</TR>
 		<TR>
-		 	<TD>&nbsp;</TD>
-			<TD><INPUT type="checkbox" name="show_bp" value="yes" disabled="disabled">BP-based Transmission&nbsp;
-			    <INPUT type="checkbox" name="show_incr_a" value="yes" checked>Incremental Alpha</TD>
+            <TD>&nbsp;</td>
+            <td>
+			    <INPUT type="checkbox" name="show_alpha" value="yes" checked>Alpha&nbsp;
+			    <INPUT type="checkbox" name="show_incr_a" value="yes" checked>Incremental Alpha
+            </TD>
 		</TR>
 		<TR>
 		 	<TD>&nbsp;</TD>

@@ -413,6 +413,12 @@ def actionSearch(formFields):
     oc.setSearchFilter(formFields.get("searchtype", "all"))
     oc.setAlphaThreshold(formFields.get("alpha-threshold", "0.05"))
     oc.setAction("search")
+
+## INTENTIONALLY COMMENTED OUT CODE IN THIS MULTILINE STRING!!!
+## This code handles the backpropagation-based evaluation,
+## but it is not currently used (and the HTML forms do not define "evalmode"
+## so it will crash!!)
+    disabledBPCode = """
     if formFields["evalmode"] == "bp":
         reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
         oc.setNoIPF(true)
@@ -423,6 +429,8 @@ def actionSearch(formFields):
         if oc.isDirected():
             reportvars += ", bp_cond_pct_dh"
         reportvars += ", bp_aic, bp_bic"
+    """
+    if False: pass
     else:
         reportvars = "Level$I"
         if formFields.get("show_h", ""):
@@ -442,8 +450,16 @@ def actionSearch(formFields):
             reportvars += ", bic"
     if formFields.get("show_incr_a", ""):
         reportvars += ", incr_alpha, prog_id"
+
+## INTENTIONALLY COMMENTED OUT CODE IN THIS MULTILINE STRING!!!
+## This code handles the backpropagation-based evaluation,
+## but it is not currently used (and the HTML forms do not define "evalmode"
+## so it will crash!!)
+    disabledBPCode = """
     if formFields.get("show_bp", "") and formFields["evalmode"] <> "bp":
         reportvars += ", bp_t"
+    """
+
     if oc.isDirected():
         if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
             reportvars += ", pct_correct_data"
@@ -789,6 +805,12 @@ def actionSBSearch(formFields):
     oc.setSearchSortDir(formFields.get("searchsortdir", ""))
     oc.setSearchFilter(formFields.get("searchtype", "all"))
     oc.setAction("SBsearch")
+
+## INTENTIONALLY COMMENTED OUT CODE IN THIS MULTILINE STRING!!!
+## This code handles the backpropagation-based evaluation,
+## but it is not currently used (and the HTML forms do not define "evalmode"
+## so it will crash!!)
+    disabledBPCode = """
     if formFields["evalmode"] == "bp":
         reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
         oc.setNoIPF(true)
@@ -799,6 +821,8 @@ def actionSBSearch(formFields):
         if oc.isDirected():
             reportvars += ", bp_cond_pct_dh"
         reportvars += ", bp_aic, bp_bic"
+    """
+    if False: pass
     else:
         reportvars = "Level$I"
         if formFields.get("show_h", ""):
@@ -818,8 +842,17 @@ def actionSBSearch(formFields):
             reportvars += ", bic"
     if formFields.get("show_incr_a", ""):
         reportvars += ", incr_alpha, prog_id"
+
+
+## INTENTIONALLY COMMENTED OUT CODE IN THIS MULTILINE STRING!!!
+## This code handles the backpropagation-based evaluation,
+## but it is not currently used (and the HTML forms do not define "evalmode"
+## so it will crash!!)
+    disabledBPCode = """
     if formFields.get("show_bp", "") and formFields["evalmode"] <> "bp":
         reportvars += ", bp_t"
+    """
+
     if oc.isDirected():
         if formFields.get("show_pct", "") or formFields.get("show_pct_cover", "") or searchSort == "pct_correct_data" or reportSort == "pct_correct_data":
             reportvars += ", pct_correct_data"
