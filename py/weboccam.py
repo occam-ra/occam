@@ -74,6 +74,7 @@ def printForm(formFields):
     template.set_template('switchform.html')
     template.out(formFields)
 
+    
     if action in ["fit", "search", "SBsearch", "SBfit", "fitbatch", "log", "compare"]:
         cached = formFields.get("cached", "")
         if cached=="true" and action in ["fit", "search", "SBsearch", "SBfit"]:
@@ -82,8 +83,7 @@ def printForm(formFields):
         template.out(formFields)
 
     if action == "jobcontrol":
-        jc = JobControl()
-        jc.showJobs(formFields)
+        JobControl().showJobs(formFields)
 
 #
 #---- actionForm ---- put up the input form
@@ -1015,6 +1015,8 @@ if formFields.has_key("action"):
                 actionShowLog(formFields)
             elif formFields["action"] == "compare":
                 actionBatchCompare(formFields)
+            elif formFields["action"] == "jobcontrol":
+                pass
             else:
                 actionError()
             printTime(textFormat)
