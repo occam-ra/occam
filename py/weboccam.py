@@ -310,7 +310,14 @@ def actionFit(formFields):
 #oc.setValuesAreFunctions(1)
     
     target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
-        
+    
+
+    skipResidualsFlag = formFields.get("skipresiduals", "")
+    if skipResidualsFlag:
+        oc.setSkipTrainedModelTable(1)
+    else:
+        oc.setSkipTrainedModelTable(0)
+    
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
         return
@@ -352,7 +359,16 @@ def actionSBFit(formFields):
     skipNominalFlag = formFields.get("skipnominal", "")
     if skipNominalFlag:
         oc.setSkipNominal(1)
+
+    skipResidualsFlag = formFields.get("skipresiduals", "")
+    if skipResidualsFlag:
+        oc.setSkipTrainedModelTable(1)
+    else:
+        oc.setSkipTrainedModelTable(0)
+
     target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
+
+
     processSBFit(fn, formFields["model"], target, oc) 
     os.remove(fn)
 

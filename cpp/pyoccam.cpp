@@ -1798,9 +1798,11 @@ DefinePyFunction(Report, writeReport) {
 // void printResiduals(Model *model)
 DefinePyFunction(Report, printResiduals) {
     PyObject *Pmodel;
-    PyArg_ParseTuple(args, "O!", &TModel, &Pmodel);
+    int skipTrainedTable;
+    PyArg_ParseTuple(args, "O!i", &TModel, &Pmodel, &skipTrainedTable);
     Model *model = ObjRef(Pmodel, Model);
-    ObjRef(self, Report)->printResiduals(stdout, model);
+
+    ObjRef(self, Report)->printResiduals(stdout, model, skipTrainedTable);
     Py_INCREF(Py_None);
     return Py_None;
 }

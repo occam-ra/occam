@@ -4,15 +4,15 @@
 
 #include <cstring>
 
-void Report::printResiduals(FILE *fd, Model *model) {
-    printResiduals(fd, model, NULL);
+void Report::printResiduals(FILE *fd, Model *model, bool skipTrained) {
+    printResiduals(fd, model, NULL, skipTrained);
 }
 
-void Report::printResiduals(FILE *fd, Relation *rel) {
-    printResiduals(fd, NULL, rel);
+void Report::printResiduals(FILE *fd, Relation *rel, bool skipTrained) {
+    printResiduals(fd, NULL, rel, skipTrained);
 }
 
-void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
+void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrainedTable) {
     VariableList *varlist = manager->getVariableList();
     if (varlist->isDirected()) {  return; }
     long var_count = varlist->getVarCount();
@@ -30,7 +30,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
         fit_table = manager->getFitTable();
         test_table = test_data;
         input_table = input_data;
-    } else {
+    } else if (rel != NULL) {
         fprintf(fd, "\nResiduals for relation %s\n", rel->getPrintName());
         // make refData and testData point to projections
         fit_table = rel->getTable();
@@ -118,12 +118,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
     // We don't print anything if missing in both lists.
     index = 0;
     refindex = 0;
-    fprintf(fd, traintitle);
-    for (int i = 1; i < var_count; i++) {
-        fprintf(fd, delim);
-    }
-    fprintf(fd, header);
- 
+
     auto tableAction = [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue) {
         char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
         Key::keyToUserString(refkey, varlist, keystr, delim);
@@ -131,13 +126,19 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
             double res = value - refvalue;
             fprintf(fd, format, keystr, refvalue, refvalue * sample_size - adjustConstant, value,
                     value * sample_size - adjustConstant, res);
-        } else { fprintf(fd, format_r, keystr, refvalue, refvalue * sample_size - adjustConstant); }
+        } else if(rel != NULL) { fprintf(fd, format_r, keystr, refvalue, refvalue * sample_size - adjustConstant); }
         delete[] keystr;
     };
-    
-    tableIteration(input_table, varlist, rel, fit_table, var_count, tableAction);  
 
-    fprintf(fd, footer);
+    if (rel != NULL || !skipTrainedTable) {
+        fprintf(fd, traintitle);
+        for (int i = 1; i < var_count; i++) {
+            fprintf(fd, delim);
+        }
+        fprintf(fd, header);
+        tableIteration(input_table, varlist, rel, fit_table, var_count, tableAction);  
+        printf(footer);
+    }
     if (test_table != NULL) {
         fprintf(fd, testtitle);
         for (int i = 1; i < var_count; i++) {
@@ -182,7 +183,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
     } else {
         if (model->getRelationCount() > 1) {
             for (int i = 0; i < model->getRelationCount(); i++) {
-                printResiduals(fd, model->getRelation(i));
+                printResiduals(fd, model->getRelation(i), skipTrainedTable);
             }
         }
     }

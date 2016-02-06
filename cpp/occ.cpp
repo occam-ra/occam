@@ -51,7 +51,7 @@ int main(int argc, char* argv[]) {
         report->addModel(fit);
         mgr->printFitReport(fit, stdout);
         mgr->makeFitTable(fit);
-        report->printResiduals(stdout, fit);
+        report->printResiduals(stdout, fit, false);
         report->printConditional_DV(stdout, fit, false, "");
 
     } else {    // Search
