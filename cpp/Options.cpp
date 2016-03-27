@@ -250,7 +250,7 @@ ocOptionDef *Options::findOptionByAbbrev(const char *abbrev) {
     return def; // NULL or else matching entry
 }
 
-bool Options::setOptions(int argc, char **argv) {
+void Options::setOptions(int argc, char **argv) {
     char optname[MAXLINE], optvalue[MAXLINE];
     //-- command line arguments are either "--name=value" or "-abbrev" "value"
     //-- any arguments following the option are considered to be values for it
@@ -313,7 +313,7 @@ bool Options::setOptions(int argc, char **argv) {
             }
         }
     }
-    return true;
+    return;
 }
 
 bool Options::getLine(FILE *fd, char *line, int *lineno) {

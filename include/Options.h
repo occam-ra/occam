@@ -26,7 +26,7 @@ class Options {
 	ocOptionDef *findOptionByAbbrev(const char *abbrev);
 
 	//-- set options based on command arguments or an input file
-	bool setOptions(int argc, char **argv);
+	void setOptions(int argc, char **argv);
 	bool readOptions(FILE *fd);
 
 	//-- line reader function; for use by other input services
