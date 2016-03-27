@@ -17,6 +17,7 @@ LIBOBJECTS = \
 	Input.o \
 	Key.o \
 	ManagerBase.o \
+	ManagerInitFromCommandLine.o \
 	Math.o \
 	Model.o \
 	ModelCache.o \
@@ -89,6 +90,18 @@ ManagerBase.o: ManagerBase.cpp ../include/Input.h \
  ../include/Options.h ../include/RelCache.h ../include/Relation.h \
  ../include/StateConstraint.h ../include/VariableList.h \
  ../include/_Core.h
+ManagerInitFromCommandLine.o: ManagerInitFromCommandLine.cpp ../include/Input.h \
+ ../include/ManagerBase.h ../include/Model.h ../include/ModelCache.h \
+ ../include/Relation.h ../include/Table.h ../include/Globals.h \
+ ../include/Types.h ../include/VariableList.h ../include/Variable.h \
+ ../include/Constants.h ../include/Options.h ../include/VarIntersect.h \
+ ../include/Math.h ../include/VBMManager.h ../include/ManagerBase.h \
+ ../include/FlatTable.h ../include/Model.h ../include/ModelCache.h \
+ ../include/Options.h ../include/RelCache.h ../include/Relation.h \
+ ../include/StateConstraint.h ../include/VariableList.h \
+ ../include/_Core.h
+
+
 Math.o: Math.cpp ../include/Math.h ../include/VBMManager.h \
  ../include/ManagerBase.h ../include/Model.h ../include/ModelCache.h \
  ../include/Relation.h ../include/Table.h ../include/Globals.h \
