@@ -72,25 +72,9 @@ long ocReadData(FILE *fin, VariableList *vars, Table *indata, LostVar *lostvarp)
         l++;
         for (int i = 0; i < varCountDF; i++) { //Anjali
             newvalue[0] = '\0';
-            if (vars->isVarInUse(i)) { //Anjali
-                if ((vars->getVariable(j)->rebin == true) || (vars->getVariable(j)->exclude != NULL)) {
-                    vars->getNewValue(j, cp, newvalue);
-                    if (newvalue[0] != '\0') {
-                        value = vars->getVarValueIndex(j, newvalue);
-                        if (value < 0) { // cardinality error
-                            printf("Error in data, line %d: new value exceeds cardinality of variable #%d, \"%s\".\n",
-                                    lineno, i, vars->getVariable(j)->abbrev);
-                            printf("Data line: %s\n", line);
-                            exit(1);
-                        } else {
-                            values[j] = value;
-                            indices[j] = j;
-                        }
-                    } else
-                        flag = DISCARD;
-                } else {
-                    value = vars->getVarValueIndex(j, cp);
-                    if (value < 0) { // cardinality error
+
+            auto checkValue = [&](int value) {
+                if (value < 0) { // cardinality error
                         printf("Error in data, line %d: new value exceeds cardinality of variable #%d, \"%s\".\n",
                                 lineno, i, vars->getVariable(j)->abbrev);
                         printf("Data line: %s\n", line);
@@ -99,6 +83,21 @@ long ocReadData(FILE *fin, VariableList *vars, Table *indata, LostVar *lostvarp)
                         values[j] = value;
                         indices[j] = j;
                     }
+            };
+
+            if (vars->isVarInUse(i)) { //Anjali
+                if ((vars->getVariable(j)->rebin == true) || (vars->getVariable(j)->exclude != NULL)) {
+                    vars->getNewValue(j, cp, newvalue);
+                    if (newvalue[0] != '\0') {
+                        value = vars->getVarValueIndex(j, newvalue);
+                        checkValue(value);
+
+
+                    } else
+                        flag = DISCARD;
+                } else {
+                    value = vars->getVarValueIndex(j, cp);
+                    checkValue(value);
                 }
                 while (*cp && !(isspace(*cp) || (*cp == ',')))
                     cp++;
