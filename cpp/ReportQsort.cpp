@@ -1,6 +1,6 @@
 #include "Key.h"
 #include "Model.h"
-
+#include <cctype>
 #include <cstring>
 //-- support routines for quicksort. The static variables
 //-- are used to communicate between the sort and compare routines
@@ -17,6 +17,22 @@ Direction sortDir;
 Direction searchDir;
 
 
+int allNumeric(const char* s) {
+    bool ret = true;
+    for (const char* r = s; r != '\0'; ++r) {
+        ret &= isdigit(r[0]);
+    }
+    return ret;
+}
+int strcmpAccountingForNumbers(const char* s1, const char* s2) {
+    if (allNumeric(s1) && allNumeric(s2)) {
+        int d1 = atoi(s1);
+        int d2 = atoi(s2);
+        return (d1 < d2) ? -1 : (d1 == d2) ? 0 : 1;
+    } else {
+        return strcmp(s1, s2);
+    }
+}
 int sortCompare(const void *k1, const void *k2) {
     Model *m1 = *((Model**) k1);
     Model *m2 = *((Model**) k2);
@@ -51,12 +67,17 @@ int sortKeys(const void *d1, const void *d2) {
         }
         s1 = sort_var_list->getVarValue(v, Key::getKeyValue(k1, keysize, sort_var_list, v));
         s2 = sort_var_list->getVarValue(v, Key::getKeyValue(k2, keysize, sort_var_list, v));
-        test = strcmp(s1, s2);
-        if (test != 0)
+        test = strcmpAccountingForNumbers(s1, s2);
+        if (test != 0) {
             return test;
+        }
     }
     return 0;
 }
+
+
+
+
 void orderIndices(const char **stringArray, int len, int *order) {
     // Find the last value in the order list, to initialize the other searches with
     int last = 0;
