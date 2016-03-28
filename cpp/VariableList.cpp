@@ -450,5 +450,21 @@ bool VariableList::checkCardinalities() {
             result = false;
         }
     }
+    int seenDV = 0;
+    char* seenAbbrev = nullptr;
+    for (int varindex = 0; varindex < varCount; varindex++) {
+        if (vars[varindex].dv) {
+            seenDV += 1;
+            if (seenDV > 1) {
+                vars[varindex].dv = false;
+            } else {
+                seenAbbrev = vars[varindex].abbrev;
+            }
+        }
+
+    }
+    if (seenDV > 1) {
+        printf("NOTE: Occam allows only one DV, so variables other than %s have been converted into IVs.\n", seenAbbrev);
+    }
     return result;
 }
