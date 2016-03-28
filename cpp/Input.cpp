@@ -73,14 +73,20 @@ long ocReadData(FILE *fin, VariableList *vars, Table *indata, LostVar *lostvarp)
         for (int i = 0; i < varCountDF; i++) { //Anjali
             newvalue[0] = '\0';
 
-            auto checkValue = [&](int value) {
-                if (value < 0) { // cardinality error
-                        printf("Error in data, line %d: new value exceeds cardinality of variable #%d, \"%s\".\n",
-                                lineno, i, vars->getVariable(j)->abbrev);
-                        printf("Data line: %s\n", line);
+            auto checkValue = [&](int resolvedvalue) {
+                if (resolvedvalue < 0) { // cardinality error
+                        printf("Error in data, line %d: new value exceeds cardinality of variable #%d, \"%s\"\n",
+                                lineno, i+1, vars->getVariable(j)->abbrev);
+                        int cardinality = vars->getVariable(j)->cardinality;
+                        printf("Cardinality should be %d. ", cardinality);
+                        printf("Previously seen values: ");
+                        for (int k = 0; k < cardinality; ++k) {
+                            printf("%s ", vars->getVariable(j)->valmap[k]);
+                        }
+                        printf("\nData line: %s\n", line);
                         exit(1);
                     } else {
-                        values[j] = value;
+                        values[j] = resolvedvalue;
                         indices[j] = j;
                     }
             };
@@ -91,11 +97,17 @@ long ocReadData(FILE *fin, VariableList *vars, Table *indata, LostVar *lostvarp)
                     if (newvalue[0] != '\0') {
                         value = vars->getVarValueIndex(j, newvalue);
                         checkValue(value);
-
-
                     } else
                         flag = DISCARD;
                 } else {
+                    if (cp[0] == '\0') {
+                        
+                        printf("ERROR: Expected additional input, but line ended prematurely\n");
+                        printf("Line number: %d\n", lineno);
+                        printf("Line so far: %s\n", line);    
+                        exit(1);
+                    }
+
                     value = vars->getVarValueIndex(j, cp);
                     checkValue(value);
                 }
