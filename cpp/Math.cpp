@@ -43,15 +43,8 @@ double ocTransmission(Table *p, Table *q) {
     return h;
 }
 
-long long unifySize(const flat_table& p, const flat_table& q) {
-    if (p.size() != q.size()) {
-        printf("Error: the two tables have somehow ended up with a different number of tuples...\n");
-        exit(1);
-    }
-    else return p.size();
-}
-
-double ocTransmissionFlat(const flat_table& p, const flat_table& q) {
+double ocTransmissionFlat(Table* p, Table* q) {
+/*
     double h = 0.0;
     long long count = unifySize(p, q);
     for (long long i = 0; i < count; i++) {
@@ -62,9 +55,11 @@ double ocTransmissionFlat(const flat_table& p, const flat_table& q) {
         h += a;
     }
     return h / log(2.0);
+*/
 }
 
-double ocAbsDist(const flat_table& p, const flat_table& q) {
+double ocAbsDist(Table* p, Table* q) {
+/*
     long long size = unifySize(p, q);
 
 
@@ -72,9 +67,11 @@ double ocAbsDist(const flat_table& p, const flat_table& q) {
     for (long long i = 0; i < size; i++) { h += fabs(p[i] - q[i]); }
 
     return h;
+*/
 }
 
-double ocEucDist(const flat_table& p, const flat_table& q) {
+double ocEucDist(Table* p, Table* q) {
+/*
     long long count = unifySize(p, q);
     double h = 0.0;
     for (long long i = 0; i < count; i++) {
@@ -83,9 +80,11 @@ double ocEucDist(const flat_table& p, const flat_table& q) {
         h += (pv - qv) * (pv - qv);
     }
     return sqrt(h);
+*/
 }
 
-double ocHellingerDist(const flat_table& p, const flat_table& q) {
+double ocHellingerDist(Table* p, Table* q) {
+/*
     long long count = unifySize(p, q);
     double h = 0.0;
     for (long long i = 0; i < count; i++) {
@@ -94,9 +93,11 @@ double ocHellingerDist(const flat_table& p, const flat_table& q) {
         h += sqrt(pv * qv);
     }
     return sqrt(1-h);
+*/
 }
 
-double ocMaxDist(const flat_table& p, const flat_table& q) {
+double ocMaxDist(Table* p, Table* q) {
+/*
     double h = 0.0;
     long long count = unifySize(p, q);
     for (long long i = 0; i < count; i++) {
@@ -106,13 +107,15 @@ double ocMaxDist(const flat_table& p, const flat_table& q) {
         if (t > h) h = t;
     }
     return h;
+*/
 }
 
-double ocInfoDist(const flat_table& p1, const flat_table& q1, const flat_table& q2) {
+double ocInfoDist(Table* p1, Table* q1, Table* q2) {
+/*
     double h = 0.0;
     auto count = unifySize(q1, q2);
     count = unifySize(p1, q1);
-    /* For each state in `p1` */
+    // For each state in `p1`:
     for (auto i = 0; i < count; ++i) {
         auto p1v = p1[i];
         auto q1v = q1[i];
@@ -122,7 +125,31 @@ double ocInfoDist(const flat_table& p1, const flat_table& q1, const flat_table& 
         }
     }
     return h / log(2.0);
+*/
 }
+
+
+// TODO: Rewrite this to use a "iteratorWithFlat" function;
+// currently it unnecessarily flattens the input before comparing to the margin,
+// where it would be nicer to just iterate over states in the input and margin.
+double ocPearsonChiSquaredFlat(int card, double* p, double* q, long sampleSize) {
+
+    double p2 = 0.0;
+    for (unsigned i = 0; i < card; ++i) {
+
+        double pi = p[i];
+        double qi = q[i];
+        if (pi < PROB_MIN) {
+            p2 += qi; // works even if q1 near zero
+        } else if (qi > PROB_MIN) {
+            p2 += (pi - qi) * (pi - qi) / qi;
+        }
+    }
+    p2 *= sampleSize;
+    //if (isnan(p2)) return 1;
+    return csa(p2, card - 1);
+}
+
 
 double ocPearsonChiSquared(Table *p, Table *q, long sampleSize) {
     // To prevent underflow errors, probabilities
@@ -143,23 +170,6 @@ double ocPearsonChiSquared(Table *p, Table *q, long sampleSize) {
     return p2;
 }
 
-double ocPearsonChiSquaredFlat(int card, double* p, double* q, long sampleSize) {
-
-    double p2 = 0.0;
-    for (unsigned i = 0; i < card; ++i) {
-
-        double pi = p[i];
-        double qi = q[i];
-        if (pi < PROB_MIN) {
-            p2 += qi; // works even if q1 near zero
-        } else if (qi > PROB_MIN) {
-            p2 += (pi - qi) * (pi - qi) / qi;
-        }
-    }
-    p2 *= sampleSize;
-    //if (isnan(p2)) return 1;
-    return csa(p2, card - 1);
-}
 
 double ocDegreesOfFreedom(Relation *rel) {
     double df = 1.0;

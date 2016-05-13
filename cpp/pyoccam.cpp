@@ -1,5 +1,4 @@
 #include "AttributeList.h"
-#include "FlatTable.h"
 #include "Math.h"
 #include "Report.h"
 #include "SBMManager.h"

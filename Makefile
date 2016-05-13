@@ -12,7 +12,6 @@ HEADERS = \
 	include/AttributeList.h		\
 	include/Constants.h			\
 	include/_Core.h				\
-	include/FlatTable.h			\
 	include/Globals.h			\
 	include/Input.h				\
 	include/Key.h				\
