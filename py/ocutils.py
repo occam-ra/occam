@@ -674,7 +674,7 @@ class ocUtils:
             oldModels = newModels
 
         self.__report.sort(self.sortName, self.__sortDir)
-        best = self.__report.bestModelName()
+        best = self.__report.bestModelData()
         self.__hide_intermediate_output = False
         return best
 

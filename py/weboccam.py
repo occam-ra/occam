@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-import os, cgi, sys, occam, time, string, pickle, zipfile, datetime, tempfile, cgitb, urllib2, platform, traceback
+import os, cgi, sys, occam, time, string, pickle, zipfile, datetime, tempfile, cgitb, urllib2, platform, traceback, distanceFunctions
 
 from time import clock
 from ocutils import ocUtils
@@ -653,33 +653,25 @@ def actionBatchCompare(formFields):
             s = "dAIC(model)"
         return d, s
 
+    def computeBinaryStatistics(report_items, comp_order):
+        stats = dict([(k, distanceFunctions.computeDistanceMetric(k, comp_order)) for k in report_items])
+        return stats
 
-    def computeModelStats(file_A, model_A, file_B, model_B):
-        stats_1 = dict([(k,[0,0]) for k in report_1])
-        stats_2 = {}
 
-        for (f, m, i) in [(file_A, model_A, 0), (file_B, model_B, 1)]:
-            oc = ocUtils("VB")
-            oc.initFromCommandLine(["occam,", f])
-            for k in report_1:
-                stat, rest = k.split("(")
-                mod = rest.strip(")")
-                stats_1[k][i] = oc.computeUnaryStatistic(m, stat, mod) 
+    def computeModelStats(model_A, model_B):
+        stats_1 = dict([(k,[model_A[k],model_B[k]]) for k in report_1])
+        best = "unknown"
 
-        # Find the best model based on the single-model stats
-        best_d, best_s = selectBest(stats_1)
-       
+#        # Find the best model based on the single-model stats
+        best_d, best_s = selectBest(stats_1)       
         a, b  = stats_1[best_s]
         best = ""
         if best_d == -1:
             best = "A" if a <= b else "B"
         elif best_d == 1:
             best = "A" if a >= b else "B"
-        comp_order = [file_A, model_A, file_B, model_B] if best == "A" else [file_B, model_B, file_A, model_A]
-
-        oc = ocUtils("VB")
-        for k in report_2:
-            stats_2[k] = oc.computeBinaryStatistic(comp_order, k)
+        comp_order = [model_A, model_B] if best == "A" else [model_B, model_A]
+        stats_2 = computeBinaryStatistics(report_2, comp_order)
 
         return best, stats_1, stats_2
 
@@ -688,9 +680,8 @@ def actionBatchCompare(formFields):
         model_A = computeBestModel(file_A)
         model_B = computeBestModel(file_B)
 
-        best, stats_1, stats_2 = computeModelStats(file_A, model_A, file_B, model_B)
-
-        return ([pair_name, model_A, model_B, best], stats_1, stats_2)
+        best, stats_1, stats_2 = computeModelStats(model_A, model_B)
+        return ([pair_name, model_A["name"], model_B["name"], best], stats_1, stats_2)
 
     
     # Print out the report
@@ -743,9 +734,11 @@ def actionBatchCompare(formFields):
     if not textFormat:
         print table_end
 
+    print "Searches completed. "
+
     if not textFormat:
         print table_start
-    print tab_row(tab_head("Results:"))
+    print tab_row(tab_head("Comparison Results:"))
     print tab_row(ppHeader())
 
     # Perform and print the analysis on each pair in the zip file.

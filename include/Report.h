@@ -82,10 +82,11 @@ class Report {
     // static variables
     // used several places, such as Report::print
     static int maxNameLength;
+	
+    class ManagerBase *manager;
 
     private:
 	static bool htmlMode;
-	class ManagerBase *manager;
 	Model **models;
 	Model *defaultFitModel;
 	char **attrs;

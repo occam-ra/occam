@@ -627,136 +627,6 @@ DefinePyFunction(VBMManager, dumpRelations) {
     return Py_BuildValue("i", 0);
 }
 
-// TODO
-DefinePyFunction(VBMManager, computeUnaryStatistic) {
-
-    char* modelname;
-    char* statisticname;
-    char* modname;
-    
-    PyArg_ParseTuple(args, "sss", &modelname, &statisticname, &modname);
-
-    VBMManager* mgr = ObjRef(self, VBMManager);
-    
-    Model* model;
-    if (!strcmp(modname,"data")) {
-        model = mgr->getTopRefModel();
-    } else if (!strcmp(modname, "model")) {
-        model = mgr->makeModel(modelname, true);
-    }
-
-    mgr->makeFitTable(model);
-
-    double ret = 0; 
-    if (!strcmp(statisticname, "H")) {
-        mgr->computeH(model);
-        ret = model->getAttribute(ATTRIBUTE_H);
-    } else if (!strcmp(statisticname, "dAIC")) {
-        mgr->computeL2Statistics(model);
-        ret = model->getAttribute(ATTRIBUTE_AIC);
-    } else if (!strcmp(statisticname, "dBIC")) {
-        mgr->computeL2Statistics(model);
-        ret = model->getAttribute(ATTRIBUTE_BIC);
-    } else if (!strcmp(statisticname, "DF")) {
-        mgr->computeDDF(model);
-        ret = model->getAttribute(ATTRIBUTE_DF);
-    } else {
-        printf("Error: unknown statistic %s(%s)\n", statisticname, modname);
-        exit(1);
-    }
-
-    return Py_BuildValue("f", ret);
-}
-
-DefinePyFunction(VBMManager, computeBinaryStatistic) {
-
-    /* Lambda functions used throughout the procedure */
-    /* todo: adapt this */
-   
-    // not even slightly thread safe
-    auto mkTableAction = [](VariableList* varlist, long long var_count, flat_table& out) {
-        static int i; i = 0; // these statements must be separate so that i gets set when this is called,
-                             // otherwise i will not be reset for sequential calls to the function.
-        return [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue) {
-            out[i] = value; i += 1;
-        };
-    };
-
-    auto getTable = [&](VBMManager& mgr, char* file, char* model) {
-        // initialize OCCAM
-        char* nm = "occam";
-        char* argv[2] = {nm, file};
-        mgr.initFromCommandLine(2, argv);
-        Table* input = mgr.getInputData();
-        VariableList* varlist = mgr.getVariableList();
-        long var_count = varlist->getVarCount();
-        Model* mod = mgr.makeModel(model, true) ;
-
-        mgr.computeL2Statistics(mod);
-        mgr.computeDFStatistics(mod);
-        mgr.computeDependentStatistics(mod);
-        mgr.makeFitTable(mod);
-        Table* fit = mgr.getFitTable();
-        fit->sort();
-        fit->normalize();
-        
-        int tupleCount = fit->getTupleCount();
-        flat_table table(tupleCount);
-        auto tableAction = mkTableAction(varlist, var_count, table);
-        tableIteration(input, varlist, NULL, fit, var_count, tableAction);
-        
-        /* debugging output - DISABLE */
-        // printf("Fit table for %s: \n<br/>", model);
-        // for(int i = 0; i < tupleCount; ++i) {
-        //     printf("%g\n<br/>", table[i]);
-        // }      
-        // printf("End fit table for %s\n<br/>", model);
-        /* end debugging output */
-
-        // copy the table values, in order, into a normal array
-        /* is rel == null here? */
-        return table;
-    };
-
-    /* Get the arguments from Python-land */
-    char* file1;
-    char* model1;
-    char* file2;
-    char* model2;
-    char* statistic;
-    PyArg_ParseTuple(args, "sssss", &file1, &model1, &file2, &model2, &statistic);
-    
-
-    /* Initialize the fit tables */
-    VBMManager mgr1;
-    VBMManager mgr2;
-    flat_table fit1 = getTable(mgr1, file1, model1); 
-    flat_table fit2 = getTable(mgr2, file2, model2);
-    
-    /* do the input table */
-    Table* input1 = mgr1.getInputData();
-    flat_table input1flat(input1->getTupleCount());
-    VariableList* varlist = mgr1.getVariableList();
-    long var_count = varlist->getVarCount();
-    auto tableAction = mkTableAction(varlist, var_count, input1flat);
-    tableIteration(input1, varlist, NULL, NULL, var_count, tableAction);
-
-    /* Do the actual comparison */
-    double ret = 0;
-    if (!strcmp(statistic,"Information dist")) { ret = ocInfoDist(input1flat, fit1, fit2); } else 
-    if (!strcmp(statistic, "Kullback-Leibler dist")) { ret = ocTransmissionFlat(fit1, fit2); } else 
-    if (!strcmp(statistic, "Hellinger dist"))   { ret = ocHellingerDist(fit1, fit2); } else 
-    if (!strcmp(statistic, "Euclidean dist"))   { ret = ocEucDist(fit1, fit2); }       else 
-    if (!strcmp(statistic, "Maximum dist"))     { ret = ocMaxDist(fit1, fit2); }       else
-    if (!strcmp(statistic, "Absolute dist"))    { ret = ocAbsDist(fit1, fit2); } 
-    else {
-        printf("Error: invalid pairwise comparison statistic '%s'.\n", statistic);
-        exit(1);
-    }
-
-    return Py_BuildValue("f", ret);
-}
-
 static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initFromCommandLine),
         PyMethodDef(VBMManager, makeAllChildRelations), PyMethodDef(VBMManager, makeChildModel),
         PyMethodDef(VBMManager, makeModel), PyMethodDef(VBMManager, setFilter),
@@ -779,8 +649,6 @@ static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initF
         PyMethodDef(VBMManager, printBasicStatistics), PyMethodDef(VBMManager, computePercentCorrect),
         PyMethodDef(VBMManager, printSizes), PyMethodDef(VBMManager, getMemUsage),
         PyMethodDef(VBMManager, hasTestData), PyMethodDef(VBMManager, dumpRelations),
-        PyMethodDef(VBMManager, computeUnaryStatistic),
-        PyMethodDef(VBMManager, computeBinaryStatistic),
         { NULL, NULL, 0 } };
 
 /****** Basic Type Operations ******/
@@ -1828,7 +1696,86 @@ DefinePyFunction(Report, bestModelName) {
     return Py_BuildValue("s", ret);
 }
 
-static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, bestModelName), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
+
+DefinePyFunction(Report, bestModelData) { 
+    // Get the report and the manager
+   
+
+    // RESUME
+     
+    Report* report = ObjRef(self, Report);
+    VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
+    
+    // Get the best model name
+    const char* bestModelName = report->bestModelName();
+
+    // Get the overall data
+    Table* input = mgr->getInputData();
+    VariableList* varlist = mgr->getVariableList();
+    long var_count = varlist->getVarCount();
+    Model* mod = mgr->makeModel(bestModelName, true);
+    mgr->computeL2Statistics(mod);
+    mgr->computeDFStatistics(mod);
+    mgr->computeDependentStatistics(mod);
+    mgr->makeFitTable(mod);
+    Table* fit = mgr->getFitTable();
+
+    // DEBUG: print out the model using an iterator
+    // Do a string/double KV iteration over the fit table
+    //auto printer = [](char* key, double value) {
+    //    printf("%s: %g, \n", key, value);
+    //};
+    //tableKVIteration(fit, varlist, var_count, printer); 
+
+    // Get statistics for the best model
+    
+    Model* data = mgr->getTopRefModel();
+
+    mgr->computeH(mod);
+    mgr->computeL2Statistics(mod);
+    mgr->computeH(data);
+    mgr->computeL2Statistics(data);
+    
+    double h_model = mod->getAttribute(ATTRIBUTE_H);
+    double df_model = mod->getAttribute(ATTRIBUTE_DF);
+    double aic_model = mod->getAttribute(ATTRIBUTE_AIC);
+    double bic_model = mod->getAttribute(ATTRIBUTE_BIC);
+    double h_data = data->getAttribute(ATTRIBUTE_H);
+    double df_data = data->getAttribute(ATTRIBUTE_DF);
+    double aic_data = data->getAttribute(ATTRIBUTE_AIC);
+    double bic_data = data->getAttribute(ATTRIBUTE_BIC);
+
+    // Make Python dictionary holding fit table for the best model
+    // (as a sparse dictionary of (key, probability))
+    
+    PyObject *sparseTable = PyDict_New(); 
+    auto dictPopulator = [&sparseTable](char* key, double value) {
+        PyObject *keyP = Py_BuildValue("s", key);
+        PyObject *valueP = Py_BuildValue("d", value);
+        PyDict_SetItem(sparseTable, keyP, valueP);
+    };
+    tableKVIteration(fit, varlist, var_count, dictPopulator);
+
+    // Make a Python object to hold everything
+    PyObject *ret = Py_BuildValue(
+        "{s:s,s:O,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d}", 
+            "name", bestModelName,
+            "sparse_table", sparseTable,
+            "H(model)",  h_model,
+            "DF(model)", df_model,
+            "dAIC(model)", aic_model,
+            "dBIC(model)", bic_model,
+            "H(data)", h_data,
+            "DF(data)", df_data,
+            "dAIC(data)", aic_data,
+            "dBIC(data)", bic_data 
+            );
+
+    return ret;
+}
+
+
+static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
         PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
         PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
         PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), { NULL, NULL, 0 } };

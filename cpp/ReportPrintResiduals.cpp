@@ -111,7 +111,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
             fprintf(fd, "<br>");
     }
     long long index, refindex, compare;
-    KeySegment *refkey, *key;
     double value, refvalue, res;
     double adjustConstant = manager->getFunctionConstant() + manager->getNegativeConstant();
     // Walk through both lists. Missing values are zero.
@@ -155,7 +154,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
         qsort(key_order, testCount, sizeof(int), sortKeys);
         for (long long order_i = 0; order_i < testCount; order_i++) {
             long long i = key_order[order_i];
-            refkey = test_table->getKey(i);
+            KeySegment* refkey = test_table->getKey(i);
             refvalue = test_table->getValue(i);
             Key::keyToUserString(refkey, varlist, keystr, delim);
             if (rel == NULL) {
