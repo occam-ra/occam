@@ -2,6 +2,28 @@
 #include "ManagerBase.h"
 #include <cstring>
 
+template <typename F>
+void tableIteration(Table* input_table, VariableList* varlist, Relation* rel,
+                    Table* fit_table, long var_count, F action) {
+    long long dataCount = input_table->getTupleCount();
+    int *key_order = new int[dataCount];
+    for (long long i = 0; i < dataCount; i++) { key_order[i] = i; }
+    sort_var_list = varlist;
+    sort_count = var_count;
+    sort_vars = NULL;
+    sort_keys = NULL;
+    sort_table = input_table;
+    qsort(key_order, dataCount, sizeof(int), sortKeys);
+    for (long long order_i = 0; order_i < dataCount; order_i++) {
+        int i = key_order[order_i];
+        KeySegment* refkey = input_table->getKey(i);
+        double refvalue = input_table->getValue(i);
+        long long index = fit_table->indexOf(refkey, true);
+        double value = index == -1 ? 0.0 : fit_table->getValue(index);
+        action(rel, index, value, refkey, refvalue);
+    }
+}
+
 void Report::printResiduals(FILE *fd, Model *model) {
     printResiduals(fd, model, NULL);
 }
@@ -22,7 +44,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
     double test_sample_size = manager->getTestSampleSize();
     int keysize = input_data->getKeySize();
     const char *format, *format_r, *header, *header_r, *footer, *traintitle, *testtitle, *delim;
-    char *keystr;
     if (htmlMode)
         fprintf(fd, "<br><br>\n");
     if (rel == NULL) {
@@ -98,7 +119,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
     }
     if (rel != NULL)
         header = header_r;
-    keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
+    char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
     if (rel == NULL) {
         if (htmlMode)
             fprintf(fd, "<br>\n");
@@ -110,7 +131,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
         if (htmlMode)
             fprintf(fd, "<br>");
     }
-    long long dataCount, index, refindex, compare;
+    long long index, refindex, compare;
     KeySegment *refkey, *key;
     double value, refvalue, res;
     double adjustConstant = manager->getFunctionConstant() + manager->getNegativeConstant();
@@ -123,37 +144,24 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
         fprintf(fd, delim);
     }
     fprintf(fd, header);
-    dataCount = input_table->getTupleCount();
-    int *key_order = new int[dataCount];
-    for (long long i = 0; i < dataCount; i++) {
-        key_order[i] = i;
-    }
-    sort_var_list = varlist;
-    sort_count = var_count;
-    sort_vars = NULL;
-    sort_keys = NULL;
-    sort_table = input_table;
-    qsort(key_order, dataCount, sizeof(int), sortKeys);
-    int i;
-    for (long long order_i = 0; order_i < dataCount; order_i++) {
-        i = key_order[order_i];
-        refkey = input_table->getKey(i);
-        refvalue = input_table->getValue(i);
+ 
+    // factor from here?
+    
+
+    auto tableAction = [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue) {
+        char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
         Key::keyToUserString(refkey, varlist, keystr, delim);
         if (rel == NULL) {
-            index = fit_table->indexOf(refkey, true);
-            if (index == -1) {
-                value = 0.0;
-            } else {
-                value = fit_table->getValue(index);
-            }
-            res = value - refvalue;
+            double res = value - refvalue;
             fprintf(fd, format, keystr, refvalue, refvalue * sample_size - adjustConstant, value,
                     value * sample_size - adjustConstant, res);
-        } else {
-            fprintf(fd, format_r, keystr, refvalue, refvalue * sample_size - adjustConstant);
-        }
-    }
+        } else { fprintf(fd, format_r, keystr, refvalue, refvalue * sample_size - adjustConstant); }
+        delete[] keystr;
+    };
+    
+    tableIteration(input_table, varlist, rel, fit_table, var_count, tableAction);  
+    // factor to here?
+
     fprintf(fd, footer);
     if (test_table != NULL) {
         fprintf(fd, testtitle);
@@ -170,7 +178,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel) {
         sort_table = test_table;
         qsort(key_order, testCount, sizeof(int), sortKeys);
         for (long long order_i = 0; order_i < testCount; order_i++) {
-            i = key_order[order_i];
+            long long i = key_order[order_i];
             refkey = test_table->getKey(i);
             refvalue = test_table->getValue(i);
             Key::keyToUserString(refkey, varlist, keystr, delim);

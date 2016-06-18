@@ -1,49 +1,60 @@
-#include "Report.h"
 #include <cstring>
+#include "../include/Core.h"
 //-- support routines for quicksort. The static variables
 //-- are used to communicate between the sort and compare routines
 // The "levelPref" variable is used to sub-sort during a search,
 // preferring to keep the models sorted in the order of the search.
+
+VariableList *sort_var_list;
+int sort_count;
+int *sort_vars;
+KeySegment **sort_keys;
+Table *sort_table;
+const char *sortAttr;
+SortDir sortDir;
+int searchDir;
+
+
 int sortCompare(const void *k1, const void *k2) {
     Model *m1 = *((Model**) k1);
     Model *m2 = *((Model**) k2);
-    double a1 = m1->getAttribute(Report::sortAttr);
-    double a2 = m2->getAttribute(Report::sortAttr);
+    double a1 = m1->getAttribute(sortAttr);
+    double a2 = m2->getAttribute(sortAttr);
     double l1 = m1->getAttribute("Level");
     double l2 = m2->getAttribute("Level");
     int levelPref = 0;
-    if (Report::searchDir == 0) {
+    if (searchDir == 0) {
         levelPref = (l1 > l2) ? -1 : (l1 < l2) ? 1 : 0;
-    } else if (Report::searchDir == 1) {
+    } else if (searchDir == 1) {
         levelPref = (l1 < l2) ? -1 : (l1 > l2) ? 1 : 0;
     }
-    if (Report::sortDir == Report::DESCENDING) {
+    if (sortDir == DESCENDING) {
         return (a1 > a2) ? -1 : (a1 < a2) ? 1 : levelPref;
     } else {
         return (a1 < a2) ? -1 : (a1 > a2) ? 1 : levelPref;
     }
 }
 int sortKeys(const void *d1, const void *d2) {
-    int keysize = Report::sort_var_list->getKeySize();
+    int keysize = sort_var_list->getKeySize();
     KeySegment *k1, *k2;
-    if (Report::sort_keys == NULL) {
-        k1 = Report::sort_table->getKey((long long)*(int*) d1);
-        k2 = Report::sort_table->getKey((long long)*(int*) d2);
+    if (sort_keys == NULL) {
+        k1 = sort_table->getKey((long long)*(int*) d1);
+        k2 = sort_table->getKey((long long)*(int*) d2);
     } else {
-        k1 = Report::sort_keys[*(int*) d1];
-        k2 = Report::sort_keys[*(int*) d2];
+        k1 = sort_keys[*(int*) d1];
+        k2 = sort_keys[*(int*) d2];
     }
     const char *s1, *s2;
     int test;
     int v;
-    for (int j = 0; j < Report::sort_count; j++) {
-        if (Report::sort_vars == NULL) {
+    for (int j = 0; j < sort_count; j++) {
+        if (sort_vars == NULL) {
             v = j;
         } else {
-            v = Report::sort_vars[j];
+            v = sort_vars[j];
         }
-        s1 = Report::sort_var_list->getVarValue(v, Key::getKeyValue(k1, keysize, Report::sort_var_list, v));
-        s2 = Report::sort_var_list->getVarValue(v, Key::getKeyValue(k2, keysize, Report::sort_var_list, v));
+        s1 = sort_var_list->getVarValue(v, Key::getKeyValue(k1, keysize, sort_var_list, v));
+        s2 = sort_var_list->getVarValue(v, Key::getKeyValue(k2, keysize, sort_var_list, v));
         test = strcmp(s1, s2);
         if (test != 0)
             return test;

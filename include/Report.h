@@ -23,10 +23,10 @@ struct dv_Data{
 int sortKeys(const void *d1, const void *d2);
 int sortCompare(const void *k1, const void *k2);
 void orderIndices(const char **stringArray, int len, int *order);
+	
 
 class Report {
     public:
-	enum SortDir {ASCENDING, DESCENDING};
 	Report(class ManagerBase *mgr);
 	~Report();
 
@@ -72,22 +72,8 @@ class Report {
 	void printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV);
 
     // static variables
-    static int searchDir;
-
-    // used in sortCompare
-    static const char *sortAttr;
-    static Report::SortDir sortDir;
-
     // used several places, such as Report::print
     static int maxNameLength;
-
-    // used in sortKeys
-    static VariableList *sort_var_list;
-    static int sort_count;
-    static int *sort_vars;
-    static KeySegment **sort_keys;
-    static Table *sort_table;
-
 
     protected:
 	static bool htmlMode;
@@ -101,5 +87,13 @@ class Report {
 	void printSearchHeader(FILE *fd, int* attrID);
 	void printSearchRow(FILE *fd, Model* model, int* attrID, bool isOddRow);
 };
+
+extern VariableList* sort_var_list;
+extern int sort_count;
+extern int* sort_vars;
+extern KeySegment** sort_keys;
+extern Table* sort_table;
+
+
 
 #endif

@@ -791,10 +791,13 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
     int *key_order = new int[iv_statespace];        // Created a sorted order for the IV states, so they appear in order in the table
     for (int i = 0; i < iv_statespace; i++)
         key_order[i] = i;
-    Report::sort_var_list = var_list;
-    Report::sort_count = iv_count;
-    Report::sort_vars = ind_vars;
-    Report::sort_keys = fit_key;
+    
+    
+    sort_var_list = var_list;
+    sort_count = iv_count;
+    sort_vars = ind_vars;
+    sort_keys = fit_key;
+    
     qsort(key_order, iv_statespace, sizeof(int), sortKeys);
 
     // Prep for P-MARGIN, P-RULE

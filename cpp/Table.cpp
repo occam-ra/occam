@@ -300,17 +300,17 @@ void Table::reset(int keysize)
 void Table::dump(bool detail)
 {
     double sum = 0;
-    printf("Table: tuples = %lld\n", tupleCount);
+    printf("Table: tuples = %lld<br>", tupleCount);
     for (long long i = 0; i < tupleCount; i++) {
         KeySegment *key = getKey(i);
         double value = getValue(i);
         if (detail) {
             printf("\t%d. ", i);
             Key::dumpKey(key, keysize);
-            printf("%g\n", value);
+            printf("%g<br>", value);
         }
         sum += value;
     }
-    printf("p total (should be 1.00): %lg\n", sum);
+    printf("p total (should be 1.00): %lg<br>", sum);
 }
 

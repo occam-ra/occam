@@ -146,6 +146,8 @@ const int DISCARD = -1;
 #define OLD_ROW 0
 #define NEW_ROW 1
 
+enum SortDir {ASCENDING, DESCENDING};
+
 struct ocVariable { // internal use only - see VariableList
         int cardinality; // number of values of the variable
         int segment; // which KeySegment of the key this variable is in

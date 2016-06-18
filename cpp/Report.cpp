@@ -15,19 +15,13 @@
  * collected towards the top in an attempt to increase my understanding */
 int attrDescCount = sizeof(attrDescriptions) / sizeof(attrDesc);
 bool Report::htmlMode = false;
-int Report::searchDir;
-const char* Report::sortAttr;
-Report::SortDir Report::sortDir;
 int Report::maxNameLength;
-VariableList* Report::sort_var_list;
-int Report::sort_count;
-int* Report::sort_vars;
-KeySegment** Report::sort_keys;
-Table* Report::sort_table;
+
 
 Report::Report(class ManagerBase *mgr) {
     manager = mgr;
-    Report::searchDir = -1;
+    extern int searchDir;
+    searchDir = -1;
     maxModelCount = 10;
     models = new Model*[maxModelCount];
     memset(models, 0, maxModelCount * sizeof(Model*));
@@ -91,15 +85,20 @@ void Report::setAttributes(const char *attrlist) {
 }
 
 void Report::sort(const char *attr, SortDir dir) {
-    Report::sortAttr = attr;
-    Report::sortDir = dir;
-    Report::searchDir = manager->getSearchDirection();
+    extern const char *sortAttr;
+    extern SortDir sortDir;
+    extern int searchDir;
+    sortAttr = attr;
+    sortDir = dir;
+    searchDir = manager->getSearchDirection();
     qsort(models, modelCount, sizeof(Model*), sortCompare);
 }
 
 void Report::sort(class Model** models, long modelCount, const char *attr, SortDir dir) {
-    Report::sortAttr = attr;
-    Report::sortDir = dir;
+    extern const char *sortAttr;
+    extern SortDir sortDir;
+    sortAttr = attr;
+    sortDir = dir;
     qsort(models, modelCount, sizeof(Model*), sortCompare);
 }
 

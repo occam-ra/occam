@@ -114,7 +114,7 @@ int main(int argc, char* argv[]) {
                     for (int i=0; i < count; i++) {
                         mgr->computeInformationStatistics(models[i]);
                     }
-                    Report::sort(models, count, mgr->getSortAttr(), Report::DESCENDING);
+                    Report::sort(models, count, mgr->getSortAttr(), DESCENDING);
                     foundCount = 0;
                     int i = 0;
                     while ((foundCount < (width < count ? width : count)) && (i < count)) {
@@ -142,7 +142,7 @@ int main(int argc, char* argv[]) {
             keptCount = width < nextCount ? width : nextCount;
             keptModels = new Model*[keptCount];
             printf("models: %d\tkept: %d\n", levelCount, keptCount); fflush(stdout);
-            Report::sort(nextModels, nextCount, mgr->getSortAttr(), Report::DESCENDING);
+            Report::sort(nextModels, nextCount, mgr->getSortAttr(), DESCENDING);
             int i;
             for (i=0; i < keptCount; i++) {
                 nextModels[i]->setAttribute("level", (double)j+1);
@@ -158,7 +158,7 @@ int main(int argc, char* argv[]) {
         delete[] keptModels;
 
         report->setAttributes("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id");
-        report->sort("information", Report::DESCENDING);
+        report->sort("information", DESCENDING);
         report->print(stdout);
     }
     delete report;

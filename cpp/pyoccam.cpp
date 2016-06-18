@@ -140,7 +140,7 @@ DefinePyFunction(VBMManager, searchOneLevel) {
             count++;
     //-- sort them if sort was requested
     if (mgr->getSortAttr()) {
-        Report::sort(models, count, mgr->getSortAttr(), (Report::SortDir) mgr->getSortDirection());
+        Report::sort(models, count, mgr->getSortAttr(), (SortDir) mgr->getSortDirection());
     }
     //-- make a PyList
     PyObject *list = PyList_New(count);
@@ -415,9 +415,9 @@ DefinePyFunction(VBMManager, setFilter) {
  VBMManager *mgr = ObjRef(self, VBMManager);
  mgr->setSortAttr(attrName);
  if (strcasecmp(dir, "ascending") == 0)
- mgr->setSortDirection(Report::ASCENDING);
+ mgr->setSortDirection(ASCENDING);
  else if (strcasecmp(dir, "descending") == 0)
- mgr->setSortDirection(Report::DESCENDING);
+ mgr->setSortDirection(DESCENDING);
  else {
  onError("Invalid sort direction");
  }
@@ -700,28 +700,31 @@ DefinePyFunction(VBMManager, computeBinaryStatistic) {
     Report report1(&mgr1);
     report1.setHTMLMode(true);
     mgr1.makeFitTable(mod1);
+    report1.printResiduals(stdout, mod1);
+
     Table* fit1 = mgr1.getFitTable();
+    fit1->sort();
     fit1->normalize();
    
    /* debugging output, not used */
-    /*
     printf("Fit table for %s %s: ", model1, statistic);
-    fit1->dump(0);
+    fit1->dump(true);
+    
     printf("<br></br>");
-    */
 
     Model* mod2 = mgr2.makeModel(model2, true);
     Report report2(&mgr2);
     report2.setHTMLMode(true);
     mgr2.makeFitTable(mod2);
+    report2.printResiduals(stdout, mod2);
+    
     Table* fit2 = mgr2.getFitTable();
+    fit2->sort();
     fit2->normalize();
     
-    /*
     printf("Fit table for %s %s: ", model2, statistic);
-    fit2->dump(0);
+    fit2->dump(true);
     printf("<br></br>");
-    */
     
     double ret = 0;
     if (!strcmp(statistic,"Information dist")) {
@@ -880,7 +883,7 @@ DefinePyFunction(SBMManager, searchOneLevel) {
             count++;
     //-- sort them if sort was requested
     if (mgr->getSortAttr()) {
-        Report::sort(models, count, mgr->getSortAttr(), (Report::SortDir) mgr->getSortDirection());
+        Report::sort(models, count, mgr->getSortAttr(), (SortDir) mgr->getSortDirection());
     }
     //-- make a PyList
     PyObject *list = PyList_New(count);
@@ -1135,9 +1138,9 @@ DefinePyFunction(SBMManager, setFilter) {
  SBMManager *mgr = ObjRef(self, SBMManager);
  mgr->setSortAttr(attrName);
  if (strcasecmp(dir, "ascending") == 0)
- mgr->setSortDirection(Report::ASCENDING);
+ mgr->setSortDirection(ASCENDING);
  else if (strcasecmp(dir, "descending") == 0)
- mgr->setSortDirection(Report::DESCENDING);
+ mgr->setSortDirection(DESCENDING);
  else {
  onError("Invalid sort direction");
  }
@@ -1741,9 +1744,9 @@ DefinePyFunction(Report, sort) {
     char *direction;
     PyArg_ParseTuple(args, "ss", &attr, &direction);
     if (strcasecmp(direction, "ascending") == 0) {
-        report->sort(attr, Report::ASCENDING);
+        report->sort(attr, ASCENDING);
     } else if (strcasecmp(direction, "descending") == 0) {
-        report->sort(attr, Report::DESCENDING);
+        report->sort(attr, DESCENDING);
     } else {
         onError("Invalid sort direction");
     }
