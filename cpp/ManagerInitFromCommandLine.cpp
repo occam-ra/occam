@@ -21,21 +21,23 @@
 #include <unistd.h>
 
 bool ManagerBase::initFromCommandLine(int argc, char **argv) {
-    Table *input = NULL, *test = NULL;
-    VariableList *vars;
     //-- get all command line options.  Datafile arguments show up as "datafile" option.
     options->setOptions(argc, argv);
 
     //-- now read datafiles (which may also contain options)
     void *next = NULL;
     const char *fname;
+
+    long linesRead = 0;
+    VariableList *vars = NULL;
+    Table *input = NULL, *test = NULL;
     while (options->getOptionString("datafile", &next, &fname)) {
         FILE *fd = fopen(fname, "r");
         if (fd == NULL) {
             printf("ERROR: couldn't open %s\n", fname);
             return false;
-        } else if ((dataLines = ocReadFile(fd, options, &input, &test, &vars)) == 0) {
-            printf("ERROR: ocReadFile() failed for %s\n", fname);
+        } else if ((linesRead = ocReadFile(fd, options, &input, &test, &vars)) == 0) {
+            printf("ERROR: Input parsing failed for %s\n", fname);
             return false;
         }
     }
@@ -88,9 +90,10 @@ bool ManagerBase::initFromCommandLine(int argc, char **argv) {
     if (test)
         testSampleSize = test->normalize();
 
-    // if sampleSize is equal to 1, this is probability data, and we should treat it as a function
-    if (fabs(sampleSize - 1) < DBL_EPSILON) {
-        setValuesAreFunctions(1);
+    // check for negative values in the data
+    if (input->getLowestValue() < 0 || test && test->getLowestValue() < 0) {
+        printf("ERROR: Negative frequency values are not permitted.\n");
+        return false;
     }
 
     //-- configurable fitting parameters
@@ -107,6 +110,10 @@ bool ManagerBase::initFromCommandLine(int argc, char **argv) {
         setOptionFloat(currentOptDef, 266);
     }
 
+    dataLines = linesRead;
+    varList = vars;
+    sampleSize = input->normalize();
+    if (test) { testSampleSize = test->normalize(); }
     inputData = input;
     testData = test;
     inputH = ocEntropy(inputData);
