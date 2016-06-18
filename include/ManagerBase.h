@@ -4,6 +4,7 @@
 #include "Model.h"
 #include "Options.h"
 #include "VarIntersect.h"
+#include <map>
 
 /**
  * ocIntersectProcessor - this is a base class for processing classes
@@ -41,6 +42,9 @@ class ocIntersectProcessor {
  * - calculation of various parameters for a table or model
  * - determination if a model contains loops
  */
+
+using std::map;
+typedef map<Relation*, long long> FitIntersectMap;
 
 class ManagerBase {
     public:
@@ -100,13 +104,15 @@ class ManagerBase {
         // delete a model from the model cache
         virtual bool deleteModelFromCache(Model *model);
 
-        // Create an array of relation intersections for an algebraic fit table.
-        virtual void doFitIntersection(Model *model);
 
         // Make a fit table. This function uses the IPF algorithm. The fit table is
         // linked to the model.  If the model already has a fit table, the function
         // returns immediately. False is returned on any error.
+        virtual void fitTestAlgebraic(Model *model, Table* algTable, double missingCard, const FitIntersectMap& map);
         virtual bool makeFitTable(Model *model);
+        virtual bool makeFitTableIPF(Model *model);
+        virtual bool makeFitTableAlgebraic(Model *model);
+
 
         // Expand a single tuple into all values of all missing variables, recursively
         void expandTuple(double tupleValue, KeySegment *key, int *missingVars, int missingCount, Table *outTable,
@@ -248,6 +254,9 @@ class ManagerBase {
         void dumpRelations();
         double alpha_threshold = 0.05;
 
+        // Create an array of relation intersections for an algebraic fit table.
+        FitIntersectMap computeIntersectLevels(Model* model);
+            
     protected:
         Model *topRef;
         Model *bottomRef;

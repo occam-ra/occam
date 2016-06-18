@@ -532,8 +532,10 @@ void SBMManager::computePercentCorrect(Model *model) {
     if (indRel == 0 || depRel == 0)
         return;
     ((ManagerBase*) this)->makeProjection(depRel);
-    if (!makeFitTable(model))
-        printf("ERROR\n");
+    if (!makeFitTable(model)) {
+        printf("ERROR: Failed to create state-based fit table. Terminating.\n");
+        exit(1);
+    }
     Table *modelTable = fitTable1;
     Table *maxTable = new Table(modelTable->getKeySize(), modelTable->getTupleCount());
 

@@ -779,8 +779,10 @@ void VBMManager::computePercentCorrect(Model *model) {
 
     ((ManagerBase*) this)->makeProjection(depRel);
 
-    if (!makeFitTable(model))
-        printf("ERROR\n");
+    if (!makeFitTable(model)) {
+        printf("ERROR: Failed to fit variable-based model '%s'\n", model->getPrintName());
+        exit(1);
+    }
     Table *modelTable = fitTable1;
     Table *maxTable = new Table(modelTable->getKeySize(), modelTable->getTupleCount());
 

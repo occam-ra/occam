@@ -1,13 +1,13 @@
 SHELL = /bin/sh
 CC = gcc
-CFLAGS = -w -Wall -O3 -fPIC -std=c++11 -I ../include
+CFLAGS = -w -Wall -O3 -fPIC -std=c++11 -I ../include -frounding-math -fsignaling-nans -fsigned-zeros -fno-finite-math-only -msse2 -mfpmath=sse
 LFLAGS = -shared
 AR = ar
 COMPILE = $(CC) $(CFLAGS)
 PY_INCLUDE = /usr/include/python2.7
 CL = occ
 RANLIB = ranlib
-LDFLAGS = -lm -lstdc++
+LDFLAGS = -lm -lstdc++ -lgmp
 PY = pyoccam.cpp
 DYLIB = occam.so
 LIB = liboccam3.a

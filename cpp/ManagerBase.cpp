@@ -1,6 +1,7 @@
 #define _GNU_SOURCE
+#include <utility>
+#include <gmp.h>
 #include <fenv.h>
-
 #include <math.h>
 #include "Input.h"
 #include "Key.h"
@@ -25,6 +26,8 @@
 #include <unistd.h>
 #include <algorithm>
 using std::min;
+using std::make_pair;
+using std::pair;
 // Based on helpful answers at
 // http://stackoverflow.com/questions/77005/how-to-generate-a-stacktrace-when-my-gcc-c-app-crashes
 void backtrace_symbols_err(void** trace, size_t size) {
@@ -685,255 +688,6 @@ static bool intersect(Relation *rel1, Relation *rel2, int* &var, int &count) {
     return var != NULL;
 }
 
-static VarIntersect *fitIntersectArray = NULL;
-static int fitIntersectCount = 0;
-static long fitIntersectMax = 1;
-
-void ManagerBase::doFitIntersection(Model *model) {
-    if (model == NULL)
-        return;
-    if (fitIntersectArray != NULL) {
-        delete[] fitIntersectArray;
-    }
-    fitIntersectCount = 0;
-    fitIntersectMax = model->getRelationCount();
-    fitIntersectArray = new VarIntersect[fitIntersectMax];
-
-    VariableList *varList = model->getRelation(0)->getVariableList();
-    Relation *rel;
-
-    int i, j;
-    for (i = 0; i < fitIntersectMax; i++) {
-        rel = model->getRelation(i);
-        VarIntersect *intersect = fitIntersectArray + (fitIntersectCount++);
-        intersect->rel = rel;
-        intersect->startIndex = i;
-        intersect->sign = true;
-    }
-    int levelstart = 0;
-    int levelend = fitIntersectCount;
-    int level0end = fitIntersectCount;
-    bool sign = true;
-    int *newvars, newcount;
-    VarIntersect *ip, *jp, *newp;
-
-    while (levelend > levelstart) {
-        sign = !sign;
-        for (i = levelstart; i < levelend; i++) {
-            for (j = fitIntersectArray[i].startIndex + 1; j < level0end; j++) {
-                ip = fitIntersectArray + i;
-                jp = fitIntersectArray + j;
-                if (intersect(ip->rel, jp->rel, newvars, newcount)) {
-                    rel = getRelation(newvars, newcount, true);
-                    //-- add this intersection term to the DF, and append to list
-                    while (fitIntersectCount >= fitIntersectMax) {
-                        fitIntersectArray =
-                                (VarIntersect*) growStorage(fitIntersectArray, sizeof(VarIntersect)*fitIntersectMax, 2);
-                        fitIntersectMax *= 2;
-                    }
-                    newp = fitIntersectArray + (fitIntersectCount++);
-                    newp->rel = rel;
-                    newp->startIndex = j;
-                    newp->sign = sign;
-                    delete[] newvars;
-                }
-            }
-        }
-        levelstart = levelend;
-        levelend = fitIntersectCount;
-    }
-}
-
-bool ManagerBase::makeFitTable(Model *model) {
-    if (model == NULL)
-        return false;
-    // Check for models that can be fit algorithmically. If so, solve that way.
-    if (!hasLoops(model) && !model->isStateBased() && !getVariableList()->isDirected()) {
-        doFitIntersection(model);
-        double missingCard = getMissingCardinalityFactor(model);
-        for (int ri = 0; ri < fitIntersectCount; ri++) {        // check that all relations in intersectArray have projections
-            makeProjection(fitIntersectArray[ri].rel);
-        }
-        long long inSize = inputData->getTupleCount();
-        Table *algTable = new Table(keysize, inSize);
-
-        double value, outValue;
-        KeySegment *tupleKey;
-        long long ti;
-        int ri;
-        for (ti = 0; ti < inSize; ti++) {
-            tupleKey = inputData->getKey(ti);
-            outValue = 1;       // start outvalue at 1
-            for (ri = 0; ri < fitIntersectCount; ri++) {        // for each item in intersectArray
-                value = fitIntersectArray[ri].rel->getMatchingTupleValue(tupleKey);     // get value from relation for masked key
-                if (fabs(value) < DBL_EPSILON) {                // if value is ever zero, set outValue to zero and end for-loop
-                    outValue = 0;
-                    break;
-                }
-                if (fitIntersectArray[ri].sign) {               // mult/div value into outValue
-                    outValue *= value;
-                } else {
-                    outValue /= value;
-                }
-            }
-            algTable->sumTuple(tupleKey, outValue / missingCard);       // put outvalue into fitted table
-        }
-        if (testData) {
-            inSize = testData->getTupleCount();
-            for (ti = 0; ti < inSize; ti++) {                           // for every tuple in test
-                tupleKey = testData->getKey(ti);
-                if (inputData->indexOf(tupleKey) == -1) {               // if this tuple wasn't in inputData
-                    outValue = 1;
-                    for (ri = 0; ri < fitIntersectCount; ri++) {        // for each item in intersectArray
-                        // get value from relation for masked key
-                        value = fitIntersectArray[ri].rel->getMatchingTupleValue(tupleKey);
-                        if (fabs(value) < DBL_EPSILON) {                // if value is ever zero, set outValue to zero and end for-loop
-                            outValue = 0;
-                            break;
-                        }
-                        if (fitIntersectArray[ri].sign) {               // mult/div value into outValue
-                            outValue *= value;
-                        } else {
-                            outValue /= value;
-                        }
-                    }
-                    algTable->sumTuple(tupleKey, outValue / missingCard);       // put outvalue into fitted table
-                }
-            }
-        }
-        algTable->sort();
-        if (fitTable1) delete fitTable1;
-        fitTable1 = algTable;
-        return true;
-    }
-
-    // For looped & SB models, proceed to solve with IPF.
-    stateSpaceSize = (unsigned long long) ocDegreesOfFreedom(varList) + 1;
-    if (!fitTable1) {
-        //-- for large state spaces, start with less space and let it grow.
-        if (stateSpaceSize > 1000000)
-            stateSpaceSize = 1000000;
-        fitTable1 = new Table(keysize, stateSpaceSize);
-    }
-    if (!fitTable2) {
-        if (stateSpaceSize > 1000000)
-            stateSpaceSize = 1000000;
-        fitTable2 = new Table(keysize, stateSpaceSize);
-    }
-    if (!projTable) {
-        if (stateSpaceSize > 1000000)
-            stateSpaceSize = 1000000;
-        projTable = new Table(keysize, stateSpaceSize);
-    }
-    fitTable1->reset(keysize);
-    fitTable2->reset(keysize);
-    projTable->reset(keysize);
-    KeySegment *key = new KeySegment[keysize];
-    int k;
-    double error = 0;
-
-    makeProjections(model);
-    int relCount = model->getRelationCount();
-    Relation *relList[relCount];
-    Table *tableList[relCount];
-    KeySegment *maskList[relCount];
-    for (int r = 0; r < relCount; r++) {
-        relList[r] = model->getRelation(r);
-        tableList[r] = model->getRelation(r)->getTable();
-        maskList[r] = model->getRelation(r)->getMask();
-    }
-
-    // compute the number of nonzero tuples in the expansion of each relation, and start
-    // with the one where this is smallest (to minimize memory usage)
-    int startRel = 0;
-    double expsize = relList[0]->getExpansionSize();
-    double newexpsize;
-    for (int r = 1; r < relCount; r++) {
-        newexpsize = relList[r]->getExpansionSize();
-        if (newexpsize < expsize) {
-            startRel = r;
-            expsize = newexpsize;
-        }
-    }
-    makeOrthoExpansion(relList[startRel], fitTable1);
-
-    // configurable fitting parameters:  convergence error. This is approximately in units of samples.
-    // if initial data was probabilities, an artificial scale of 1000 is used.
-    double delta2;
-    getOptionFloat("ipf-maxdev", NULL, &delta2);
-    if (this->sampleSize > 0) {
-        delta2 /= sampleSize;
-    } else {
-        delta2 /= 1000;
-    }
-    double maxiter = 1;
-    if (hasLoops(model) || (model->isStateBased() && (model->getRelationCount() > 1))) {
-        getOptionFloat("ipf-maxit", NULL, &maxiter);
-    }
-
-    int iter, r;
-    long long i, j;
-    long long tupleCount;
-    double newValue, value, relValue, projValue;
-    Relation *rel;
-    Table *table;
-    KeySegment *mask;
-    for (iter = 0; iter < maxiter; iter++) {
-        error = 0.0; // absolute difference between original projection and computed values
-        for (r = 0; r < relCount; r++) {
-            rel = relList[r];
-            table = tableList[r];
-            mask = maskList[r];
-            // create a projection of the computed data, based on the variables in the relation
-            projTable->reset(keysize);
-            makeProjection(fitTable1, projTable, rel);
-            // for each tuple in fitTable1, create a scaled tuple in fitTable2, scaled by the
-            // ratio of the projection from the input data, and the computed projection
-            // from the previous iteration.  In any cases where the input marginal is
-            // zero, or where the computed marginal is zero, skip this tuple (equivalent
-            // to setting it to zero, but conserves space).
-            tupleCount = fitTable1->getTupleCount();
-            fitTable2->reset(keysize);
-            for (i = 0; i < tupleCount; i++) {
-                newValue = 0.0;
-                fitTable1->copyKey(i, key);
-                value = fitTable1->getValue(i);
-                for (k = 0; k < keysize; k++)
-                    key[k] |= mask[k];
-                j = table->indexOf(key);
-                if (j >= 0) {
-                    relValue = table->getValue(j);
-                    if (relValue > 0.0) {
-                        j = projTable->indexOf(key);
-                        if (j >= 0) {
-                            projValue = projTable->getValue(j);
-                            if (projValue > 0.0) {
-                                newValue = value * relValue / projValue;
-                            }
-                            error = fmax(error, fabs(relValue - projValue));
-                        } else {
-                            error = fmax(error, relValue);
-                        }
-                    }
-                }
-                if (newValue > 0) {
-                    fitTable1->copyKey(i, key);
-                    fitTable2->addTuple(key, newValue);
-                }
-            }
-            Table *ftswap = fitTable1;        // swap fitTable1 and fitTable2 for next pass
-            fitTable1 = fitTable2;
-            fitTable2 = ftswap;
-        }
-        if (error < delta2)         // check convergence
-            break;
-    }
-    fitTable1->sort();
-    model->setAttribute(ATTRIBUTE_IPF_ITERATIONS, (double) iter);
-    model->setAttribute(ATTRIBUTE_IPF_ERROR, error);
-    delete[] key;
-    return true;
-}
 
 /**
  * compute the orthogonal expansion of a projection. This means taking every tuple in the projection, and
@@ -1626,3 +1380,292 @@ void ManagerBase::dumpRelations() {
     relCache->dump();
 }
 
+void ManagerBase::fitTestAlgebraic(Model* model, Table* algTable, double missingCard, const FitIntersectMap& fitIs) {
+    long long inSize = testData->getTupleCount();
+
+    // for every tuple in test:
+    for (long long ti = 0; ti < inSize; ti++) {
+        KeySegment* tupleKey = testData->getKey(ti);
+        
+        // if this tuple wasn't in inputData:
+        if (inputData->indexOf(tupleKey) == -1) {
+            double outValue = 1;
+            
+            // for each item in intersectArray
+            for (auto it=fitIs.begin(); it != fitIs.end(); ++it) {
+                // get value from relation for masked key
+                double value = it->first->getMatchingTupleValue(tupleKey);
+
+                // if value is ever zero:
+                // set outValue to zero and end for-loop
+                if (fabs(value) < DBL_EPSILON) {
+                    outValue = 0;
+                    break;
+                }
+
+                double vp = pow(value, it->second);
+                // mult/div value into outValue
+                outValue *= vp;
+            }
+            // put outvalue into fitted table
+            algTable->sumTuple(tupleKey, outValue / missingCard);
+        }
+    }
+}
+
+bool ManagerBase::makeFitTableAlgebraic(Model* model) {
+    FitIntersectMap fitIs = computeIntersectLevels(model);
+
+    for (auto it=fitIs.begin(); it != fitIs.end(); ++it) {
+        makeProjection(it->first);
+    }
+
+    double missingCard = getMissingCardinalityFactor(model);
+    
+    long long inSize = inputData->getTupleCount();
+    Table *algTable = new Table(keysize, inSize);
+
+    // for every tuple in training data:
+    for (long long ti = 0; ti < inSize; ti++) {
+        KeySegment* tupleKey = inputData->getKey(ti);
+       
+        double outValue = 1;    
+        // for each item in fitIntersectArray:
+        for (auto it=fitIs.begin(); it != fitIs.end(); ++it) {
+            
+            double v = it->first->getMatchingTupleValue(tupleKey);
+            
+            if (v <= DBL_EPSILON) {
+                outValue = 0;
+                break;
+            }
+            double vp = pow(v, it->second); 
+            outValue *= vp;
+        } 
+    
+        algTable->sumTuple(tupleKey, outValue / missingCard);
+    } 
+
+    if (testData) { fitTestAlgebraic(model, algTable, missingCard, fitIs); }
+
+    algTable->sort();
+    if (fitTable1) delete fitTable1;
+    fitTable1 = algTable;
+ 
+    return true;
+}
+
+bool ManagerBase::makeFitTableIPF(Model* model) {
+    // For looped & SB models, proceed to solve with IPF.
+    stateSpaceSize = (unsigned long long) ocDegreesOfFreedom(varList) + 1;
+    if (!fitTable1) {
+        //-- for large state spaces, start with less space and let it grow.
+        if (stateSpaceSize > 1000000)
+            stateSpaceSize = 1000000;
+        fitTable1 = new Table(keysize, stateSpaceSize);
+    }
+    if (!fitTable2) {
+        if (stateSpaceSize > 1000000)
+            stateSpaceSize = 1000000;
+        fitTable2 = new Table(keysize, stateSpaceSize);
+    }
+    if (!projTable) {
+        if (stateSpaceSize > 1000000)
+            stateSpaceSize = 1000000;
+        projTable = new Table(keysize, stateSpaceSize);
+    }
+    fitTable1->reset(keysize);
+    fitTable2->reset(keysize);
+    projTable->reset(keysize);
+    KeySegment *key = new KeySegment[keysize];
+    int k;
+    double error = 0;
+
+    makeProjections(model);
+    int relCount = model->getRelationCount();
+    Relation *relList[relCount];
+    Table *tableList[relCount];
+    KeySegment *maskList[relCount];
+    for (int r = 0; r < relCount; r++) {
+        relList[r] = model->getRelation(r);
+        tableList[r] = model->getRelation(r)->getTable();
+        maskList[r] = model->getRelation(r)->getMask();
+    }
+
+    // compute the number of nonzero tuples in the expansion of each relation, and start
+    // with the one where this is smallest (to minimize memory usage)
+    int startRel = 0;
+    double expsize = relList[0]->getExpansionSize();
+    double newexpsize;
+    for (int r = 1; r < relCount; r++) {
+        newexpsize = relList[r]->getExpansionSize();
+        if (newexpsize < expsize) {
+            startRel = r;
+            expsize = newexpsize;
+        }
+    }
+    makeOrthoExpansion(relList[startRel], fitTable1);
+
+    // configurable fitting parameters:  convergence error. This is approximately in units of samples.
+    // if initial data was probabilities, an artificial scale of 1000 is used.
+    double delta2;
+    getOptionFloat("ipf-maxdev", NULL, &delta2);
+    if (this->sampleSize > 0) {
+        delta2 /= sampleSize;
+    } else {
+        delta2 /= 1000;
+    }
+    double maxiter = 1;
+    if (hasLoops(model) || (model->isStateBased() && (model->getRelationCount() > 1))) {
+        getOptionFloat("ipf-maxit", NULL, &maxiter);
+    }
+
+    int iter, r;
+    long long i, j;
+    long long tupleCount;
+    double newValue, value, relValue, projValue;
+    Relation *rel;
+    Table *table;
+    KeySegment *mask;
+    for (iter = 0; iter < maxiter; iter++) {
+        error = 0.0; // absolute difference between original projection and computed values
+        for (r = 0; r < relCount; r++) {
+            rel = relList[r];
+            table = tableList[r];
+            mask = maskList[r];
+            // create a projection of the computed data, based on the variables in the relation
+            projTable->reset(keysize);
+            makeProjection(fitTable1, projTable, rel);
+            // for each tuple in fitTable1, create a scaled tuple in fitTable2, scaled by the
+            // ratio of the projection from the input data, and the computed projection
+            // from the previous iteration.  In any cases where the input marginal is
+            // zero, or where the computed marginal is zero, skip this tuple (equivalent
+            // to setting it to zero, but conserves space).
+            tupleCount = fitTable1->getTupleCount();
+            fitTable2->reset(keysize);
+            for (i = 0; i < tupleCount; i++) {
+                newValue = 0.0;
+                fitTable1->copyKey(i, key);
+                value = fitTable1->getValue(i);
+                for (k = 0; k < keysize; k++)
+                    key[k] |= mask[k];
+                j = table->indexOf(key);
+                if (j >= 0) {
+                    relValue = table->getValue(j);
+                    if (relValue > DBL_EPSILON) {
+                        j = projTable->indexOf(key);
+                        if (j >= 0) {
+                            projValue = projTable->getValue(j);
+                            if (projValue > DBL_EPSILON) {
+                                newValue = value * relValue / projValue;
+                            }
+                            error = fmax(error, fabs(relValue - projValue));
+                        } else {
+                            error = fmax(error, relValue);
+                        }
+                    }
+                }
+                if (newValue > DBL_EPSILON) {
+                    fitTable1->copyKey(i, key);
+                    fitTable2->addTuple(key, newValue);
+                }
+            }
+            Table *ftswap = fitTable1;        // swap fitTable1 and fitTable2 for next pass
+            fitTable1 = fitTable2;
+            fitTable2 = ftswap;
+        }
+        if (error < delta2)         // check convergence
+            break;
+    }
+    fitTable1->sort();
+    model->setAttribute(ATTRIBUTE_IPF_ITERATIONS, (double) iter);
+    model->setAttribute(ATTRIBUTE_IPF_ERROR, error);
+    delete[] key;
+    return true;
+}
+
+bool ManagerBase::makeFitTable(Model *model) {
+    
+    if (model == nullptr) { return false; }
+    
+    // Check for models that can be fit algorithmically. 
+    // If so, solve that way.
+
+    else if (!hasLoops(model) 
+          && !model->isStateBased() 
+          && !getVariableList()->isDirected()) 
+        { return makeFitTableAlgebraic(model); }
+    else 
+        { return makeFitTableIPF(model); }
+}
+
+FitIntersectMap ManagerBase::computeIntersectLevels(Model* model) {
+
+    // Allocate new workspace array
+    int fitIntersectCount = 0;
+    long fitIntersectMax = model->getRelationCount();
+    VarIntersect *fitIntersectArray = new VarIntersect[fitIntersectMax];
+
+
+    // Initialize the VarIntersects in the work array. 
+    for (int i = 0; i < fitIntersectMax; i++) {
+        Relation* rel = model->getRelation(i);
+        VarIntersect *intersect = fitIntersectArray + (fitIntersectCount++);
+        intersect->rel = rel;
+        intersect->startIndex = i;
+        intersect->sign = true;
+    }
+
+    // Do all of the work of figuring out the intersects.
+    // Then we'll do a pass over the work array to
+    // represent the intersects in a more compressed way.
+    // Much of the work in the below section can probably be elided.
+    int levelstart = 0;
+    int levelend = fitIntersectCount;
+    int level0end = fitIntersectCount;
+    bool sign = true;
+    int *newvars, newcount;
+
+    while (levelend > levelstart) {
+        sign = !sign;
+        for (int i = levelstart; i < levelend; i++) {
+            for (int j = fitIntersectArray[i].startIndex + 1; j < level0end; j++) {
+                VarIntersect* ip = fitIntersectArray + i;
+                VarIntersect* jp = fitIntersectArray + j;
+
+                if (intersect(ip->rel, jp->rel, newvars, newcount)) {
+
+                    Relation* rel = getRelation(newvars, newcount, true);
+                    //-- add this intersection term to the DF, and append to list
+                    while (fitIntersectCount >= fitIntersectMax) {
+                        fitIntersectArray =
+                                (VarIntersect*) growStorage(fitIntersectArray, sizeof(VarIntersect)*fitIntersectMax, 2);
+                        fitIntersectMax *= 2;
+                    }
+                    VarIntersect* newp = fitIntersectArray + (fitIntersectCount++);
+                    newp->rel = rel;
+                    newp->startIndex = j;
+                    newp->sign = sign;
+                    delete[] newvars;
+                }
+            }
+        }
+        levelstart = levelend;
+        levelend = fitIntersectCount;
+    }
+
+    // Allocate the map of intersect levels,
+    //  which is what is actually of interest
+    FitIntersectMap out;
+    // Iterate over the work array and add everything to the map.
+    for(long long ri = 0; ri < fitIntersectCount; ++ri) {
+        VarIntersect fi = fitIntersectArray[ri];
+    
+        // NOTE: C++ std::map has the following behavior for operator[]:
+        // when the key does not yet exist, a new element is inserted using the default constructor -- 0, in the case of `long long`.
+        out[fi.rel] += fi.sign ? 1 : -1;
+    }
+
+    delete[] fitIntersectArray;
+    return out;
+}
