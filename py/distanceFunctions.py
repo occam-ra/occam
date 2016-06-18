@@ -5,11 +5,24 @@ def zipwise_fold(base, fold, proj, ls):
     d0 = ls[0]["sparse_table"]
     d1 = ls[1]["sparse_table"]
     for (key0, value0) in d0.items():
+
+        if (math.isnan(value0)):
+            print "ERROR: (nan) value in fit table for file '" + ls[0]["filename"] + " with model " + ls[0]["name"]
+            sys.exit(1)
+        if (math.isinf(value0)):
+            print "ERROR: (inf) value in fit table for file '" + ls[0]["filename"] + " with model " + ls[0]["name"]
+            sys.exit(1)
         if key0 in d1:
             res = fold(res, proj(value0, d1[key0]))
         else:
             res = fold(res, proj(value0, 0.0))
     for (key1, value1) in d1.items():
+        if (math.isnan(value1)):
+            print "ERROR: (nan) value in fit table for file '" + ls[1]["filename"] + " with model " + ls[1]["name"]
+            sys.exit(1)
+        if (math.isinf(value1)):
+            print "ERROR: (inf) value in fit table for file '" + ls[1]["filename"] + " with model " + ls[1]["name"]
+            sys.exit(1)
         if key1 not in d0:
             res = fold(res, proj(0.0, value1))
     return res

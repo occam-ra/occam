@@ -590,7 +590,7 @@ def actionBatchCompare(formFields):
                 headers.append(i[:-1] + "(A))")
                 headers.append(i[:-1] + "(B))")
             if i in report_fields_2:
-                headers.append(i + "(model(A), model(B))")
+                headers.append(i + "(model(A) : model(B))")
         return headers
 
     global textFormat, printOptions
@@ -605,8 +605,8 @@ def actionBatchCompare(formFields):
 
     line = lambda s: bracket(s, "<br>", "</br>", "", "")
     tab_row = lambda s: bracket(s, "<tr>", "</tr>", "", "")
-    tab_col = lambda s: bracket(s, "<td>", "</td>", "\t", ",")
-    tab_head = lambda s: bracket(s, "<th align=left>", "</th>", "\t", ",")
+    tab_col = lambda s: bracket(s, "<td>", "</td>", " ", ",")
+    tab_head = lambda s: bracket(s, "<th align=left>", "</th>", " ", ",")
 
     table_start = "<br><table border=0 cellpadding=0 cellspacing=0>"
     table_end = "</table>"
@@ -679,6 +679,8 @@ def actionBatchCompare(formFields):
     def runAnalysis(pair_name, file_A, file_B): 
         model_A = computeBestModel(file_A)
         model_B = computeBestModel(file_B)
+        model_A["filename"] = pair_name + "A.txt"
+        model_B["filename"] = pair_name + "B.txt"
 
         best, stats_1, stats_2 = computeModelStats(model_A, model_B)
         return ([pair_name, model_A["name"], model_B["name"], best], stats_1, stats_2)
@@ -720,7 +722,6 @@ def actionBatchCompare(formFields):
         col_headers = ["pair name", "model(A)", "model(B)", search["selection function"]] + getStatHeaders()
         return "".join(map(tab_head, col_headers))
 
-    
     # Layout the document
     if not textFormat: 
         print "<hr><p>"
