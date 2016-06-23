@@ -128,7 +128,7 @@ ManagerBase::ManagerBase(VariableList *vars, Table *input) :
         varList(vars), inputData(input), keysize(vars ? vars->getKeySize() : 0) {
     signal(SIGSEGV, segfault_handler);
     
-    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW | FE_UNDERFLOW);
+    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
     signal(SIGFPE, fpe_handler);
 
     topRef = bottomRef = refModel = NULL;
