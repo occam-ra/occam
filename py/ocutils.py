@@ -1,3 +1,4 @@
+# coding=utf8
 import sys, re, occam, time, heapq
 
 totalgen=0
@@ -664,6 +665,7 @@ class ocUtils:
         # Perform the search to find the best model
         oldModels = [start]
         for i in xrange(1, self.__searchLevels + 1):
+            sys.stdout.write('.')
             newModels = self.processLevel(i, oldModels, i != self.__searchLevels)
             for model in newModels:
                 self.__manager.computeL2Statistics(model)

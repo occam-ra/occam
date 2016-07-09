@@ -735,22 +735,26 @@ def actionBatchCompare(formFields):
     if not textFormat:
         print table_end
 
-    print "Searches completed. "
-
-    if not textFormat:
-        print table_start
-    print tab_row(tab_head("Comparison Results:"))
-    print tab_row(ppHeader())
-
     # Perform and print the analysis on each pair in the zip file.
+    sys.stdout.write("Running searches")
+    results = []
     for pair_name, A, B in pairs:
         file_A = extract(A)
         file_B = extract(B)
         l, s1, s2 = runAnalysis(pair_name, file_A, file_B)
-        print tab_row(ppAnalysis(l) + ppStats(s1, s2))
+        results.append([l, s1, s2])
         os.remove(file_A)
         os.remove(file_B)
-
+    print
+    print "Searches completed. "
+    
+    if not textFormat:
+        print table_start
+    print tab_row(tab_head("Comparison Results:"))
+    print tab_row(ppHeader())
+    
+    for res in results:
+        print tab_row(ppAnalysis(res[0]) + ppStats(res[1], res[2]))
 
     # If there was more than one pair, print a footer
     if len(pairs) > 1:
