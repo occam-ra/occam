@@ -25,16 +25,21 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
     double sample_size = manager->getSampleSz();
     double test_sample_size = manager->getTestSampleSize();
     int keysize = input_data->getKeySize();
-    const char *format, *format_r, *header, *header_r, *footer, *traintitle, *testtitle, *delim;
+    const char *format, *format_r, *header, *header_r, *footer, *delim;
     if (htmlMode)
         fprintf(fd, "<br><br>\n");
     if (rel == NULL) {
-        fprintf(fd, "RESIDUALS for model %s\n", model->getPrintName());
+        fprintf(fd, "Residuals and Lift for the Model %s\n", model->getPrintName());
         fit_table = manager->getFitTable();
         test_table = test_data;
         input_table = input_data;
     } else if (rel != NULL) {
-        fprintf(fd, "\nResiduals for relation %s\n", rel->getPrintName());
+        if (rel->getVariableCount() == 1) {
+            fprintf(fd, "\nMargins for the Relation %s\n", rel->getPrintName());
+        } else {
+            fprintf(fd, "\nLift for the Relation %s\n", rel->getPrintName());
+        }
+
         // make refData and testData point to projections
         fit_table = rel->getTable();
         input_table = new Table(keysize, input_data->getTupleCount());
@@ -58,8 +63,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
                     "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs.Prob.</th><th>Obs.Freq.</th><th>Calc.Prob.</th><th>Calc.Freq.</th><th>Residual</th></tr>\n";
             header_r =
                     "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs.Prob.</th><th>Obs.Freq.</th></tr>\n";
-            traintitle = "<br>Training Data\n";
-            testtitle = "Test Data\n";
             format =
                     "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%+#6.8g</td></tr>\n";
             format_r = "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
@@ -69,8 +72,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
         case 1:
             header = "Cell\tObs.Prob.\tObs.Freq.\tCalc.Prob.\tCalc.Freq.\tResidual\n";
             header_r = "Cell\tObs.Prob.\tObs.Freq.\n";
-            traintitle = "\nTraining Data\n";
-            testtitle = "\nTest Data\n";
             format = "%s\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\n";
             format_r = "%s\t%#6.8g\t%#6.8g\n";
             footer = "";
@@ -79,8 +80,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
         case 2:
             header = "Cell,Obs.Prob.,Obs.Freq.,Calc.Prob.,Calc.Freq.,Residual\n";
             header_r = "Cell,Obs.Prob.,Obs.Freq.\n";
-            traintitle = "\nTraining Data\n";
-            testtitle = "\nTest Data\n";
             format = "%s,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g\n";
             format_r = "%s,%#6.8g,%#6.8g\n";
             footer = "";
@@ -91,8 +90,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
                     " Cell   Obs.Prob.    Obs.Freq.    Calc.Prob.    Calc.Freq.    Residual\n    ---------------------------------------------\n";
             header_r =
                     " Cell   Obs.Prob.    Obs.Freq.\n    ---------------------------------------------\n";
-            traintitle = "\nTraining Data\n";
-            testtitle = "\nTest Data\n";
             format = "%8s  %#6.8g   %#6.8g   %#6.8g   %#6.8g   %#6.8g\n";
             format_r = "%8s  %#6.8g   %#6.8g\n";
             footer = "";
@@ -102,7 +99,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
     if (rel != NULL)
         header = header_r;
     char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
-    if (rel == NULL) {
+    if (rel == NULL && !skipTrainedTable) {
         if (htmlMode)
             fprintf(fd, "<br>\n");
         fprintf(fd, "Variable order: ");
@@ -133,7 +130,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
     };
 
     if (rel != NULL || !skipTrainedTable) {
-        fprintf(fd, traintitle);
         for (int i = 1; i < var_count; i++) {
             fprintf(fd, delim);
         }
@@ -142,7 +138,6 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
         printf(footer);
     }
     if (test_table != NULL) {
-        fprintf(fd, testtitle);
         for (int i = 1; i < var_count; i++) {
             fprintf(fd, delim);
         }
