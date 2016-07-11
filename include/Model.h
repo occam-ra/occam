@@ -89,6 +89,7 @@ class Model {
 //            return structMatrix;
 //        }
 
+ 
     private:
         Relation **relations;
         Model *progenitor; // the model from which this one was derived in a search
@@ -104,5 +105,8 @@ class Model {
         long totalConstraints;
         int stateSpaceSize;
 };
+
+Model* indepModel(class ManagerBase* m, Model* model);
+Model* indepModel(class ManagerBase* m, Relation* rel);
 
 #endif

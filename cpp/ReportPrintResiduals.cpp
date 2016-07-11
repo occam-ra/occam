@@ -1,189 +1,152 @@
 #include "Key.h"
 #include "ManagerBase.h"
 #include "Report.h"
-
 #include <cstring>
-
+#include "Model.h"
 void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipIVIs) {
-    printResiduals(fd, model, NULL, skipTrained, skipIVIs);
-}
 
-void Report::printResiduals(FILE *fd, Relation *rel, bool skipTrained, bool skipIVIs) {
-    printResiduals(fd, NULL, rel, skipTrained, skipIVIs);
-}
-
-void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrainedTable, bool skipIVItables) {
-
-    if (skipIVItables && rel && rel->getVariableCount() == 1) { return; }
-
-    VariableList *varlist = manager->getVariableList();
-    if (varlist->isDirected()) {  return; }
-    long var_count = varlist->getVarCount();
-    Table *input_data = manager->getInputData();
-    Table *test_data = manager->getTestData();
-    Table *input_table = NULL, *fit_table = NULL, *test_table = NULL;
-    double sample_size = manager->getSampleSz();
-    double test_sample_size = manager->getTestSampleSize();
-    int keysize = input_data->getKeySize();
-    const char *format, *format_r, *header, *header_r, *footer, *delim;
-    if (htmlMode)
-        fprintf(fd, "<br><br>\n");
-    if (rel == NULL) {
-        fprintf(fd, "Residuals and Lift for the Model %s\n", model->getPrintName());
-        fit_table = manager->getFitTable();
-        test_table = test_data;
-        input_table = input_data;
-    } else if (rel != NULL) {
-        if (rel->getVariableCount() == 1) {
-            fprintf(fd, "\nMargins for the Relation %s\n", rel->getPrintName());
-        } else {
-            fprintf(fd, "\nLift for the Relation %s\n", rel->getPrintName());
-        }
-
-        // make refData and testData point to projections
-        fit_table = rel->getTable();
-        input_table = new Table(keysize, input_data->getTupleCount());
-        manager->makeProjection(input_data, input_table, rel);
-        if (test_data != NULL && test_sample_size > 0.0) {
-            test_table = new Table(keysize, test_data->getTupleCount());
-            manager->makeProjection(test_data, test_table, rel);
-        }
-    }
-    if (fit_table == NULL) {
-        fprintf(fd, "Error: no fitted table computed\n");
+    if (manager->getVariableList()->isDirected()) {
         return;
     }
-    if (htmlMode)
-        fprintf(fd, "<br>");
-    //-- set appropriate format
-    int sepStyle = htmlMode ? 0 : separator;
-    switch (sepStyle) {
-        case 0:
-            header =
-                    "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs.Prob.</th><th>Obs.Freq.</th><th>Calc.Prob.</th><th>Calc.Freq.</th><th>Residual</th></tr>\n";
-            header_r =
-                    "<table border=1 cellspacing=0 cellpadding=0><tr><th>Cell</th><th>Obs.Prob.</th><th>Obs.Freq.</th></tr>\n";
-            format =
-                    "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%#6.8g</td><td>%+#6.8g</td></tr>\n";
-            format_r = "<tr><td>%s</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n";
-            footer = "</table><br><br>";
-            delim = " ";
-            break;
-        case 1:
-            header = "Cell\tObs.Prob.\tObs.Freq.\tCalc.Prob.\tCalc.Freq.\tResidual\n";
-            header_r = "Cell\tObs.Prob.\tObs.Freq.\n";
-            format = "%s\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\n";
-            format_r = "%s\t%#6.8g\t%#6.8g\n";
-            footer = "";
-            delim = "\t";
-            break;
-        case 2:
-            header = "Cell,Obs.Prob.,Obs.Freq.,Calc.Prob.,Calc.Freq.,Residual\n";
-            header_r = "Cell,Obs.Prob.,Obs.Freq.\n";
-            format = "%s,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g\n";
-            format_r = "%s,%#6.8g,%#6.8g\n";
-            footer = "";
-            delim = ",";
-            break;
-        case 3:
-            header =
-                    " Cell   Obs.Prob.    Obs.Freq.    Calc.Prob.    Calc.Freq.    Residual\n    ---------------------------------------------\n";
-            header_r =
-                    " Cell   Obs.Prob.    Obs.Freq.\n    ---------------------------------------------\n";
-            format = "%8s  %#6.8g   %#6.8g   %#6.8g   %#6.8g   %#6.8g\n";
-            format_r = "%8s  %#6.8g   %#6.8g\n";
-            footer = "";
-            delim = " ";
-            break;
-    }
-    if (rel != NULL)
-        header = header_r;
-    char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
-    if (rel == NULL && !skipTrainedTable) {
-        if (htmlMode)
-            fprintf(fd, "<br>\n");
-        fprintf(fd, "Variable order: ");
-        for (int i = 0; i < var_count; i++) {
-            fprintf(fd, "%s", varlist->getVariable(i)->abbrev);
-        }
-        fprintf(fd, "\n");
-        if (htmlMode)
-            fprintf(fd, "<br>");
-    }
-    long long index, refindex, compare;
-    double value, refvalue, res;
+
     double adjustConstant = manager->getFunctionConstant() + manager->getNegativeConstant();
-    // Walk through both lists. Missing values are zero.
-    // We don't print anything if missing in both lists.
-    index = 0;
-    refindex = 0;
-
-    auto tableAction = [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue) {
-        char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim)) + 1];
-        Key::keyToUserString(refkey, varlist, keystr, delim);
-        if (rel == NULL) {
-            double res = value - refvalue;
-            fprintf(fd, format, keystr, refvalue, refvalue * sample_size - adjustConstant, value,
-                    value * sample_size - adjustConstant, res);
-        } else if(rel != NULL) { fprintf(fd, format_r, keystr, refvalue, refvalue * sample_size - adjustConstant); }
-        delete[] keystr;
-    };
-
-    if (rel != NULL || !skipTrainedTable) {
-        for (int i = 1; i < var_count; i++) {
-            fprintf(fd, delim);
-        }
-        fprintf(fd, header);
-        tableIteration(input_table, varlist, rel, fit_table, var_count, tableAction);  
-        printf(footer);
+    if (!skipTrained) { 
+        printWholeTable(fd, model, adjustConstant); 
+        hl(fd);
     }
-    if (test_table != NULL) {
-        for (int i = 1; i < var_count; i++) {
-            fprintf(fd, delim);
-        }
-        fprintf(fd, header);
-        long long testCount = test_table->getTupleCount();
-        int *key_order = new int[testCount];
-        for (long long i = 0; i < testCount; i++) {
-            key_order[i] = i;
-        }
-        sort_count = var_count;
-        sort_table = test_table;
-        qsort(key_order, testCount, sizeof(int), sortKeys);
-        for (long long order_i = 0; order_i < testCount; order_i++) {
-            long long i = key_order[order_i];
-            KeySegment* refkey = test_table->getKey(i);
-            refvalue = test_table->getValue(i);
-            Key::keyToUserString(refkey, varlist, keystr, delim);
-            if (rel == NULL) {
-                index = fit_table->indexOf(refkey, true);
-                if (index == -1) {
-                    value = 0.0;
-                } else {
-                    value = fit_table->getValue(index);
-                }
-                res = value - refvalue;
-                fprintf(fd, format, keystr, refvalue, refvalue * test_sample_size - adjustConstant, value,
-                        value * test_sample_size - adjustConstant, res);
-            } else {
-                fprintf(fd, format_r, keystr, refvalue, refvalue * test_sample_size - adjustConstant);
+
+    printSummary(fd, model, adjustConstant);
+
+    int relCount = model->getRelationCount();
+    if (relCount > 1) {
+        for (int i = 0; i < relCount; i++) {
+            Relation* rel = model->getRelation(i);
+            int varCount = rel->getVariableCount();
+            if (varCount > 1) {
+                hl(fd);
+                printLift(fd, rel, adjustConstant);
+            } else if (!skipIVIs) { 
+                hl(fd);
+                printSingleVariable(fd, rel, adjustConstant);
             }
         }
-        fprintf(fd, footer);
+        newl(fd);
+    }   
+}
+
+void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
+    fprintf(fd, "Residuals for all states for the Model %s\n", model->getPrintName());
+    newl(fd);
+
+    Table* input_table = manager->getInputData();
+    int keysize = input_table->getKeySize();
+    Table* fit_table = new Table(keysize, input_table->getTupleCount());
+    manager->makeFitTable(model);
+    fit_table->copy(manager->getFitTable());
+    fit_table->normalize();
+    
+    VariableList *varlist = manager->getVariableList();
+    fprintf(fd, "Variable order: ");
+    
+    long var_count = varlist->getVarCount();
+    for (int i = 0; i < var_count; i++) {
+        fprintf(fd, "%s", varlist->getVariable(i)->abbrev);
     }
-    delete keystr;
+
+    double sample_size = manager->getSampleSz();
+    printTable(fd, NULL, fit_table, input_table, NULL, adjustConstant, sample_size, false, true);
+    printTestData(fd, NULL, fit_table, adjustConstant, keysize, true);
+
+    delete fit_table;
+}
+
+void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
+    fprintf(fd, "Lift for the Model %s (summarizing over IVIs)\n", model->getPrintName());
+    newl(fd);
+
+    int var_count = manager->getVariableList()->getVarCount();
+    int var_indices[var_count], return_count;
+    manager->getRelevantVars(model, var_indices, return_count, true);
+    Relation *rel = manager->getRelation(var_indices, return_count);
+
+    Table* input_data = manager->getInputData(); 
+    int keysize = input_data->getKeySize();
+
+    Table* fit_table = new Table(keysize, input_data->getTupleCount());
+    manager->makeFitTable(model);
+    manager->makeProjection(manager->getFitTable(), fit_table, rel);
+    fit_table->normalize();
+    
+    Table* input_table = new Table(keysize, input_data->getTupleCount());
+    manager->makeProjection(input_data, input_table, rel);
+ 
+    Model* indep_model = indepModel(manager, model);
+    Table* indep_table = new Table(keysize, input_data->getTupleCount());
+    manager->makeFitTable(indep_model);
+    manager->makeProjection(manager->getFitTable(), indep_table, rel);
+    indep_table->normalize();
+    
+    double sample_size = manager->getSampleSz();
+    printTable(fd, rel, fit_table, input_table, indep_table, adjustConstant, sample_size, true, true);
+    printTestData(fd, rel, fit_table, adjustConstant, keysize, true);
+
+    delete indep_table;
+    delete fit_table;
+}
+
+void Report::printSingleVariable(FILE* fd, Relation* rel, double adjustConstant) {
+    fprintf(fd, "\nMargins for the Variable %s\n", rel->getPrintName());
+    printRel(fd, rel, adjustConstant, false);
+}
+
+void Report::printLift(FILE* fd, Relation* rel, double adjustConstant) {
+    fprintf(fd, "\nLift for the Relation %s\n", rel->getPrintName());
+
+    printRel(fd, rel, adjustConstant, true);
+}
+
+void Report::printRel(FILE* fd, Relation* rel, double adjustConstant, bool printLift) {
+
+    // make refData and testData point to projections
+    Table* fit_table = rel->getTable();
+    fit_table->normalize();
+
+    Table* input_data = manager->getInputData(); 
+    double sample_size = manager->getSampleSz();
+    int keysize = input_data->getKeySize();
+    Table* input_table = new Table(keysize, input_data->getTupleCount());
+    manager->makeProjection(input_data, input_table, rel);
+
+    Model* indep_model = indepModel(manager, rel);
+    Table* indep_table = new Table(keysize, input_data->getTupleCount());
+    manager->makeFitTable(indep_model);
+    manager->makeProjection(manager->getFitTable(), indep_table, rel);
+    indep_table->normalize(); 
+
+    printTable(fd, rel, fit_table, input_table, indep_table, adjustConstant, sample_size, printLift, false);
+    printTestData(fd, rel, fit_table, adjustConstant, keysize, false);
+    delete input_table;
+    delete indep_table;
+}
+
+void Report::printTestData(FILE* fd, Relation* rel, Table* fit_table, double adjustConstant, int keysize, bool printCalc) { 
+    
+    
+    fprintf(fd, "Test Data");
+    newl(fd);
+
+    Table *test_data = manager->getTestData();
+    double test_sample_size = manager->getTestSampleSize();
+    if (test_data == NULL || test_sample_size <= 0.0) { return; }
+
+    Table* test_table = rel == NULL ? test_data : new Table(keysize, test_data->getTupleCount());
+    if (rel) { manager->makeProjection(test_data, test_table, rel); }
+    
+    printTable(fd, rel, fit_table, test_table, NULL, adjustConstant, test_sample_size, false, printCalc);
     if (rel != NULL) {
         if (test_sample_size > 0.0) {
             delete test_table;
         }
-        delete input_table;
-    } else {
-        if (model->getRelationCount() > 1) {
-            for (int i = 0; i < model->getRelationCount(); i++) {
-                printResiduals(fd, model->getRelation(i), skipTrainedTable, skipIVItables);
-            }
-        }
     }
+
 }
-
-

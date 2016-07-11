@@ -622,6 +622,28 @@ void ManagerBase::getPredictingVars(Model *model, int *varindices, int &varcount
     }
 }
 
+void ManagerBase::getRelevantVars(Model *model, int *varindices, int &varcount, bool includeDeps) {
+    VariableList *vars = getVariableList();
+    varcount = 0;
+    for (int r = 0; r < model->getRelationCount(); r++) {
+        Relation *rel = model->getRelation(r);
+        if (rel->getVariableCount() == 1) { continue; }
+        for (int iv = 0; iv < rel->getVariableCount(); iv++) {
+            int varid = rel->getVariable(iv);
+            if (vars->getVariable(varid)->dv && !includeDeps)
+                continue;
+            for (int jv = 0; jv < varcount; jv++) {
+                if (varid == varindices[jv]) {
+                    varid = -1;
+                    break;
+                }
+            }
+            if (varid >= 0)
+                varindices[varcount++] = varid;
+        }
+    }
+}
+
 Relation *ManagerBase::getIndRelation() {
     if (!getVariableList()->isDirected())
         return NULL; // can only do this for directed models

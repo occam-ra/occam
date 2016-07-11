@@ -1,5 +1,5 @@
 #include <math.h>
-
+#include "ManagerBase.h"
 #include "AttributeList.h"
 #include "Math.h"
 #include "Model.h"
@@ -550,3 +550,23 @@ void Model::dump(bool detail) {
 
 }
 
+Model* indepModel(ManagerBase* manager, Model* model) {
+    int relCount = model->getRelationCount();
+    Model newmodel_r;
+    Model* newmodel = &newmodel_r;
+    for (int i = 0; i < relCount; i++) {
+        Relation* rel = model->getRelation(i);
+        int varCount = rel->getVariableCount();
+        if (varCount == 1) {
+            newmodel->addRelation(rel, true, manager->getModelCache()); 
+        } else {
+
+        }
+    }
+
+    return newmodel;
+}
+
+Model* indepModel(ManagerBase* manager, Relation* rel) {
+    return NULL;
+}

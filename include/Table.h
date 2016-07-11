@@ -72,7 +72,7 @@ class Table {
 
 template <typename F>
 void tableIteration(Table* input_table, VariableList* varlist, Relation* rel,
-                    Table* fit_table, long var_count, F action) {
+                    Table* fit_table, Table* indep_table, long var_count, F action) {
     long long dataCount = input_table->getTupleCount();
     int *key_order = new int[dataCount];
     for (long long i = 0; i < dataCount; i++) { key_order[i] = i; }
@@ -89,7 +89,13 @@ void tableIteration(Table* input_table, VariableList* varlist, Relation* rel,
         double refvalue = input_table->getValue(i);
         long long index = fit_table->indexOf(refkey, true);
         double value = index == -1 ? 0.0 : fit_table->getValue(index);
-        action(rel, index, value, refkey, refvalue);
+    
+        double indep_value = 0.0;
+        if (indep_table) {
+            long long indep_index = indep_table->indexOf(refkey, true);
+            indep_value = indep_index == -1 ? 0.0 : indep_table->getValue(indep_index);
+        }
+        action(rel, index, value, refkey, refvalue, indep_value);
     }
     delete[] key_order;
 }

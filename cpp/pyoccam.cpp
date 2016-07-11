@@ -1720,6 +1720,7 @@ DefinePyFunction(Report, bestModelData) {
     mgr->computeDependentStatistics(mod);
     mgr->makeFitTable(mod);
     Table* fit = mgr->getFitTable();
+    fit->normalize();
 
     // DEBUG: print out the model using an iterator
     // Do a string/double KV iteration over the fit table

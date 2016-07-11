@@ -25,6 +25,7 @@ LIBOBJECTS = \
 	RelCache.o \
 	Relation.o \
 	Report.o \
+	ReportCommon.o \
 	ReportPrintConditionalDV.o \
 	ReportPrintResiduals.o \
 	ReportQsort.o \
@@ -151,6 +152,15 @@ Report.o: Report.cpp ../include/attrDescs.h ../include/_Core.h \
  ../include/Constants.h ../include/ManagerBase.h ../include/Options.h \
  ../include/VarIntersect.h ../include/Math.h ../include/VBMManager.h \
  ../include/ManagerBase.h
+ReportCommon.o: ReportCommon.cpp ../include/attrDescs.h ../include/_Core.h \
+ ../include/Report.h ../include/Model.h ../include/ModelCache.h \
+ ../include/Relation.h ../include/Table.h ../include/Globals.h \
+ ../include/Types.h ../include/VariableList.h ../include/Variable.h \
+ ../include/Constants.h ../include/ManagerBase.h ../include/Options.h \
+ ../include/VarIntersect.h ../include/Math.h ../include/VBMManager.h \
+ ../include/ManagerBase.h
+
+
 ReportPrintConditionalDV.o: ReportPrintConditionalDV.cpp \
  ../include/Report.h ../include/Model.h ../include/ModelCache.h \
  ../include/Relation.h ../include/Table.h ../include/Globals.h \

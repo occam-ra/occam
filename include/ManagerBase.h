@@ -113,7 +113,6 @@ class ManagerBase {
         virtual bool makeFitTableIPF(Model *model);
         virtual bool makeFitTableAlgebraic(Model *model);
 
-
         // Expand a single tuple into all values of all missing variables, recursively
         void expandTuple(double tupleValue, KeySegment *key, int *missingVars, int missingCount, Table *outTable,
                 int currentMissingVar);
@@ -210,6 +209,7 @@ class ManagerBase {
         void createDvOrder();
         double getMissingCardinalityFactor(Model *model);
         void getPredictingVars(Model *model, int *varindices, int &varcount, bool includeDeps);
+        void getRelevantVars(Model *model, int *varindices, int &varcount, bool includeDeps);
         Relation *getDepRelation();
         Relation *getIndRelation();
 
