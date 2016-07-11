@@ -76,28 +76,33 @@ CL_FILES = \
 	py/sbsearch.py
 
 WEB_FILES = \
-	html/SBfit_cachedform.html \
-	html/SBfitform.html \
-	html/SBsearch_cachedform.html \
-	html/SBsearchform.html \
 	html/base.css \
-	html/cached_data_doc.html \
-	html/compareform.html \
-	html/fit_cachedform.html \
-	html/fitbatchform.html \
-	html/fitform.html \
 	html/footer.html \
 	html/header.html \
 	html/index.html \
-	html/logform.html \
-	html/search_cachedform.html \
-	html/searchform.html \
 	py/OpagCGI.py \
 	py/jobcontrol.py \
 	py/weboccam.py \
    	html/switchform.html \
     html/header.txt \
-    html/weboccam.cgi
+	html/formheader.html \
+    html/fitbatchform.html \
+	html/compareform.html \
+	html/logform.html \
+	html/weboccam.cgi \
+	html/output.template.html \
+	html/cached_data.template.html \
+	html/data.template.html \
+	html/fit.template.html \
+	html/fit.footer.html \
+	html/search.template.html \
+	html/search.footer.html \
+	html/SBfit.template.html \
+	html/SBfit.footer.html \
+	html/SBsearch.template.html \
+	html/SBsearch.footer.html \
+	html/compare.template.html \
+	html/compare.footer.html
 
 lib: $(HEADERS) $(CPP_FILES)
 	cd cpp && make

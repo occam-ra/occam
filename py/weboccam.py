@@ -75,11 +75,30 @@ def printForm(formFields):
     template.out(formFields)
 
     
-    if action in ["fit", "search", "SBsearch", "SBfit", "fitbatch", "log", "compare"]:
+    if action in ["fit", "search", "SBsearch", "SBfit"]:
+
+        template.set_template("formheader.html")
+        template.out(formFields)
+
         cached = formFields.get("cached", "")
-        if cached=="true" and action in ["fit", "search", "SBsearch", "SBfit"]:
-            action = action + "_cached"
-        template.set_template(action + 'form.html')
+        
+        if cached == "true":
+            template.set_template("cached_data.template.html")
+            template.out(formFields)
+        else:
+            template.set_template("data.template.html")
+            template.out(formFields)
+       
+        template.set_template(action+".template.html")
+        template.out(formFields)
+        template.set_template("output.template.html")
+        template.out(formFields)
+        
+        template.set_template(action+".footer.html")
+        template.out(formFields)
+
+    elif action in ["compare", "log", "fitbatch"]:
+        template.set_template(action+"form.html")
         template.out(formFields)
 
     if action == "jobcontrol":
@@ -153,7 +172,7 @@ def prepareCachedData(formFields):
 
     # Check that exactly 1 of datafile, refr were chosen
     if (dataFileName == "" and dataRefrName == "") or (dataFileName != "" and dataRefrName != ""):
-        print "ERROR: Exactly 1 of 'Data File' and 'Cached Data Name' must be filled out."
+        print "NOTE: Exactly 1 of 'Data File' and 'Cached Data Name' must be filled out."
         sys.exit(1)
 
     # Check that at most 1 of testfile, testrefr were chosen
