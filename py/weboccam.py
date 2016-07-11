@@ -302,6 +302,20 @@ def processSBFit(fn, model, negativeDVforConfusion, oc):
     oc.setAction("SBfit")
     oc.doAction(printOptions)
 
+def maybeSkipResiduals(formFields, oc):
+    skipResidualsFlag = formFields.get("skipresiduals", "")
+    if skipResidualsFlag:
+        oc.setSkipTrainedModelTable(1)
+    else:
+        oc.setSkipTrainedModelTable(0)
+ 
+def maybeSkipIVIs(formFields, oc):
+    skipResidualsFlag = formFields.get("skipivitables", "")
+    if skipResidualsFlag:
+        oc.setSkipIVITables(1)
+    else:
+        oc.setSkipIVITables(0)
+
 #
 #---- actionFit ---- Report on Fit
 #
@@ -329,14 +343,10 @@ def actionFit(formFields):
 #oc.setValuesAreFunctions(1)
     
     target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
-    
 
-    skipResidualsFlag = formFields.get("skipresiduals", "")
-    if skipResidualsFlag:
-        oc.setSkipTrainedModelTable(1)
-    else:
-        oc.setSkipTrainedModelTable(0)
-    
+    maybeSkipResiduals(formFields, oc)
+    maybeSkipIVIs(formFields, oc)
+   
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
         return
@@ -378,12 +388,9 @@ def actionSBFit(formFields):
     skipNominalFlag = formFields.get("skipnominal", "")
     if skipNominalFlag:
         oc.setSkipNominal(1)
-
-    skipResidualsFlag = formFields.get("skipresiduals", "")
-    if skipResidualsFlag:
-        oc.setSkipTrainedModelTable(1)
-    else:
-        oc.setSkipTrainedModelTable(0)
+    
+    maybeSkipResiduals(formFields, oc)
+    maybeSkipIVIs(formFields, oc)
 
     target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
 
@@ -979,7 +986,6 @@ def startBatch(formFields):
     cmd = 'nohup "%s" "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname, emailSubject.encode("hex"))
     os.system(cmd)
     print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
-
 
 #
 #---- getWebControls ----

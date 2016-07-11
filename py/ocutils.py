@@ -27,6 +27,7 @@ class ocUtils:
         self.__alphaThreshold = 0.05
         self.__fitClassifierTarget = ""
         self.__skipTrainedModelTable = 1
+        self.__skipIVITables = 1
         self.__searchWidth = 3
         self.__searchLevels = 7
         self.searchDir = "default"
@@ -86,6 +87,9 @@ class ocUtils:
     def setSkipTrainedModelTable(self, b):
         self.__skipTrainedModelTable = b
 
+    def setSkipIVITables(self, b):
+        self.__skipIVITables = b
+    
     def setSkipNominal(self, useFlag):
         flag = int(useFlag)
         if flag != 1:
@@ -543,7 +547,7 @@ class ocUtils:
         self.__report.addModel(model)
         self.__manager.printFitReport(model)
         self.__manager.makeFitTable(model)
-        self.__report.printResiduals(model, self.__skipTrainedModelTable)
+        self.__report.printResiduals(model, self.__skipTrainedModelTable, self.__skipIVITables)
 
     def doSbFit(self,printOptions):
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)

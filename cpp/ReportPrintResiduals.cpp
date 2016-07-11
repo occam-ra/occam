@@ -4,15 +4,18 @@
 
 #include <cstring>
 
-void Report::printResiduals(FILE *fd, Model *model, bool skipTrained) {
-    printResiduals(fd, model, NULL, skipTrained);
+void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipIVIs) {
+    printResiduals(fd, model, NULL, skipTrained, skipIVIs);
 }
 
-void Report::printResiduals(FILE *fd, Relation *rel, bool skipTrained) {
-    printResiduals(fd, NULL, rel, skipTrained);
+void Report::printResiduals(FILE *fd, Relation *rel, bool skipTrained, bool skipIVIs) {
+    printResiduals(fd, NULL, rel, skipTrained, skipIVIs);
 }
 
-void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrainedTable) {
+void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrainedTable, bool skipIVItables) {
+
+    if (skipIVItables && rel && rel->getVariableCount() == 1) { return; }
+
     VariableList *varlist = manager->getVariableList();
     if (varlist->isDirected()) {  return; }
     long var_count = varlist->getVarCount();
@@ -182,7 +185,7 @@ void Report::printResiduals(FILE *fd, Model *model, Relation *rel, bool skipTrai
     } else {
         if (model->getRelationCount() > 1) {
             for (int i = 0; i < model->getRelationCount(); i++) {
-                printResiduals(fd, model->getRelation(i), skipTrainedTable);
+                printResiduals(fd, model->getRelation(i), skipTrainedTable, skipIVItables);
             }
         }
     }

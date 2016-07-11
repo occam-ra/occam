@@ -1666,10 +1666,11 @@ DefinePyFunction(Report, writeReport) {
 DefinePyFunction(Report, printResiduals) {
     PyObject *Pmodel;
     int skipTrainedTable;
-    PyArg_ParseTuple(args, "O!i", &TModel, &Pmodel, &skipTrainedTable);
+    int skipIVItables;
+    PyArg_ParseTuple(args, "O!ii", &TModel, &Pmodel, &skipTrainedTable, &skipIVItables);
     Model *model = ObjRef(Pmodel, Model);
 
-    ObjRef(self, Report)->printResiduals(stdout, model, skipTrainedTable);
+    ObjRef(self, Report)->printResiduals(stdout, model, skipTrainedTable, skipIVItables);
     Py_INCREF(Py_None);
     return Py_None;
 }

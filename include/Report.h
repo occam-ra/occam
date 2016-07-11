@@ -62,9 +62,9 @@ class Report {
 	static void setHTMLMode(bool mode) { htmlMode = mode; }
 
 	//-- Print residual table
-	void printResiduals(FILE *fd, Model *model, bool skipTrainedTable);
-    void printResiduals(FILE *fd, Relation *rel, bool skipTrainedTable);
-    void printResiduals(FILE *fd, Model *model, Relation* rel, bool skipTrainedTable);
+	void printResiduals(FILE *fd, Model *model, bool skipTrainedTable, bool skipIVItables);
+    void printResiduals(FILE *fd, Relation *rel, bool skipTrainedTable, bool skipIVItables);
+    void printResiduals(FILE *fd, Model *model, Relation* rel, bool skipTrainedTable, bool skipIVItables);
 
 	//-- Print conditional DVs
 	//-- Print conditionals for a model.
