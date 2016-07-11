@@ -78,11 +78,22 @@
             </td>
         </tr>
 
- <tr><TD colspan=4>
-                Directed systems: default ("negative") DV state <i>(after rebinning)</i> for confusion matrices:
-                <INPUT type="text" name="negativeDVforConfusion" value="" size=3>
-            </TD>
-        </TR>
+<tr><td>&nbsp;</td></tr>
+
+<tr><TD colspan=7><i> For directed systems: </i></td> </tr>
+<ul><tr><td colspan=7><li>Default ("negative") DV state <i>(after rebinning)</i> for confusion matrices:<INPUT type="text" name="negativeDVforConfusion" value="" size=3></li></TD></TR>
+        <tr><td colspan="7"><li><input type="checkbox" name='calcExpectedDV' value='y' />Calculate expected DV </li></TD></TR></ul>
+
+<tr><td>&nbsp;</td></tr>
+
+<tr> <td colspan=7> <i> For neutral systems: </i></td></tr>
+<ul><tr><td colspan=7><li><input type="checkbox" value="y" checked name="skipresiduals">Omit table showing all states for entire model </li></td></tr>
+    <tr><td colspan=7><li><input type="checkbox" value="y" checked name="skipivitables">Omit tables for IVI variables</li></td> </tr>
+    <tr><td colspan=7><li>"Positive" state for Lift calculations: <input type=text name="positiveStateforLift" value="" size=3></li></td> </tr></ul>
+
+        
+<tr><td colspan="9"><hr/></td></tr>
+<tr><td colspan="9" align="center" class="formtitle">Output Settings</td></tr>
 
         <tr>
             <td colspan="7">
@@ -100,13 +111,6 @@
 		(but don't print variable definitions)
             </td>
         </tr>
-        <tr>
-            <td colspan="7">
-                <input type="checkbox" name='calcExpectedDV' value='y' />
-		Calculate expected DV
-            </td>
-        </tr>
-        <tr> <td colspan=2> <input type="checkbox" value="y" checked name="skipresiduals"> Omit table for entire model <i>(for neutral systems)</i> </td> </tr>
 
         <tr>
             <td colspan="2">
