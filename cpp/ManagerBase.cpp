@@ -130,9 +130,10 @@ void logProjection(const char *name) {
 ManagerBase::ManagerBase(VariableList *vars, Table *input) :
         varList(vars), inputData(input), keysize(vars ? vars->getKeySize() : 0) {
     signal(SIGSEGV, segfault_handler);
-    
-    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
-    signal(SIGFPE, fpe_handler);
+  
+// TODO: figure out exactly how zealous these checks can be  
+//    feenableexcept(FE_DIVBYZERO | FE_INVALID | FE_OVERFLOW);
+//    signal(SIGFPE, fpe_handler);
 
     topRef = bottomRef = refModel = NULL;
     relCache = new RelCache;

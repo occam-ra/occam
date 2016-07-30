@@ -76,6 +76,7 @@ CL_FILES = \
 	py/sbsearch.py
 
 WEB_FILES = \
+	html/occam_logo.jpg \
 	html/base.css \
 	html/footer.html \
 	html/header.html \
