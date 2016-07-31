@@ -82,6 +82,7 @@ class Model {
         void completeSbModel();
         int** makeStateSpaceArray(VariableList *varList, int statespace = 0);
 
+        int getStateSpaceSize() { return stateSpaceSize; }
         void printStructMatrix();
         int **getStructMatrix(int *statespace, int *totalConst);
 //            *statespace = stateSpaceSize;

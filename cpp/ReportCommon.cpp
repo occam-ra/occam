@@ -161,7 +161,13 @@ void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_
     int var_count = varlist->getVarCount();
     header(fd, rel, printLift, printCalc);
     bool blue = 1;
-    auto tableAction = [&](Relation* rel, long long index, double value ,KeySegment* refkey, double refvalue, double indep_value) {
+    double count = 0.0;
+    double sumCalcProb = 0.0;
+    double sumRefProb = 0.0;
+    auto tableAction = [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue, double indep_value) {
+        count += 1.0;
+        sumCalcProb += value;
+        sumRefProb += refvalue;
         printTableRow(fd, blue, varlist, var_count, rel, index, value, refkey, refvalue, indep_value, adjustConstant, sample_size, printLift, printCalc);
         blue = !blue;
     };
@@ -169,4 +175,6 @@ void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_
     tableIteration(input_table, varlist, rel, fit_table, indep_table, var_count, tableAction);
     
     footer(fd);
+
+//    printf("Sum ref: %g; sum calc: %g, coverage: %g\n<br>", sumRefProb, sumCalcProb, count);
 }
