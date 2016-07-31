@@ -106,7 +106,4 @@ class Model {
         int stateSpaceSize;
 };
 
-Model* indepModel(class ManagerBase* m, Model* model);
-Model* indepModel(class ManagerBase* m, Relation* rel);
-
 #endif

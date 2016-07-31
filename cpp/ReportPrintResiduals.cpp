@@ -3,6 +3,19 @@
 #include "Report.h"
 #include <cstring>
 #include "Model.h"
+
+Model* indepModel(ManagerBase* manager) {
+    VariableList* varList = manager->getVariableList();
+    int varCount = varList->getVarCount();
+    Model* newmodel = new Model();
+    for (size_t i=0; i < varCount; i++) {
+        int var[1]; var[0] = i;
+        Relation* rel = manager->getRelation(var, 1, true);
+        newmodel->addRelation(rel, true);
+    }
+    return newmodel;
+}
+
 void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipIVIs) {
 
     if (manager->getVariableList()->isDirected()) {
@@ -80,7 +93,7 @@ void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
     Table* input_table = new Table(keysize, input_data->getTupleCount());
     manager->makeProjection(input_data, input_table, rel);
  
-    Model* indep_model = indepModel(manager, model);
+    Model* indep_model = indepModel(manager);
     Table* indep_table = new Table(keysize, input_data->getTupleCount());
     manager->makeFitTable(indep_model);
     manager->makeProjection(manager->getFitTable(), indep_table, rel);
@@ -117,7 +130,7 @@ void Report::printRel(FILE* fd, Relation* rel, double adjustConstant, bool print
     Table* input_table = new Table(keysize, input_data->getTupleCount());
     manager->makeProjection(input_data, input_table, rel);
 
-    Model* indep_model = indepModel(manager, rel);
+    Model* indep_model = indepModel(manager);
     Table* indep_table = new Table(keysize, input_data->getTupleCount());
     manager->makeFitTable(indep_model);
     manager->makeProjection(manager->getFitTable(), indep_table, rel);
