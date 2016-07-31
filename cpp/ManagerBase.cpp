@@ -1692,3 +1692,36 @@ FitIntersectMap ManagerBase::computeIntersectLevels(Model* model) {
     delete[] fitIntersectArray;
     return out;
 }
+
+double ManagerBase::ivi_model_value(KeySegment* refkey, Relation* rel) {
+    auto varList = rel->getVariableList();
+    auto varCount = rel->getVariableCount();
+    auto in_varList = getVariableList();
+    double prob = 1.0;
+
+/*
+ *  COMPUTE INDEPENDENCE PROBABILITY:
+ *  Start with p=1.
+ *  For each variable `i` in `rel`,
+ *      project down to a single-variable table `t_i`.
+ *      Find out the variable state `s` from `refkey` at `i`.
+ *      Find out the probability of `t_i` at `s`.
+ *      Multiply `p *= s`.
+ *  Finally return `p`.
+ */
+    for (size_t i = 0; i < varCount; ++i ) {
+        int out_keysize = rel->getKeySize();
+        int var[1]; var[0] = i;
+        Relation* rel = getRelation(var, 1, true);
+        Table ptab(out_keysize,rel->getNC());
+        makeProjection(inputData, &ptab, rel);
+
+        // TODO: figure out how to get from refkey to a key fitting ptab, which gives the probability for the corresponding state in the projection.
+        //long long ki = 0;
+        //double pi = ptab.getValue(ki);
+        double pi = 1;
+
+        prob *= pi;  
+    }
+    return prob;
+}

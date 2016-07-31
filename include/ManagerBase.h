@@ -54,6 +54,7 @@ class ManagerBase {
             AUTO, IPF, ALGEBRAIC
         };
 
+
         // create an ManagerBase object, supplying it with a variable list and a table
         // of input data.  Typically an application will read the input data and variable
         // definitions, and then construct the appropriate manager.
@@ -256,7 +257,8 @@ class ManagerBase {
 
         // Create an array of relation intersections for an algebraic fit table.
         FitIntersectMap computeIntersectLevels(Model* model);
-            
+
+        double ivi_model_value(KeySegment* refkey, Relation* rel);
     protected:
         Model *topRef;
         Model *bottomRef;
