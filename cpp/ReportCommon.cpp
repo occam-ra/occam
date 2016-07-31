@@ -19,30 +19,30 @@ int Report::sepStyle() { return htmlMode ? 0 : separator; }
 
 const char* format_arr[] = {
     "%s<td>%s|</td><td>%#6.8g</td><td>%#6.8g</td><td>|</td><td>%#6.8g</td><td>%#6.8g</td><td>%+#6.8g</td></tr>\n",
-    "%s%s\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\n",
-    "%s%s,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g\n",
-    "%s%8s  %#6.8g   %#6.8g   %#6.8g   %#6.8g   %#6.8g\n"
+    "%s%s|\t%#6.8g\t%#6.8g\t|\t%#6.8g\t%#6.8g\t%#6.8g\n",
+    "%s%s|,%#6.8g,%#6.8g,|,%#6.8g,%#6.8g,%#6.8g\n",
+    "%s%8s|  %#6.8g   %#6.8g   |   %#6.8g   %#6.8g   %#6.8g\n"
 };
 
 const char* format_r_arr[] = {
     "%s<td>%s|</td><td>%#6.8g</td><td>%#6.8g</td></tr>\n",
-    "%s%s%#6.8g\t%#6.8g\n",
-    "%s%s%#6.8g,%#6.8g\n",
-    "%s%8s  %#6.8g   %#6.8g\n"
+    "%s%s|\t%#6.8g\t%#6.8g\n",
+    "%s%s|,%#6.8g,%#6.8g\n",
+    "%s%8s|  %#6.8g   %#6.8g\n"
 };
 
 const char* format_l_arr[] = {
     "%s<td>%s|</td><td>%#6.8g</td><td>%#6.8g</td><td>|</td><td>%#6.8g</td><td>%#6.8g</td><td>%+#6.8g</td><td>|</td><td>%#6.8g</td></tr>\n",
-    "%s%s\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\n",
-    "%s%s,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g\n",
-    "%s%8s  %#6.8g   %#6.8g   %#6.8g   %#6.8g   %#6.8g    %#6.8g\n"
+    "%s%s|\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\t%#6.8g\n",
+    "%s%s|,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g,%#6.8g\n",
+    "%s%8s|  %#6.8g   %#6.8g   %#6.8g   %#6.8g   %#6.8g    %#6.8g\n"
 };
 
 const char* format_lr_arr[] = {
     "%s<td>%s|</td><td>%#6.8g</td><td>%#6.8g</td><td>|</td><td>%#6.8g</td></tr>\n",
-    "%s%s\t%#6.8g\t%#6.8g\t%#6.8g\n",
-    "%s%s,%#6.8g,%#6.8g,%#6.8g\n",
-    "%s%8s  %#6.8g   %#6.8g    %#6.8g\n"
+    "%s%s\t|\t%#6.8g\t%#6.8g\t%#6.8g\n",
+    "%s%s,|,%#6.8g,%#6.8g,%#6.8g\n",
+    "%s%8s  |  %#6.8g   %#6.8g    %#6.8g\n"
 };
 
 const char* footer_arr[] = {
@@ -82,9 +82,9 @@ const char* header_cont[] = {
 
 const char* header_finish[] = {
     "</th></tr>\n",
-    "",
-    "",
-    ""
+    "\n",
+    "\n",
+    "\n"
 };
 
 void Report::header(FILE* fd, Relation* rel, bool printLift, bool printCalc) { 

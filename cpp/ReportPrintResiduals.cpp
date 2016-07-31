@@ -24,8 +24,8 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
 
     double adjustConstant = manager->getFunctionConstant() + manager->getNegativeConstant();
     if (!skipTrained) { 
-        hl(fd);
         printWholeTable(fd, model, adjustConstant); 
+        hl(fd);
     }
 
     int relCount = model->getRelationCount();
@@ -34,11 +34,11 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
             Relation* rel = model->getRelation(i);
             int varCount = rel->getVariableCount();
             if (varCount > 1) {
-                hl(fd);
                 printLift(fd, rel, adjustConstant);
-            } else if (!skipIVIs) { 
                 hl(fd);
+            } else if (!skipIVIs) { 
                 printSingleVariable(fd, rel, adjustConstant);
+                hl(fd);
             }
         }
         newl(fd);
