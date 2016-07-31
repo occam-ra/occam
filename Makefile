@@ -76,6 +76,7 @@ CL_FILES = \
 	py/sbsearch.py
 
 WEB_FILES = \
+	html/.htaccess \
 	html/occam_logo.jpg \
 	html/SBfit_cachedform.html \
 	html/SBfitform.html \

@@ -1,0 +1,3 @@
+SetEnvIfNoCase Request_URI .* no-gzip dont-vary
+Options +ExecCGI
+
