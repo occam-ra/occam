@@ -959,11 +959,7 @@ def startBatch(formFields):
 
     cmd = 'nohup "%s" "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname, emailSubject.encode("hex"))
     os.system(cmd)
-    # print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
-
-    print "SERVER ERROR: Recently the OCCAM server has been refusing to send emails to addresses outside of the 'pdx.edu' domain. This is NOT due to a change to OCCAM, but appears to be due to a change to the server's email configuration. I am currently trying to resolve this issue with the PSU Computer Action Team. You should still be able to get HTML output, by leaving the email address form blank on the OCCAM input page. Or, if you have an email on a 'pdx.edu' domain, the email service may work correctly for that address. For further support, please contact h.forrest.alexander@gmail.com. Sorry for the inconvenience."
-    print "In lieu of an email, the HTML output for your submitted job is shown below."
-    startNormal(formFields)
+    print "<hr>Batch job started -- data file: %s, results will be sent to %s\n" % (datafilename, toaddress)
 
 #
 #---- getWebControls ----
