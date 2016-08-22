@@ -28,8 +28,8 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
         hl(fd);
     }
 
-    printSummary(fd, model, adjustConstant);
-    hl(fd);
+    //printSummary(fd, model, adjustConstant);
+    //hl(fd);
 
     int relCount = model->getRelationCount();
     if (relCount > 1) {
@@ -105,9 +105,9 @@ void Report::printSingleVariable(FILE* fd, Relation* rel, double adjustConstant)
 }
 
 void Report::printLift(FILE* fd, Relation* rel, double adjustConstant) {
-    fprintf(fd, "\nLift for the Relation %s\n", rel->getPrintName());
+    fprintf(fd, "\nObservations for the Relation %s\n", rel->getPrintName());
 
-    printRel(fd, rel, adjustConstant, true);
+    printRel(fd, rel, adjustConstant, false);
 }
 
 void Report::printRel(FILE* fd, Relation* rel, double adjustConstant, bool printLift) {

@@ -164,7 +164,8 @@ void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_
 
     auto tableAction = [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue) {
 
-        double iviValue = manager->ivi_model_value(refkey,rel);
+//        double iviValue = manager->ivi_model_value(refkey,rel);
+        double iviValue = 0.0;
         printTableRow(fd, blue, varlist, var_count, rel, index, value, refkey, refvalue, iviValue, adjustConstant, sample_size, printLift, printCalc);
         blue = !blue;
     };
