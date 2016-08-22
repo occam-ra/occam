@@ -1,9 +1,42 @@
 
 <tr><td colspan="9" align="center"><hr/></td></tr>
+<tr><td colspan="9" align="center" class="formtitle">Hypergraph Display Settings</td></tr>
+
+
+<tr><td colspan=2>Hypergraph Layout Style:</td>
+    <td colspan=7>
+        <input type=radio name='layout' checked value='fr'> Fruchterman-Reingold
+        <input type=radio name='layout' value='drl'> DrL
+        <input type=radio name='layout' value='bipartite'> Bipartite
+        <input type=radio name='layout' value='mds'> Multi-dimensional scaling </td>
+</tr>
+
+
+<tr><td colspan=2>Hyperedge Weight Function: </td>
+    <td colspan=7>
+        <input type=radio name='weight' checked value='mutualH'> Mutual Information
+        <input type=radio name='weight' value='unweighted'> Unweighted </td>
+</tr>
+
+<tr><td colspan=9><input type=checkbox checked name='gfx'>Generate graph images</td></tr>
+<tr><td colspan=9><input type=checkbox checked name='showEdgeWeights'>Show edge weights</td></tr>
+<tr><td colspan=9><input type=checkbox name='gephi'>Generate Gephi files</td></tr>
+
+<tr><td>&nbsp;</td></tr>
+<tr><td colspan=9><i>For directed systems: </i></td></tr>
+<tr><td colspan=9><input type=checkbox checked name='hideDV'>Hide DV hyperedge</td></tr>
+
+<!--
+<tr><td colspan=9><input type=checkbox checked name='weightDV'>Weight hypernode size by %dH(DV)</td></tr>
+<tr><td colspan=9><i>For neutral systems: </i></td></tr>
+<tr><td colspan=9><input type=checkbox checked name='weightIV'>Weight hypernode size by df/(1+H)</td></tr>
+-->
+
+
+<tr><td colspan="9" align="center"><hr/></td></tr>
 <tr><td colspan="9" align="center" class="formtitle">Output Settings</td></tr>
 
-<tr><td colspan="7"><input type="checkbox" name='format' value='y' />Return data in spreadsheet format</td></tr>
-        
+<tr><td colspan="7"><input type="checkbox" name='format' value='y' />Return data in CSV format (if hypergraph rendering enabled, return ZIP format containing CSV, PDF, and Gephi files) </td></tr>
 <tr>
     <td colspan=2><input type="checkbox" name='printoptions' checked value='y' />Print option settings</td>
     <td colspan=1><input type='checkbox' name='skipnominal' value='y' />(but don't print variable definitions)</td>
