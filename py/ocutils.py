@@ -48,6 +48,12 @@ class ocUtils:
         self.__PercentCorrect = 0
         self.__IncrementalAlpha = 0
         self.__NoIPF = 0
+        self.__generateGraph = True
+        self.__generateGephi = False
+        self.__graphHideDV = True
+        self.__layoutStyle = "Fruchterman-Reingold"
+#        self.__showEdgeWeights = True
+#        self.__weightFn = "Mutual Information"
         self.totalgen = 0
         self.totalkept = 0
         self.__nextID = 0
@@ -644,6 +650,15 @@ class ocUtils:
             self.printOption("Search preference", self.__searchSortDir)
             self.printOption("Report sort by", self.__reportSortName)
             self.printOption("Report preference", self.__sortDir)
+        self.printOption("Generate hypergraph images", "Y" if self.__generateGraph else "N")
+        self.printOption("Generate Gephi files", "Y" if self.__generateGephi else "N")
+        if(self.__generateGephi or self.__generateGraph):
+            self.printOption("Hypergraph layout style", self.__layoutStyle)
+#            self.printOption("Hypergraph weight function", self.__weightFn)
+#            self.printOption("Show hyperedge weights", "Y" if self.__showEdgeWeights else "N")
+            if(self.isDirected()):
+                self.printOption("Hide DV hyperedge", "Y" if self.__graphHideDV else "N")
+
         if self.__HTMLFormat:
             print "</table>"
         sys.stdout.flush()
