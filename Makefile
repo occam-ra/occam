@@ -66,7 +66,8 @@ CORE_FILES = \
 	cpp/occam.so \
 	py/occammail.py \
 	py/ocutils.py \
-	py/distanceFunctions.py
+	py/distanceFunctions.py \
+	py/ocGraph.py
 
 CL_FILES = \
 	cpp/occ \

@@ -1,5 +1,5 @@
 # coding=utf8
-import sys, re, occam, time, heapq
+import sys, re, occam, time, heapq, ocGraph
 
 totalgen=0
 totalkept=0
@@ -11,12 +11,14 @@ class ocUtils:
     COMMASEP=2
     SPACESEP=3
     HTMLFORMAT=4
+    
 
     def __init__(self,man):
         if man == "VB":
             self.__manager = occam.VBMManager()
         else:           
             self.__manager = occam.SBMManager()
+        self.graphs = {}
         self.__hide_intermediate_output = False
         self.__report = self.__manager.Report()
         self.__DDFMethod = 0
@@ -531,10 +533,15 @@ class ocUtils:
         
         self.__manager.printBasicStatistics()
         
+
         for modelName in self.__fitModels:
             self.__manager.setRefModel(self.__refModel)
             model = self.__manager.makeModel(modelName, 1)
+ 
+
             self.doAllComputations(model)
+
+
             if self.__defaultFitModel != "":
                 try:
                     defaultModel = self.__manager.makeModel(self.__defaultFitModel, 1)
@@ -543,6 +550,14 @@ class ocUtils:
                     sys.exit(0)
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
+            
+            graph = ocGraph.generate(model)
+            self.graphs[model] = graph
+            if self.__HTMLFormat:
+                print "<br><hr><br>Hypergraph model visualization<br>"
+                ocGraph.printSVG(graph)
+
+
             print
             print
 

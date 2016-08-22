@@ -9,7 +9,7 @@ from jobcontrol import JobControl
 
 cgitb.enable(display=1)
 VERSION = "3.3.11"
-
+stdout_save = None
 # TODO: eliminate the need for this kludgy definition.
 false = 0; true = 1
 
@@ -29,10 +29,31 @@ def getDataFileName(formFields, trim=false, key='datafilename'):
     """
     return '_'.join(apply_if(trim, lambda d : os.path.splitext(d)[0], os.path.split(formFields[key])[1]).split())
 
+
 def printHeaders(formFields, textFormat):
     if textFormat:
-        print "Content-type: application/octet-stream"
-        print "Content-disposition: attachment; filename=" + getDataFileName(formFields, true) + ".csv"
+        global csvname
+        csvname = getDataFileName(formFields, true) + ".csv"
+        csvname = getUniqueFilename(csvname)
+        if formFields.has_key("gfx"):
+            # REDIRECT OUTPUT FOR NOW (it will be printed in outputZipfile())
+            print "Content-type: application/octet-stream"
+            print "Content-disposition: attachment; filename=" + getDataFileName(formFields, true) + ".zip"
+            print ""
+            sys.stdout.flush()
+            
+            global stdout_save
+            stdout_save = os.dup(1)
+            csv = os.open(csvname, os.O_WRONLY)
+            os.dup2(csv, 1)
+            os.close(csv)
+
+            pass
+        else:
+            print "Content-type: application/octet-stream"
+            print "Content-disposition: attachment; filename=" + csvname
+        
+
     else:
         print "Content-type: text/html"
     print ""
@@ -53,6 +74,28 @@ def printTime(textFormat):
             print "Run time: %f seconds\n" % elapsed_t
         else:
             print "<br>Run time: %f seconds</br>" % elapsed_t
+
+csvname = ""
+
+# Take the captured standard output,
+# and the generated graphs, and roll them into a ZIP file.
+def outputToZip():
+    global stdout_save
+    global csvname
+    zipname = getDataFileName(formFields, true) + ".zip"
+
+    z = zipfile.ZipFile(zipname, "w")
+    
+    z.write(csvname, getDataFileName(formFields, true) + ".csv")
+    z.close() 
+  
+    # TODO: Write each of the graphs saved in ocutils instance
+   
+    sys.stdout = os.fdopen(stdout_save, 'w')
+    handle = open(zipname)
+    contents = handle.read()
+    print contents
+    sys.stdout.flush()
 
 #
 #---- printBottom ---- Print bottom HTML part
@@ -1098,6 +1141,11 @@ if formFields.has_key("action"):
         startBatch(formFields)
     else:
         startNormal(formFields)
+
+if formFields.has_key("gfx") and textFormat:
+    outputToZip()
+    sys.stdout.flush()
+    sys.stdout.close()
 
 if not textFormat:
     printBottom()
