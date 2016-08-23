@@ -55,6 +55,7 @@ class ocUtils:
         self.__generateGephi = False
         self.__hideIsolated = True
         self.__graphHideDV = True
+        self.__fullVarNames = False
         self.__layoutStyle = None
 #        self.__showEdgeWeights = True
 #        self.__weightFn = "Mutual Information"
@@ -554,16 +555,54 @@ class ocUtils:
                     sys.exit(0)
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
-            
-            graph = ocGraph.generate(model)
+
+
+            self.maybePrintGraphSVG(model, True)
+            self.maybePrintGraphGephi(model, True)
+
+            print
+            print
+
+
+    def maybePrintGraphSVG(self, model, header):
+        if self.__generateGraph:
+            self.generateGraph(model)
+        if self.__HTMLFormat:
+            if header: 
+                print "<br><hr><br>Hypergraph model visualization:<br>"
+            ocGraph.printSVG(self.graphs[model])
+
+    def maybePrintGraphGephi(self, model, header):
+        if self.__generateGraph:
+            self.generateGraph(model)
+        if self.__HTMLFormat:
+            if header:
+                print "<br><hr><br>Hypergraph model Gephi input:<br>"
+            print ocGraph.printGephi(self.graphs[model])
+
+
+    def generateGraph(self, model):
+        varlist = self.__report.variableList()
+        layout = self.__layoutStyle
+        hideIV = self.__hideIsolated
+        hideDV = self.__graphHideDV
+        fullVarNames = self.__fullVarNames
+
+        if self.graphs.has_key(model):
+            pass
+        else:
+            graph = ocGraph.generate(model, varlist, layout, hideIV, hideDV, fullVarNames)
             self.graphs[model] = graph
-            if self.__HTMLFormat:
-                print "<br><hr><br>Hypergraph model visualization<br>"
-                ocGraph.printSVG(graph)
 
 
-            print
-            print
+    def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True, fullVarNames=False):
+       self.__generateGraph = useGfx
+       self.__generateGephi = gephi
+       self.__layoutStyle = layout
+       self.__hideIsolated = hideIV
+       self.__graphHideDV = hideDV
+       self.__fullVarNames = fullVarNames
+    
 
     def doAllComputations(self, model):
         self.__manager.computeL2Statistics(model)
@@ -726,10 +765,4 @@ class ocUtils:
         file_Ref, model_Ref, file_Comp, model_Comp = compare_order
         return self.__manager.computeBinaryStatistic(file_Ref, model_Ref, file_Comp, model_Comp, key)
 
-    def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True):
-       self.__generateGraph = useGfx
-       self.__generateGephi = gephi
-       self.__layoutStyle = layout
-       self.__hideIsolated = hideIV
-       self.__graphHideDV = hideDV
 

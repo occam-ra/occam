@@ -24,9 +24,73 @@ polygonExample = """
 
 """
 
-def generate(modelName):
+# Graph generation based on Teresa Schmidt's R script (2016)
+def generate(modelName, varlist, layout, hideIV, hideDV, fullVarNames):
+    # PARAMETERS:
+    # model name: the model to make a graph of
+    # variable list: variables from the data not necessarily in the model
+    #   (list of pairs, containing (full name, abbrev))
+
+    print "GRAPH:"
+    print modelName
+    print varlist
+    print layout
+    print hideIV
+    print hideDV
+    print fullVarNames
+    
+
+    # constants borrowed from Teresa's script; we may want to make these options
+    # vertex color = medium aquamarine
+    # vertex size  = 10
+    # vertex label = 0.8
+    # hyperedge color   = red4
+    # hyperedge size    = 2
+    # hyperedge label size = 0.01
+
+
+    # TO MAKE A GRAPH:
+
+    # Clean up the model name into a list of associations:
+    # Get rid of IVI and IV
+    # Split on Colon
+    # Split on uppercase letters
+    # Annotate each association with its order, i.e. 2-way, 3-way, ...
+    
+    # Optionally, make a node for each variable.
+    # Otherwise, add nodes as they are needed in edges.
+
+    # Make simple edges for each 2-way association:
+        # Filter out the 2-way associations
+        # Add an edge pair for each one.
+        # Optionally, disable this and treat it as higher-order.
+    
+    # Make hyperedges for each higher-order association:
+        # Give each higher-order association a new node.
+        # Make a 2-way association between variables and association nodes,
+        # for the associations the variable is contained in,
+        # i.e. a bipartite graph.
+
+    # Combine the edge lists into a single list of edges.
+
+    # Package the graph up for IGRAPH:
+
+
+
+    
+    
     return ""
 
 def printSVG(graph):
     print polygonExample
     print "<br>"
+
+
+def printPDF(filename, graph):
+    pass
+
+def printGephi(graph):
+    return "GEPHI CODE"
+
+def printR(graph):
+    return "R CODE"
