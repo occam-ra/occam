@@ -138,16 +138,16 @@ def printPlot(graph, layout, extension, filename="graph"):
     tys = graph.vs["type"]
     tylabs = zip(graph.vs["type"], graph.vs["label"])
     color_dict = {True: "lightblue", False: "white"}
-    shape_dict = {True: "strip", False: "circle"}
+    shape_dict = {True: "strip" if layout == "bipartite" else "circle", False: "circle"}
     dist_dict = {True: 0, False: 0}
     fontsize = 8
     labWidth = lambda lab : textwidth(lab,fontsize)
 
     nodeSizeFn = lambda ty,lab : 0 if ty else labWidth(lab)
     nodeSize = max([nodeSizeFn(ty,lab) for (ty,lab) in tylabs])
-    sizeFn = lambda ty,lab : 1.1*labWidth(lab) if ty else nodeSize
+
+    sizeFn = (lambda ty,lab : 1.1*labWidth(lab) if ty else nodeSize) if layout=="bipartite" else (lambda ty,lab : 5 if ty else nodeSize) 
     marginSize = max([sizeFn(ty,lab) for (ty,lab) in tylabs])/2
-    
 
     # constants borrowed from Teresa's script; we may want to make these options
     # vertex color = medium aquamarine
@@ -164,8 +164,8 @@ def printPlot(graph, layout, extension, filename="graph"):
         "margin":marginSize,
         "vertex_shape":[shape_dict[ty] for ty in tys],
         "vertex_label_dist": [dist_dict[ty] for ty in tys],
-        "vertex_label_size": fontsize,
-        "bbox":(700, 700)
+        "vertex_label_size": [0 if layout!="bipartite" and ty else fontsize for ty in tys],
+        "bbox":(700 if not (layout=="bipartite") else max([700, marginSize*3*len(filter(lambda x : x, tys))]), 700)
     }
 
 
