@@ -70,20 +70,87 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
 
     return workingGraph
 
+class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
+    names = "strip"
+
+    @staticmethod
+    def draw_path(ctx, center_x, center_y, width, height=20):
+        ctx.rectangle(center_x - width/2, center_y - height/2, width, height)
+
+    @staticmethod
+    def intersection_point(center_x, center_y, source_x, source_y, width, height=20):
+        delta_x, delta_y = center_x-source_x, center_y-source_y
+
+        if delta_x == 0 and delta_y == 0:
+            return center_x, center_y
+
+        if delta_y > 0 and delta_x <= delta_y and delta_x >= -delta_y:
+            # this is the top edge
+            ry = center_y - height/2
+            ratio = (height/2) / delta_y
+            return center_x-ratio*delta_x, ry
+
+        if delta_y < 0 and delta_x <= -delta_y and delta_x >= delta_y:
+            # this is the bottom edge
+            ry = center_y + height/2
+            ratio = (height/2) / -delta_y
+            return center_x-ratio*delta_x, ry
+
+        if delta_x > 0 and delta_y <= delta_x and delta_y >= -delta_x:
+            # this is the left edge
+            rx = center_x - width/2
+            ratio = (width/2) / delta_x
+            return rx, center_y-ratio*delta_y
+
+        if delta_x < 0 and delta_y <= -delta_x and delta_y >= delta_x:
+            # this is the right edge
+            rx = center_x + width/2
+            ratio = (width/2) / -delta_x
+            return rx, center_y-ratio*delta_y
+
+        if delta_x == 0:
+            if delta_y > 0:
+                return center_x, center_y - height/2
+            return center_x, center_y + height/2
+
+        if delta_y == 0:
+            if delta_x > 0:
+                return center_x - width/2, center_y
+            return center_x + width/2, center_y
+    
+igraph.drawing.shapes.ShapeDrawerDirectory.register(StripDrawer)
+
+def textwidth(text, fontsize=14):
+    try:
+        import cairo
+    except Exception, e:
+        return len(str) * fontsize
+    surface = cairo.SVGSurface('undefined.svg', 600, 600)
+    cr = cairo.Context(surface)
+    cr.select_font_face('sans-serif', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+    cr.set_font_size(fontsize)
+    xbearing, ybearing, width, height, xadvance, yadvance = cr.text_extents(text)
+    return width
+
 
 def printPlot(graph, layout, extension, filename="graph"):
     # Setup the graph plotting aesthetics.
-    # constants borrowed from Teresa's script; we may want to make these options
+    tys = graph.vs["type"]
+    tylabs = zip(graph.vs["type"], graph.vs["label"])
     color_dict = {True: "lightblue", False: "white"}
-    shape_dict = {True: "circle", False: "hidden"}
-    visual_style = {
-        "vertex_size":20,
-        "vertex_color":[color_dict[ty] for ty in graph.vs["type"]],
-        "margin":100,
-        "vertex_shape":[shape_dict[ty] for ty in graph.vs["type"]],
-        
-    }
-# vertex color = medium aquamarine
+    shape_dict = {True: "strip", False: "circle"}
+    dist_dict = {True: 0, False: 0}
+    fontsize = 8
+    labWidth = lambda lab : textwidth(lab,fontsize)
+
+    nodeSizeFn = lambda ty,lab : 0 if ty else labWidth(lab)
+    nodeSize = max([nodeSizeFn(ty,lab) for (ty,lab) in tylabs])
+    sizeFn = lambda ty,lab : 1.1*labWidth(lab) if ty else nodeSize
+    marginSize = max([sizeFn(ty,lab) for (ty,lab) in tylabs])/2
+    
+
+    # constants borrowed from Teresa's script; we may want to make these options
+    # vertex color = medium aquamarine
     # vertex size  = 10
     # vertex label = 0.8
     # hyperedge color   = red4
@@ -91,12 +158,21 @@ def printPlot(graph, layout, extension, filename="graph"):
     # hyperedge label size = 0.01
 
 
+    visual_style = {
+        "vertex_size":[sizeFn(ty, lab) for (ty,lab) in tylabs],
+        "vertex_color":[color_dict[ty] for ty in tys],
+        "margin":marginSize,
+        "vertex_shape":[shape_dict[ty] for ty in tys],
+        "vertex_label_dist": [dist_dict[ty] for ty in tys],
+        "vertex_label_size": fontsize,
+        "bbox":(700, 700)
+    }
+
+
     # Set the layout. None is a valid choice.
     layoutChoice = None
     if layout == "Fruchterman-Reingold":
         layoutChoice = graph.layout("fr")
-    elif layout == "DrL":
-        layoutChoice = graph.layout("drl")
     elif layout == "bipartite":
         layoutChoice = graph.layout("bipartite")
     elif layout == "Reingold-Tilford":
@@ -116,7 +192,6 @@ def printSVG(graph, layout):
         print contents
 
 def printPDF(filename, graph, layout):
-    print "got to here"
     graphFile = printPlot(graph, layout, "pdf", filename=filename)
     return graphFile
 
