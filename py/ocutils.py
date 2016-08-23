@@ -587,14 +587,14 @@ class ocUtils:
         hideDV = self.__graphHideDV
         fullVarNames = self.__fullVarNames
         dvName = ""
+        allHigherOrder = (self.__layoutStyle == "bipartite")
         if self.isDirected():
             dvName = self.__report.dvName()
 
         if self.graphs.has_key(model):
             pass
         else:
-            self.graphs[model] = ocGraph.generate(model, varlist, hideIV, hideDV, dvName, fullVarNames)
-
+            self.graphs[model] = ocGraph.generate(model, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder)
 
     def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True, fullVarNames=False):
        self.__generateGraph = useGfx

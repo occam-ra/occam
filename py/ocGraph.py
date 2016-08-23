@@ -4,11 +4,14 @@ import igraph
 from common import *
 
 # Graph generation based on Teresa Schmidt's R script (2016)
-def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
+def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder):
     # PARAMETERS:
     # model name: the model to make a graph of
     # variable list: variables from the data not necessarily in the model
     #   (list of pairs, containing (full name, abbrev))
+    # if allHigherOrder were set to true,
+    # dyadic relations would get a hyperedge instead of normal edge,
+    # like a -- ab -- b, instead of simply a -- b
     
     # Clean up the model name into a list of associations:
     # Get rid of IVI and IV
@@ -21,20 +24,23 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
 
     # Set all of the names to be either the full form or abbreviated.
     varDict = dict(map(lambda p : (p[1],p[0]), varlist))
+    fullDvName = varDict[dvName]
     workingModel = [[(varDict[v] if fullVarNames else v) for v in r] for r in model]
     workingNames = set(map(lambda v : v[0 if fullVarNames else 1], varlist))
     
     if hideIV:
         workingNames = set([v for r in workingModel for v in r])
 
+    
     # For each variable, and each association, get a unique number:
     workingNodes = {}
     num_vertices = 0
     for i, v in enumerate(workingNames):
         workingNodes[v] = i
     for j, v in enumerate(workingModel):
-        workingNodes["**".join(v)] = i + j + 1
-        num_vertices = i + j + 2
+        if allHigherOrder or len(v) > 2:
+            workingNodes["**".join(v)] = i + j + 1
+            num_vertices = i + j + 2
     
     
     # Start with an empty graph
@@ -42,12 +48,9 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
     workingGraph.add_vertices(num_vertices)
     for val,node in workingNodes.items():
         workingGraph.vs[node]["name"] = val
+        workingGraph.vs[node]["type"] = True if "**" in val else False
 
 
-    # if allHigherOrder were set to true,
-    # dyadic relations would get a hyperedge instead of normal edge,
-    # like a -- ab -- b, instead of simply a -- b
-    allHigherOrder = False
     for rel in workingModel:
         if len(rel) == 2 and not allHigherOrder:
             workingGraph.add_edges([(workingNodes[rel[0]], workingNodes[rel[1]])])
@@ -58,16 +61,27 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
                 var = workingNodes[v]
                 workingGraph.add_edges([(comp, var)])
 
+    print "got to here"
+
     # If the DV is to be hidden, eliminate the node corresponding to it.
     if dvName != "" and hideDV:
-        workingGraph.delete_vertices(workingNodes[dvName])
+        workingGraph.delete_vertices(workingNodes[fullDvName if fullVarNames else dvName])
+    
 
     return workingGraph
 
-def printSVG(graph, layout, tempname):
+def printSVG(graph, layout):
     print "<br>"
+    graphFile = printPlot(graph, layout, "svg")
+    with open(graphFile) as gf:
+        contents = gf.read()
+        print contents
 
 
+def printPlot(graph, layout, extension):
+    # Add labels (right now, just based on the name):
+    graph.vs["label"] = map(lambda s: s.replace("**", " - "), graph.vs["name"])
+    # Setup the graph plotting aesthetics.
     # constants borrowed from Teresa's script; we may want to make these options
     # vertex color = medium aquamarine
     # vertex size  = 10
@@ -75,8 +89,24 @@ def printSVG(graph, layout, tempname):
     # hyperedge color   = red4
     # hyperedge size    = 2
     # hyperedge label size = 0.01
-    
-    igraph.plot(graph, "graph.svg")
+
+
+    # Set the layout. None is a valid choice.
+    layoutChoice = None
+    if layout == "Fruchterman-Reingold":
+        layoutChoice = graph.layout("fr")
+    elif layout == "DrL":
+        layoutChoice = graph.layout("drl")
+    elif layout == "bipartite":
+        layoutChoice = graph.layout("bipartite")
+    elif layout == "Reingold-Tilford":
+        layoutChoice = graph.layout("rt")
+
+    # Generate a unique file for the graph;
+    # using the layout (if any), generate a plot.
+    graphFile = getUniqueFilename("graph."+extension)
+    igraph.plot(graph, graphFile, layout=layoutChoice)
+    return graphFile
 
 def printPDF(filename, graph):
     pass
