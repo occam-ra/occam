@@ -717,7 +717,7 @@ class ocUtils:
 #            self.printOption("Hypergraph weight function", self.__weightFn)
 #            self.printOption("Show hyperedge weights", "Y" if self.__showEdgeWeights else "N")
             if(self.isDirected()):
-                self.printOption("Hide DV hyperedge", "Y" if self.__graphHideDV else "N")
+                self.printOption("Hide DV hypernode", "Y" if self.__graphHideDV else "N")
 
         if self.__HTMLFormat:
             print "</table>"
