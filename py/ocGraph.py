@@ -61,22 +61,29 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
                 var = workingNodes[v]
                 workingGraph.add_edges([(comp, var)])
 
-    print "got to here"
-
     # If the DV is to be hidden, eliminate the node corresponding to it.
     if dvName != "" and hideDV:
         workingGraph.delete_vertices(workingNodes[fullDvName if fullVarNames else dvName])
     
+    # Add labels (right now, just based on the name):
+    workingGraph.vs["label"] = map(lambda s: s.replace("**", " - " if fullVarNames else ""), workingGraph.vs["name"])
 
     return workingGraph
 
 
 def printPlot(graph, layout, extension, filename="graph"):
-    # Add labels (right now, just based on the name):
-    graph.vs["label"] = map(lambda s: s.replace("**", " - "), graph.vs["name"])
     # Setup the graph plotting aesthetics.
     # constants borrowed from Teresa's script; we may want to make these options
-    # vertex color = medium aquamarine
+    color_dict = {True: "lightblue", False: "white"}
+    shape_dict = {True: "circle", False: "hidden"}
+    visual_style = {
+        "vertex_size":20,
+        "vertex_color":[color_dict[ty] for ty in graph.vs["type"]],
+        "margin":100,
+        "vertex_shape":[shape_dict[ty] for ty in graph.vs["type"]],
+        
+    }
+# vertex color = medium aquamarine
     # vertex size  = 10
     # vertex label = 0.8
     # hyperedge color   = red4
@@ -98,7 +105,7 @@ def printPlot(graph, layout, extension, filename="graph"):
     # Generate a unique file for the graph;
     # using the layout (if any), generate a plot.
     graphFile = getUniqueFilename(filename+"."+extension)
-    igraph.plot(graph, graphFile, layout=layoutChoice)
+    igraph.plot(graph, graphFile, layout=layoutChoice, **visual_style)
     return graphFile
 
 def printSVG(graph, layout):

@@ -54,7 +54,7 @@ class ocUtils:
         self.__generateGraph = True
         self.__generateGephi = False
         self.__hideIsolated = True
-        self.__graphHideDV = True
+        self.__graphHideDV = False
         self.__fullVarNames = False
         self.__layoutStyle = None
 #        self.__showEdgeWeights = True
