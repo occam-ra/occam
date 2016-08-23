@@ -1,6 +1,7 @@
 import re
 import itertools
 import igraph
+from common import *
 
 # Graph generation based on Teresa Schmidt's R script (2016)
 def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
@@ -15,8 +16,8 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
     components = filter(lambda s : not (s == 'IVI' or s == 'IV'), components)
     # Split on uppercase letters
     model = map(lambda s : re.findall('[A-Z][^A-Z]*', s), components)
-    
-
+    if dvName != "":
+        model = filter(lambda r : dvName in r, model)
 
     # Set all of the names to be either the full form or abbreviated.
     varDict = dict(map(lambda p : (p[1],p[0]), varlist))
@@ -28,14 +29,17 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
 
     # For each variable, and each association, get a unique number:
     workingNodes = {}
+    num_vertices = 0
     for i, v in enumerate(workingNames):
         workingNodes[v] = i
     for j, v in enumerate(workingModel):
         workingNodes["**".join(v)] = i + j + 1
-
+        num_vertices = i + j + 2
+    
+    
     # Start with an empty graph
     workingGraph = igraph.Graph()
-    workingGraph.add_vertices(i+j+2)
+    workingGraph.add_vertices(num_vertices)
     for val,node in workingNodes.items():
         workingGraph.vs[node]["name"] = val
 
@@ -55,15 +59,15 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
                 workingGraph.add_edges([(comp, var)])
 
     # If the DV is to be hidden, eliminate the node corresponding to it.
-    if hideDV:
+    if dvName != "" and hideDV:
         workingGraph.delete_vertices(workingNodes[dvName])
 
     return workingGraph
 
-def printSVG(graph, layout):
+def printSVG(graph, layout, tempname):
     print "<br>"
-    print layout
-    print graph
+
+
     # constants borrowed from Teresa's script; we may want to make these options
     # vertex color = medium aquamarine
     # vertex size  = 10
@@ -71,7 +75,8 @@ def printSVG(graph, layout):
     # hyperedge color   = red4
     # hyperedge size    = 2
     # hyperedge label size = 0.01
-
+    
+    igraph.plot(graph, "graph.svg")
 
 def printPDF(filename, graph):
     pass

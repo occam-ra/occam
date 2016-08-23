@@ -6,7 +6,7 @@ from time import clock
 from ocutils import ocUtils
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
-
+from common import *
 cgitb.enable(display=1)
 VERSION = "3.3.11"
 stdout_save = None
@@ -1021,14 +1021,6 @@ def getFormFields(form):
             formFields[key] = form.getfirst(key)
     return formFields
 
-
-def getUniqueFilename(file_name):
-    dirname, filename = os.path.split(file_name)
-    prefix, suffix = os.path.splitext(filename)
-    prefix = '_'.join(prefix.split())
-    fd, filename = tempfile.mkstemp(suffix, prefix+"__", dirname)
-    os.chmod(filename, 0660)
-    return filename
 
 def getTimestampedFilename(file_name):
     dirname, filename = os.path.split(file_name)

@@ -1701,9 +1701,8 @@ DefinePyFunction(Report, dvName) {
     Report* report = ObjRef(self, Report);
     VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
     VariableList* varlist = mgr->getVariableList();
-    long var_count = varlist->getVarCount();
-    const char* printName = varlist->getVariable(varlist->getDV())->name;
-    PyObject* name = PyString_FromString(printName);
+    const char* abbrev = varlist->getVariable(varlist->getDV())->abbrev;
+    PyObject* name = PyString_FromString(abbrev);
     return name;
 }
 
