@@ -1,45 +1,69 @@
-
-polygonExample = """
-<?xml version="1.0" encoding="UTF-8" standalone="no"?>
-
-<svg xmlns="http://www.w3.org/2000/svg" version="1.0" width="480" height="543.03003" viewBox="0 0 257.002 297.5" xml:space="preserve">
-
-<g transform="matrix(0.8526811,0,0,0.8526811,18.930632,21.913299)">
-
-<polygon points="8.003,218.496 0,222.998 0,74.497 8.003,78.999 8.003,218.496 "/>
-
-<polygon points="128.501,287.998 128.501,297.5 0,222.998 8.003,218.496 128.501,287.998 " />
-
-<polygon points="249.004,218.496 257.002,222.998 128.501,297.5 128.501,287.998 249.004,218.496 " />
-
-<polygon points="249.004,78.999 257.002,74.497 257.002,222.998 249.004,218.496 249.004,78.999 " />
-
-<polygon points="128.501,9.497 128.501,0 257.002,74.497 249.004,78.999 128.501,9.497 " />
-
-<polygon points="8.003,78.999 0,74.497 128.501,0 128.501,9.497 8.003,78.999 " />
-
-</g>
-
-</svg>
-
-"""
+import re
+import itertools
+import igraph
 
 # Graph generation based on Teresa Schmidt's R script (2016)
-def generate(modelName, varlist, layout, hideIV, hideDV, fullVarNames):
+def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames):
     # PARAMETERS:
     # model name: the model to make a graph of
     # variable list: variables from the data not necessarily in the model
     #   (list of pairs, containing (full name, abbrev))
-
-    print "GRAPH:"
-    print modelName
-    print varlist
-    print layout
-    print hideIV
-    print hideDV
-    print fullVarNames
+    
+    # Clean up the model name into a list of associations:
+    # Get rid of IVI and IV
+    components = modelName.split(':')
+    components = filter(lambda s : not (s == 'IVI' or s == 'IV'), components)
+    # Split on uppercase letters
+    model = map(lambda s : re.findall('[A-Z][^A-Z]*', s), components)
     
 
+
+    # Set all of the names to be either the full form or abbreviated.
+    varDict = dict(map(lambda p : (p[1],p[0]), varlist))
+    workingModel = [[(varDict[v] if fullVarNames else v) for v in r] for r in model]
+    workingNames = set(map(lambda v : v[0 if fullVarNames else 1], varlist))
+    
+    if hideIV:
+        workingNames = set([v for r in workingModel for v in r])
+
+    # For each variable, and each association, get a unique number:
+    workingNodes = {}
+    for i, v in enumerate(workingNames):
+        workingNodes[v] = i
+    for j, v in enumerate(workingModel):
+        workingNodes["**".join(v)] = i + j + 1
+
+    # Start with an empty graph
+    workingGraph = igraph.Graph()
+    workingGraph.add_vertices(i+j+2)
+    for val,node in workingNodes.items():
+        workingGraph.vs[node]["name"] = val
+
+
+    # if allHigherOrder were set to true,
+    # dyadic relations would get a hyperedge instead of normal edge,
+    # like a -- ab -- b, instead of simply a -- b
+    allHigherOrder = False
+    for rel in workingModel:
+        if len(rel) == 2 and not allHigherOrder:
+            workingGraph.add_edges([(workingNodes[rel[0]], workingNodes[rel[1]])])
+
+        else:
+            comp = workingNodes["**".join(rel)]
+            for v in rel:
+                var = workingNodes[v]
+                workingGraph.add_edges([(comp, var)])
+
+    # If the DV is to be hidden, eliminate the node corresponding to it.
+    if hideDV:
+        workingGraph.delete_vertices(workingNodes[dvName])
+
+    return workingGraph
+
+def printSVG(graph, layout):
+    print "<br>"
+    print layout
+    print graph
     # constants borrowed from Teresa's script; we may want to make these options
     # vertex color = medium aquamarine
     # vertex size  = 10
@@ -47,43 +71,6 @@ def generate(modelName, varlist, layout, hideIV, hideDV, fullVarNames):
     # hyperedge color   = red4
     # hyperedge size    = 2
     # hyperedge label size = 0.01
-
-
-    # TO MAKE A GRAPH:
-
-    # Clean up the model name into a list of associations:
-    # Get rid of IVI and IV
-    # Split on Colon
-    # Split on uppercase letters
-    # Annotate each association with its order, i.e. 2-way, 3-way, ...
-    
-    # Optionally, make a node for each variable.
-    # Otherwise, add nodes as they are needed in edges.
-
-    # Make simple edges for each 2-way association:
-        # Filter out the 2-way associations
-        # Add an edge pair for each one.
-        # Optionally, disable this and treat it as higher-order.
-    
-    # Make hyperedges for each higher-order association:
-        # Give each higher-order association a new node.
-        # Make a 2-way association between variables and association nodes,
-        # for the associations the variable is contained in,
-        # i.e. a bipartite graph.
-
-    # Combine the edge lists into a single list of edges.
-
-    # Package the graph up for IGRAPH:
-
-
-
-    
-    
-    return ""
-
-def printSVG(graph):
-    print polygonExample
-    print "<br>"
 
 
 def printPDF(filename, graph):

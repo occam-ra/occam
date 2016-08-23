@@ -18,6 +18,9 @@ false = 0; true = 1
 # If it does not exist with correct permissions, OCCAM will not run.
 datadir = "data"
 
+
+globalOcInstance = None
+
 def apply_if(predicate, func, val):
     return func(val) if predicate else val
 
@@ -48,7 +51,6 @@ def printHeaders(formFields, textFormat):
             os.dup2(csv, 1)
             os.close(csv)
 
-            pass
         else:
             print "Content-type: application/octet-stream"
             print "Content-disposition: attachment; filename=" + csvname
@@ -79,19 +81,32 @@ csvname = ""
 
 # Take the captured standard output,
 # and the generated graphs, and roll them into a ZIP file.
-def outputToZip():
+def outputToZip(oc):
     global stdout_save
     global csvname
-    zipname = getDataFileName(formFields, true) + ".zip"
 
+    # Make an empty zip file
+    zipname = getDataFileName(formFields, true) + ".zip"
     z = zipfile.ZipFile(zipname, "w")
     
+
+    # Write out each graph to a PDF; include a brief note in the CSV.
+    # TODO: Write each of the graphs saved in ocutils instance
+    print "WRITING GRAPHS!"
+    for modelname,graph in oc.graphs.items():
+        print "Writing out a graph:"
+        print modelname
+        print graph
+        sys.stdout.flush()
+
+    # Restore the STDOUT handle 
+    sys.stdout = os.fdopen(stdout_save, 'w')
+
+    # Write the CSV and each PDF to the ZIP
     z.write(csvname, getDataFileName(formFields, true) + ".csv")
     z.close() 
-  
-    # TODO: Write each of the graphs saved in ocutils instance
-   
-    sys.stdout = os.fdopen(stdout_save, 'w')
+
+    # print out the zipfile
     handle = open(zipname)
     contents = handle.read()
     print contents
@@ -371,6 +386,8 @@ def actionFit(formFields):
 
     fn = getDataFile(formFields)
     oc = ocUtils("VB")
+    global globalOcInstance
+    globalOcInstance = oc
     if not textFormat:
         print '<pre>'
     oc.initFromCommandLine(["",fn])
@@ -424,6 +441,8 @@ def actionSBFit(formFields):
 
     fn = getDataFile(formFields)
     oc = ocUtils("SB")
+    global globalOcInstance
+    globalOcInstance = oc
     if not textFormat:
         print '<pre>'
     oc.initFromCommandLine(["",fn])
@@ -459,6 +478,8 @@ def actionSearch(formFields):
     fn = getDataFile(formFields)
     man="VB"
     oc = ocUtils(man)
+    global globalOcInstance
+    globalOcInstance = oc
     if not textFormat:
         print '<pre>'
     oc.initFromCommandLine(["",fn])
@@ -694,6 +715,8 @@ def actionBatchCompare(formFields):
 
     def computeBestModel(filename): 
         oc = ocUtils("VB")
+        global globalOcInstance
+        globalOcInstance = oc
         oc.initFromCommandLine(["occam", filename])
         oc.setDataFile(filename)
         oc.setAction("search")
@@ -852,6 +875,8 @@ def actionSBSearch(formFields):
     fn = getDataFile(formFields)
     man="SB"
     oc = ocUtils(man)
+    global globalOcInstance
+    globalOcInstance = oc
     if not textFormat:
         print '<pre>'
     oc.initFromCommandLine(["",fn])
@@ -1108,6 +1133,11 @@ def startNormal(formFields):
         pass
 
 
+def finalizeGfx():
+    global globalOcInstance
+    if formFields.has_key("gfx") and textFormat:
+        outputToZip(globalOcInstance)
+        sys.stdout.flush()
 
 #---- main script ----
 #
@@ -1154,10 +1184,7 @@ if formFields.has_key("action"):
     else:
         startNormal(formFields)
 
-if formFields.has_key("gfx") and textFormat:
-    outputToZip()
-    sys.stdout.flush()
-    sys.stdout.close()
+finalizeGfx()
 
 if not textFormat:
     printBottom()

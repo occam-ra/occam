@@ -1697,6 +1697,16 @@ DefinePyFunction(Report, bestModelName) {
     return Py_BuildValue("s", ret);
 }
 
+DefinePyFunction(Report, dvName) {
+    Report* report = ObjRef(self, Report);
+    VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
+    VariableList* varlist = mgr->getVariableList();
+    long var_count = varlist->getVarCount();
+    const char* printName = varlist->getVariable(varlist->getDV())->name;
+    PyObject* name = PyString_FromString(printName);
+    return name;
+}
+
 DefinePyFunction(Report, variableList) {
     Report* report = ObjRef(self, Report);
     VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
@@ -1799,8 +1809,7 @@ DefinePyFunction(Report, bestModelData) {
 static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
         PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
         PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
-        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), { NULL, NULL, 0 } };
-
+        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), { NULL, NULL, 0 } };
 /****** Basic Type Operations ******/
 
 /* commented out because it is currently unused

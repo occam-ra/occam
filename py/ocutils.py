@@ -557,8 +557,8 @@ class ocUtils:
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
 
 
-            self.maybePrintGraphSVG(model, True)
-            self.maybePrintGraphGephi(model, True)
+            self.maybePrintGraphSVG(modelName, True)
+            self.maybePrintGraphGephi(modelName, True)
 
             print
             print
@@ -569,8 +569,8 @@ class ocUtils:
             self.generateGraph(model)
         if self.__HTMLFormat:
             if header: 
-                print "<br><hr><br>Hypergraph model visualization:<br>"
-            ocGraph.printSVG(self.graphs[model])
+                print "<br><hr><br>Hypergraph model visualization for the Model " + model + "(using the " + self.__layoutStyle + " layout algorithm:<br>"
+            ocGraph.printSVG(self.graphs[model], self.__layoutStyle)
 
     def maybePrintGraphGephi(self, model, header):
         if self.__generateGraph:
@@ -583,16 +583,17 @@ class ocUtils:
 
     def generateGraph(self, model):
         varlist = self.__report.variableList()
-        layout = self.__layoutStyle
         hideIV = self.__hideIsolated
         hideDV = self.__graphHideDV
         fullVarNames = self.__fullVarNames
+        dvName = ""
+        if self.isDirected():
+            dvName = self.__report.dvName()
 
         if self.graphs.has_key(model):
             pass
         else:
-            graph = ocGraph.generate(model, varlist, layout, hideIV, hideDV, fullVarNames)
-            self.graphs[model] = graph
+            self.graphs[model] = ocGraph.generate(model, varlist, hideIV, hideDV, dvName, fullVarNames)
 
 
     def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True, fullVarNames=False):
@@ -764,5 +765,3 @@ class ocUtils:
     def computeBinaryStatistic(self, compare_order, key):
         file_Ref, model_Ref, file_Comp, model_Comp = compare_order
         return self.__manager.computeBinaryStatistic(file_Ref, model_Ref, file_Comp, model_Comp, key)
-
-
