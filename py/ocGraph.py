@@ -70,15 +70,8 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
 
     return workingGraph
 
-def printSVG(graph, layout):
-    print "<br>"
-    graphFile = printPlot(graph, layout, "svg")
-    with open(graphFile) as gf:
-        contents = gf.read()
-        print contents
 
-
-def printPlot(graph, layout, extension):
+def printPlot(graph, layout, extension, filename="graph"):
     # Add labels (right now, just based on the name):
     graph.vs["label"] = map(lambda s: s.replace("**", " - "), graph.vs["name"])
     # Setup the graph plotting aesthetics.
@@ -104,12 +97,21 @@ def printPlot(graph, layout, extension):
 
     # Generate a unique file for the graph;
     # using the layout (if any), generate a plot.
-    graphFile = getUniqueFilename("graph."+extension)
+    graphFile = getUniqueFilename(filename+"."+extension)
     igraph.plot(graph, graphFile, layout=layoutChoice)
     return graphFile
 
-def printPDF(filename, graph):
-    pass
+def printSVG(graph, layout):
+    print "<br>"
+    graphFile = printPlot(graph, layout, "svg")
+    with open(graphFile) as gf:
+        contents = gf.read()
+        print contents
+
+def printPDF(filename, graph, layout):
+    print "got to here"
+    graphFile = printPlot(graph, layout, "pdf", filename=filename)
+    return graphFile
 
 def printGephi(graph):
     return "GEPHI CODE"

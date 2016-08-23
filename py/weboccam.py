@@ -7,6 +7,7 @@ from ocutils import ocUtils
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 from common import *
+import ocGraph
 cgitb.enable(display=1)
 VERSION = "3.3.11"
 stdout_save = None
@@ -91,12 +92,13 @@ def outputToZip(oc):
     
 
     # Write out each graph to a PDF; include a brief note in the CSV.
-    # TODO: Write each of the graphs saved in ocutils instance
-    print "WRITING GRAPHS!"
     for modelname,graph in oc.graphs.items():
-        print "Writing out a graph:"
-        print modelname
-        print graph
+        modelname = modelname.replace(":","_")
+        filename = modelname + ".pdf"
+        print "Writing graph to " + filename
+        graphFile = ocGraph.printPDF(modelname, graph, formFields["layout"])
+        print filename
+        z.write(graphFile, filename)
         sys.stdout.flush()
 
     # Restore the STDOUT handle 
