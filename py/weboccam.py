@@ -362,6 +362,10 @@ def maybeSkipIVIs(formFields, oc):
 #
 #---- actionFit ---- Report on Fit
 #
+def handleGraphOptions(oc, formFields):
+    lo = formFields["layout"]
+    oc.setGfx(formFields.has_key("gfx"),layout=lo,gephi=formFields.has_key("gephi"),hideIV=formFields.has_key("hideIsolated"),hideDV=formFields.has_key("hideDV"))
+
 def actionFit(formFields):
     global textFormat
 
@@ -373,8 +377,12 @@ def actionFit(formFields):
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+    handleGraphOptions(oc, formFields)
     if formFields.has_key("calcExpectedDV"):
         oc.setCalcExpectedDV(1)
+
+
+
     oc.setDDFMethod(1)
     skipNominalFlag = formFields.get("skipnominal", "")
     if skipNominalFlag:
@@ -422,6 +430,7 @@ def actionSBFit(formFields):
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+    handleGraphOptions(oc, formFields)
 #functionFlag = formFields.get("functionvalues", "")
 #if functionFlag:
 #oc.setValuesAreFunctions(1)
@@ -456,6 +465,7 @@ def actionSearch(formFields):
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+    handleGraphOptions(oc, formFields)
     # unused error? this should get caught by getDataFile() above
     if not formFields.has_key("data") :
         actionForm(form, "Missing form fields")
@@ -466,6 +476,7 @@ def actionSearch(formFields):
         oc.setReportSeparator(ocUtils.COMMASEP)
     else:
         oc.setReportSeparator(ocUtils.HTMLFORMAT)
+    
     oc.setSortDir(formFields.get("sortdir", ""))
     levels = formFields.get("searchlevels")
     if levels and levels > 0:
@@ -847,6 +858,7 @@ def actionSBSearch(formFields):
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+    handleGraphOptions(oc, formFields)
     # unused error? this should get caught by getDataFile() above
     if not formFields.has_key("data") :
         actionForm(formFields, "Missing form fields")

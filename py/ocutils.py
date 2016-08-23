@@ -18,7 +18,6 @@ class ocUtils:
             self.__manager = occam.VBMManager()
         else:           
             self.__manager = occam.SBMManager()
-        self.graphs = {}
         self.__hide_intermediate_output = False
         self.__report = self.__manager.Report()
         self.__DDFMethod = 0
@@ -50,12 +49,17 @@ class ocUtils:
         self.__PercentCorrect = 0
         self.__IncrementalAlpha = 0
         self.__NoIPF = 0
+        
+        self.graphs = {}
         self.__generateGraph = True
         self.__generateGephi = False
+        self.__hideIsolated = True
         self.__graphHideDV = True
-        self.__layoutStyle = "Fruchterman-Reingold"
+        self.__layoutStyle = None
 #        self.__showEdgeWeights = True
 #        self.__weightFn = "Mutual Information"
+
+
         self.totalgen = 0
         self.totalkept = 0
         self.__nextID = 0
@@ -668,7 +672,8 @@ class ocUtils:
         self.printOption("Generate hypergraph images", "Y" if self.__generateGraph else "N")
         self.printOption("Generate Gephi files", "Y" if self.__generateGephi else "N")
         if(self.__generateGephi or self.__generateGraph):
-            self.printOption("Hypergraph layout style", self.__layoutStyle)
+            self.printOption("Hypergraph layout style", str(self.__layoutStyle))
+            self.printOption("Hide " + ("IV" if self.isDirected() else "IVI")  + " components in hypergraph", "Y" if self.__hideIsolated else "N")
 #            self.printOption("Hypergraph weight function", self.__weightFn)
 #            self.printOption("Show hyperedge weights", "Y" if self.__showEdgeWeights else "N")
             if(self.isDirected()):
@@ -720,3 +725,11 @@ class ocUtils:
     def computeBinaryStatistic(self, compare_order, key):
         file_Ref, model_Ref, file_Comp, model_Comp = compare_order
         return self.__manager.computeBinaryStatistic(file_Ref, model_Ref, file_Comp, model_Comp, key)
+
+    def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True):
+       self.__generateGraph = useGfx
+       self.__generateGephi = gephi
+       self.__layoutStyle = layout
+       self.__hideIsolated = hideIV
+       self.__graphHideDV = hideDV
+
