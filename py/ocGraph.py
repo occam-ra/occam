@@ -3,72 +3,7 @@ import itertools
 import igraph
 from common import *
 
-# Graph generation based on Teresa Schmidt's R script (2016)
-def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder):
-    # PARAMETERS:
-    # model name: the model to make a graph of
-    # variable list: variables from the data not necessarily in the model
-    #   (list of pairs, containing (full name, abbrev))
-    # if allHigherOrder were set to true,
-    # dyadic relations would get a hyperedge instead of normal edge,
-    # like a -- ab -- b, instead of simply a -- b
-    
-    # Clean up the model name into a list of associations:
-    # Get rid of IVI and IV
-    components = modelName.split(':')
-    components = filter(lambda s : not (s == 'IVI' or s == 'IV'), components)
-    # Split on uppercase letters
-    model = map(lambda s : re.findall('[A-Z][^A-Z]*', s), components)
-    if dvName != "":
-        model = filter(lambda r : dvName in r, model)
-
-    # Set all of the names to be either the full form or abbreviated.
-    varDict = dict(map(lambda p : (p[1],p[0]), varlist))
-    fullDvName = varDict[dvName]
-    workingModel = [[(varDict[v] if fullVarNames else v) for v in r] for r in model]
-    workingNames = set(map(lambda v : v[0 if fullVarNames else 1], varlist))
-    
-    if hideIV:
-        workingNames = set([v for r in workingModel for v in r])
-
-    
-    # For each variable, and each association, get a unique number:
-    workingNodes = {}
-    num_vertices = 0
-    for i, v in enumerate(workingNames):
-        workingNodes[v] = i
-    for j, v in enumerate(workingModel):
-        if allHigherOrder or len(v) > 2:
-            workingNodes["**".join(v)] = i + j + 1
-            num_vertices = i + j + 2
-    
-    
-    # Start with an empty graph
-    workingGraph = igraph.Graph()
-    workingGraph.add_vertices(num_vertices)
-    for val,node in workingNodes.items():
-        workingGraph.vs[node]["name"] = val
-        workingGraph.vs[node]["type"] = True if "**" in val else False
-
-
-    for rel in workingModel:
-        if len(rel) == 2 and not allHigherOrder:
-            workingGraph.add_edges([(workingNodes[rel[0]], workingNodes[rel[1]])])
-
-        else:
-            comp = workingNodes["**".join(rel)]
-            for v in rel:
-                var = workingNodes[v]
-                workingGraph.add_edges([(comp, var)])
-
-    # If the DV is to be hidden, eliminate the node corresponding to it.
-    if dvName != "" and hideDV:
-        workingGraph.delete_vertices(workingNodes[fullDvName if fullVarNames else dvName])
-    
-    # Add labels (right now, just based on the name):
-    workingGraph.vs["label"] = map(lambda s: s.replace("**", " - " if fullVarNames else ""), workingGraph.vs["name"])
-
-    return workingGraph
+# Drawing library boilerplate
 
 class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
     names = "strip"
@@ -132,40 +67,94 @@ def textwidth(text, fontsize=14):
     xbearing, ybearing, width, height, xadvance, yadvance = cr.text_extents(text)
     return width
 
+# Graph generation based on Teresa Schmidt's R script (2016)
+
+def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder):
+    # PARAMETERS:
+    # model name: the model to make a graph of
+    # variable list: variables from the data not necessarily in the model
+    #   (list of pairs, containing (full name, abbrev))
+    # if allHigherOrder were set to true,
+    # dyadic relations would get a hyperedge instead of normal edge,
+    # like a -- ab -- b, instead of simply a -- b
+    
+    # Clean up the model name into a list of associations:
+    # Get rid of IVI and IV
+    components = modelName.split(':')
+    components = filter(lambda s : not (s == 'IVI' or s == 'IV'), components)
+    # Split on uppercase letters
+    model = map(lambda s : re.findall('[A-Z][^A-Z]*', s), components)
+    if dvName != "":
+        model = filter(lambda r : dvName in r, model)
+
+    # Index full names from abbreviated 
+    varDict = dict(map(lambda p : (p[1],p[0]), varlist))
+    varNames = varDict.keys()
+    
+    if hideIV:
+        varNames = set([v for r in model for v in r])
+    
+    # For each variable, and each association, get a unique number:
+    nodes = {}
+    num_vertices = 0
+    for i, v in enumerate(varNames):
+        nodes[v] = i
+
+    for j, v in enumerate(model):
+        if allHigherOrder or len(v) > 2:
+            nodes["**".join(v)] = i + j + 1
+            num_vertices = i + j + 2
+    
+     
+    # Start with an empty graph
+    graph = igraph.Graph()
+    graph.add_vertices(num_vertices)
+    for val,node in nodes.items():
+        graph.vs[node]["abbrev"] = val
+        graph.vs[node]["name"] = val if "**" in val else varDict[val]
+        graph.vs[node]["type"] = True if "**" in val else False
+
+    for rel in model:
+        if len(rel) == 2 and not allHigherOrder:
+            graph.add_edges([(nodes[rel[0]], nodes[rel[1]])])
+
+        else:
+            comp = nodes["**".join(rel)]
+            for v in rel:
+                var = nodes[v]
+                graph.add_edges([(comp, var)])
+
+    # If the DV is to be hidden, eliminate the node corresponding to it.
+    if dvName != "" and hideDV:
+        graph.delete_vertices(nodes[dvName])
+    
+    # Add labels (right now, just based on the name):
+    graph.vs["label"] = map(lambda s: s.replace("**", ""), graph.vs["name" if fullVarNames else "abbrev"])
+
+    return graph
 
 def printPlot(graph, layout, extension, filename="graph"):
     # Setup the graph plotting aesthetics.
     tys = graph.vs["type"]
     tylabs = zip(graph.vs["type"], graph.vs["label"])
-    color_dict = {True: "lightblue", False: "white"}
-    shape_dict = {True: "strip" if layout == "bipartite" else "circle", False: "circle"}
-    dist_dict = {True: 0, False: 0}
     fontsize = 8
-    labWidth = lambda lab : textwidth(lab,fontsize)
+    labWidth = lambda lab : textwidth(lab,fontsize+2)
+    dotsize = 5
 
-    nodeSizeFn = lambda ty,lab : 0 if ty else labWidth(lab)
-    nodeSize = max([nodeSizeFn(ty,lab) for (ty,lab) in tylabs])
-
-    sizeFn = (lambda ty,lab : 1.1*labWidth(lab) if ty else nodeSize) if layout=="bipartite" else (lambda ty,lab : 5 if ty else nodeSize) 
-    marginSize = max([sizeFn(ty,lab) for (ty,lab) in tylabs])/2
-
-    # constants borrowed from Teresa's script; we may want to make these options
-    # vertex color = medium aquamarine
-    # vertex size  = 10
-    # vertex label = 0.8
-    # hyperedge color   = red4
-    # hyperedge size    = 2
-    # hyperedge label size = 0.01
-
+    # Calculate node sizes.
+    nodeSize = max([0 if ty else labWidth(lab) for (ty,lab) in tylabs])
+    sizeFn = (lambda ty,lab : max(nodeSize, labWidth(lab))) if layout=="bipartite" else (lambda ty,lab : dotsize if ty else nodeSize) 
 
     visual_style = {
         "vertex_size":[sizeFn(ty, lab) for (ty,lab) in tylabs],
-        "vertex_color":[color_dict[ty] for ty in tys],
-        "margin":marginSize,
-        "vertex_shape":[shape_dict[ty] for ty in tys],
-        "vertex_label_dist": [dist_dict[ty] for ty in tys],
+        "vertex_color":["lightblue" if ty else "white" for ty in tys],
+        "vertex_shape":["strip" if layout == "bipartite" and ty else "circle" for ty in tys],
         "vertex_label_size": [0 if layout!="bipartite" and ty else fontsize for ty in tys],
-        "bbox":(700 if not (layout=="bipartite") else max([700, marginSize*3*len(filter(lambda x : x, tys))]), 700)
+        "margin":max([sizeFn(ty,lab)/2 for (ty,lab) in tylabs]+[nodeSize]),
+
+        "vertex_label_dist": 0,
+        "bbox":(500, 500),
+        
     }
 
 
