@@ -4,7 +4,7 @@
 #include "SBMManager.h"
 #include "SearchBase.h"
 #include "VBMManager.h"
-
+#include <limits>
 #include <unistd.h>
 #include <Python.h>
 
@@ -1706,6 +1706,19 @@ DefinePyFunction(Report, dvName) {
     return name;
 }
 
+DefinePyFunction(Report, bestModelBIC) {
+    Report* report = ObjRef(self, Report);
+
+    /*
+     *  Find all of the best model(s) by BIC;
+     *  get the print name;
+     *  push it into a Python list;
+     *  finally return the list of all of the best models.
+     */
+
+}
+
+
 DefinePyFunction(Report, variableList) {
     Report* report = ObjRef(self, Report);
     VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
@@ -1808,7 +1821,7 @@ DefinePyFunction(Report, bestModelData) {
 static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
         PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
         PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
-        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), { NULL, NULL, 0 } };
+        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
 /****** Basic Type Operations ******/
 
 /* commented out because it is currently unused

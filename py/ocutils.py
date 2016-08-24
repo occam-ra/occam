@@ -527,7 +527,35 @@ class ocUtils:
             self.__report.writeReport(self.__reportFile)
         else:
             self.__report.printReport()
+
+        self.printSearchGraphs()
         #-- self.__manager.dumpRelations()
+
+
+    def printSearchGraphs(self):
+
+        if not (self.__generateGraph or  self.__generateGephi):
+            return
+
+        # in HTML mode, note that the graphs are being printed.
+        if self.__HTMLFormat:
+            print('<hr>')
+            print("Hypergraphs of the best models:<br>")
+
+        # Get the varlist (used for all graphs)
+
+
+        # Graphs for each kind of best model:
+        # Generate the graph (but don't print anything yet).
+        # BIC [1 or more]
+
+        # AIC [1 or more]
+
+        # Incr Alpha [0 or more]
+
+        # For each of the graphs (and headers) above,
+        # if HTML mode, print out a brief note and graph/gephi (if enabled)
+
 
     def newl(self):
         if self.__HTMLFormat: print "<br>"

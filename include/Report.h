@@ -98,7 +98,6 @@ class Report {
 	
     class ManagerBase *manager;
 
-    private:
 	static bool htmlMode;
 	Model **models;
 	Model *defaultFitModel;
