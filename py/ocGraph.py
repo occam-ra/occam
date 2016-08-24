@@ -147,6 +147,8 @@ def printPlot(graph, layout, extension, filename="graph"):
     nodeSize = max([0 if ty else labWidth(lab) for (ty,lab) in tylabs])
     sizeFn = (lambda ty,lab : max(nodeSize, labWidth(lab))) if layout=="bipartite" else (lambda ty,lab : dotsize if ty else nodeSize) 
 
+    width = 500 if not layout=="bipartite" else 1.2*sum([sizeFn(t,l) for (t,l) in tylabs])
+
     visual_style = {
         "vertex_size":[sizeFn(ty, lab) for (ty,lab) in tylabs],
         "vertex_color":["lightblue" if ty else "white" for ty in tys],
@@ -155,8 +157,8 @@ def printPlot(graph, layout, extension, filename="graph"):
         "margin":max([sizeFn(ty,lab)/2 for (ty,lab) in tylabs]+[nodeSize]),
 
         "vertex_label_dist": 0,
-        "bbox":(500, 500),
-        
+        "bbox":(width, 500),
+
     }
 
 
@@ -168,6 +170,13 @@ def printPlot(graph, layout, extension, filename="graph"):
         layoutChoice = graph.layout("bipartite")
     elif layout == "Reingold-Tilford":
         layoutChoice = graph.layout("rt")
+    elif layout == "GraphOpt":
+        layoutChoice = "graphopt"
+    elif layout == "Kamada-Kawai":
+        layoutChoice = "kk"
+    elif layout == "Sugiyama":
+        layoutChoice = "sugiyama"
+
 
     # Generate a unique file for the graph;
     # using the layout (if any), generate a plot.
