@@ -631,6 +631,10 @@ class ocUtils:
                     sys.exit(0)
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
+            
+            self.maybePrintGraphSVG(modelName, True)
+            self.maybePrintGraphGephi(modelName, True)
+            
             print
             print
 
