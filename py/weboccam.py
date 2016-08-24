@@ -34,12 +34,15 @@ def getDataFileName(formFields, trim=false, key='datafilename'):
     return '_'.join(apply_if(trim, lambda d : os.path.splitext(d)[0], os.path.split(formFields[key])[1]).split())
 
 
+def useGfx(formFields):
+    return formFields.has_key("gfx") or formFields.has_key("gephi")
+
 def printHeaders(formFields, textFormat):
     if textFormat:
         global csvname
         csvname = getDataFileName(formFields, true) + ".csv"
         csvname = getUniqueFilename(csvname)
-        if formFields.has_key("gfx"):
+        if useGfx(formFields):
             # REDIRECT OUTPUT FOR NOW (it will be printed in outputZipfile())
             print "Content-type: application/octet-stream"
             print "Content-disposition: attachment; filename=" + getDataFileName(formFields, true) + ".zip"
@@ -91,20 +94,40 @@ def outputToZip(oc):
     z = zipfile.ZipFile(zipname, "w")
     
 
+    sys.stdout.flush()
     # Write out each graph to a PDF; include a brief note in the CSV.
     for modelname,graph in oc.graphs.items():
         modelname = modelname.replace(":","_")
-        filename = modelname + ".pdf"
-        print "Writing graph to " + filename
-        graphFile = ocGraph.printPDF(modelname, graph, formFields["layout"])
-        print filename
-        z.write(graphFile, filename)
-        sys.stdout.flush()
+
+        if formFields.has_key("gfx"):
+            filename = modelname + ".pdf"
+            print "Writing graph to " + filename
+            graphFile = ocGraph.printPDF(modelname, graph, formFields["layout"])
+            z.write(graphFile, filename)
+            sys.stdout.flush()
+
+        if formFields.has_key("gephi"):
+            nodename = modelname + ".nodes_table.csv"
+            print "Writing Gephi Node table file to " + nodename
+            nodetext = ocGraph.gephiNodes(graph)
+            nodefile = getUniqueFilename(nodename)
+            with open(nodefile, "w") as nf:
+                nf.write(nodetext)
+            z.write(nodefile, nodename)
+
+            edgename = modelname + ".edges_table.csv"
+            print "Writing Gephi Edges table file to " + edgename
+            edgetext = ocGraph.gephiEdges(graph)
+            edgefile = getUniqueFilename(edgename)
+            with open(edgefile, "w") as ef:
+                ef.write(edgetext)
+            z.write(edgefile, edgename)           
+            sys.stdout.flush()
 
     # Restore the STDOUT handle 
     sys.stdout = os.fdopen(stdout_save, 'w')
 
-    # Write the CSV and each PDF to the ZIP
+    # Write the CSV to the ZIP
     z.write(csvname, getDataFileName(formFields, true) + ".csv")
     z.close() 
 
@@ -1129,7 +1152,7 @@ def startNormal(formFields):
 
 def finalizeGfx():
     global globalOcInstance
-    if formFields.has_key("gfx") and textFormat:
+    if useGfx(formFields) and textFormat:
         outputToZip(globalOcInstance)
         sys.stdout.flush()
 

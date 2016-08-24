@@ -573,11 +573,12 @@ class ocUtils:
             ocGraph.printSVG(self.graphs[model], self.__layoutStyle)
 
     def maybePrintGraphGephi(self, model, header):
-        if self.__generateGraph:
+        if self.__generateGephi:
             self.generateGraph(model)
-        if self.__HTMLFormat:
+
+        if self.__HTMLFormat and self.__generateGephi:
             if header:
-                print "<br><hr><br>Hypergraph model Gephi input:<br>"
+                print "<br><hr><br>Hypergraph model Gephi input for the Model " + model + ":<br>"
             print ocGraph.printGephi(self.graphs[model])
 
 
