@@ -1128,28 +1128,25 @@ def startNormal(formFields):
     if formFields.has_key("emailSubject") and formFields["emailSubject"]:
         print "Subject line:," + formFields["emailSubject"]
 
-    try:
-        if formFields["action"] == "fit" :
-            actionFit(formFields)
-        elif formFields["action"] == "SBsearch":
-            actionSBSearch(formFields)
-        elif formFields["action"] == "SBfit":
-            actionSBFit(formFields)
-        elif formFields["action"] == "fitbatch":
-            actionFitBatch(formFields)
-        elif formFields["action"] == "search" or formFields["action"] == "advanced":
-            actionSearch(formFields)
-        elif formFields["action"] == "log":
-            actionShowLog(formFields)
-        elif formFields["action"] == "compare":
-            actionBatchCompare(formFields)
-        elif formFields["action"] == "jobcontrol":
-            pass
-        else:
-            actionError()
-        printTime(textFormat)
-    except:
+    if formFields["action"] == "fit" :
+        actionFit(formFields)
+    elif formFields["action"] == "SBsearch":
+        actionSBSearch(formFields)
+    elif formFields["action"] == "SBfit":
+        actionSBFit(formFields)
+    elif formFields["action"] == "fitbatch":
+        actionFitBatch(formFields)
+    elif formFields["action"] == "search" or formFields["action"] == "advanced":
+        actionSearch(formFields)
+    elif formFields["action"] == "log":
+        actionShowLog(formFields)
+    elif formFields["action"] == "compare":
+        actionBatchCompare(formFields)
+    elif formFields["action"] == "jobcontrol":
         pass
+    else:
+        actionError()
+    printTime(textFormat)
 
 
 def finalizeGfx():

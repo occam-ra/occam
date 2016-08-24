@@ -70,7 +70,9 @@ def textwidth(text, fontsize=14):
 # Graph generation based on Teresa Schmidt's R script (2016)
 
 def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder):
-    # PARAMETERS:
+
+
+# PARAMETERS:
     # model name: the model to make a graph of
     # variable list: variables from the data not necessarily in the model
     #   (list of pairs, containing (full name, abbrev))
@@ -96,15 +98,18 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
     
     # For each variable, and each association, get a unique number:
     nodes = {}
-    num_vertices = 0
+    num_nodes = len(varNames)
+    num_edges = 0
+
     for i, v in enumerate(varNames):
         nodes[v] = i
 
     for j, v in enumerate(model):
         if allHigherOrder or len(v) > 2:
-            nodes["**".join(v)] = i + j + 1
-            num_vertices = i + j + 2
-    
+            nodes["**".join(v)] = num_nodes + num_edges
+            num_edges += 1
+   
+    num_vertices = num_nodes + num_edges
      
     # Start with an empty graph
     graph = igraph.Graph()
@@ -119,12 +124,13 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
     for rel in model:
         if len(rel) == 2 and not allHigherOrder:
             graph.add_edges([(nodes[rel[0]], nodes[rel[1]])])
-
         else:
             comp = nodes["**".join(rel)]
             for v in rel:
                 var = nodes[v]
                 graph.add_edges([(comp, var)])
+
+
 
     # If the DV is to be hidden, eliminate the node corresponding to it.
     if dvName != "" and hideDV:
@@ -132,7 +138,6 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
     
     # Add labels (right now, just based on the name):
     graph.vs["label"] = graph.vs["name" if fullVarNames else "abbrev"]
-
     return graph
 
 def printPlot(graph, layout, extension, filename="graph"):
