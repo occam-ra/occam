@@ -113,6 +113,36 @@ DefinePyFunction(VBMManager, makeAllChildRelations) {
     return list;
 }
 
+DefinePyFunction(VBMManager, getDvName) {
+    VBMManager* mgr = ObjRef(self, VBMManager);
+    VariableList* varlist = mgr->getVariableList();
+    const char* abbrev = varlist->getVariable(varlist->getDV())->abbrev;
+    PyObject* name = PyString_FromString(abbrev);
+    return name;
+}
+
+
+DefinePyFunction(VBMManager, getVariableList) {
+    VBMManager* mgr = ObjRef(self, VBMManager);
+    VariableList* varlist = mgr->getVariableList();
+    long var_count = varlist->getVarCount();
+
+    PyObject* ret = PyList_New(var_count);
+    for (long i = 0; i < var_count; ++i) {
+
+        const char* printName = varlist->getVariable(i)->name;
+        const char* abbrevName = varlist->getVariable(i)->abbrev;
+        PyObject* name = PyString_FromString(printName);
+        PyObject* abbrev = PyString_FromString(abbrevName);
+        PyObject* names = PyTuple_Pack(2,name,abbrev);
+        PyList_SetItem(ret, i, names);
+    }
+
+    return ret;
+}
+
+
+
 // Model **searchOneLevel(Model *)
 DefinePyFunction(VBMManager, searchOneLevel) {
     PModel *start;
@@ -628,6 +658,7 @@ DefinePyFunction(VBMManager, dumpRelations) {
 }
 
 static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initFromCommandLine),
+        PyMethodDef(VBMManager, getDvName),
         PyMethodDef(VBMManager, makeAllChildRelations), PyMethodDef(VBMManager, makeChildModel),
         PyMethodDef(VBMManager, makeModel), PyMethodDef(VBMManager, setFilter),
         PyMethodDef(VBMManager, searchOneLevel), PyMethodDef(VBMManager, setSearchType),
@@ -649,6 +680,7 @@ static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initF
         PyMethodDef(VBMManager, printBasicStatistics), PyMethodDef(VBMManager, computePercentCorrect),
         PyMethodDef(VBMManager, printSizes), PyMethodDef(VBMManager, getMemUsage),
         PyMethodDef(VBMManager, hasTestData), PyMethodDef(VBMManager, dumpRelations),
+        PyMethodDef(VBMManager, getVariableList),
         { NULL, NULL, 0 } };
 
 /****** Basic Type Operations ******/
@@ -1717,7 +1749,6 @@ DefinePyFunction(Report, bestModelBIC) {
      */
 
 }
-
 
 DefinePyFunction(Report, variableList) {
     Report* report = ObjRef(self, Report);

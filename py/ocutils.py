@@ -165,6 +165,8 @@ class ocUtils:
         self.__refModel = refModel
 
     def setStartModel(self, startModel):
+        if not (startModel in ["top", "bottom", "default", ""]):
+            self.checkModelName(startModel)
         self.__startModel = startModel
 
     def getStartModel(self):
@@ -559,15 +561,97 @@ class ocUtils:
 
     def newl(self):
         if self.__HTMLFormat: print "<br>"
+    
+    def splitCaps(self,s): 
+        return re.findall('[A-Z][^A-Z]*', s)
+
+    def splitModel(self,modelName):
+        comps = modelName.split(":")
+        model = map(lambda s: [s] if (s == "IV" if self.isDirected() else s == "IVI") else self.splitCaps(s), comps)
+        return model
+
+    def checkModelName(self, modelName):
+        varlist = map(lambda c : c[1], self.__manager.getVariableList())
+        model = self.splitModel(modelName)
+        isDirected = self.isDirected()
+        haveIVs = False
+        sawMaybeWrongIV = False
+
+        # IV can be present if directed system; IVI otherwise
+        if isDirected:
+            if ["I","V","I"] in model:
+                sawMaybeWrongIV = True
+            if ["IV"] in model:
+                haveIVs = True
+        else:
+            if ["I","V"] in model:
+                sawMaybeWrongIV = True               
+            if ["IVI"] in model:
+                haveIVs = True     
+
+        # all variables in varlist are in model (possibly as IV or IVI)
+        modelvars = [var for rel in model for var in rel]
+        
+        varset = set(varlist)
+        modset = set(modelvars)
+        if isDirected:
+            modset.discard("IV")
+        else:
+            modset.discard("IVI")
+
+        if not haveIVs:
+            if not varset.issubset(modset):
+                if self.__HTMLFormat:
+                    print "<br>"
+                print "\nERROR: Not all declared variables are present in the model, '" + modelName + "'."
+                if self.__HTMLFormat:
+                    print "<br>"
+                if sawMaybeWrongIV:
+                    print "\nDid you mean '" + ("IV" if isDirected else "IVI") + "' instead of '" + ("IVI" if isDirected else "IV") + "'?"
+                else:
+                    print "\n Did you forget the " + ("IV" if isDirected else "IVI") + " component?"
+                if self.__HTMLFormat:
+                    print "<br>"
+                print "\n Not in model: "
+                print ", ".join(["'" + i + "'" for i in varset.difference(modset)])
+                sys.exit(1)
+        
+        # all variables in model are in varlist
+        if not modset.issubset(varset):
+            if self.__HTMLFormat:
+                print "<br>"
+            print "\nERROR: Not all variables in the model '" + modelName + "' are declared in the variable list."
+            if self.__HTMLFormat:
+                print "<br>"
+            diffset = modset.difference(varset)
+            if sawMaybeWrongIV or diffset == set(["I", "V"]):
+                print "\nDid you mean '" + ("IV" if isDirected else "IVI") + "' instead of '" + ("IVI" if isDirected else "IV") + "'?"
+            else:
+                print "\n Not declared: "
+                print ", ".join(["'" + i + "'" for i in diffset])
+              
+            sys.exit(1)
+
+        # dv must be in all components (except IV) if directed
+        if isDirected:
+            dv = self.__manager.getDvName()
+            for rel in model:
+                if not (rel == ["IVI"] or rel == ["IV"]) and dv not in rel:
+                    if self.__HTMLFormat:
+                        print "<br>"
+                    print "\nERROR: In the model '" + modelName + "', model component '" + "".join(rel) + "' is missing the DV, '" + dv + "'."
+                    sys.exit(1)
+
 
     def doFit(self,printOptions):
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if printOptions: self.printOptions(0)
         
         self.__manager.printBasicStatistics()
-        
+       
 
         for modelName in self.__fitModels:
+            self.checkModelName(modelName)
             self.__manager.setRefModel(self.__refModel)
             model = self.__manager.makeModel(modelName, 1)
  
