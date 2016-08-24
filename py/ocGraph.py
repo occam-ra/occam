@@ -110,8 +110,10 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
     graph = igraph.Graph()
     graph.add_vertices(num_vertices)
     for val,node in nodes.items():
-        graph.vs[node]["abbrev"] = val
-        graph.vs[node]["name"] = val if "**" in val else varDict[val]
+        graph.vs[node]["id"] = val
+        short = val.replace("**", "")
+        graph.vs[node]["abbrev"] = short
+        graph.vs[node]["name"] = short if "**" in val else varDict[val]
         graph.vs[node]["type"] = True if "**" in val else False
 
     for rel in model:
@@ -129,7 +131,7 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
         graph.delete_vertices(nodes[dvName])
     
     # Add labels (right now, just based on the name):
-    graph.vs["label"] = map(lambda s: s.replace("**", ""), graph.vs["name" if fullVarNames else "abbrev"])
+    graph.vs["label"] = graph.vs["name" if fullVarNames else "abbrev"]
 
     return graph
 
@@ -185,7 +187,35 @@ def printPDF(filename, graph, layout):
     return graphFile
 
 def printGephi(graph):
-    return "GEPHI CODE"
 
-def printR(graph):
-    return "R CODE"
+    nlHeader = "<br><br><i>Gephi 'Nodes table' file:</i><pre><code>"
+    nlFooter = "</code></pre>"
+    elHeader = "<br><br><i>Gephi 'Edges table' file:</i><pre><code>"
+    elFooter = "</code></pre>"
+
+    nl = gephiNodes(graph)
+    el = gephiEdges(graph)
+
+    gephiCode = nlHeader + nl + nlFooter + elHeader + el + elFooter
+    return gephiCode
+
+
+def gephiNodes(graph):
+    header = "ID,Label,Type,Size\n"
+    content = ""
+    for n in graph.vs:
+        ty = "HyperEdge" if n["type"] else "Variable"
+        size = 4 if n["type"] else 10
+        line = ",".join([n["abbrev"], n["name"], ty, str(size)])
+        content += line + "\n" 
+    return header + content
+
+def gephiEdges(graph):
+    header = "Source,Target\n"
+    content = ""
+    for n1,n2 in graph.get_edgelist():
+        nn1 = graph.vs[n1]
+        nn2 = graph.vs[n2]
+        content += nn1["abbrev"] + "," + nn2["abbrev"] + "\n"
+
+    return header + content
