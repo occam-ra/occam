@@ -37,11 +37,13 @@ def getDataFileName(formFields, trim=false, key='datafilename'):
 def useGfx(formFields):
     return formFields.has_key("gfx") or formFields.has_key("gephi")
 
+csvname = ""
+
 def printHeaders(formFields, textFormat):
     if textFormat:
         global csvname
         csvname = getDataFileName(formFields, true) + ".csv"
-        csvname = getUniqueFilename(csvname)
+        csvname = getUniqueFilename("data/"+csvname)
         if useGfx(formFields):
             # REDIRECT OUTPUT FOR NOW (it will be printed in outputZipfile())
             print "Content-type: application/octet-stream"
@@ -81,7 +83,6 @@ def printTime(textFormat):
         else:
             print "<br>Run time: %f seconds</br>" % elapsed_t
 
-csvname = ""
 
 # Take the captured standard output,
 # and the generated graphs, and roll them into a ZIP file.
@@ -90,7 +91,7 @@ def outputToZip(oc):
     global csvname
 
     # Make an empty zip file
-    zipname = getDataFileName(formFields, true) + ".zip"
+    zipname = "data/" + getDataFileName(formFields, true) + ".zip"
     z = zipfile.ZipFile(zipname, "w")
     
 
@@ -105,20 +106,21 @@ def outputToZip(oc):
             graphFile = ocGraph.printPDF(modelname, graph, formFields["layout"])
             z.write(graphFile, filename)
             sys.stdout.flush()
-
+ 
+ 
         if formFields.has_key("gephi"):
             nodename = modelname + ".nodes_table.csv"
             print "Writing Gephi Node table file to " + nodename
             nodetext = ocGraph.gephiNodes(graph)
-            nodefile = getUniqueFilename(nodename)
+            nodefile = getUniqueFilename("data/"+nodename)
             with open(nodefile, "w") as nf:
                 nf.write(nodetext)
             z.write(nodefile, nodename)
-
+ 
             edgename = modelname + ".edges_table.csv"
             print "Writing Gephi Edges table file to " + edgename
             edgetext = ocGraph.gephiEdges(graph)
-            edgefile = getUniqueFilename(edgename)
+            edgefile = getUniqueFilename("data/"+edgename)
             with open(edgefile, "w") as ef:
                 ef.write(edgetext)
             z.write(edgefile, edgename)           

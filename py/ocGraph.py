@@ -60,7 +60,7 @@ def textwidth(text, fontsize=14):
         import cairo
     except Exception, e:
         return len(str) * fontsize
-    surface = cairo.SVGSurface('undefined.svg', 600, 600)
+    surface = cairo.SVGSurface('data/undefined.svg', 600, 600)
     cr = cairo.Context(surface)
     cr.select_font_face('sans-serif', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
     cr.set_font_size(fontsize)
@@ -171,7 +171,7 @@ def printPlot(graph, layout, extension, filename="graph"):
 
     # Generate a unique file for the graph;
     # using the layout (if any), generate a plot.
-    graphFile = getUniqueFilename(filename+"."+extension)
+    graphFile = getUniqueFilename("data/"+filename+"."+extension)
     igraph.plot(graph, graphFile, layout=layoutChoice, **visual_style)
     return graphFile
 
