@@ -106,7 +106,8 @@ WEB_FILES = \
 	html/SBsearch.template.html \
 	html/SBsearch.footer.html \
 	html/compare.template.html \
-	html/compare.footer.html
+	html/compare.footer.html \
+	html/occambatch
 
 lib: $(HEADERS) $(CPP_FILES)
 	cd cpp && make
