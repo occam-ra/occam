@@ -54,6 +54,7 @@ class ManagerBase {
             AUTO, IPF, ALGEBRAIC
         };
 
+
         // create an ManagerBase object, supplying it with a variable list and a table
         // of input data.  Typically an application will read the input data and variable
         // definitions, and then construct the appropriate manager.
@@ -112,7 +113,6 @@ class ManagerBase {
         virtual bool makeFitTable(Model *model);
         virtual bool makeFitTableIPF(Model *model);
         virtual bool makeFitTableAlgebraic(Model *model);
-
 
         // Expand a single tuple into all values of all missing variables, recursively
         void expandTuple(double tupleValue, KeySegment *key, int *missingVars, int missingCount, Table *outTable,
@@ -210,6 +210,7 @@ class ManagerBase {
         void createDvOrder();
         double getMissingCardinalityFactor(Model *model);
         void getPredictingVars(Model *model, int *varindices, int &varcount, bool includeDeps);
+        void getRelevantVars(Model *model, int *varindices, int &varcount, bool includeDeps);
         Relation *getDepRelation();
         Relation *getIndRelation();
 
@@ -256,7 +257,8 @@ class ManagerBase {
 
         // Create an array of relation intersections for an algebraic fit table.
         FitIntersectMap computeIntersectLevels(Model* model);
-            
+
+        double ivi_model_value(KeySegment* refkey, Relation* rel);
     protected:
         Model *topRef;
         Model *bottomRef;

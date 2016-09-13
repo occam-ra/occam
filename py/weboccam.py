@@ -6,10 +6,11 @@ from time import clock
 from ocutils import ocUtils
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
-
+from common import *
+import ocGraph
 cgitb.enable(display=1)
 VERSION = "3.3.11"
-
+stdout_save = None
 # TODO: eliminate the need for this kludgy definition.
 false = 0; true = 1
 
@@ -17,6 +18,9 @@ false = 0; true = 1
 # This requires a manual installation step.
 # If it does not exist with correct permissions, OCCAM will not run.
 datadir = "data"
+
+
+globalOcInstance = None
 
 def apply_if(predicate, func, val):
     return func(val) if predicate else val
@@ -29,10 +33,35 @@ def getDataFileName(formFields, trim=false, key='datafilename'):
     """
     return '_'.join(apply_if(trim, lambda d : os.path.splitext(d)[0], os.path.split(formFields[key])[1]).split())
 
+
+def useGfx(formFields):
+    return formFields.has_key("gfx") or formFields.has_key("gephi")
+
+csvname = ""
+
 def printHeaders(formFields, textFormat):
     if textFormat:
-        print "Content-type: application/octet-stream"
-        print "Content-disposition: attachment; filename=" + getDataFileName(formFields, true) + ".csv"
+        global csvname
+        csvname = getDataFileName(formFields, true) + ".csv"
+        csvname = getUniqueFilename("data/"+csvname)
+        if useGfx(formFields):
+            # REDIRECT OUTPUT FOR NOW (it will be printed in outputZipfile())
+            print "Content-type: application/octet-stream"
+            print "Content-disposition: attachment; filename=" + getDataFileName(formFields, true) + ".zip"
+            print ""
+            sys.stdout.flush()
+            
+            global stdout_save
+            stdout_save = os.dup(1)
+            csv = os.open(csvname, os.O_WRONLY)
+            os.dup2(csv, 1)
+            os.close(csv)
+
+        else:
+            print "Content-type: application/octet-stream"
+            print "Content-disposition: attachment; filename=" + csvname
+        
+
     else:
         print "Content-type: text/html"
     print ""
@@ -53,6 +82,62 @@ def printTime(textFormat):
             print "Run time: %f seconds\n" % elapsed_t
         else:
             print "<br>Run time: %f seconds</br>" % elapsed_t
+
+
+# Take the captured standard output,
+# and the generated graphs, and roll them into a ZIP file.
+def outputToZip(oc):
+    global stdout_save
+    global csvname
+
+    # Make an empty zip file
+    zipname = "data/" + getDataFileName(formFields, true) + ".zip"
+    z = zipfile.ZipFile(zipname, "w")
+    
+
+    sys.stdout.flush()
+    # Write out each graph to a PDF; include a brief note in the CSV.
+    for modelname,graph in oc.graphs.items():
+        modelname = modelname.replace(":","_")
+
+        if formFields.has_key("gfx"):
+            filename = modelname + ".pdf"
+            print "Writing graph to " + filename
+            graphFile = ocGraph.printPDF(modelname, graph, formFields["layout"])
+            z.write(graphFile, filename)
+            sys.stdout.flush()
+ 
+ 
+        if formFields.has_key("gephi"):
+            nodename = modelname + ".nodes_table.csv"
+            print "Writing Gephi Node table file to " + nodename
+            nodetext = ocGraph.gephiNodes(graph)
+            nodefile = getUniqueFilename("data/"+nodename)
+            with open(nodefile, "w") as nf:
+                nf.write(nodetext)
+            z.write(nodefile, nodename)
+ 
+            edgename = modelname + ".edges_table.csv"
+            print "Writing Gephi Edges table file to " + edgename
+            edgetext = ocGraph.gephiEdges(graph)
+            edgefile = getUniqueFilename("data/"+edgename)
+            with open(edgefile, "w") as ef:
+                ef.write(edgetext)
+            z.write(edgefile, edgename)           
+            sys.stdout.flush()
+
+    # Restore the STDOUT handle 
+    sys.stdout = os.fdopen(stdout_save, 'w')
+
+    # Write the CSV to the ZIP
+    z.write(csvname, getDataFileName(formFields, true) + ".csv")
+    z.close() 
+
+    # print out the zipfile
+    handle = open(zipname)
+    contents = handle.read()
+    print contents
+    sys.stdout.flush()
 
 #
 #---- printBottom ---- Print bottom HTML part
@@ -75,11 +160,30 @@ def printForm(formFields):
     template.out(formFields)
 
     
-    if action in ["fit", "search", "SBsearch", "SBfit", "fitbatch", "log", "compare"]:
+    if action in ["fit", "search", "SBsearch", "SBfit"]:
+
+        template.set_template("formheader.html")
+        template.out(formFields)
+
         cached = formFields.get("cached", "")
-        if cached=="true" and action in ["fit", "search", "SBsearch", "SBfit"]:
-            action = action + "_cached"
-        template.set_template(action + 'form.html')
+        
+        if cached == "true":
+            template.set_template("cached_data.template.html")
+            template.out(formFields)
+        else:
+            template.set_template("data.template.html")
+            template.out(formFields)
+       
+        template.set_template(action+".template.html")
+        template.out(formFields)
+        template.set_template("output.template.html")
+        template.out(formFields)
+        
+        template.set_template(action+".footer.html")
+        template.out(formFields)
+
+    elif action in ["compare", "log", "fitbatch"]:
+        template.set_template(action+"form.html")
         template.out(formFields)
 
     if action == "jobcontrol":
@@ -153,7 +257,7 @@ def prepareCachedData(formFields):
 
     # Check that exactly 1 of datafile, refr were chosen
     if (dataFileName == "" and dataRefrName == "") or (dataFileName != "" and dataRefrName != ""):
-        print "ERROR: Exactly 1 of 'Data File' and 'Cached Data Name' must be filled out."
+        print "NOTE: Exactly 1 of 'Data File' and 'Cached Data Name' must be filled out."
         sys.exit(1)
 
     # Check that at most 1 of testfile, testrefr were chosen
@@ -283,22 +387,46 @@ def processSBFit(fn, model, negativeDVforConfusion, oc):
     oc.setAction("SBfit")
     oc.doAction(printOptions)
 
+def maybeSkipResiduals(formFields, oc):
+    skipResidualsFlag = formFields.get("skipresiduals", "")
+    if skipResidualsFlag:
+        oc.setSkipTrainedModelTable(1)
+    else:
+        oc.setSkipTrainedModelTable(0)
+ 
+def maybeSkipIVIs(formFields, oc):
+    skipResidualsFlag = formFields.get("skipivitables", "")
+    if skipResidualsFlag:
+        oc.setSkipIVITables(1)
+    else:
+        oc.setSkipIVITables(0)
+
 #
 #---- actionFit ---- Report on Fit
 #
+def handleGraphOptions(oc, formFields):
+    lo = formFields["layout"]
+    oc.setGfx(formFields.has_key("gfx"),layout=lo,gephi=formFields.has_key("gephi"),hideIV=formFields.has_key("hideIsolated"),hideDV=formFields.has_key("hideDV"), fullVarNames=formFields.has_key("fullVarNames"))
+
 def actionFit(formFields):
     global textFormat
 
     fn = getDataFile(formFields)
     oc = ocUtils("VB")
+    global globalOcInstance
+    globalOcInstance = oc
     if not textFormat:
         print '<pre>'
     oc.initFromCommandLine(["",fn])
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+    handleGraphOptions(oc, formFields)
     if formFields.has_key("calcExpectedDV"):
         oc.setCalcExpectedDV(1)
+
+
+
     oc.setDDFMethod(1)
     skipNominalFlag = formFields.get("skipnominal", "")
     if skipNominalFlag:
@@ -310,14 +438,10 @@ def actionFit(formFields):
 #oc.setValuesAreFunctions(1)
     
     target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
-    
 
-    skipResidualsFlag = formFields.get("skipresiduals", "")
-    if skipResidualsFlag:
-        oc.setSkipTrainedModelTable(1)
-    else:
-        oc.setSkipTrainedModelTable(0)
-    
+    maybeSkipResiduals(formFields, oc)
+    maybeSkipIVIs(formFields, oc)
+   
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
         return
@@ -344,12 +468,15 @@ def actionSBFit(formFields):
 
     fn = getDataFile(formFields)
     oc = ocUtils("SB")
+    global globalOcInstance
+    globalOcInstance = oc
     if not textFormat:
         print '<pre>'
     oc.initFromCommandLine(["",fn])
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+    handleGraphOptions(oc, formFields)
 #functionFlag = formFields.get("functionvalues", "")
 #if functionFlag:
 #oc.setValuesAreFunctions(1)
@@ -359,12 +486,9 @@ def actionSBFit(formFields):
     skipNominalFlag = formFields.get("skipnominal", "")
     if skipNominalFlag:
         oc.setSkipNominal(1)
-
-    skipResidualsFlag = formFields.get("skipresiduals", "")
-    if skipResidualsFlag:
-        oc.setSkipTrainedModelTable(1)
-    else:
-        oc.setSkipTrainedModelTable(0)
+    
+    maybeSkipResiduals(formFields, oc)
+    maybeSkipIVIs(formFields, oc)
 
     target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
 
@@ -381,12 +505,15 @@ def actionSearch(formFields):
     fn = getDataFile(formFields)
     man="VB"
     oc = ocUtils(man)
+    global globalOcInstance
+    globalOcInstance = oc
     if not textFormat:
         print '<pre>'
     oc.initFromCommandLine(["",fn])
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+    handleGraphOptions(oc, formFields)
     # unused error? this should get caught by getDataFile() above
     if not formFields.has_key("data") :
         actionForm(form, "Missing form fields")
@@ -397,6 +524,7 @@ def actionSearch(formFields):
         oc.setReportSeparator(ocUtils.COMMASEP)
     else:
         oc.setReportSeparator(ocUtils.HTMLFORMAT)
+    
     oc.setSortDir(formFields.get("sortdir", ""))
     levels = formFields.get("searchlevels")
     if levels and levels > 0:
@@ -614,6 +742,8 @@ def actionBatchCompare(formFields):
 
     def computeBestModel(filename): 
         oc = ocUtils("VB")
+        global globalOcInstance
+        globalOcInstance = oc
         oc.initFromCommandLine(["occam", filename])
         oc.setDataFile(filename)
         oc.setAction("search")
@@ -772,12 +902,15 @@ def actionSBSearch(formFields):
     fn = getDataFile(formFields)
     man="SB"
     oc = ocUtils(man)
+    global globalOcInstance
+    globalOcInstance = oc
     if not textFormat:
         print '<pre>'
     oc.initFromCommandLine(["",fn])
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
+    handleGraphOptions(oc, formFields)
     # unused error? this should get caught by getDataFile() above
     if not formFields.has_key("data") :
         actionForm(formFields, "Missing form fields")
@@ -916,14 +1049,6 @@ def getFormFields(form):
     return formFields
 
 
-def getUniqueFilename(file_name):
-    dirname, filename = os.path.split(file_name)
-    prefix, suffix = os.path.splitext(filename)
-    prefix = '_'.join(prefix.split())
-    fd, filename = tempfile.mkstemp(suffix, prefix+"__", dirname)
-    os.chmod(filename, 0660)
-    return filename
-
 def getTimestampedFilename(file_name):
     dirname, filename = os.path.split(file_name)
     prefix, suffix = os.path.splitext(filename)
@@ -1022,11 +1147,20 @@ def startNormal(formFields):
             pass
         else:
             actionError()
+
         printTime(textFormat)
-    except:
-        pass
+    except Exception as e:
+        if isinstance(e, KeyError) and str(e) == "'datafilename'":
+            pass
+        else:
+            print "ERROR: " + str(e)
 
 
+def finalizeGfx():
+    global globalOcInstance
+    if useGfx(formFields) and textFormat:
+        outputToZip(globalOcInstance)
+        sys.stdout.flush()
 
 #---- main script ----
 #
@@ -1072,6 +1206,8 @@ if formFields.has_key("action"):
         startBatch(formFields)
     else:
         startNormal(formFields)
+
+finalizeGfx()
 
 if not textFormat:
     printBottom()

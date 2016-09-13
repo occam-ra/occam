@@ -34,6 +34,16 @@ class Report {
 	Report(class ManagerBase *mgr);
 	~Report();
 
+    void newl(FILE* fd);
+    void hl(FILE* fd);
+    int sepStyle(); 
+    void header(FILE* fd, Relation* rel, bool printLift, bool printCalc);
+    const char* format(bool printLift, bool printCalc);
+    void footer(FILE* fd);
+    const char* delim();
+    const char* hdr_delim();
+
+
 	//-- Add a model to the list of models. The model is added at the end. Run sort() after
 	//-- all models are added to sort them.
 	void addModel(class Model *model);
@@ -62,11 +72,13 @@ class Report {
 	static void setHTMLMode(bool mode) { htmlMode = mode; }
 
 	//-- Print residual table
-	void printResiduals(FILE *fd, Model *model, bool skipTrainedTable);
-    void printResiduals(FILE *fd, Relation *rel, bool skipTrainedTable);
-    void printResiduals(FILE *fd, Model *model, Relation* rel, bool skipTrainedTable);
-
-	//-- Print conditional DVs
+	void printResiduals(FILE *fd, Model *model, bool skipTrainedTable, bool skipIVItables);
+    void printSingleVariable(FILE* fd, Relation* rel, double adjustConstant);
+    void printLift(FILE* fd, Relation* rel, double adjustConstant);
+    void printSummary(FILE* fd, Model* model, double adjustConstant);
+    void printWholeTable(FILE* fd, Model* model, double adjustConstant);
+    void printRel(FILE* fd, Relation* rel, double adjustconstant, bool printLift);
+    //-- Print conditional DVs
 	//-- Print conditionals for a model.
 	void printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget);
 	//-- Print conditionals for a relation.
@@ -78,14 +90,14 @@ class Report {
     void printConfusionMatrix(Model* model, Relation* rel, const char* dv_name, const char* dv_target,
         double trtp, double trfp, double trtn, double trfn,
         bool test, double tetp, double tefp, double tetn, double tefn);
-        
+
+
     // static variables
     // used several places, such as Report::print
     static int maxNameLength;
 	
     class ManagerBase *manager;
 
-    private:
 	static bool htmlMode;
 	Model **models;
 	Model *defaultFitModel;
@@ -96,6 +108,13 @@ class Report {
 	void printSearchHeader(FILE *fd, int* attrID);
 	void printSearchRow(FILE *fd, Model* model, int* attrID, bool isOddRow);
     char* alloc_dv_header();
+
+
+    void printTableRow(FILE* fd, bool blue, VariableList* vl, int var_count, Relation* rel, long long index, double value, KeySegment* refkey, double refvalue, double iviValue, double adjustConstant, double sample_size, bool printLift, bool printCalc);
+    void printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_table, double adjustConstant, double sample_size, bool printLift, bool printCalc);
+    
+    void printTestData(FILE* fd, Relation* rel, Table* fit_table, double adjustConstant, int keysize, bool printCalc);
+
 };
 
 

@@ -89,6 +89,7 @@ class Model {
 //            return structMatrix;
 //        }
 
+ 
     private:
         Relation **relations;
         Model *progenitor; // the model from which this one was derived in a search

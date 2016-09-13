@@ -181,7 +181,7 @@ void Key::keyToUserString(KeySegment *key, VariableList *vars, char *str, const 
             int len1 = strlen(map[value]);
             strncpy(cp, map[value], len1);
             cp += len1;
-            if ((dlen > 0) && (i < (varcount -1))) {
+            if (dlen > 0) {
                 strncpy(cp, delim, dlen);
                 cp += dlen;
             }

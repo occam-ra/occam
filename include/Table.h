@@ -89,6 +89,8 @@ void tableIteration(Table* input_table, VariableList* varlist, Relation* rel,
         double refvalue = input_table->getValue(i);
         long long index = fit_table->indexOf(refkey, true);
         double value = index == -1 ? 0.0 : fit_table->getValue(index);
+    
+        double indep_value = 0.0;
         action(rel, index, value, refkey, refvalue);
     }
     delete[] key_order;

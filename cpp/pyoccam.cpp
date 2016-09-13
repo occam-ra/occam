@@ -4,7 +4,7 @@
 #include "SBMManager.h"
 #include "SearchBase.h"
 #include "VBMManager.h"
-
+#include <limits>
 #include <unistd.h>
 #include <Python.h>
 
@@ -112,6 +112,36 @@ DefinePyFunction(VBMManager, makeAllChildRelations) {
     Py_INCREF(list);
     return list;
 }
+
+DefinePyFunction(VBMManager, getDvName) {
+    VBMManager* mgr = ObjRef(self, VBMManager);
+    VariableList* varlist = mgr->getVariableList();
+    const char* abbrev = varlist->getVariable(varlist->getDV())->abbrev;
+    PyObject* name = PyString_FromString(abbrev);
+    return name;
+}
+
+
+DefinePyFunction(VBMManager, getVariableList) {
+    VBMManager* mgr = ObjRef(self, VBMManager);
+    VariableList* varlist = mgr->getVariableList();
+    long var_count = varlist->getVarCount();
+
+    PyObject* ret = PyList_New(var_count);
+    for (long i = 0; i < var_count; ++i) {
+
+        const char* printName = varlist->getVariable(i)->name;
+        const char* abbrevName = varlist->getVariable(i)->abbrev;
+        PyObject* name = PyString_FromString(printName);
+        PyObject* abbrev = PyString_FromString(abbrevName);
+        PyObject* names = PyTuple_Pack(2,name,abbrev);
+        PyList_SetItem(ret, i, names);
+    }
+
+    return ret;
+}
+
+
 
 // Model **searchOneLevel(Model *)
 DefinePyFunction(VBMManager, searchOneLevel) {
@@ -628,6 +658,7 @@ DefinePyFunction(VBMManager, dumpRelations) {
 }
 
 static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initFromCommandLine),
+        PyMethodDef(VBMManager, getDvName),
         PyMethodDef(VBMManager, makeAllChildRelations), PyMethodDef(VBMManager, makeChildModel),
         PyMethodDef(VBMManager, makeModel), PyMethodDef(VBMManager, setFilter),
         PyMethodDef(VBMManager, searchOneLevel), PyMethodDef(VBMManager, setSearchType),
@@ -649,6 +680,7 @@ static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initF
         PyMethodDef(VBMManager, printBasicStatistics), PyMethodDef(VBMManager, computePercentCorrect),
         PyMethodDef(VBMManager, printSizes), PyMethodDef(VBMManager, getMemUsage),
         PyMethodDef(VBMManager, hasTestData), PyMethodDef(VBMManager, dumpRelations),
+        PyMethodDef(VBMManager, getVariableList),
         { NULL, NULL, 0 } };
 
 /****** Basic Type Operations ******/
@@ -1666,10 +1698,11 @@ DefinePyFunction(Report, writeReport) {
 DefinePyFunction(Report, printResiduals) {
     PyObject *Pmodel;
     int skipTrainedTable;
-    PyArg_ParseTuple(args, "O!i", &TModel, &Pmodel, &skipTrainedTable);
+    int skipIVItables;
+    PyArg_ParseTuple(args, "O!ii", &TModel, &Pmodel, &skipTrainedTable, &skipIVItables);
     Model *model = ObjRef(Pmodel, Model);
 
-    ObjRef(self, Report)->printResiduals(stdout, model, skipTrainedTable);
+    ObjRef(self, Report)->printResiduals(stdout, model, skipTrainedTable, skipIVItables);
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1696,6 +1729,46 @@ DefinePyFunction(Report, bestModelName) {
     return Py_BuildValue("s", ret);
 }
 
+DefinePyFunction(Report, dvName) {
+    Report* report = ObjRef(self, Report);
+    VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
+    VariableList* varlist = mgr->getVariableList();
+    const char* abbrev = varlist->getVariable(varlist->getDV())->abbrev;
+    PyObject* name = PyString_FromString(abbrev);
+    return name;
+}
+
+DefinePyFunction(Report, bestModelBIC) {
+    Report* report = ObjRef(self, Report);
+
+    /*
+     *  Find all of the best model(s) by BIC;
+     *  get the print name;
+     *  push it into a Python list;
+     *  finally return the list of all of the best models.
+     */
+
+}
+
+DefinePyFunction(Report, variableList) {
+    Report* report = ObjRef(self, Report);
+    VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
+    VariableList* varlist = mgr->getVariableList();
+    long var_count = varlist->getVarCount();
+
+    PyObject* ret = PyList_New(var_count);
+    for (long i = 0; i < var_count; ++i) {
+
+        const char* printName = varlist->getVariable(i)->name;
+        const char* abbrevName = varlist->getVariable(i)->abbrev;
+        PyObject* name = PyString_FromString(printName);
+        PyObject* abbrev = PyString_FromString(abbrevName);
+        PyObject* names = PyTuple_Pack(2,name,abbrev);
+        PyList_SetItem(ret, i, names);
+    }
+
+    return ret;
+}
 
 DefinePyFunction(Report, bestModelData) { 
     // Get the report and the manager
@@ -1719,6 +1792,7 @@ DefinePyFunction(Report, bestModelData) {
     mgr->computeDependentStatistics(mod);
     mgr->makeFitTable(mod);
     Table* fit = mgr->getFitTable();
+    fit->normalize();
 
     // DEBUG: print out the model using an iterator
     // Do a string/double KV iteration over the fit table
@@ -1778,8 +1852,7 @@ DefinePyFunction(Report, bestModelData) {
 static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
         PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
         PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
-        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), { NULL, NULL, 0 } };
-
+        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
 /****** Basic Type Operations ******/
 
 /* commented out because it is currently unused

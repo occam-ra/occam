@@ -1,5 +1,5 @@
 # coding=utf8
-import sys, re, occam, time, heapq
+import sys, re, occam, time, heapq, ocGraph
 
 totalgen=0
 totalkept=0
@@ -11,6 +11,7 @@ class ocUtils:
     COMMASEP=2
     SPACESEP=3
     HTMLFORMAT=4
+    
 
     def __init__(self,man):
         if man == "VB":
@@ -27,6 +28,7 @@ class ocUtils:
         self.__alphaThreshold = 0.05
         self.__fitClassifierTarget = ""
         self.__skipTrainedModelTable = 1
+        self.__skipIVITables = 1
         self.__searchWidth = 3
         self.__searchLevels = 7
         self.searchDir = "default"
@@ -47,6 +49,18 @@ class ocUtils:
         self.__PercentCorrect = 0
         self.__IncrementalAlpha = 0
         self.__NoIPF = 0
+        
+        self.graphs = {}
+        self.__generateGraph = True
+        self.__generateGephi = False
+        self.__hideIsolated = True
+        self.__graphHideDV = False
+        self.__fullVarNames = False
+        self.__layoutStyle = None
+#        self.__showEdgeWeights = True
+#        self.__weightFn = "Mutual Information"
+
+
         self.totalgen = 0
         self.totalkept = 0
         self.__nextID = 0
@@ -86,6 +100,9 @@ class ocUtils:
     def setSkipTrainedModelTable(self, b):
         self.__skipTrainedModelTable = b
 
+    def setSkipIVITables(self, b):
+        self.__skipIVITables = b
+    
     def setSkipNominal(self, useFlag):
         flag = int(useFlag)
         if flag != 1:
@@ -148,6 +165,8 @@ class ocUtils:
         self.__refModel = refModel
 
     def setStartModel(self, startModel):
+        if not (startModel in ["top", "bottom", "default", ""]):
+            self.checkModelName(startModel)
         self.__startModel = startModel
 
     def getStartModel(self):
@@ -510,21 +529,136 @@ class ocUtils:
             self.__report.writeReport(self.__reportFile)
         else:
             self.__report.printReport()
+
+        self.printSearchGraphs()
         #-- self.__manager.dumpRelations()
+
+
+    def printSearchGraphs(self):
+
+        if not (self.__generateGraph or  self.__generateGephi):
+            return
+
+        # in HTML mode, note that the graphs are being printed.
+        if self.__HTMLFormat:
+            print('<hr>')
+            print("Hypergraphs of the best models:<br>")
+
+        # Get the varlist (used for all graphs)
+
+
+        # Graphs for each kind of best model:
+        # Generate the graph (but don't print anything yet).
+        # BIC [1 or more]
+
+        # AIC [1 or more]
+
+        # Incr Alpha [0 or more]
+
+        # For each of the graphs (and headers) above,
+        # if HTML mode, print out a brief note and graph/gephi (if enabled)
+
 
     def newl(self):
         if self.__HTMLFormat: print "<br>"
+    
+    def splitCaps(self,s): 
+        return re.findall('[A-Z][^A-Z]*', s)
+
+    def splitModel(self,modelName):
+        comps = modelName.split(":")
+        model = map(lambda s: [s] if (s == "IV" if self.isDirected() else s == "IVI") else self.splitCaps(s), comps)
+        return model
+
+    def checkModelName(self, modelName):
+        varlist = map(lambda c : c[1], self.__manager.getVariableList())
+        model = self.splitModel(modelName)
+        isDirected = self.isDirected()
+        haveIVs = False
+        sawMaybeWrongIV = False
+
+        # IV can be present if directed system; IVI otherwise
+        if isDirected:
+            if ["I","V","I"] in model:
+                sawMaybeWrongIV = True
+            if ["IV"] in model:
+                haveIVs = True
+        else:
+            if ["I","V"] in model:
+                sawMaybeWrongIV = True               
+            if ["IVI"] in model:
+                haveIVs = True     
+
+        # all variables in varlist are in model (possibly as IV or IVI)
+        modelvars = [var for rel in model for var in rel]
+        
+        varset = set(varlist)
+        modset = set(modelvars)
+        if isDirected:
+            modset.discard("IV")
+        else:
+            modset.discard("IVI")
+
+        if not haveIVs:
+            if not varset.issubset(modset):
+                if self.__HTMLFormat:
+                    print "<br>"
+                print "\nERROR: Not all declared variables are present in the model, '" + modelName + "'."
+                if self.__HTMLFormat:
+                    print "<br>"
+                if sawMaybeWrongIV:
+                    print "\nDid you mean '" + ("IV" if isDirected else "IVI") + "' instead of '" + ("IVI" if isDirected else "IV") + "'?"
+                else:
+                    print "\n Did you forget the " + ("IV" if isDirected else "IVI") + " component?"
+                if self.__HTMLFormat:
+                    print "<br>"
+                print "\n Not in model: "
+                print ", ".join(["'" + i + "'" for i in varset.difference(modset)])
+                sys.exit(1)
+        
+        # all variables in model are in varlist
+        if not modset.issubset(varset):
+            if self.__HTMLFormat:
+                print "<br>"
+            print "\nERROR: Not all variables in the model '" + modelName + "' are declared in the variable list."
+            if self.__HTMLFormat:
+                print "<br>"
+            diffset = modset.difference(varset)
+            if sawMaybeWrongIV or diffset == set(["I", "V"]):
+                print "\nDid you mean '" + ("IV" if isDirected else "IVI") + "' instead of '" + ("IVI" if isDirected else "IV") + "'?"
+            else:
+                print "\n Not declared: "
+                print ", ".join(["'" + i + "'" for i in diffset])
+              
+            sys.exit(1)
+
+        # dv must be in all components (except IV) if directed
+        if isDirected:
+            dv = self.__manager.getDvName()
+            for rel in model:
+                if not (rel == ["IVI"] or rel == ["IV"]) and dv not in rel:
+                    if self.__HTMLFormat:
+                        print "<br>"
+                    print "\nERROR: In the model '" + modelName + "', model component '" + "".join(rel) + "' is missing the DV, '" + dv + "'."
+                    sys.exit(1)
+
 
     def doFit(self,printOptions):
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
         if printOptions: self.printOptions(0)
         
         self.__manager.printBasicStatistics()
-        
+       
+
         for modelName in self.__fitModels:
+            self.checkModelName(modelName)
             self.__manager.setRefModel(self.__refModel)
             model = self.__manager.makeModel(modelName, 1)
+ 
+
             self.doAllComputations(model)
+
+
             if self.__defaultFitModel != "":
                 try:
                     defaultModel = self.__manager.makeModel(self.__defaultFitModel, 1)
@@ -533,8 +667,56 @@ class ocUtils:
                     sys.exit(0)
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
+
+
+            self.maybePrintGraphSVG(modelName, True)
+            self.maybePrintGraphGephi(modelName, True)
+
             print
             print
+
+
+    def maybePrintGraphSVG(self, model, header):
+        if self.__generateGraph:
+            self.generateGraph(model)
+            if self.__HTMLFormat:
+                if header: 
+                    print "<br><hr><br>Hypergraph model visualization for the Model " + model + " (using the " + self.__layoutStyle + " layout algorithm)<br>"
+                ocGraph.printSVG(self.graphs[model], self.__layoutStyle)
+
+    def maybePrintGraphGephi(self, model, header):
+        if self.__generateGephi:
+            self.generateGraph(model)
+
+            if self.__HTMLFormat:
+                if header:
+                    print "<br><hr><br>Hypergraph model Gephi input for the Model " + model + "<br>"
+                print ocGraph.printGephi(self.graphs[model])
+
+
+    def generateGraph(self, model):
+        varlist = self.__report.variableList()
+        hideIV = self.__hideIsolated
+        hideDV = self.__graphHideDV
+        fullVarNames = self.__fullVarNames
+        dvName = ""
+        allHigherOrder = (self.__layoutStyle == "bipartite")
+        if self.isDirected():
+            dvName = self.__report.dvName()
+
+        if self.graphs.has_key(model):
+            pass
+        else:
+            self.graphs[model] = ocGraph.generate(model, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder)
+
+    def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True, fullVarNames=False):
+       self.__generateGraph = useGfx
+       self.__generateGephi = gephi
+       self.__layoutStyle = layout
+       self.__hideIsolated = hideIV
+       self.__graphHideDV = hideDV
+       self.__fullVarNames = fullVarNames
+    
 
     def doAllComputations(self, model):
         self.__manager.computeL2Statistics(model)
@@ -543,7 +725,7 @@ class ocUtils:
         self.__report.addModel(model)
         self.__manager.printFitReport(model)
         self.__manager.makeFitTable(model)
-        self.__report.printResiduals(model, self.__skipTrainedModelTable)
+        self.__report.printResiduals(model, self.__skipTrainedModelTable, self.__skipIVITables)
 
     def doSbFit(self,printOptions):
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
@@ -561,6 +743,10 @@ class ocUtils:
                     sys.exit(0)
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
+            
+            self.maybePrintGraphSVG(modelName, True)
+            self.maybePrintGraphGephi(modelName, True)
+            
             print
             print
 
@@ -640,6 +826,16 @@ class ocUtils:
             self.printOption("Search preference", self.__searchSortDir)
             self.printOption("Report sort by", self.__reportSortName)
             self.printOption("Report preference", self.__sortDir)
+        self.printOption("Generate hypergraph images", "Y" if self.__generateGraph else "N")
+        self.printOption("Generate Gephi files", "Y" if self.__generateGephi else "N")
+        if(self.__generateGephi or self.__generateGraph):
+            self.printOption("Hypergraph layout style", str(self.__layoutStyle))
+            self.printOption("Hide " + ("IV" if self.isDirected() else "IVI")  + " components in hypergraph", "Y" if self.__hideIsolated else "N")
+#            self.printOption("Hypergraph weight function", self.__weightFn)
+#            self.printOption("Show hyperedge weights", "Y" if self.__showEdgeWeights else "N")
+            if(self.isDirected()):
+                self.printOption("Hide DV hypernode", "Y" if self.__graphHideDV else "N")
+
         if self.__HTMLFormat:
             print "</table>"
         sys.stdout.flush()
