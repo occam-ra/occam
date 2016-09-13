@@ -1084,8 +1084,11 @@ def startBatch(formFields):
 
     cmd = 'nohup "%s" "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname, emailSubject.encode("hex"))
     os.system(cmd)
-    print "<hr>Batch job started with subject '%s'-- data file: %s, results will be sent to %s\n" % (emailSubject, datafilename, toaddress)
 
+    print "<hr>Batch job started for data file '%s'.<br>Results will be sent to '%s'" % (datafilename, toaddress)
+
+    if len(emailSubject) > 0:
+        print " with email subject line including '%s'." % emailSubject
 #
 #---- getWebControls ----
 #
