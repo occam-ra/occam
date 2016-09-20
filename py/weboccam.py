@@ -1194,7 +1194,15 @@ if formFields.has_key("printoptions"):
     printOptions = "true"
 
 printTop(template, textFormat)
+
+if formFields.has_key("batchOutput") and formFields["batchOutput"]:
+    textFormat = 0
+    formFields.pop('gfx', None)
+    formFields.pop('gephi', None)
+    print "Note: Occam's email server interacts with graph output in a way that currently results in an error; graph functionality is temporarily disabled. The programmer is working on a fix..."
+
 sys.stdout.flush()
+
 #print sys.executable + "<br>" + platform.python_version() + "<br>"
 
 # If this is not an output page, or reporting a batch job, then print the header form
