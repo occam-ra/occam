@@ -1197,9 +1197,12 @@ printTop(template, textFormat)
 
 if formFields.has_key("batchOutput") and formFields["batchOutput"]:
     textFormat = 0
-    formFields.pop('gfx', None)
-    formFields.pop('gephi', None)
-    print "Note: Occam's email server interacts with graph output in a way that currently results in an error; graph functionality is temporarily disabled. The programmer is working on a fix..."
+
+    r1 = formFields.pop('gfx', None)
+    r2 = formFields.pop('gephi', None)
+    t = (r1 != None) or (r2 != None)
+    if t:
+        print "Note: Occam's email server interacts with graph output in a way that currently results in an error; graph functionality is temporarily disabled. The programmer is working on a fix..."
 
 sys.stdout.flush()
 
