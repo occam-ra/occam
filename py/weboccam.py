@@ -1084,8 +1084,11 @@ def startBatch(formFields):
 
     cmd = 'nohup "%s" "%s" "%s" "%s" "%s" "%s" &' % (appname, sys.argv[0], ctlfilename, toaddress, csvname, emailSubject.encode("hex"))
     os.system(cmd)
-    print "<hr>Batch job started with subject '%s'-- data file: %s, results will be sent to %s\n" % (emailSubject, datafilename, toaddress)
 
+    print "<hr>Batch job started for data file '%s'.<br>Results will be sent to '%s'" % (datafilename, toaddress)
+
+    if len(emailSubject) > 0:
+        print " with email subject line including '%s'." % emailSubject
 #
 #---- getWebControls ----
 #
@@ -1191,7 +1194,18 @@ if formFields.has_key("printoptions"):
     printOptions = "true"
 
 printTop(template, textFormat)
+
+if formFields.has_key("batchOutput") and formFields["batchOutput"]:
+    textFormat = 0
+
+    r1 = formFields.pop('gfx', None)
+    r2 = formFields.pop('gephi', None)
+    t = (r1 != None) or (r2 != None)
+    if t:
+        print "Note: Occam's email server interacts with graph output in a way that currently results in an error; graph functionality is temporarily disabled. The programmer is working on a fix..."
+
 sys.stdout.flush()
+
 #print sys.executable + "<br>" + platform.python_version() + "<br>"
 
 # If this is not an output page, or reporting a batch job, then print the header form
