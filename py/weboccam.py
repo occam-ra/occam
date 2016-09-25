@@ -405,8 +405,9 @@ def maybeSkipIVIs(formFields, oc):
 #---- actionFit ---- Report on Fit
 #
 def handleGraphOptions(oc, formFields):
-    lo = formFields["layout"]
-    oc.setGfx(formFields.has_key("gfx"),layout=lo,gephi=formFields.has_key("gephi"),hideIV=formFields.has_key("hideIsolated"),hideDV=formFields.has_key("hideDV"), fullVarNames=formFields.has_key("fullVarNames"))
+    if useGfx(formFields):
+        lo = formFields["layout"]
+        oc.setGfx(formFields.has_key("gfx"),layout=lo,gephi=formFields.has_key("gephi"),hideIV=formFields.has_key("hideIsolated"),hideDV=formFields.has_key("hideDV"), fullVarNames=formFields.has_key("fullVarNames"))
 
 def actionFit(formFields):
     global textFormat

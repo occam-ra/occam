@@ -530,7 +530,6 @@ class ocUtils:
         else:
             self.__report.printReport()
 
-        self.printSearchGraphs()
         #-- self.__manager.dumpRelations()
 
 
@@ -542,7 +541,6 @@ class ocUtils:
         # in HTML mode, note that the graphs are being printed.
         if self.__HTMLFormat:
             print('<hr>')
-            print("Hypergraphs of the best models:<br>")
 
         # Get the varlist (used for all graphs)
 
