@@ -71,6 +71,7 @@ def textwidth(text, fontsize=14):
 
 def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder):
 
+    # TODO fix this... the split is not quite working out right.
 
 # PARAMETERS:
     # model name: the model to make a graph of
@@ -212,7 +213,6 @@ def printGephi(graph):
 
     gephiCode = nlHeader + nl + nlFooter + elHeader + el + elFooter
     return gephiCode
-
 
 def gephiNodes(graph):
     header = "ID,Label,Type,Size\n"

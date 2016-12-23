@@ -126,17 +126,18 @@ const char* Report::delim() { return delim_arr[sepStyle()]; }
 const char* Report::hdr_delim() { return hdr_delim_arr[sepStyle()]; }
 
 
-void Report::printTableRow(FILE* fd, bool blue, VariableList* varlist, int var_count, Relation* rel, long long index, double value, KeySegment* refkey, double refvalue, double indep_value, double adjustConstant, double sample_size, bool printLift, bool printCalc) {
+void Report::printTableRow(FILE* fd, bool blue, VariableList* varlist, int var_count, Relation* rel, double value, KeySegment* refkey, double refvalue, double indep_value, double adjustConstant, double sample_size, bool printLift, bool printCalc) {
     char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim())) + 1];
     Key::keyToUserString(refkey, varlist, keystr, delim());
 
     const char* pre = !htmlMode ? "" : (blue ? "<tr class=r1>" : "<tr>");
     const char* fmt = format(printLift, rel == NULL || printCalc);
+    double lift = value / indep_value;
+
     if (rel == NULL || printCalc) {
         double res = value - refvalue;
         if (printLift) {
 
-            double lift = value / indep_value;
             fprintf(fd, fmt, pre, keystr, refvalue, refvalue * sample_size - adjustConstant, value, value * sample_size - adjustConstant, res, lift);
         } else {
 
@@ -145,7 +146,6 @@ void Report::printTableRow(FILE* fd, bool blue, VariableList* varlist, int var_c
 
     } else if(rel != NULL) { 
         if (printLift) {
-            double lift = value / indep_value;
             fprintf(fd, fmt, pre, keystr, refvalue, refvalue * sample_size - adjustConstant, lift); 
 
         } else {
@@ -155,22 +155,21 @@ void Report::printTableRow(FILE* fd, bool blue, VariableList* varlist, int var_c
     delete[] keystr;
 }
 
-void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_table, double adjustConstant, double sample_size, bool printLift, bool printCalc) {
+void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_table, Table* indep_table, double adjustConstant, double sample_size, bool printLift, bool printCalc) {
 
+    
     VariableList* varlist = rel ? rel->getVariableList() : manager->getVariableList();
     int var_count = varlist->getVarCount();
     header(fd, rel, printLift, printCalc);
     bool blue = 1;
 
-    auto tableAction = [&](Relation* rel, long long index, double value, KeySegment* refkey, double refvalue) {
+    auto tableAction = [&](Relation* rel, double value, KeySegment* refkey, double refvalue, double iviValue) {
 
-//        double iviValue = manager->ivi_model_value(refkey,rel);
-        double iviValue = 0.0;
-        printTableRow(fd, blue, varlist, var_count, rel, index, value, refkey, refvalue, iviValue, adjustConstant, sample_size, printLift, printCalc);
+        printTableRow(fd, blue, varlist, var_count, rel, value, refkey, refvalue, iviValue, adjustConstant, sample_size, printLift, printCalc);
         blue = !blue;
     };
 
-    tableIteration(input_table, varlist, rel, fit_table, var_count, tableAction);
+    tableIteration(input_table, varlist, rel, fit_table, indep_table, var_count, tableAction);
     
     footer(fd);
 }

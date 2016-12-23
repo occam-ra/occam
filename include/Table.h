@@ -5,6 +5,7 @@
 #include "Constants.h"
 #include "Globals.h"
 #include <stdlib.h>
+#include <stdio.h>
 
 /*
  * Table - defines a data table, which is a collection of tuples. The tuples are stored
@@ -72,7 +73,8 @@ class Table {
 
 template <typename F>
 void tableIteration(Table* input_table, VariableList* varlist, Relation* rel,
-                    Table* fit_table, long var_count, F action) {
+                    Table* fit_table, Table* indep_table, 
+                    long var_count, F action) {
     long long dataCount = input_table->getTupleCount();
     int *key_order = new int[dataCount];
     for (long long i = 0; i < dataCount; i++) { key_order[i] = i; }
@@ -83,15 +85,24 @@ void tableIteration(Table* input_table, VariableList* varlist, Relation* rel,
     sort_table = input_table;
     qsort(key_order, dataCount, sizeof(int), sortKeys);
     if (fit_table == NULL) { fit_table = input_table; }
+    if (indep_table == NULL) { indep_table = fit_table; }
+
+
     for (long long order_i = 0; order_i < dataCount; order_i++) {
         int i = key_order[order_i];
         KeySegment* refkey = input_table->getKey(i);
         double refvalue = input_table->getValue(i);
-        long long index = fit_table->indexOf(refkey, true);
-        double value = index == -1 ? 0.0 : fit_table->getValue(index);
-    
-        double indep_value = 0.0;
-        action(rel, index, value, refkey, refvalue);
+       
+       
+        long long vindex = fit_table->indexOf(refkey, true);
+        double value = vindex == -1 ? 0.0 : fit_table->getValue(vindex);
+        
+        long long iviindex = indep_table->indexOf(refkey, true);
+        double ivivalue = iviindex == -1 ? 0.0 : indep_table->getValue(iviindex);
+         
+        // disabled debug output
+        //printf("VI: %d, V: %g, IVII: %d, IVIV: %g\n", vindex, value, iviindex, ivivalue);
+        action(rel, value, refkey, refvalue, ivivalue);
     }
     delete[] key_order;
 }

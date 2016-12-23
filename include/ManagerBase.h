@@ -258,7 +258,9 @@ class ManagerBase {
         // Create an array of relation intersections for an algebraic fit table.
         FitIntersectMap computeIntersectLevels(Model* model);
 
-        double ivi_model_value(KeySegment* refkey, Relation* rel);
+        Table* getIndepTable();
+        Table* disownTable();
+
     protected:
         Model *topRef;
         Model *bottomRef;

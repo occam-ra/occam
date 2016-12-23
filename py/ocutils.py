@@ -675,6 +675,11 @@ class ocUtils:
 
 
     def maybePrintGraphSVG(self, model, header):
+
+        # TODO fix this so it is only called at appropriate times
+        # (instead of not at all)
+        return
+
         if self.__generateGraph:
             self.generateGraph(model)
             if self.__HTMLFormat:
@@ -683,6 +688,11 @@ class ocUtils:
                 ocGraph.printSVG(self.graphs[model], self.__layoutStyle)
 
     def maybePrintGraphGephi(self, model, header):
+        
+        # TODO fix this so it is only called at appropriate times
+        # (instead of not at all)
+        return
+        
         if self.__generateGephi:
             self.generateGraph(model)
 

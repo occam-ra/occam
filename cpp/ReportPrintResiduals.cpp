@@ -28,8 +28,8 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
         hl(fd);
     }
 
-    //printSummary(fd, model, adjustConstant);
-    //hl(fd);
+//    printSummary(fd, model, adjustConstant);
+//    hl(fd);
 
     int relCount = model->getRelationCount();
     if (relCount > 1) {
@@ -57,7 +57,9 @@ void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
     Table* fit_table = new Table(keysize, input_table->getTupleCount());
     manager->makeFitTable(model);
     fit_table->copy(manager->getFitTable());
-    
+   
+    Table* indep_table = manager->getIndepTable();
+
     VariableList *varlist = manager->getVariableList();
     fprintf(fd, "Variable order: ");
     
@@ -67,34 +69,9 @@ void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
     }
 
     double sample_size = manager->getSampleSz();
-    printTable(fd, NULL, fit_table, input_table, adjustConstant, sample_size, false, true);
+    
+    printTable(fd, NULL, fit_table, input_table, indep_table, adjustConstant, sample_size, false, true);
     printTestData(fd, NULL, fit_table, adjustConstant, keysize, true);
-
-    delete fit_table;
-}
-
-void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
-    fprintf(fd, "Lift for the Model %s (summarizing over IVIs)\n", model->getPrintName());
-    newl(fd);
-
-    int var_count = manager->getVariableList()->getVarCount();
-    int var_indices[var_count], return_count;
-    manager->getRelevantVars(model, var_indices, return_count, true);
-    Relation *rel = manager->getRelation(var_indices, return_count);
-
-    Table* input_data = manager->getInputData(); 
-    int keysize = input_data->getKeySize();
-
-    Table* fit_table = new Table(keysize, input_data->getTupleCount());
-    manager->makeFitTable(model);
-    manager->makeProjection(manager->getFitTable(), fit_table, rel);
-    
-    Table* input_table = new Table(keysize, input_data->getTupleCount());
-    manager->makeProjection(input_data, input_table, rel);
-    
-    double sample_size = manager->getSampleSz();
-    printTable(fd, rel, fit_table, input_table, adjustConstant, sample_size, true, true);
-    printTestData(fd, rel, fit_table, adjustConstant, keysize, true);
 
     delete fit_table;
 }
@@ -107,7 +84,7 @@ void Report::printSingleVariable(FILE* fd, Relation* rel, double adjustConstant)
 void Report::printLift(FILE* fd, Relation* rel, double adjustConstant) {
     fprintf(fd, "\nObservations for the Relation %s\n", rel->getPrintName());
 
-    printRel(fd, rel, adjustConstant, false);
+    printRel(fd, rel, adjustConstant, true);
 }
 
 void Report::printRel(FILE* fd, Relation* rel, double adjustConstant, bool printLift) {
@@ -117,11 +94,19 @@ void Report::printRel(FILE* fd, Relation* rel, double adjustConstant, bool print
 
     Table* input_data = manager->getInputData(); 
     double sample_size = manager->getSampleSz();
+
     int keysize = input_data->getKeySize();
     Table* input_table = new Table(keysize, input_data->getTupleCount());
     manager->makeProjection(input_data, input_table, rel);
 
-    printTable(fd, rel, fit_table, input_table, adjustConstant, sample_size, printLift, false);
+    Table* indep_table0 = manager->getIndepTable();
+    int ikeysize = indep_table0->getKeySize();
+    Table* indep_table = new Table(ikeysize, indep_table0->getTupleCount());
+    manager->makeProjection(indep_table0, indep_table, rel);
+
+
+
+    printTable(fd, rel, fit_table, input_table, indep_table, adjustConstant, sample_size, printLift, false);
     printTestData(fd, rel, fit_table, adjustConstant, keysize, false);
     delete input_table;
 }
@@ -139,8 +124,15 @@ void Report::printTestData(FILE* fd, Relation* rel, Table* fit_table, double adj
 
     Table* test_table = rel == NULL ? test_data : new Table(keysize, test_data->getTupleCount());
     if (rel) { manager->makeProjection(test_data, test_table, rel); }
-    
-    printTable(fd, rel, fit_table, test_table, adjustConstant, test_sample_size, false, printCalc);
+ 
+    Table* indep_table0 = manager->getIndepTable();
+    int ikeysize = indep_table0->getKeySize();
+    Table* indep_table = rel == NULL ? indep_table0 : new Table(ikeysize, indep_table0->getTupleCount());
+    if (rel) {
+        manager->makeProjection(indep_table0, indep_table, rel);
+    }
+
+    printTable(fd, rel, fit_table, test_table, indep_table, adjustConstant, test_sample_size, false, printCalc);
     if (rel != NULL) {
         if (test_sample_size > 0.0) {
             delete test_table;
