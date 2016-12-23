@@ -114,6 +114,7 @@ class Report {
     
     void printTestData(FILE* fd, Relation* rel, Table* fit_table, double adjustConstant, int keysize, bool printCalc);
 
+    void printSummary(FILE* fd, Model* model, double adjustConstant);
 };
 
 

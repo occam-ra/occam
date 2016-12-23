@@ -28,8 +28,8 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
         hl(fd);
     }
 
-//    printSummary(fd, model, adjustConstant);
-//    hl(fd);
+    printSummary(fd, model, adjustConstant);
+    hl(fd);
 
     int relCount = model->getRelationCount();
     if (relCount > 1) {
@@ -139,4 +139,20 @@ void Report::printTestData(FILE* fd, Relation* rel, Table* fit_table, double adj
         }
     }
 
+}
+
+
+void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
+    fprintf(fd, "Lift for the Model %s (summarizing over IVIs)\n", model->getPrintName());
+    newl(fd);
+
+
+    // THIS IS THE KEY TO THIS SUMMARY:
+    // `rel` is a relation holding all of the relevant variables.
+    int var_count = manager->getVariableList()->getVarCount();
+    int var_indices[var_count], return_count;
+    manager->getRelevantVars(model, var_indices, return_count, true);
+    Relation *rel = manager->getRelation(var_indices, return_count);
+
+    // Add logic similar to `printRel` for doing projections.
 }
