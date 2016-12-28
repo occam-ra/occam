@@ -77,6 +77,7 @@ class Report {
     void printLift(FILE* fd, Relation* rel, double adjustConstant);
     void printWholeTable(FILE* fd, Model* model, double adjustConstant);
     void printRel(FILE* fd, Relation* rel, double adjustconstant, bool printLift);
+    void printSummary(FILE* fd, Model* model, double adjustConstant);
     //-- Print conditional DVs
 	//-- Print conditionals for a model.
 	void printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget);
@@ -114,7 +115,6 @@ class Report {
     
     void printTestData(FILE* fd, Relation* rel, Table* fit_table, double adjustConstant, int keysize, bool printCalc);
 
-    void printSummary(FILE* fd, Model* model, double adjustConstant);
 };
 
 
