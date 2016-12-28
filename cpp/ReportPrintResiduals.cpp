@@ -58,7 +58,7 @@ void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
 
     double sample_size = manager->getSampleSz();
     
-    printTable(fd, NULL, fit_table, input_table, indep_table, adjustConstant, sample_size, false, true);
+    printTable(fd, NULL, fit_table, input_table, indep_table, adjustConstant, sample_size, true, true);
     printTestData(fd, NULL, fit_table, adjustConstant, keysize, true);
 
     delete fit_table;
