@@ -41,7 +41,7 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
 }
 
 void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
-    fprintf(fd, "Residuals for all states for the Model %s\n", model->getPrintName());
+    fprintf(fd, "Observations for all states for the Model %s\n", model->getPrintName());
     newl(fd);
 
     Table* input_table = manager->getInputData();
@@ -136,7 +136,7 @@ void Report::printTestData(FILE* fd, Relation* rel, Table* fit_table, double adj
 
 
 void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
-    fprintf(fd, "Lift for the Model %s (summarizing over IVIs)\n", model->getPrintName());
+    fprintf(fd, "Observations for the Model %s (summarizing over IVIs)\n", model->getPrintName());
     newl(fd);
 
 
