@@ -4,18 +4,6 @@
 #include <cstring>
 #include "Model.h"
 
-Model* indepModel(ManagerBase* manager) {
-    VariableList* varList = manager->getVariableList();
-    int varCount = varList->getVarCount();
-    Model* newmodel = new Model();
-    for (size_t i=0; i < varCount; i++) {
-        int var[1]; var[0] = i;
-        Relation* rel = manager->getRelation(var, 1, true);
-        newmodel->addRelation(rel, true);
-    }
-    return newmodel;
-}
-
 void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipIVIs) {
 
     if (manager->getVariableList()->isDirected()) {
