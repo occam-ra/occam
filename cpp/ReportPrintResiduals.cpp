@@ -18,13 +18,13 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
 
 
     int relCount = model->getRelationCount();
+    int trueRelCount = 0;
     if (relCount > 1) {
-        printSummary(fd, model, adjustConstant);
-        hl(fd);
         for (int i = 0; i < relCount; i++) {
             Relation* rel = model->getRelation(i);
             int varCount = rel->getVariableCount();
             if (varCount > 1) {
+                trueRelCount += 1;
                 printLift(fd, rel, adjustConstant);
                 hl(fd);
             } else if (!skipIVIs) { 
@@ -34,6 +34,10 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
         }
         newl(fd);
     }   
+    
+    if (trueRelCount > 1) {
+        printSummary(fd, model, adjustConstant);
+    }
 }
 
 void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
@@ -42,6 +46,7 @@ void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
 
     Table* input_table = manager->getInputData();
     int keysize = input_table->getKeySize();
+
     Table* fit_table = new Table(keysize, input_table->getTupleCount());
     manager->makeFitTable(model);
     fit_table->copy(manager->getFitTable());
@@ -143,14 +148,20 @@ void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
     Relation *rel = manager->getRelation(var_indices, return_count);
 
     // make refData and testData point to projections
-    Table* fit_table = rel->getTable();
-
+   
     Table* input_data = manager->getInputData(); 
     double sample_size = manager->getSampleSz();
 
     int keysize = input_data->getKeySize();
     Table* input_table = new Table(keysize, input_data->getTupleCount());
     manager->makeProjection(input_data, input_table, rel);
+
+    int fkeysize = manager->getFitTable()->getKeySize();
+    Table* fit_table = new Table(fkeysize, input_table->getTupleCount());
+    manager->makeFitTable(model);
+    manager->makeProjection(manager->getFitTable(), fit_table, rel);
+ 
+
 
     Table* indep_table0 = manager->getIndepTable();
     int ikeysize = indep_table0->getKeySize();
