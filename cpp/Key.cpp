@@ -164,7 +164,7 @@ void Key::keyToUserString(KeySegment *key, VariableList *vars, char *str)
 }
 
 
-void Key::keyToUserString(KeySegment *key, VariableList *vars, char *str, const char *delim)
+void Key::keyToUserString(KeySegment *key, VariableList *vars, char *str, const char *delim, bool showKey)
 {
     int i;
     int varcount = vars->getVarCount();
@@ -178,9 +178,11 @@ void Key::keyToUserString(KeySegment *key, VariableList *vars, char *str, const 
         int value = (key[segment] & mask) >> var->shift;
         if(value < (var->cardinality)) {
             //assert(value >= 0 && value < 16);
-            int len1 = strlen(map[value]);
-            strncpy(cp, map[value], len1);
-            cp += len1;
+            if (showKey) {
+                int len1 = strlen(map[value]);
+                strncpy(cp, map[value], len1);
+                cp += len1;
+            }
             if (dlen > 0) {
                 strncpy(cp, delim, dlen);
                 cp += dlen;

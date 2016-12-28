@@ -73,6 +73,13 @@ const char* header_start[] = {
     ""
 };
 
+const char* row_start[] = {
+    "<tr><th>",
+    "",
+    "",
+    ""
+};
+
 const char* header_cont[] = {
     "Obs.Prob.</th><th>Obs.Freq.",
     "Obs.Prob.\tObs.Freq.",
@@ -87,9 +94,8 @@ const char* header_finish[] = {
     "\n"
 };
 
-void Report::header(FILE* fd, Relation* rel, bool printLift, bool printCalc) { 
-
-    fprintf(fd, "%s", header_start[sepStyle()]);
+void Report::header(FILE* fd, Relation* rel, bool printLift, bool printCalc, bool printStart) { 
+    fprintf(fd, "%s", printStart ? header_start[sepStyle()] : row_start[sepStyle()]); 
     VariableList* var_list = manager->getVariableList();
     int var_count = var_list->getVarCount(); 
     if (rel) {
@@ -155,21 +161,68 @@ void Report::printTableRow(FILE* fd, bool blue, VariableList* varlist, int var_c
     delete[] keystr;
 }
 
+
 void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_table, Table* indep_table, double adjustConstant, double sample_size, bool printLift, bool printCalc) {
 
     
     VariableList* varlist = rel ? rel->getVariableList() : manager->getVariableList();
     int var_count = varlist->getVarCount();
     header(fd, rel, printLift, printCalc);
+    
     bool blue = 1;
 
+    double value_total = 0.0;
+    double refValue_total = 0.0;
+    double iviValue_total = 0.0;
+
+    KeySegment* lastRefKey = NULL;
     auto tableAction = [&](Relation* rel, double value, KeySegment* refkey, double refvalue, double iviValue) {
 
+        value_total += value;
+        refValue_total += refvalue;
+        iviValue_total = iviValue;
         printTableRow(fd, blue, varlist, var_count, rel, value, refkey, refvalue, iviValue, adjustConstant, sample_size, printLift, printCalc);
         blue = !blue;
+        lastRefKey = refkey;
     };
 
+
     tableIteration(input_table, varlist, rel, fit_table, indep_table, var_count, tableAction);
+
+
+    auto tableTotals = [&](double value, double refvalue, double ivivalue, double sample_size) {
+
+        const char* pre = !htmlMode ? "" : "<tr>";
+        const char* fmt = format(printLift, rel == NULL || printCalc);
+
+        double lift = -1; 
+
+        char* keystr = new char[var_count * (MAXABBREVLEN + strlen(delim())) + 1];
+        Key::keyToUserString(lastRefKey, varlist, keystr, delim(), false);
+
+        if (printCalc) {
+            double res = value - refvalue;
+            if (printLift) {
+
+                fprintf(fd, fmt, pre, keystr, refvalue, refvalue * sample_size - adjustConstant, value, value * sample_size - adjustConstant, res, lift);
+            } else {
+                fprintf(fd, fmt, pre, keystr, refvalue, refvalue * sample_size - adjustConstant, value, value * sample_size - adjustConstant, res);
+            }
+
+        } else if(rel != NULL) { 
+            if (printLift) {
+                fprintf(fd, fmt, pre, keystr, refvalue, refvalue * sample_size - adjustConstant, lift); 
+
+            } else {
+                fprintf(fd, fmt, pre, keystr, refvalue, refvalue * sample_size - adjustConstant); 
+            }
+        }
+    };
+
+
+    tableTotals(value_total, refValue_total, iviValue_total, sample_size);
+
+    header(fd, rel, printLift, printCalc, false);
     
     footer(fd);
 }

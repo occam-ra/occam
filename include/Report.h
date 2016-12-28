@@ -37,7 +37,7 @@ class Report {
     void newl(FILE* fd);
     void hl(FILE* fd);
     int sepStyle(); 
-    void header(FILE* fd, Relation* rel, bool printLift, bool printCalc);
+    void header(FILE* fd, Relation* rel, bool printLift, bool printCalc, bool printStart=true);
     const char* format(bool printLift, bool printCalc);
     void footer(FILE* fd);
     const char* delim();

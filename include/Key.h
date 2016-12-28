@@ -36,7 +36,7 @@ namespace Key {
     void buildMask(KeySegment *mask, int keysize, VariableList *vars, int *varindices, int varcount);
     void keyToString(KeySegment *key, VariableList *var, char *str);
     void keyToUserString(KeySegment *key, VariableList *var, char *str);
-    void keyToUserString(KeySegment *key, VariableList *var, char *str, const char *delim);
+    void keyToUserString(KeySegment *key, VariableList *var, char *str, const char *delim, bool showKey=true);
     void getSiblings(KeySegment *key, VariableList *vars, Table *table, long *i_sibs, int DV_ind, int *no_sib);
     void dumpKey(KeySegment *key, int keysize);
 };
