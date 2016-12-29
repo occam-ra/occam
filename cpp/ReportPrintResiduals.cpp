@@ -262,7 +262,7 @@ void Report::printDyadSummary(FILE* fd, Model* model) {
 
         Relation* rel = model->getRelation(i);
         int varcount = rel->getVariableCount();
-        if (varcount != 2) { break; }
+        if (varcount != 2) { continue; }
 
         const char* relName = rel->getPrintName();
  
