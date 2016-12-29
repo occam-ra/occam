@@ -11,33 +11,62 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
     }
 
     double adjustConstant = manager->getFunctionConstant() + manager->getNegativeConstant();
-    if (!skipTrained) { 
-        printWholeTable(fd, model, adjustConstant); 
-        hl(fd);
-    }
-
 
     int relCount = model->getRelationCount();
     int trueRelCount = 0;
+
+    // first pass: figure out true rel count
+    if (relCount > 1) {
+        for (int i = 0; i < relCount; i++) {
+            Relation* rel = model->getRelation(i);
+            int varCount = rel->getVariableCount();
+            if (varCount > 1) { trueRelCount += 1; }
+        }
+    }   
+
+    // print summary (unless the whole data is "just as good")
+    if (trueRelCount > 1 && trueRelCount != relCount) {
+        printSummary(fd, model, adjustConstant);
+        hl(fd);
+    }
+
+    // second pass: print all relations    
+
     if (relCount > 1) {
         for (int i = 0; i < relCount; i++) {
             Relation* rel = model->getRelation(i);
             int varCount = rel->getVariableCount();
             if (varCount > 1) {
-                trueRelCount += 1;
                 printLift(fd, rel, adjustConstant);
                 hl(fd);
-            } else if (!skipIVIs) { 
+            }
+        }
+        newl(fd);
+    }
+
+    // third pass: print single variables
+    if (relCount > 1 && !skipIVIs) {
+        for (int i = 0; i < relCount; i++) {
+            Relation* rel = model->getRelation(i);
+            int varCount = rel->getVariableCount();
+            if (varCount == 1) {
                 printSingleVariable(fd, rel, adjustConstant);
                 hl(fd);
             }
         }
         newl(fd);
-    }   
-    
-    if (trueRelCount > 1) {
-        printSummary(fd, model, adjustConstant);
     }
+
+
+
+    // print whole data
+    if (!skipTrained || trueRelCount == relCount) { 
+        printWholeTable(fd, model, adjustConstant); 
+        hl(fd);
+    }
+
+
+
 }
 
 void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
@@ -133,30 +162,23 @@ void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
     manager->getRelevantVars(model, var_indices, return_count, true);
     Relation *rel = manager->getRelation(var_indices, return_count);
 
-    // make refData and testData point to projections
-   
-    Table* input_data = manager->getInputData(); 
-    double sample_size = manager->getSampleSz();
-
+    // Project the data to this relation (Obs. Prob).
+    int sample_size = manager->getSampleSz();
+    Table* input_data = manager->getInputData();
     int keysize = input_data->getKeySize();
     Table* input_table = new Table(keysize, input_data->getTupleCount());
     manager->makeProjection(input_data, input_table, rel);
 
-    int fkeysize = manager->getFitTable()->getKeySize();
-    Table* fit_table = new Table(fkeysize, input_table->getTupleCount());
-    manager->makeFitTable(model);
-    manager->makeProjection(manager->getFitTable(), fit_table, rel);
- 
+
+    // Get Independence tables (Ind. Prob) and also (Calc.Prob.)
+    Table* indep_table = manager->projectedFit(rel, manager->getBottomRefModel());
+    Table* fit_table = manager->projectedFit(rel, model);
 
 
-    Table* indep_table0 = manager->getIndepTable();
-    int ikeysize = indep_table0->getKeySize();
-    Table* indep_table = new Table(ikeysize, indep_table0->getTupleCount());
-    manager->makeProjection(indep_table0, indep_table, rel);
-
+    // Print it out...
     printTable(fd, rel, fit_table, input_table, indep_table, adjustConstant, sample_size, true, true);
-    printTestData(fd, rel, fit_table, adjustConstant, keysize, true);
-
+    printTestData(fd, rel, nullptr, adjustConstant, keysize, false);
     delete input_table;
+
 
 }
