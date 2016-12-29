@@ -210,6 +210,7 @@ void Report::findEntropies(Relation* rel, double& h1, double& h2, double& h12) {
         Relation *rel1 = manager->getRelation(var_indices1, 1);
         Relation *rel2 = manager->getRelation(var_indices2, 1);
 
+//        printf("Order: %s, %s\n", rel1->getPrintName(), rel2->getPrintName());
 
         // To find h1, h2, h12:
         // * get relTab = Obs.Prob. table for the relation by projection
