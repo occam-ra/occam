@@ -8,10 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <float.h>
-
-//-- very small probabilities are considered zero, to avoid underflow
-//-- errors from log functions.
-const double PROB_MIN = 1e-36;
+#include "Constants.h"
 
 double ocEntropy(Table *p) {
     double h = 0.0;

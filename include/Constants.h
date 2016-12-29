@@ -15,6 +15,8 @@ const int REST_ALL = -1;
 const int KEEP = 1;
 const int DISCARD = -1;
 
+const double PRINT_MIN = 1e-8;
+const double PROB_MIN = 1e-36;
 
 #define OLD_ROW 0
 #define NEW_ROW 1

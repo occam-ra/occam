@@ -1,6 +1,9 @@
 #include "Report.h"
 #include <cstring>
 #include "ManagerBase.h"
+#include <math.h>
+#include "Constants.h"
+
 void Report::newl(FILE* fd) {
     if (htmlMode) {
         fprintf(fd, "<br/>");
@@ -229,4 +232,20 @@ void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_
     header(fd, rel, printLift, printCalc, false);
     
     footer(fd);
+
+    if ((printCalc && (1 - value_total) > PRINT_MIN)
+        || (printLift && (1 - iviValue_total > PRINT_MIN))) {
+        printf("Note: ");
+    }
+    if (printCalc && (1 - value_total) > PRINT_MIN) {
+        printf("The calculated probabilities sum to less than 1 (and the total residual is less than 0), because the calculated distribution has probability distributed over states that were not observed in the data. \n");
+    }
+    if (printLift && (1 - iviValue_total > PRINT_MIN)) {
+        printf("The independence probabilities sum to less than 1, because the independence distribution has probability distributed over states that were not observed in the data. \n");
+    }
+    if ((printCalc && (1 - value_total) > PRINT_MIN)
+        || (printLift && (1 - iviValue_total > PRINT_MIN))) {
+        newl(fd);
+        newl(fd);
+    }
 }
