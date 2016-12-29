@@ -113,8 +113,7 @@ class Report {
     void printTableRow(FILE* fd, bool blue, VariableList* vl, int var_count, Relation* rel, double value, KeySegment* refkey, double refvalue, double iviValue, double adjustConstant, double sample_size, bool printLift, bool printCalc);
     void printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_table, Table* indep_table, double adjustConstant, double sample_size, bool printLift, bool printCalc);
     
-    void printTestData(FILE* fd, Relation* rel, Table* fit_table, double adjustConstant, int keysize, bool printCalc);
-
+    void printTestData(FILE* fd, Relation* rel, Table* fit_table, Table* indep_table, double adjustConstant, int keysize, bool printCalc, bool printLift);
 };
 
 

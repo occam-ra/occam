@@ -24,14 +24,21 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
         }
     }   
 
-    // print summary (unless the whole data is "just as good")
-    if (trueRelCount > 1 && trueRelCount != relCount) {
-        printSummary(fd, model, adjustConstant);
-        hl(fd);
+
+    // print single variables
+    if (relCount > 1 && !skipIVIs) {
+        for (int i = 0; i < relCount; i++) {
+            Relation* rel = model->getRelation(i);
+            int varCount = rel->getVariableCount();
+            if (varCount == 1) {
+                printSingleVariable(fd, rel, adjustConstant);
+                hl(fd);
+            }
+        }
+        newl(fd);
     }
 
-    // second pass: print all relations    
-
+    // print all relations    
     if (relCount > 1) {
         for (int i = 0; i < relCount; i++) {
             Relation* rel = model->getRelation(i);
@@ -44,17 +51,10 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
         newl(fd);
     }
 
-    // third pass: print single variables
-    if (relCount > 1 && !skipIVIs) {
-        for (int i = 0; i < relCount; i++) {
-            Relation* rel = model->getRelation(i);
-            int varCount = rel->getVariableCount();
-            if (varCount == 1) {
-                printSingleVariable(fd, rel, adjustConstant);
-                hl(fd);
-            }
-        }
-        newl(fd);
+    // print summary (unless the whole data is "just as good")
+    if (trueRelCount > 1 && trueRelCount != relCount) {
+        printSummary(fd, model, adjustConstant);
+        hl(fd);
     }
 
 
@@ -93,7 +93,7 @@ void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
     double sample_size = manager->getSampleSz();
     
     printTable(fd, NULL, fit_table, input_table, indep_table, adjustConstant, sample_size, true, true);
-    printTestData(fd, NULL, fit_table, adjustConstant, keysize, true);
+    printTestData(fd, NULL, fit_table, indep_table, adjustConstant, keysize, true, true);
 
     delete fit_table;
 }
@@ -127,14 +127,11 @@ void Report::printRel(FILE* fd, Relation* rel, double adjustConstant, bool print
 
     // Print it out...
     printTable(fd, rel, nullptr, input_table, indep_table, adjustConstant, sample_size, printLift, false);
-    printTestData(fd, rel, nullptr, adjustConstant, keysize, false);
+    printTestData(fd, rel, nullptr, indep_table, adjustConstant, keysize, false, printLift);
     delete input_table;
 }
 
-void Report::printTestData(FILE* fd, Relation* rel, Table* fit_table, double adjustConstant, int keysize, bool printCalc) { 
-    
-    
-
+void Report::printTestData(FILE* fd, Relation* rel, Table* fit_table, Table* indep_table, double adjustConstant, int keysize, bool printCalc, bool printLift) { 
     Table *test_data = manager->getTestData();
     double test_sample_size = manager->getTestSampleSize();
     if (test_data == NULL || test_sample_size <= 0.0) { return; }
@@ -145,10 +142,8 @@ void Report::printTestData(FILE* fd, Relation* rel, Table* fit_table, double adj
     Table* test_table = rel == NULL ? test_data : new Table(keysize, test_data->getTupleCount());
     if (rel) { manager->makeProjection(test_data, test_table, rel); }
 
-   // TODO 
-
+    printTable(fd, rel, fit_table, test_table, indep_table, adjustConstant, test_sample_size, printLift, printCalc);
 }
-
 
 void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
     fprintf(fd, "Observations for the Model %s (summarizing over IVIs)\n", model->getPrintName());
@@ -177,8 +172,6 @@ void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
 
     // Print it out...
     printTable(fd, rel, fit_table, input_table, indep_table, adjustConstant, sample_size, true, true);
-    printTestData(fd, rel, nullptr, adjustConstant, keysize, false);
+    printTestData(fd, rel, fit_table, indep_table, adjustConstant, keysize, true, true);
     delete input_table;
-
-
 }
