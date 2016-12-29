@@ -82,25 +82,23 @@ void Report::printLift(FILE* fd, Relation* rel, double adjustConstant) {
 
 void Report::printRel(FILE* fd, Relation* rel, double adjustConstant, bool printLift) {
 
-    // make refData and testData point to projections
-    Table* fit_table = rel->getTable();
-
-    Table* input_data = manager->getInputData(); 
-    double sample_size = manager->getSampleSz();
-
+    // Project the data to this relation (Obs. Prob).
+    int sample_size = manager->getSampleSz();
+    Table* input_data = manager->getInputData();
     int keysize = input_data->getKeySize();
     Table* input_table = new Table(keysize, input_data->getTupleCount());
     manager->makeProjection(input_data, input_table, rel);
 
-    Table* indep_table0 = manager->getIndepTable();
-    int ikeysize = indep_table0->getKeySize();
-    Table* indep_table = new Table(ikeysize, indep_table0->getTupleCount());
-    manager->makeProjection(indep_table0, indep_table, rel);
+
+    // Get Independence tables (Ind. Prob)
+    Table* indep_table = printLift 
+        ? manager->projectedFit(rel, manager->getBottomRefModel())
+        : nullptr;
 
 
-
-    printTable(fd, rel, fit_table, input_table, indep_table, adjustConstant, sample_size, printLift, false);
-    printTestData(fd, rel, fit_table, adjustConstant, keysize, false);
+    // Print it out...
+    printTable(fd, rel, nullptr, input_table, indep_table, adjustConstant, sample_size, printLift, false);
+    printTestData(fd, rel, nullptr, adjustConstant, keysize, false);
     delete input_table;
 }
 
@@ -117,20 +115,8 @@ void Report::printTestData(FILE* fd, Relation* rel, Table* fit_table, double adj
 
     Table* test_table = rel == NULL ? test_data : new Table(keysize, test_data->getTupleCount());
     if (rel) { manager->makeProjection(test_data, test_table, rel); }
- 
-    Table* indep_table0 = manager->getIndepTable();
-    int ikeysize = indep_table0->getKeySize();
-    Table* indep_table = rel == NULL ? indep_table0 : new Table(ikeysize, indep_table0->getTupleCount());
-    if (rel) {
-        manager->makeProjection(indep_table0, indep_table, rel);
-    }
 
-    printTable(fd, rel, fit_table, test_table, indep_table, adjustConstant, test_sample_size, false, printCalc);
-    if (rel != NULL) {
-        if (test_sample_size > 0.0) {
-            delete test_table;
-        }
-    }
+   // TODO 
 
 }
 

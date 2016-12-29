@@ -261,6 +261,10 @@ class ManagerBase {
         Table* getIndepTable();
         Table* disownTable();
 
+        Table* projectedFit(Relation* projectTo, Model* fitModel);
+
+        Model* projectedModel(Relation* projectTo, Model* model);
+
     protected:
         Model *topRef;
         Model *bottomRef;
@@ -289,6 +293,8 @@ class ManagerBase {
         double negativeConstant;
         bool valuesAreFunctions;
         Direction searchDirection;
+
+
 };
 
 #endif

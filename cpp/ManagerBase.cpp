@@ -1707,5 +1707,56 @@ Table* ManagerBase::getIndepTable() {
     Table* table = fitTable1;
 
     fitTable1 = oldFitTable1;
-    return table;
+    return table;}
+
+
+
+// For example:
+// To get an independence model for a relation AB:
+//   call with projectTo = that relation; fitModel = the independence model
+// To get a calculated model for a model IVI:AB:BC:
+//   call with projectTo = relevantVars(that model); fitModel = that model
+// To get an independence model for a model IVI:AB:BC:
+//   call with projectTo = relevantVars(that model); fitModel = the independence model
+
+Table* ManagerBase::projectedFit(Relation* projectTo, Model* fitModel) {
+
+    // save the work tables; also zero out the fitTable1.
+    Table* oldFitTable = fitTable1;
+    Table* oldData = inputData;
+    fitTable1 = nullptr;
+
+//    printf("<br>");
+//    printf("OLD FIT TABLE:");
+//    oldFitTable->dump(true);
+
+//    printf("OLD DATA TABLE:");
+//    oldData->dump(true);
+
+    // project inputData into new table based on projectTo
+    int keysize = oldData->getKeySize();
+    inputData = new Table(keysize, oldData->getTupleCount());
+    makeProjection(oldData, inputData, projectTo);
+
+//    printf("PROJECTED DATA TABLE:");
+//    inputData->dump(true);
+
+//    printf("FIT MODEL:");
+//    fitModel->dump(true);
+
+    makeFitTable(fitModel);
+
+    // get out the result and reset the work tables
+    Table* result = fitTable1;
+    fitTable1 = oldFitTable;
+    inputData = oldData;
+
+
+    return result;
+}
+
+
+Model* ManagerBase::projectedModel(Relation* projectTo, Model* model) {
+
+    return model;
 }

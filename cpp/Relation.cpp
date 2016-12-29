@@ -416,21 +416,38 @@ double Relation::getMatchingTupleValue(KeySegment *key) {
     //-- and 1's elsewhere.
     KeySegment *mask = getMask();
 
+
     //-- make a new empty key
     long keysize = getKeySize();
     KeySegment newKey[keysize];
+   
+//    printf("SEARCH FOR:"); 
+//    Key::dumpKey(key,keysize); 
+//    printf(" WITH MASK:");
+//    Key::dumpKey(mask,keysize); 
 
     //-- fill the key with the input key, masking off variables we don't care about.
+
     for (int i = 0; i < keysize; i++) {
         newKey[i] = key[i] | mask[i];
     }
+//    printf(" GIVING NEW KEY: ");
+//    Key::dumpKey(newKey, keysize);
+//    printf(" LOOKING IN TABLE: ");
+//    table->dump(true);
 
     //-- now look up this key in our table, and return the value if present
     int j = table->indexOf(newKey);
-    if (j >= 0)
+    if (j >= 0){
         value = table->getValue(j);
-    else
-        value = 0;
+        //printf("FOUND: %g !", value);
+    } else {
+        value = 1; //= 0;
+        //printf("NOT FOUND!");
+    }
+    
+//    printf("<BR>");
+    
     return value;
 }
 
