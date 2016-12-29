@@ -114,6 +114,10 @@ class Report {
     void printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_table, Table* indep_table, double adjustConstant, double sample_size, bool printLift, bool printCalc);
     
     void printTestData(FILE* fd, Relation* rel, Table* fit_table, Table* indep_table, double adjustConstant, int keysize, bool printCalc, bool printLift);
+
+    void printDyadSummary(FILE* fd, Model* model);
+    void findEntropies(Relation* rel, double& h1, double& h2, double& h12);
+    void findLift(Relation* rel, double& lift, char*& stateName, double& freq);
 };
 
 
