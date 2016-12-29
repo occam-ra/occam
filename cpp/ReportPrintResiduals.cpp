@@ -75,7 +75,7 @@ void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipI
 }
 
 void Report::printWholeTable(FILE* fd, Model* model, double adjustConstant) {
-    fprintf(fd, "Observations for all states for the Model %s\n", model->getPrintName());
+    fprintf(fd, "Observations for all states contained in the Model %s\n", model->getPrintName());
     newl(fd);
 
     Table* input_table = manager->getInputData();
