@@ -42,8 +42,8 @@ csvname = ""
 def printHeaders(formFields, textFormat):
     if textFormat:
         global csvname
-        csvname = getDataFileName(formFields, true) + ".csv"
-        csvname = getUniqueFilename("data/"+csvname)
+        origcsvname = getDataFileName(formFields, true) + ".csv"
+        csvname = getUniqueFilename("data/"+origcsvname)
         if useGfx(formFields):
             # REDIRECT OUTPUT FOR NOW (it will be printed in outputZipfile())
             print "Content-type: application/octet-stream"
@@ -59,7 +59,7 @@ def printHeaders(formFields, textFormat):
 
         else:
             print "Content-type: application/octet-stream"
-            print "Content-disposition: attachment; filename=" + csvname
+            print "Content-disposition: attachment; filename=" + origcsvname
         
 
     else:
