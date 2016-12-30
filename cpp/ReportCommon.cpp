@@ -181,7 +181,14 @@ void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_
     double iviValue_total = 0.0;
 
     KeySegment* lastRefKey = NULL;
+
+    bool sawUndefinedLift = false;
+
     auto tableAction = [&](Relation* rel, double value, KeySegment* refkey, double refvalue, double iviValue) {
+
+        if (iviValue == 0 && value == 0) {
+            sawUndefinedLift = true;   
+        }
 
         value_total += value;
         refValue_total += refvalue;
@@ -234,7 +241,8 @@ void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_
     footer(fd);
 
     if ((printCalc && (1 - value_total) > PRINT_MIN)
-        || (printLift && (1 - iviValue_total > PRINT_MIN))) {
+        || (printLift && (1 - iviValue_total > PRINT_MIN))
+        || sawUndefinedLift) {
         printf("Note: ");
     }
     if (printCalc && (1 - value_total) > PRINT_MIN) {
@@ -243,8 +251,12 @@ void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_
     if (printLift && (1 - iviValue_total > PRINT_MIN)) {
         printf("The independence probabilities sum to less than 1, possibly because the independence distribution has probability distributed over states that were not observed in the data. \n");
     }
+    if (sawUndefinedLift) {
+        printf("One or more states has an undefined (\"-nan\") lift value, because the calculated and independence probabilities are both 0, possibly because the state was never seen in the training data. \n");
+    }
     if ((printCalc && (1 - value_total) > PRINT_MIN)
-        || (printLift && (1 - iviValue_total > PRINT_MIN))) {
+        || (printLift && (1 - iviValue_total > PRINT_MIN))
+        || sawUndefinedLift) {
         newl(fd);
         newl(fd);
     }
