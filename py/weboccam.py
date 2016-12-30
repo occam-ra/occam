@@ -9,7 +9,7 @@ from jobcontrol import JobControl
 from common import *
 import ocGraph
 cgitb.enable(display=1)
-VERSION = "3.3.11"
+VERSION = "3.4.0"
 stdout_save = None
 # TODO: eliminate the need for this kludgy definition.
 false = 0; true = 1
