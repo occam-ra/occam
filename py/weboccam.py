@@ -8,6 +8,8 @@ from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 from common import *
 import ocGraph
+
+
 cgitb.enable(display=1)
 VERSION = "3.4.0"
 stdout_save = None
@@ -83,6 +85,30 @@ def printTime(textFormat):
         else:
             print "<br>Run time: %f seconds</br>" % elapsed_t
 
+def attemptParseInt(string, default, msg):
+    try:
+        return int(string)
+
+    except ValueError:
+        print ("WARNING: expected " + msg + " to be an integer value, but got: \"" + string + "\"; using the default value, " + str(default) + "\n")
+        if not textFormat:
+            print "<br>"
+        
+        return default
+
+def graphWidth():
+    return attemptParseInt(formFields.get("graphWidth", ""), 640, "hypergraph image width")
+    
+
+
+def graphHeight():
+    return attemptParseInt(formFields.get("graphHeight", ""), 480, "hypergraph image height")
+
+def graphFontSize():
+    return attemptParseInt(formFields.get("graphFontSize", ""), 12, "hypergraph font size")
+
+def graphNodeSize():
+    return attemptParseInt(formFields.get("graphNodeSize", ""), 24, "hypergraph node size")
 
 # Take the captured standard output,
 # and the generated graphs, and roll them into a ZIP file.
@@ -103,7 +129,7 @@ def outputToZip(oc):
         if formFields.has_key("gfx"):
             filename = modelname + ".pdf"
             print "Writing graph to " + filename
-            graphFile = ocGraph.printPDF(modelname, graph, formFields["layout"])
+            graphFile = ocGraph.printPDF(modelname, graph, formFields["layout"], graphWidth(), graphHeight(), graphFontSize(), graphNodeSize())
             z.write(graphFile, filename)
             sys.stdout.flush()
  
@@ -407,7 +433,8 @@ def maybeSkipIVIs(formFields, oc):
 def handleGraphOptions(oc, formFields):
     if useGfx(formFields):
         lo = formFields["layout"]
-        oc.setGfx(formFields.has_key("gfx"),layout=lo,gephi=formFields.has_key("gephi"),hideIV=formFields.has_key("hideIsolated"),hideDV=formFields.has_key("hideDV"), fullVarNames=formFields.has_key("fullVarNames"))
+        oc.setGfx(formFields.has_key("gfx"),layout=lo,gephi=formFields.has_key("gephi"),hideIV=formFields.has_key("hideIsolated"),hideDV=formFields.has_key("hideDV"), fullVarNames=formFields.has_key("fullVarNames"), width=graphWidth(), height=graphHeight(), fontSize=graphFontSize(), nodeSize=graphNodeSize())
+
 
 def actionFit(formFields):
     global textFormat
@@ -1157,7 +1184,16 @@ def startNormal(formFields):
         if isinstance(e, KeyError) and str(e) == "'datafilename'":
             pass
         else:
-            print "ERROR: " + str(e)
+            if not textFormat:
+                print "<br><hr>"
+            print "FATAL ERROR: " + str(e)
+            if not textFormat:
+                print "<br>"
+            print "This error was not expected by the programmer. "
+            print "For help, please contact h.forrest.alexander@gmail.com, and include the output so far "
+            ex_type, ex, tb = sys.exc_info()
+            traceback.print_tb(tb)
+            print "(end error message)."
 
 
 def finalizeGfx():

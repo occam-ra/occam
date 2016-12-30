@@ -51,6 +51,10 @@ class ocUtils:
         self.__NoIPF = 0
         
         self.graphs = {}
+        self.__graphWidth = 500
+        self.__graphHeight = 500
+        self.__graphFontSize = 12
+        self.__graphNodeSize = 36
         self.__generateGraph = False
         self.__generateGephi = False
         self.__hideIsolated = True
@@ -696,7 +700,7 @@ class ocUtils:
             if self.__HTMLFormat:
                 if header: 
                     print "Hypergraph model visualization for the Model " + model + " (using the " + self.__layoutStyle + " layout algorithm)<br>"
-                ocGraph.printSVG(self.graphs[model], self.__layoutStyle)
+                ocGraph.printSVG(self.graphs[model], self.__layoutStyle, self.__graphWidth, self.__graphHeight, self.__graphFontSize, self.__graphNodeSize)
                 print "<hr>"
 
     def maybePrintGraphGephi(self, model, header):
@@ -726,13 +730,17 @@ class ocUtils:
         else:
             self.graphs[model] = ocGraph.generate(model, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder)
 
-    def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True, fullVarNames=False):
+    def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True, fullVarNames=False, width=640, height=480, fontSize=12, nodeSize=24):
        self.__generateGraph = useGfx
        self.__generateGephi = gephi
        self.__layoutStyle = layout
        self.__hideIsolated = hideIV
        self.__graphHideDV = hideDV
        self.__fullVarNames = fullVarNames
+       self.__graphWidth = width
+       self.__graphHeight = height
+       self.__graphFontSize = fontSize
+       self.__graphNodeSize = nodeSize
     
 
     def doAllComputations(self, model):
@@ -848,6 +856,11 @@ class ocUtils:
 
         if self.__generateGraph:
             self.printOption("Hypergraph layout style", str(self.__layoutStyle))
+            self.printOption("Hypergraph image width", str(self.__graphWidth))
+            self.printOption("Hypergraph image height", str(self.__graphHeight))
+            self.printOption("Hypergraph font size", str(self.__graphFontSize))
+            self.printOption("Hypergraph node size", str(self.__graphNodeSize))
+
         if(self.__generateGephi or self.__generateGraph):
             self.printOption("Hide " + ("IV" if self.isDirected() else "IVI")  + " components in hypergraph", "Y" if self.__hideIsolated else "N")
             
