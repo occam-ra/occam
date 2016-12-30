@@ -117,7 +117,7 @@ class Report {
 
     void printDyadSummary(FILE* fd, Model* model);
     void findEntropies(Relation* rel, double& h1, double& h2, double& h12);
-    void findLift(Relation* rel, double& lift, char*& stateName, double& freq);
+    void findLift(Relation* rel, double sample_size, double& lift, char*& stateName, double& freq);
 };
 
 

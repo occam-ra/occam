@@ -4,7 +4,7 @@
 #include <cstring>
 #include "Model.h"
 #include "Math.h"
-
+#include <math.h>
 void Report::printResiduals(FILE *fd, Model *model, bool skipTrained, bool skipIVIs) {
 
     if (manager->getVariableList()->isDirected()) {
@@ -237,16 +237,55 @@ void Report::findEntropies(Relation* rel, double& h1, double& h2, double& h12) {
 
 }
 
-void Report::findLift(Relation* rel, double& lift, char*& stateName, double& freq) {
-        // To find lift, stateName, and freq:
-        // do a tableIteration:
-        // * look for the maximal lift
-        // * when higher lift found:
-        //      * record as best so far
-        //      * get the key (for use with keyToUserName)
-        //      * get the freq (for printing, and breaking ties)
-        // * initialize a sufficiently large keystr (needs to be deleted by client)
-        // * print into it with Key::keyToUserStr
+void Report::findLift(Relation* rel, double sample_size, double& lift, char*& stateName, double& freq) {
+    // To find lift, stateName, and freq:
+    // Get projected input and independence tables:
+    Table* input_data = manager->getInputData();
+    int keysize = input_data->getKeySize();
+    Table* input_table = new Table(keysize, input_data->getTupleCount());
+    manager->makeProjection(input_data, input_table, rel);
+    Table* indep_table = manager->projectedFit(rel, manager->getBottomRefModel());
+
+    // do a tableIteration:
+    // * look for the maximal lift
+    // * when higher lift found:
+    //      * record as best so far
+    //      * get the key (for use with keyToUserName)
+    //      * get the freq (for printing, and breaking ties)
+    // * initialize a sufficiently large keystr (needs to be deleted by client)
+    // * print into it with Key::keyToUserStr
+
+    VariableList* varlist = rel->getVariableList();
+    int var_count = varlist->getVarCount();
+
+
+    double bestLift = -1;
+    double bestFreq = -1;
+    KeySegment* bestKey = nullptr;
+
+    auto tableAction = [&](Relation* rel, double value, KeySegment* refkey, double refvalue, double iviValue) {
+       
+        double newLift = value / iviValue;
+        double newFreq = value;
+
+        if (newLift > bestLift 
+        || (fabs(newLift - bestLift) < PRINT_MIN && newFreq > bestFreq) 
+        || bestKey == nullptr) {
+            bestKey = refkey;
+            bestLift = newLift;
+            bestFreq = newFreq; 
+        }
+           
+        
+    };
+
+    tableIteration(input_table, varlist, rel, nullptr, indep_table, var_count, tableAction);
+
+    lift = bestLift;
+    freq = bestFreq * sample_size;
+    stateName = new char[var_count * (MAXABBREVLEN + 1) + 1];
+    Key::keyToUserString(bestKey, varlist, stateName, " ");
+
 }
 
 void Report::printDyadSummary(FILE* fd, Model* model) {
@@ -270,7 +309,9 @@ void Report::printDyadSummary(FILE* fd, Model* model) {
         double lift = -1;
         char* stateName = nullptr;
         double freq = -1;
-        findLift(rel, lift, stateName, freq);
+    
+        double sample_size = manager->getSampleSz();
+        findLift(rel, sample_size, lift, stateName, freq);
  
         double h1 = -1;
         double h2 = -1;
