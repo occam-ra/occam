@@ -666,40 +666,49 @@ class ocUtils:
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
 
+            if (self.__generateGraph or self.__generateGephi) and (self.__hideIsolated and (modelName == "IVI" or modelName == "IV")):
+                msg = "Note: no " 
+                if self.__generateGraph:
+                    msg = msg + "hypergraph image "
+                if self.__generateGraph and self.__generateGephi:
+                    msg = msg + "or "
+                if self.__generateGephi:
+                    msg = msg + "Gephi input "
 
-            self.maybePrintGraphSVG(modelName, True)
-            self.maybePrintGraphGephi(modelName, True)
-
+                msg = msg + "was generated, since the model contains only "
+                msg = msg + modelName
+                msg = msg + " components, which were requested to be hidden in the graph."
+    
+                print msg
+                if self.__HTMLFormat:
+                    print "<br>"
+            else:
+                self.maybePrintGraphSVG(modelName, True)
+                self.maybePrintGraphGephi(modelName, True)
             print
             print
 
 
     def maybePrintGraphSVG(self, model, header):
 
-        # TODO fix this so it is only called at appropriate times
-        # (instead of not at all)
-        return
-
         if self.__generateGraph:
             self.generateGraph(model)
             if self.__HTMLFormat:
                 if header: 
-                    print "<br><hr><br>Hypergraph model visualization for the Model " + model + " (using the " + self.__layoutStyle + " layout algorithm)<br>"
+                    print "Hypergraph model visualization for the Model " + model + " (using the " + self.__layoutStyle + " layout algorithm)<br>"
                 ocGraph.printSVG(self.graphs[model], self.__layoutStyle)
+                print "<hr>"
 
     def maybePrintGraphGephi(self, model, header):
-        
-        # TODO fix this so it is only called at appropriate times
-        # (instead of not at all)
-        return
         
         if self.__generateGephi:
             self.generateGraph(model)
 
             if self.__HTMLFormat:
                 if header:
-                    print "<br><hr><br>Hypergraph model Gephi input for the Model " + model + "<br>"
+                    print "Hypergraph model Gephi input for the Model " + model + "<br>"
                 print ocGraph.printGephi(self.graphs[model])
+                print "<hr>"
 
 
     def generateGraph(self, model):
@@ -751,9 +760,6 @@ class ocUtils:
                     sys.exit(0)
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
-            
-            self.maybePrintGraphSVG(modelName, True)
-            self.maybePrintGraphGephi(modelName, True)
             
             print
             print
@@ -840,8 +846,9 @@ class ocUtils:
             self.printOption("Generate hypergraph images", "Y" if self.__generateGraph else "N")
             self.printOption("Generate Gephi files", "Y" if self.__generateGephi else "N")
 
-        if(self.__generateGephi or self.__generateGraph):
+        if self.__generateGraph:
             self.printOption("Hypergraph layout style", str(self.__layoutStyle))
+        if(self.__generateGephi or self.__generateGraph):
             self.printOption("Hide " + ("IV" if self.isDirected() else "IVI")  + " components in hypergraph", "Y" if self.__hideIsolated else "N")
             
         if self.__HTMLFormat:

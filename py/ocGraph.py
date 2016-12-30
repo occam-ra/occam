@@ -89,6 +89,7 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
     model = map(lambda s : re.findall('[A-Z][^A-Z]*', s), components)
     if dvName != "":
         model = filter(lambda r : dvName in r, model)
+    
 
     # Index full names from abbreviated 
     varDict = dict(map(lambda p : (p[1],p[0]), varlist))
@@ -96,7 +97,11 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
     
     if hideIV:
         varNames = set([v for r in model for v in r])
-    
+   
+        if not components:
+            return igraph.Graph()
+
+
     # For each variable, and each association, get a unique number:
     nodes = {}
     num_nodes = len(varNames)
