@@ -319,6 +319,7 @@ void Report::printDyadSummary(FILE* fd, Model* model) {
         findEntropies(rel, h1, h2, h12);
 
         double t            = h1 + h2 - h12;
+        if (t < PRINT_MIN) { t = 0; }
         double tmax         = std::min(h1, h2);
         double tOverTmax    = t / tmax;
         double red12        = t / h1;
