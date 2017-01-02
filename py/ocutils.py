@@ -687,20 +687,20 @@ class ocUtils:
                 if self.__HTMLFormat:
                     print "<br>"
             else:
-                self.maybePrintGraphSVG(modelName, True)
+                self.maybePrintGraphPNG(modelName, True)
                 self.maybePrintGraphGephi(modelName, True)
             print
             print
 
 
-    def maybePrintGraphSVG(self, model, header):
+    def maybePrintGraphPNG(self, model, header):
 
         if self.__generateGraph:
             self.generateGraph(model)
             if self.__HTMLFormat:
                 if header: 
                     print "Hypergraph model visualization for the Model " + model + " (using the " + self.__layoutStyle + " layout algorithm)<br>"
-                ocGraph.printSVG(self.graphs[model], self.__layoutStyle, self.__graphWidth, self.__graphHeight, self.__graphFontSize, self.__graphNodeSize)
+                ocGraph.printPNG(self.graphs[model], self.__layoutStyle, self.__graphWidth, self.__graphHeight, self.__graphFontSize, self.__graphNodeSize)
                 print "<hr>"
 
     def maybePrintGraphGephi(self, model, header):

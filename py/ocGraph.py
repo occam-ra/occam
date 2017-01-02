@@ -60,7 +60,7 @@ def textwidth(text, fontsize=14):
         import cairo
     except Exception, e:
         return len(str) * fontsize
-    surface = cairo.SVGSurface('data/undefined.svg', 600, 600)
+    surface = cairo.ImageSurface(cairo.FORMAT_ARGB32, 1000, 1000)
     cr = cairo.Context(surface)
     cr.select_font_face('sans-serif', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
     cr.set_font_size(fontsize)
@@ -196,12 +196,13 @@ def printPlot(graph, layout, extension, filename, width, height, fontSize, nodeS
     igraph.plot(graph, graphFile, layout=layoutChoice, **visual_style)
     return graphFile
 
-def printSVG(graph, layout, width, height, fontSize, nodeSize):
+def printPNG(graph, layout, width, height, fontSize, nodeSize):
     print "<br>"
-    graphFile = printPlot(graph, layout, "svg", "graph", width, height, fontSize, nodeSize)
+    graphFile = printPlot(graph, layout, "png", "graph", width, height, fontSize, nodeSize)
     with open(graphFile) as gf:
-        contents = gf.read()
-        print contents
+        contents = gf.read().encode('base64').replace('\n', '')
+        img_tag = '<img src="data:image/png;base64,{0}">'.format(contents)
+        print img_tag
 
 def printPDF(filename, graph, layout, width, height, fontSize, nodeSize):
     graphFile = printPlot(graph, layout, "pdf", filename, width, height, fontSize, nodeSize)
