@@ -244,15 +244,33 @@ void Report::printTable(FILE* fd, Relation* rel, Table* fit_table, Table* input_
         || (printLift && (1 - iviValue_total > PRINT_MIN))
         || sawUndefinedLift) {
         printf("Note: ");
+        newl(fd);
     }
     if (printCalc && (1 - value_total) > PRINT_MIN) {
-        printf("The calculated probabilities sum to less than 1 (and the total residual is less than 0) because the calculated distribution has probability distributed over states that were not observed in the data. \n");
+        printf("The calculated probabilities sum to less than 1");
+        newl(fd);
+        printf("(and the total residual is less than 0)");
+        newl(fd);
+        printf("because the calculated distribution has probability");
+        newl(fd);
+        printf("distributed over states that were not observed in the data. \n");
+        newl(fd);
     }
     if (printLift && (1 - iviValue_total > PRINT_MIN)) {
-        printf("The independence probabilities sum to less than 1 because the independence distribution has probability distributed over states that were not observed in the data. \n");
+        printf("The independence probabilities sum to less than 1");
+        newl(fd);
+        printf(" because the independence distribution has probability");
+        newl(fd);
+        printf(" distributed over states that were not observed in the data. \n");
+        newl(fd);
     }
     if (sawUndefinedLift) {
-        printf("One or more states has an undefined (\"-nan\") lift value, because the calculated and independence probabilities are both 0, possibly because the state was never seen in the training data. \n");
+        printf("One or more states has an undefined (\"-nan\") lift value,");
+        newl(fd);
+        printf(" because the calculated and independence probabilities are both 0,");
+        newl(fd);
+        printf(" possibly because the state was never seen in the training data. \n");
+        newl(fd);
     }
     if ((printCalc && (1 - value_total) > PRINT_MIN)
         || (printLift && (1 - iviValue_total > PRINT_MIN))
