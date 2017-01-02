@@ -291,6 +291,15 @@ void Report::findLift(Relation* rel, double sample_size, double& lift, char*& st
 void Report::printDyadSummary(FILE* fd, Model* model) {
     printf("Summary of dyadic relations contained in the model %s", model->getPrintName());
 
+    newl(fd);
+    newl(fd);
+    printf("In the H and %%DH columns, '1' and '1' refer to the 1st and 2nd variables in the relation, not to states of these variables. However, in the'State' column and in the tables below for individual relations, numbers refer to variable states.");
+    newl(fd);
+    newl(fd);
+
+    printf("Lift = Obs./Ind. (for Prob. or Freq.), where Ind. = independence model.");
+    newl(fd);
+    newl(fd);
 
     printf(dyadHeader[sepStyle()]);
 
