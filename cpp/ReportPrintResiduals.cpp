@@ -183,10 +183,10 @@ void Report::printSummary(FILE* fd, Model* model, double adjustConstant) {
 
 
 constexpr const char* dyadHeader[4] = {
-    "<table cellspacing=0 cellpadding=0><tr><th>Relation</th><th>State</th><th>|</th><th>Max.Lift</th><th>Freq.</th><th>T</th><th>Tmax</th><th>T/Tmax</th><th>%%DH(1|2)</th><th>%%DH(2|1)</th></tr>\n",
-    "Relation\tState\t|\tMax.Lift\tFreq.\tT\tTmax\tT/Tmax\t%%DH(1|2)\t%%DH(2|1)\n",
-    "Relation,State,|,Max.Lift,Freq.,T,Tmax,T/Tmax,%%DH(1|2),%%DH(2|1)\n",
-    "Relation    State    |    Max.Lift    Freq.    T    Tmax    T/Tmax    %%DH(1|2)    %%DH(2|1)\n",
+    "<table cellspacing=0 cellpadding=0><tr><th>Relation</th><th>|</th><th>T</th><th>H(1)</th><th>H(2)</th><th>T/Tmax</th><th>%%DH(1|2)</th><th>%%DH(2|1)</th><th>|</th><th>Max.Lift</th><th>State</th><th>Freq.</th></tr>\n",
+    "Relation\t|\tT\tH(1)\tH(2)\tT/Tmax\t%%DH(1|2)\t%%DH(2|1)\t|\tMax.Lift\tState\tFreq.\n",
+    "Relation,|,T,H(1),H(2),T/Tmax,%%DH(1|2),%%DH(2|1),|,Max.Lift,State,Freq.\n",
+    "Relation    |    T    H(1)    H(2)    T/Tmax    %%DH(1|2)    %%DH(2|1)    |    Max.Lift    State    Freq.\n"
 };
 
 constexpr const char* dyadFooter[4] = {
@@ -197,10 +197,10 @@ constexpr const char* dyadFooter[4] = {
 };
 
 constexpr const char* dyadFmt[4] = {
-    "<tr %s><td>%s</td><td>%s</td><td>|</td><td>%g</td><td>%g</td><td>%g</td><td>%g</td><td>%g</td><td>%#2.1f</td><td>%#2.1f</td></tr>\n",
-    "%s%s\t%s\t|\t%g\t%g\t%g\t%g\t%g\t%#2.1f\t%#2.1f\n",
-    "%s%s,%s,|,%g,%g,%g,%g,%g,%#2.1f,%#2.1f\n",
-    "%s%s    %s    |    %g    %g    %g    %g    %g    %#2.1f    %#2.1f\n"
+    "<tr %s><td>%s</td><td>|</td><td>%g</td><td>%g</td><td>%g</td><td>%g</td><td>%#2.1f</td><td>%#2.1f</td><td>|</td><td>%g</td><td>%s</td><td>%g</td></tr>\n",
+    "%s%s\t|\t%g\t%g\t%g\t%g\t%#2.1f\t%#2.1f\t|\t%g\t%s\t%g\n",
+    "%s%s,|,%g,%g,%g,%g,%#2.1f,%#2.1f,|,%g,%s,%g\n",
+    "%s%s    |    %g    %g    %g    %g    %#2.1f    %#2.1f    |    %g    %s    %g\n",
 };
 
 void Report::findEntropies(Relation* rel, double& h1, double& h2, double& h12) {
@@ -293,7 +293,7 @@ void Report::printDyadSummary(FILE* fd, Model* model) {
 
     newl(fd);
     newl(fd);
-    printf("In the H and %%DH columns, '1' and '1' refer to the 1st and 2nd variables in the relation, not to states of these variables. However, in the'State' column and in the tables below for individual relations, numbers refer to variable states.");
+    printf("In the H and %%DH columns, '1' and '2' refer to the 1st and 2nd variables in the relation, not to states of these variables. However, in the'State' column and in the tables below for individual relations, numbers refer to variable states.");
     newl(fd);
     newl(fd);
 
@@ -336,7 +336,7 @@ void Report::printDyadSummary(FILE* fd, Model* model) {
         
         const char* blueize = (htmlMode && blue) ? "class=r1" : "";
 
-        printf(dyadFmt[sepStyle()], blueize, relName, stateName, lift, freq, t, tmax, tOverTmax, 100*red12, 100*red21); 
+        printf(dyadFmt[sepStyle()], blueize, relName, t, h1, h2, tOverTmax, 100*red12, 100*red21, lift, stateName, freq); 
         blue = !blue;   
         //printf("H1: %g, H2: %g, H12: %g\n", h1, h2, h12);
 
