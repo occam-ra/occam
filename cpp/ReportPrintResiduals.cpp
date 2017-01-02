@@ -293,7 +293,7 @@ void Report::printDyadSummary(FILE* fd, Model* model) {
 
     newl(fd);
     newl(fd);
-    printf("In the H and %%DH columns, '1' and '2' refer to the 1st and 2nd variables in the relation, not to states of these variables. However, in the'State' column and in the tables below for individual relations, numbers refer to variable states.");
+    printf("In the H and %%DH columns, '1' and '2' refer to the 1st and 2nd variables in the relation, not to states of these variables. However, in the 'State' column and in the tables below for individual relations, numbers refer to variable states.");
     newl(fd);
     newl(fd);
 
