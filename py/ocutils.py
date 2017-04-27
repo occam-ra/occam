@@ -644,7 +644,9 @@ class ocUtils:
                     print "\nERROR: In the model '" + modelName + "', model component '" + "".join(rel) + "' is missing the DV, '" + dv + "'."
                     sys.exit(1)
     
-    def printGraph(self,modelName):
+    def printGraph(self,modelName, only):
+        if (only and not self.__generateGephi):
+            self.__generateGraph = True
         if (self.__generateGraph or self.__generateGephi) and (self.__hideIsolated and (modelName == "IVI" or modelName == "IV")):
             msg = "Note: no " 
             if self.__generateGraph:
@@ -688,7 +690,7 @@ class ocUtils:
             model = self.__manager.makeModel(modelName, 1)
  
             if onlyGfx:
-                self.printGraph(modelName)
+                self.printGraph(modelName, onlyGfx)
                 continue
 
             self.doAllComputations(model)
@@ -703,7 +705,7 @@ class ocUtils:
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
 
-            self.printGraph(modelName)
+            self.printGraph(modelName, onlyGfx)
 
     def maybePrintGraphSVG(self, model, header):
 

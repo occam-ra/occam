@@ -85,30 +85,34 @@ def printTime(textFormat):
         else:
             print "<br>Run time: %f seconds</br>" % elapsed_t
 
-def attemptParseInt(string, default, msg):
+def attemptParseInt(string, default, msg, verbose):
+    # for now: the fields aren't even displayed...
+    verbose = False
+
     try:
         return int(string)
 
     except ValueError:
-        print ("WARNING: expected " + msg + " to be an integer value, but got: \"" + string + "\"; using the default value, " + str(default) + "\n")
-        if not textFormat:
-            print "<br>"
+        if verbose:
+            print ("WARNING: expected " + msg + " to be an integer value, but got: \"" + string + "\"; using the default value, " + str(default) + "\n")
+            if not textFormat:
+                print "<br>"
         
         return default
 
 def graphWidth():
-    return attemptParseInt(formFields.get("graphWidth", ""), 640, "hypergraph image width")
+    return attemptParseInt(formFields.get("graphWidth", ""), 640, "hypergraph image width", formFields.has_key("gfx"))
     
 
 
 def graphHeight():
-    return attemptParseInt(formFields.get("graphHeight", ""), 480, "hypergraph image height")
+    return attemptParseInt(formFields.get("graphHeight", ""), 480, "hypergraph image height", formFields.has_key("gfx"))
 
 def graphFontSize():
-    return attemptParseInt(formFields.get("graphFontSize", ""), 12, "hypergraph font size")
+    return attemptParseInt(formFields.get("graphFontSize", ""), 12, "hypergraph font size", formFields.has_key("gfx"))
 
 def graphNodeSize():
-    return attemptParseInt(formFields.get("graphNodeSize", ""), 24, "hypergraph node size")
+    return attemptParseInt(formFields.get("graphNodeSize", ""), 24, "hypergraph node size", formFields.has_key("gfx"))
 
 # Take the captured standard output,
 # and the generated graphs, and roll them into a ZIP file.
