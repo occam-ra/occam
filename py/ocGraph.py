@@ -146,19 +146,18 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
     graph.vs["label"] = graph.vs["name" if fullVarNames else "abbrev"]
     return graph
 
-def printPlot(graph, layout, extension, filename="graph"):
+def printPlot(graph, layout, extension, filename, width, height, fontSize, nodeSizeOrig):
     # Setup the graph plotting aesthetics.
     tys = graph.vs["type"]
     tylabs = zip(graph.vs["type"], graph.vs["label"])
-    fontsize = 8
-    labWidth = lambda lab : textwidth(lab,fontsize+2)
+    fontsize = fontSize
+    labWidth = lambda lab : textwidth(lab,fontsize*1.5)
     dotsize = 5
 
     # Calculate node sizes.
-    nodeSize = max([0 if ty else labWidth(lab) for (ty,lab) in tylabs])
+    nodeSize = max([0 if ty else max(nodeSizeOrig, labWidth(lab)) for (ty,lab) in tylabs])
     sizeFn = (lambda ty,lab : max(nodeSize, labWidth(lab))) if layout=="bipartite" else (lambda ty,lab : dotsize if ty else nodeSize) 
 
-    width = 500 if not layout=="bipartite" else 1.2*sum([sizeFn(t,l) for (t,l) in tylabs])
 
     visual_style = {
         "vertex_size":[sizeFn(ty, lab) for (ty,lab) in tylabs],
@@ -168,26 +167,28 @@ def printPlot(graph, layout, extension, filename="graph"):
         "margin":max([sizeFn(ty,lab)/2 for (ty,lab) in tylabs]+[nodeSize]),
 
         "vertex_label_dist": 0,
-        "bbox":(width, 500),
-
+        "bbox":(width, height)
     }
 
 
     # Set the layout. None is a valid choice.
     layoutChoice = None
-    if layout == "Fruchterman-Reingold":
-        layoutChoice = graph.layout("fr")
-    elif layout == "bipartite":
-        layoutChoice = graph.layout("bipartite")
-    elif layout == "Reingold-Tilford":
-        layoutChoice = graph.layout("rt")
-    elif layout == "GraphOpt":
-        layoutChoice = "graphopt"
-    elif layout == "Kamada-Kawai":
-        layoutChoice = "kk"
-    elif layout == "Sugiyama":
-        layoutChoice = "sugiyama"
 
+    try:
+        if layout == "Fruchterman-Reingold":
+            layoutChoice = graph.layout("fr")
+        elif layout == "bipartite":
+            layoutChoice = graph.layout_as_bipartite()
+        elif layout == "Reingold-Tilford":
+            layoutChoice = graph.layout("rt")
+        elif layout == "GraphOpt":
+            layoutChoice = "graphopt"
+        elif layout == "Kamada-Kawai":
+            layoutChoice = "kk"
+        elif layout == "Sugiyama":
+            layoutChoice = "sugiyama"
+    except Exception as e:
+        raise RuntimeError("The hypergraph layout library failed to apply the " + layout + " layout.")
 
     # Generate a unique file for the graph;
     # using the layout (if any), generate a plot.
@@ -195,15 +196,15 @@ def printPlot(graph, layout, extension, filename="graph"):
     igraph.plot(graph, graphFile, layout=layoutChoice, **visual_style)
     return graphFile
 
-def printSVG(graph, layout):
+def printSVG(graph, layout, width, height, fontSize, nodeSize):
     print "<br>"
-    graphFile = printPlot(graph, layout, "svg")
+    graphFile = printPlot(graph, layout, "svg", "graph", width, height, fontSize, nodeSize)
     with open(graphFile) as gf:
         contents = gf.read()
         print contents
 
-def printPDF(filename, graph, layout):
-    graphFile = printPlot(graph, layout, "pdf", filename=filename)
+def printPDF(filename, graph, layout, width, height, fontSize, nodeSize):
+    graphFile = printPlot(graph, layout, "pdf", filename, width, height, fontSize, nodeSize)
     return graphFile
 
 def printGephi(graph):
