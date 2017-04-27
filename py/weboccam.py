@@ -35,7 +35,7 @@ def getDataFileName(formFields, trim=false, key='datafilename'):
 
 
 def useGfx(formFields):
-    return formFields.has_key("gfx") or formFields.has_key("gephi")
+    return formFields.has_key("onlyGfx") or formFields.has_key("gfx") or formFields.has_key("gephi")
 
 csvname = ""
 
@@ -423,6 +423,10 @@ def actionFit(formFields):
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
     handleGraphOptions(oc, formFields)
+    
+    if (formFields.has_key("onlyGfx")):
+        return
+
     if formFields.has_key("calcExpectedDV"):
         oc.setCalcExpectedDV(1)
 
@@ -483,6 +487,7 @@ def actionSBFit(formFields):
 #oc.setValuesAreFunctions(1)
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
+        os.remove(fn)
         return
     skipNominalFlag = formFields.get("skipnominal", "")
     if skipNominalFlag:
@@ -514,7 +519,6 @@ def actionSearch(formFields):
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
-    handleGraphOptions(oc, formFields)
     # unused error? this should get caught by getDataFile() above
     if not formFields.has_key("data") :
         actionForm(form, "Missing form fields")
@@ -911,7 +915,6 @@ def actionSBSearch(formFields):
     if not textFormat:
         print '</pre>'
     oc.setDataFile(formFields["datafilename"])
-    handleGraphOptions(oc, formFields)
     # unused error? this should get caught by getDataFile() above
     if not formFields.has_key("data") :
         actionForm(formFields, "Missing form fields")
