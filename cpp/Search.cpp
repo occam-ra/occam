@@ -320,7 +320,6 @@ Model **SearchFullUp::search(Model *start) {
     int parentListMax = relationCount * (start->getRelation(0)->getVariableList()->getVarCount() - 1);
     parentList = new Model*[parentListMax];
     memset(parentList, 0, parentListMax * sizeof(Model*));
-    parentListCount = 0;
 
     //-- The stack depth can be no more than the number of relations in the model. Allocate
     //-- the stack.
