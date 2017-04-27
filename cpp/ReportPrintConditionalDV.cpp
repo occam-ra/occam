@@ -1113,9 +1113,9 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
                 temp_percent, row_sep2, row_end, block_end);
     }
     if (use_alt_default)
-        fprintf(fd, "* Rule selected using the alternate default model.");
+        fprintf(fd, "Rules marked with an asterisk (*) are selected using the alternate default model.");
     else
-        fprintf(fd, "* Rule selected using the independence model.");
+        fprintf(fd, "Rules marked with an asterisk (*) are selected using the independence model.");
     fprintf(fd, blank_line);
 
     // Print the alternate default table, if required.
