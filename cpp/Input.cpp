@@ -241,7 +241,7 @@ void ocRebinDefineVar(Options *options, VariableList *vars, LostVar ** lostvarp)
         // *** We are temporarily allowing numbers in short names, for a project that Marty and Steve Shervais
         // are working on.  They've been using them for a bit, so I'm backing this code out till they're done.
         // Actually, I'm just adding 0-9 into the scan pattern.  Remove that part of it to return to letters only.
-        int count2 = sscanf(abbrev_temp, "%[A-Za-z0-9]", abbrev);
+        int count2 = sscanf(abbrev_temp, "%[A-Za-z0-9']", abbrev);
         if ((count2 != 1) || (strcmp(abbrev, abbrev_temp) != 0)) {
             printf("Error in variable definition. Only letters and numbers may be used in the abbreviation: %s\n",
                     vardef);
