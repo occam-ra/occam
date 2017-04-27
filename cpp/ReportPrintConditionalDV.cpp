@@ -1191,9 +1191,7 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
 
     if (!strcmp(classTarget, "") && model) {
         printf("Note: no default state selected, so confusion matrices will not be printed.\n");
-        if (htmlMode) {
-            printf("<br>");
-        }
+        printf("%s%s", new_line, new_line);
     } else if (!checkTarget && model || trtp + trfn <= 0)  { 
             printf("Note: selected default state '%s=%s' is not among states occurring in the DV in the data, so confusion matrices will not be printed", dv_var->abbrev, classTarget);
     } else if (trtn + trfp <= 0) {
