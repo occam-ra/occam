@@ -643,13 +643,43 @@ class ocUtils:
                         print "<br>"
                     print "\nERROR: In the model '" + modelName + "', model component '" + "".join(rel) + "' is missing the DV, '" + dv + "'."
                     sys.exit(1)
+    
+    def printGraph(self,modelName):
+        if (self.__generateGraph or self.__generateGephi) and (self.__hideIsolated and (modelName == "IVI" or modelName == "IV")):
+            msg = "Note: no " 
+            if self.__generateGraph:
+                msg = msg + "hypergraph image "
+            if self.__generateGraph and self.__generateGephi:
+                msg = msg + "or "
+            if self.__generateGephi:
+                msg = msg + "Gephi input "
+
+            msg = msg + "was generated, since the model contains only "
+            msg = msg + modelName
+            msg = msg + " components, which were requested to be hidden in the graph."
+
+            if self.__HTMLFormat:
+                print "<br>"
+            print msg
+            if self.__HTMLFormat:
+                print "<br>"
+
+        else:
+            self.maybePrintGraphSVG(modelName, True)
+            self.maybePrintGraphGephi(modelName, True)
+        print
+        print
 
 
-    def doFit(self,printOptions):
+
+
+    def doFit(self,printOptions, onlyGfx):
         #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
-        if printOptions: self.printOptions(0)
-        
-        self.__manager.printBasicStatistics()
+
+
+        if printOptions and not onlyGfx: self.printOptions(0)
+
+        if not onlyGfx: self.__manager.printBasicStatistics()
        
 
         for modelName in self.__fitModels:
@@ -657,6 +687,9 @@ class ocUtils:
             self.__manager.setRefModel(self.__refModel)
             model = self.__manager.makeModel(modelName, 1)
  
+            if onlyGfx:
+                self.printGraph(modelName)
+                continue
 
             self.doAllComputations(model)
 
@@ -670,28 +703,7 @@ class ocUtils:
                 self.__report.setDefaultFitModel(defaultModel)
             self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
 
-            if (self.__generateGraph or self.__generateGephi) and (self.__hideIsolated and (modelName == "IVI" or modelName == "IV")):
-                msg = "Note: no " 
-                if self.__generateGraph:
-                    msg = msg + "hypergraph image "
-                if self.__generateGraph and self.__generateGephi:
-                    msg = msg + "or "
-                if self.__generateGephi:
-                    msg = msg + "Gephi input "
-
-                msg = msg + "was generated, since the model contains only "
-                msg = msg + modelName
-                msg = msg + " components, which were requested to be hidden in the graph."
-    
-                print msg
-                if self.__HTMLFormat:
-                    print "<br>"
-            else:
-                self.maybePrintGraphSVG(modelName, True)
-                self.maybePrintGraphGephi(modelName, True)
-            print
-            print
-
+            self.printGraph(modelName)
 
     def maybePrintGraphSVG(self, model, header):
 
@@ -794,7 +806,7 @@ class ocUtils:
             self.__startModel = option[0]
             self.__fitModels = option
 
-    def doAction(self, printOptions):
+    def doAction(self, printOptions, onlyGfx):
         # set reporting variables based on ref model
         if self.__manager.isDirected() and self.__refModel == "default":
             if self.searchDir == "down":
@@ -813,7 +825,7 @@ class ocUtils:
             self.printSearchReport()
         elif option == "fit":
             self.__manager.setDDFMethod(self.__DDFMethod)
-            self.doFit(printOptions)
+            self.doFit(printOptions, onlyGfx)
         elif option == "SBsearch":
             #self.__manager.setDDFMethod(self.__DDFMethod)
             self.doSbSearch(printOptions)

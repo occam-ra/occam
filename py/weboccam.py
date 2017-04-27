@@ -376,7 +376,7 @@ def unzipDataFile(datafile):
             sys.exit()
     return datafile
 
-def processFit(fn, model, negativeDVforConfusion, oc):
+def processFit(fn, model, negativeDVforConfusion, oc, onlyGfx):
     global datafile, textFormat, printOptions
 
     if textFormat:
@@ -390,7 +390,7 @@ def processFit(fn, model, negativeDVforConfusion, oc):
     
     oc.setFitClassifierTarget(negativeDVforConfusion)
     oc.setAction("fit")
-    oc.doAction(printOptions)
+    oc.doAction(printOptions, onlyGfx)
 
     if not textFormat:
         print "</span>"
@@ -398,7 +398,7 @@ def processFit(fn, model, negativeDVforConfusion, oc):
 #
 #---- processSBFit ---- Do state based fit operation
 #
-def processSBFit(fn, model, negativeDVforConfusion, oc):
+def processSBFit(fn, model, negativeDVforConfusion, oc, onlyGfx):
     global datafile, textFormat, printOptions
     if textFormat:
         oc.setReportSeparator(ocUtils.COMMASEP)
@@ -411,7 +411,7 @@ def processSBFit(fn, model, negativeDVforConfusion, oc):
     
     oc.setFitClassifierTarget(negativeDVforConfusion)
     oc.setAction("SBfit")
-    oc.doAction(printOptions)
+    oc.doAction(printOptions, onlyGfx)
 
 def maybeSkipResiduals(formFields, oc):
     skipResidualsFlag = formFields.get("skipresiduals", "")
@@ -451,8 +451,6 @@ def actionFit(formFields):
     oc.setDataFile(formFields["datafilename"])
     handleGraphOptions(oc, formFields)
     
-    if (formFields.has_key("onlyGfx")):
-        return
 
     if formFields.has_key("calcExpectedDV"):
         oc.setCalcExpectedDV(1)
@@ -477,7 +475,8 @@ def actionFit(formFields):
     if not formFields.has_key("data") or not formFields.has_key("model") :
         actionNone(formFields, "Missing form fields")
         return
-    processFit(fn, formFields["model"], target, oc) 
+    onlyGfx = formFields.has_key("onlyGfx")
+    processFit(fn, formFields["model"], target, oc, onlyGfx) 
     os.remove(fn)
 #
 #---- actionFitBatch ---- Report on several Fit models
@@ -526,7 +525,8 @@ def actionSBFit(formFields):
     target = formFields["negativeDVforConfusion"] if formFields.has_key("negativeDVforConfusion") else ""
 
 
-    processSBFit(fn, formFields["model"], target, oc) 
+    onlyGfx = formFields.has_key("onlyGfx")
+    processSBFit(fn, formFields["model"], target, oc, onlyGfx) 
     os.remove(fn)
 
 
