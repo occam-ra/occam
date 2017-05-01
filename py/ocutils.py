@@ -808,7 +808,7 @@ class ocUtils:
             self.__startModel = option[0]
             self.__fitModels = option
 
-    def doAction(self, printOptions, onlyGfx):
+    def doAction(self, printOptions, onlyGfx=False):
         # set reporting variables based on ref model
         if self.__manager.isDirected() and self.__refModel == "default":
             if self.searchDir == "down":
