@@ -17,11 +17,7 @@
 
 
 html {height:100%;}
-body {background:#E7E8E4; font-family:verdana,helvetica,arial,sans-serif; margin:0; height:100%;
-    display:inline-block;
-    word-wrap:break-word;
-    overflow:hidden;
-}
+body {background:#E7E8E4; font-family:verdana,helvetica,arial,sans-serif; margin:0; height:100%;}
 
 #Occam {
 background-color: #ffffff;
