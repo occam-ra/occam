@@ -1,4 +1,9 @@
 #! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
+# Copyright © 1990 The Portland State University OCCAM Project Team
+# [This program is licensed under the GPL version 3 or later.]
+# Please see the file LICENSE in the source
+# distribution of this software for license terms.
+
 import pdb
 import os, sys
 #sys.path.append("/www")

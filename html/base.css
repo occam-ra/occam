@@ -1,3 +1,10 @@
+/*
+ * Copyright © 1990 The Portland State University OCCAM Project Team
+ * [This program is licensed under the GPL version 3 or later.]
+ * Please see the file LICENSE in the source
+ * distribution of this software for license terms.
+ */
+
 #PSUPage { height:100%; width:950px; }
 #PSUBody { background:#6A7F10 none repeat scroll 0%; }
 #PSUContentBackground {background:#FFFFFF; padding:1px 0 0 0;}
