@@ -43,13 +43,7 @@ all: $(LIB) $(DYLIB) $(CL)
 .SUFFIXES:
 .SUFFIXES: .cpp .o
 clean:
-	-test -z "$(LIB)" || rm -f $(LIB)
-	-test -z "*.o core" || rm -f *.o core
-	-test -z "*.bak" || rm -f *.bak
-	-test -z "*.a" || rm -f *.a
-	-test -z "*.so" || rm -f *.so
-	-test -z "*~" || rm -f *~
-	-test -z "occ" || rm -f occ
+	-rm -f $(LIB) *.o core *.bak *.a *.so *~ occ
 
 .cpp.o: 
 	$(COMPILE) -c $<

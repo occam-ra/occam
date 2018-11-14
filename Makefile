@@ -1,10 +1,8 @@
 SHELL = /bin/sh
 
-test: 
-	cd .. && make 
-
-WEB_ROOT = install/web
-CL_ROOT = install/cl
+INSTALL_ROOT = install
+WEB_ROOT = $(INSTALL_ROOT)/web
+CL_ROOT = $(INSTALL_ROOT)/cl
 PY_INCLUDE = /usr/include/python2.7
 
 HEADERS = \
@@ -33,7 +31,6 @@ HEADERS = \
 	include/VariableList.h		\
 	include/VarIntersect.h		\
 	include/VBMManager.h
-
 
 CPP_FILES = \
 	cpp/AttributeList.cpp \
@@ -87,10 +84,10 @@ WEB_FILES = \
 	py/OpagCGI.py \
 	py/jobcontrol.py \
 	py/weboccam.py \
-   	html/switchform.html \
-    html/header.txt \
+	html/switchform.html \
+	html/header.txt \
 	html/formheader.html \
-    html/fitbatchform.html \
+	html/fitbatchform.html \
 	html/compareform.html \
 	html/logform.html \
 	html/weboccam.cgi \
@@ -109,10 +106,9 @@ WEB_FILES = \
 	html/compare.footer.html \
 	html/occambatch
 
-lib: $(HEADERS) $(CPP_FILES)
-	cd cpp && make
-
 install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES)
+	-rm -rf $(INSTALL_ROOT)
+	mkdir -p $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)
 	mkdir -p $(CL_ROOT)
 	cp $(WEB_FILES) $(WEB_ROOT)
@@ -120,4 +116,9 @@ install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES)
 	cp $(CORE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
 
+lib: $(HEADERS) $(CPP_FILES)
+	cd cpp && make
 
+clean:
+	cd cpp && make clean
+	-rm -rf $(INSTALL_ROOT)
