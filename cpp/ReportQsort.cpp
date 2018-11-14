@@ -19,7 +19,7 @@ Direction searchDir;
 
 int allNumeric(const char* s) {
     bool ret = true;
-    for (const char* r = s; r != '\0'; ++r) {
+    for (const char* r = s; *r != '\0'; ++r) {
         ret &= isdigit(r[0]);
     }
     return ret;
