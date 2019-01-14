@@ -109,6 +109,7 @@ $ sudo vi /etc/apache2/sites-enabled/000-default.conf
 ```
 
 You'll want to add or change the following lines in that configuration file:
+
 ```
 	#DocumentRoot /path/to/occam/install/web
 	# e.g.
