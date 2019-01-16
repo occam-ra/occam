@@ -1,4 +1,5 @@
-#! /Library/Frameworks/Python.framework/Versions/2.6/bin/python
+#! /usr/bin/python
+# coding=utf-8
 # Copyright © 1990 The Portland State University OCCAM Project Team
 # [This program is licensed under the GPL version 3 or later.]
 # Please see the file LICENSE in the source

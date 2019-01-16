@@ -1,3 +1,4 @@
+# coding=utf-8
 # Copyright (C) Ottawa Python Author's Group
 # Example of use:
 #cgi = OpagCGI('template.html')

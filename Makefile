@@ -120,6 +120,7 @@ install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES)
 	cp $(CORE_FILES) $(WEB_ROOT)
 	cp $(CORE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
+	mkdir -p $(WEB_ROOT)/data
 
 lib: $(HEADERS) $(CPP_FILES)
 	cd cpp && make
