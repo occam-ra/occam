@@ -1,13 +1,18 @@
 # Installation
 
-## Install VirtualBox
+## Install Virtual Environment
+
+Per Guy - [The Hitchhikers Guide to Pipenv & Virtual Environments](https://docs.python-guide.org/dev/virtualenvs/), which is recommended for those who would like to install on an existing Linux machine without needing to change their existing Python setup.
+
+If you are on a Windows machine, you will probably want to use VirtualBox.
+
+### Install VirtualBox
 
 To create an instance of OCCAM without a dedicated Linux machine you can [Download VirtualBox](https://www.virtualbox.org/wiki/Downloads).  Select New and make sure it is of the Linux type with enough memory and storage space to run the chosen OS.
 
 You'll want to make sure your box is "Attached to" a Bridged Adapter in Network settings for Adapter 1, but the rest of the settings based mostly on the preference of the user and limitations of the host machine.
 
 You can then create a Linux server box by installing from an ISO, like these [Ubuntu ISOs](http://releases.ubuntu.com/16.04/).
-
 
 ## Install Ubuntu Server 16.04
 
