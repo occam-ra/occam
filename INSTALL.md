@@ -145,6 +145,8 @@ export APACHE_RUN_USER=occam
 export APACHE_RUN_GROUP=occam
 ```
 
+## Setting Permissions
+
 Another approach to this is to set owernship and permissions so that apache will have access without having to change the apache user (which, again, might cause problems on systems with existing applications that depend on the current apache configuration). 
 
 From your OCCAM install directory (the install/ directory created when you ran make), do:
@@ -158,7 +160,7 @@ $ chmod -R 750 web/
 
 $ chmod g+s web/
 ```
-This will recursively set ownership of the occam web directory to the user you desire on your system; change group ownership to the www-data group; change file permissions to [0750 = User: rwx  Group: r-x  World: --- (i.e. World: no access)]; set new files created in this directory to have their group set to the directory's group.
+This will recursively set ownership of the occam web directory to the user you desire on your system; change group ownership to the www-data group; change file permissions to [0750 = User: rwx  Group: r-x  World: --- (i.e. World: no access)]; set new files created in this directory to have their group set to the directory's group. It avoids the insecure 'chmod 777' and uses group permissions so you don't have to change your apache user.
 
 If you stop at this point, OCCAM will appear to work at first glance. The front page will serve with the initial form, you can choose 'search' and then enter a file and search options, but when you run the search it will not completely properly, and you will get a permissions error. 
 
@@ -168,6 +170,17 @@ $ chmod g+w web/data/
 ```
 which will add group write privileges for the data/ subdirectory, which is necessary because OCCAM creates temporary versions of the data files, so the www-data group needs write permissions for that directory. If you don't do this last step, OCCAM will run part of the way - the front form will come up, and you can choose a data file and set search options, but when you run the search you will get a permissions error because the data file cannot be created on the server.
 
+## Remapping the URL with aliasing
+
+You might want to use aliasing to remap your URL and filesystem location. By default your OCCAM URL will be something like http://localhost/occam/install/web which you might want to clean up to localhost/occam. You might also have other reasons for this depending on your webserver configuration.
+
+Add this directive to your apache config file for this site:
+
+```
+Alias "/occam" "/var/www/html/occam/install/web"
+```
+replacing '/occam' with your desired URL directory, and the '/var/www...' part with the filesystem location where you installed occam. 
+
 Now, you should be able to restart apache and take your IP address...
 
 ```
@@ -176,4 +189,4 @@ $ ifconfig | grep "inet addr" | head -n 1
 		inet addr:10.0.0.165  Bcast:10.0.0.255  Mask:255.255.255.0
 ```
 
-Now you can open a browser window (probably to http://localhost/occam/install/web to first IP address and view your fully operational OCCAM session!
+Now you can open a browser window (probably to http://localhost/occam/install/web, or possibly to http://localhost/occam if you remapped the URL directory) to first IP address and view your fully operational OCCAM session!
