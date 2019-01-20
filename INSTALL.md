@@ -1,6 +1,6 @@
 # Installation
 
-# Overview
+## Overview
 
 The current version of OCCAM runs on a linux webserver. The installation procedure is fairly well defined for linux, so you should be able to get OCCAM up and running on your linux system. This will probably require the use of virtual environment (described below) or some other method to control the python environment. For most users, the recommended installation method at this time is to use VirtualBox, which will let you create a fully containerized linux machine inside your existing OS. This will isolate OCCAM inside the VirtualBox and not require configuration changes to your larger system. The procedure is as follows:
 
@@ -11,7 +11,7 @@ The current version of OCCAM runs on a linux webserver. The installation procedu
 
 So let's begin:
 
-## Install VirtualBox
+### Install VirtualBox
 
 To create an instance of OCCAM without a dedicated Linux machine you can [Download VirtualBox](https://www.virtualbox.org/wiki/Downloads).  Select New and make sure it is of the Linux type with enough memory and storage space to run the chosen OS.
 
@@ -19,7 +19,7 @@ You'll want to make sure your box is "Attached to" a Bridged Adapter in Network 
 
 You can then create a Linux server box by installing from an ISO, like these [Ubuntu ISOs](http://releases.ubuntu.com/16.04/).
 
-## Install Ubuntu Server 16.04
+### Install Ubuntu Server 16.04
 
 Choose the Ubuntu Server for either 32-bit or 64-bit (depending on the host OS) from [ISOs](http://releases.ubuntu.com/16.04/).
 
@@ -57,7 +57,7 @@ $ sudo apt-get install gcc build-essential libgmp3-dev python-dev libxml2 libxml
 $ pip install python-igraph
 ```
 
-## Virtual Environments
+### Virtual Environments
 
 Some users might wish to install OCCAM directly on a linux hardware machine, bypassing machine virtualization. Doing so will probably require virtual environments or some other method to let you control your python environment for OCCAM (particularly if you are installing on a machine which contains an existing python configuration and applications which depend on it. Here is how to do that. First, install virtualenv:
 
@@ -83,7 +83,7 @@ Once the environment is activated, anything that you do that makes environment c
 
 Now that you have done the setup of your virtual machine or environment, you can actually install OCCAM.
 
-## Install OCCAM
+### Install OCCAM
 
 Now that you have a machine with the right dependencies set up, you can install and setup OCCAM.  First you need to get the OCCAM repository onto your machine.  You can do this by downloading the ZIP unzipping the folder wherever you like, or by using git.
 
@@ -100,7 +100,7 @@ OCCAM should now be installed in the `install` folder.
 
 At this point OCCAM should be all setup.  Now you need to make sure Apache is serving it correcly.
 
-## Setup Apache
+### Setup Apache
 
 Apache should already be running, so you just need to point the default site to your `occam/install/web` directory, setup the VirtualDirectory and make sure that CGI is enabled.
 
@@ -145,7 +145,7 @@ export APACHE_RUN_USER=occam
 export APACHE_RUN_GROUP=occam
 ```
 
-## Setting Permissions
+### Setting Permissions
 
 Another approach to this is to set owernship and permissions so that apache will have access without having to change the apache user (which, again, might cause problems on systems with existing applications that depend on the current apache configuration). 
 
@@ -170,7 +170,7 @@ $ chmod g+w web/data/
 ```
 which will add group write privileges for the data/ subdirectory, which is necessary because OCCAM creates temporary versions of the data files, so the www-data group needs write permissions for that directory. If you don't do this last step, OCCAM will run part of the way - the front form will come up, and you can choose a data file and set search options, but when you run the search you will get a permissions error because the data file cannot be created on the server.
 
-## Remapping the URL with aliasing
+#### Remapping the URL with aliasing
 
 You might want to use aliasing to remap your URL and filesystem location. By default your OCCAM URL will be something like http://localhost/occam/install/web which you might want to clean up to localhost/occam. You might also have other reasons for this depending on your webserver configuration.
 
