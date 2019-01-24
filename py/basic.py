@@ -1,4 +1,4 @@
-#! /usr/bin/python
+    #! /usr/bin/python
 # coding=utf-8
 # Copyright © 1990 The Portland State University OCCAM Project Team
 # [This program is licensed under the GPL version 3 or later.]
@@ -78,9 +78,9 @@ util.setStartModel("default")
 util.setRefModel("default")
 
 # Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
-util.setSearchSortDir("descending")
+#util.setSearchDir("descending")
 # Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
-util.setSearchDir("default")
+util.setSearchSortDir("descending")
 util.setSearchFilter(filter)
 
 # Set the action [fit, search].  Skip this to set it from the data file.
@@ -92,7 +92,7 @@ util.setReportSortName("information")
 
 # Set the model attribute on which sorting is done is done.  This controls the selection
 # of "best models" during search. It can also control reporting (see setReportSortName, below).
-util.setSortName("information")
+util.setReportSortName("information")
 
 #util.setDDFMethod(0)
 
@@ -112,8 +112,3 @@ t3 = time.time()
 
 print "start:  %8f" % (t2 - t1)
 print "search: %8f" % (t3 - t2)
-
-
-
-
-
