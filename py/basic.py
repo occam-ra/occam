@@ -1,4 +1,4 @@
-    #! /usr/bin/python
+#! /usr/bin/python
 # coding=utf-8
 # Copyright © 1990 The Portland State University OCCAM Project Team
 # [This program is licensed under the GPL version 3 or later.]
