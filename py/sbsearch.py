@@ -76,7 +76,7 @@ util.setRefModel("bottom")
 # Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
 util.setSearchSortDir("descending")
 # Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
-util.setSearchDir("up")
+#util.setSearchDir("up")
 util.setSearchFilter(filter)
 
 # Set the action [fit, search].  Skip this to set it from the data file.
@@ -88,7 +88,7 @@ util.setReportSortName("information")
 
 # Set the model attribute on which sorting is done is done.  This controls the selection
 # of "best models" during search. It can also control reporting (see setReportSortName, below).
-util.setSortName("information")
+util.setReportSortName("information")
 
 #######util.setDDFMethod(0)
 
@@ -108,8 +108,3 @@ t3 = time.time()
 
 print "start:  %8f" % (t2 - t1)
 print "search: %8f" % (t3 - t2)
-
-
-
-
-
