@@ -23,4 +23,4 @@ We retain the right to remove, edit, or reject comments, commits, code, wiki edi
 
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting one or more of the project maintainers or opening an issue.
 
-This Code of Conduct is a modified version of the Contributor Covenant (http://contributor-covenant.org <http://contributor-covenant.org/>), version 1.0.0, available at http://contributor-covenant.org/version/1/0/0/.
+This Code of Conduct is a modified version of the [Contributor Covenant](http://contributor-covenant.org), version 1.0.0, available at http://contributor-covenant.org/version/1/0/0/.
