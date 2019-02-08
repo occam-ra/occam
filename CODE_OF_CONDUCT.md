@@ -19,5 +19,5 @@ of Conduct may result in exclusion from this project.
 Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting one
 or more of the project maintainers or opening an issue.
 
-*This Code of Conduct is a modified version of the [Contributor Covenant] (http://contributor-covenant.org/&gt;), version 1.0.0, available at [http://contributor-
+*This Code of Conduct is a modified version of the [Contributor Covenant](http://contributor-covenant.org/&gt;), version 1.0.0, available at [http://contributor-
 covenant.org/version/1/0/0/](http://contributor-covenant.org/version/1/0/0/).
