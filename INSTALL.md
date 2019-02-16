@@ -91,14 +91,14 @@ Now that you have a machine with the right dependencies set up, you can install 
 $ sudo apt install git
 $ git clone https://github.com/occam-ra/occam.git
 $ cd occam
-$ sudo make install
+$ make install
 ```
-**Note**: It is *very* important, on many systems, to do 'sudo make install' instead of just 'make install'. If make fails will a permissions error and the install directory is not created properly, your install will not work even if you follow all the rest of the steps correctly. Make sure that make completes properly, and if it fails with a permissions error, rerun it with 'sudo'
+**Note**: Make sure your you have permissions for the install directory before cloning and running make. See below under "Setting Permissions" if you need more details on permissions.
 **Note**: Contributors will likely want to clone their own forks. 
 
 OCCAM should now be installed in the `install` folder.
 
-At this point OCCAM should be all setup.  Now you need to make sure Apache is serving it correcly.
+At this point OCCAM should be all setup.  Now you need to make sure Apache is serving it correctly.
 
 ### Setup Apache
 
