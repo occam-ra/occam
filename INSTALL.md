@@ -93,7 +93,7 @@ $ git clone https://github.com/occam-ra/occam.git
 $ cd occam
 $ make install
 ```
-**Note**: Make sure your you have permissions for the install directory before cloning and running make. See below under "Setting Permissions" if you need more details on permissions.
+**Note**: Make sure you have read and write permissions for the directory where you wish to install OCCAM before cloning and running make. See below under "Setting Permissions" if you need more details on permissions.
 **Note**: Contributors will likely want to clone their own forks. 
 
 OCCAM should now be installed in the `install` folder.
@@ -159,16 +159,12 @@ $ chgrp -R www-data web/
 $ chmod -R 750 web/
 
 $ chmod g+s web/
-```
-This will recursively set ownership of the occam web directory to the user you desire on your system; change group ownership to the www-data group; change file permissions to [0750 = User: rwx  Group: r-x  World: --- (i.e. World: no access)]; set new files created in this directory to have their group set to the directory's group. It avoids the insecure 'chmod 777' and uses group permissions so you don't have to change your apache user.
 
-If you stop at this point, OCCAM will appear to work at first glance. The front page will serve with the initial form, you can choose 'search' and then enter a file and search options, but when you run the search it will not completely properly, and you will get a permissions error. 
-
-The last step is to do:
-```
 $ chmod g+w web/data/
 ```
-which will add group write privileges for the data/ subdirectory, which is necessary because OCCAM creates temporary versions of the data files, so the www-data group needs write permissions for that directory. If you don't do this last step, OCCAM will run part of the way - the front form will come up, and you can choose a data file and set search options, but when you run the search you will get a permissions error because the data file cannot be created on the server.
+This will recursively set ownership of the occam web directory to the user you desire on your system; change group ownership to the www-data group; change file permissions to [0750 = User: rwx  Group: r-x  World: --- (i.e. World: no access)]; set new files created in this directory to have their group set to the directory's group; and add group write privileges for the data/ subdirectory. It avoids the insecure 'chmod 777' and uses group permissions so you don't have to change your apache user.
+
+The last step is very important, because OCCAM creates temporary versions of the data files, so the www-data group needs write permissions for that directory. If you don't do this last step, OCCAM will run part of the way - the front form will come up, and you can choose a data file and set search options, but when you run the search you will get a permissions error because the data file cannot be created on the server.
 
 #### Remapping the URL with aliasing
 
