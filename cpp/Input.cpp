@@ -108,10 +108,10 @@ long ocReadData(FILE *fin, VariableList *vars, Table *indata, LostVar *lostvarp)
                         flag = DISCARD;
                 } else {
                     if (cp[0] == '\0') {
-                        
+
                         printf("ERROR: Expected additional input, but line ended prematurely\n");
                         printf("Line number: %d\n", lineno);
-                        printf("Line so far: %s\n", line);    
+                        printf("Line so far: %s\n", line);
                         exit(1);
                     }
 
@@ -242,7 +242,7 @@ void ocRebinDefineVar(Options *options, VariableList *vars, LostVar ** lostvarp)
         abbrev[0] = '\0';
         abbrev_temp[0] = '\0';
         rebin[0] = '\0';
-        int count = sscanf(vardef, " %[^, \t] , %d , %d , %[^,] , %s", name, &cardinality, &type, abbrev_temp, rebin);
+        int count = sscanf(vardef, " %[^,\t] , %d , %d , %[^,] , %s", name, &cardinality, &type, abbrev_temp, rebin);
         num_var_df++;
 
         // *** We are temporarily allowing numbers in short names, for a project that Marty and Steve Shervais
@@ -429,7 +429,7 @@ void ocRebinDefineVar(Options *options, VariableList *vars, LostVar ** lostvarp)
                             //       printf("number %s\n",number);
                             if (ret == 2) {
                                 //this is not the last number
-                                lostvarp1->ValidList[ind] = new char[strlen(number) + 1];
+                                  lostvarp1->ValidList[ind] = new char[strlen(number) + 1];
                                 strcpy(lostvarp1->ValidList[ind], number);
                                 cp = rest;
                                 while (*cp && isspace(*cp))
@@ -639,4 +639,3 @@ int ocReadFile(FILE *fd, Options *options, Table **indata, Table **testdata, Var
         exit(1);
     return dataLines;
 }
-
