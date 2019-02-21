@@ -25,7 +25,7 @@ After many years of proprietary development, it is time to update the approach t
 ## Most Needed Updates
 
 ### Python Layer
-
+This is in many ways the most important place to focus in the coming weeks and months. 
 ### Output
 Example of output generated directly in C++: ![](https://lh6.googleusercontent.com/-BAwk6w6B0CVzG4vziOIWBE4OWTPrw1DhfT3CFM2QSW3GjIJPOU28HCqwSy79ihpooshz-Y8-Qt_dbz_Zpp4JBZwnlNJNjOjrEuXFj39acWoELFiJsvDMS5PtuCOrKM5xqL3-K44)
 
@@ -42,6 +42,7 @@ OCCAM employs a hash-based caching mechanism
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTIwOTEwNjc5NzcsMTgzOTM0NzgxOSwtMT
-E0MjkzOTQ1NywtOTkwOTM1OTEsLTE2MjU5NjE5NDJdfQ==
+eyJoaXN0b3J5IjpbLTY2NzQ1Njc1NSwtMjA5MTA2Nzk3NywxOD
+M5MzQ3ODE5LC0xMTQyOTM5NDU3LC05OTA5MzU5MSwtMTYyNTk2
+MTk0Ml19
 -->
