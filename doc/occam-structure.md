@@ -14,9 +14,7 @@ The core functionality is reliable and rationally implemented. Implementation in
 
 What is needed, is a reworking of the python layer (which handles high-level workflow), the user interface, and 
 
-After many years of proprietary development, it is time to update the approach to developing OCCAM to incorporate open-source practices and ideals, modern paradigms of design and implementation, best-available tools, and a structure which will be easier to update and maintain.
-
-  
+After many years of proprietary development, it is time to update the approach to developing OCCAM to incorporate open-source practices and ideals, modern paradigms of design and implementation, and best available tools, into a structure which will be easier to update and maintain.
 
 (Find an existing project - and maybe even a design specification - that uses python/c++ in a similar way as an example of what we want this to look like).
 
@@ -32,7 +30,9 @@ There are many existing data formats which should be suitable for OCCAM, and whi
 Caching results (reports): OCCAM employs a hash-based caching mechanism
 
 > Written with [StackEdit](https://stackedit.io/).
+
+(references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTYxMjA4NDcwNSwtOTkwOTM1OTEsLTE2Mj
-U5NjE5NDJdfQ==
+eyJoaXN0b3J5IjpbLTExNDI5Mzk0NTcsLTk5MDkzNTkxLC0xNj
+I1OTYxOTQyXX0=
 -->
