@@ -10,12 +10,14 @@ OCCAM consists of a core of functionality, implemented in custom C++ classes, wh
 
 This core of functionality can be accessed by two methods: command line (CL) or web interfaces. The command-line files (at install/cl/) are functional, and provide essentially the same output as the web version (without the HTML). The small existing OCCAM user base uses the web version almost exclusively. The CL files are useful for debugging/tracing or otherwise inspecting the behavior of the application, but are not in current use. The web interface, though dated, provides a reasonably good level of functionality (load data; search; fit; examine variable states, predictions, and statistical and info-theoretic measures) for the researchers currently using OCCAM.
 
+### Core Functionality (C++)
 The core functionality is reliable and rationally implemented. Implementation in C++ allows computation to be performed very quickly - OCCAM can quickly search a very large space of variables and states, and fit a model once it is selected from search results. Speed is the primary motivation for this application structure (C++ extensions to python). There are some scattered issues (for example with memory management in the state-based part of OCCAM), but overall the essential RA methods are well-implemented.It is important, in developing OCCAM, that this core functionality be preserved in its current form. There is no need, at least in the short term, to redo any significant parts of the RA computation (though the code will definitely need some cleanup and separation of the core functions from the input/output and other components best handled by the user or application programmer).
 
 What is needed, is a reworking of the python layer (which handles high-level workflow), the user interface, and 
 
 After many years of proprietary development, it is time to update the approach to developing OCCAM to incorporate open-source practices and ideals, modern paradigms of design and implementation, and best available tools, into a structure which will be easier to update and maintain.
 
+### Python Wra
 (Find an existing project - and maybe even a design specification - that uses python/c++ in a similar way as an example of what we want this to look like).
 
 **Output**:
@@ -32,6 +34,6 @@ There are many existing data formats which should be suitable for OCCAM, and whi
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE3NTk5NDMyMDcsMTgzOTM0NzgxOSwtMT
-E0MjkzOTQ1NywtOTkwOTM1OTEsLTE2MjU5NjE5NDJdfQ==
+eyJoaXN0b3J5IjpbMTU5MTI5MzM0NywxODM5MzQ3ODE5LC0xMT
+QyOTM5NDU3LC05OTA5MzU5MSwtMTYyNTk2MTk0Ml19
 -->
