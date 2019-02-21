@@ -4,7 +4,7 @@
 
 The current structure of OCCAM appears to date to about 2000 (see the Design Proposal document which contains references to some of the existing core classes). The application design and implementation is not well-documented. This document reflects an initial attempt at providing some transparency on the OCCAM structure, and helping developers new to the project (capstone team members or others) to get oriented without having to spend an excessive amount of time digging through the code (though this document cannot substitute for spending time to become familiar with the code).
 
-OCCAM consists of a core of functionality, implemented in custom C++ classes, which is wrapped in Python (apparently using SWIG, a package which automatically generates the code needed for the wrapp- details from Joe?). The python wrapper consists primarily of ocUtils, a very lightweight helper class which mostly passes parameters to the C++ objects which perform nearly all of the RA computation and generate some/most (though not all) of the output. In some places there is high-level logic (though almost no actual RA computation) handled by python functions - see, for example, doFit() at ocutils.py(684).
+OCCAM consists of a core of functionality, implemented in custom C++ classes, which is wrapped in Python (apparently using SWIG, a package which automatically generates the code needed for the wrapping, saving laborious hand-coding of API function calls). The python wrapper consists primarily of ocUtils, a very lightweight helper class which mostly passes parameters to the C++ objects which perform nearly all of the RA computation and generate some/most (though not all) of the output. In some places there is high-level logic (though almost no actual RA computation) handled by python functions - see, for example, doFit() at ocutils.py(684).
 
 (UML diagram)
 
@@ -42,6 +42,6 @@ OCCAM employs a hash-based caching mechanism
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTA5NjQ3Njc1LDE4MzkzNDc4MTksLTExND
-I5Mzk0NTcsLTk5MDkzNTkxLC0xNjI1OTYxOTQyXX0=
+eyJoaXN0b3J5IjpbLTIwOTEwNjc5NzcsMTgzOTM0NzgxOSwtMT
+E0MjkzOTQ1NywtOTkwOTM1OTEsLTE2MjU5NjE5NDJdfQ==
 -->
