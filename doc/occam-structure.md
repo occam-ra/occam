@@ -8,7 +8,7 @@ OCCAM consists of a core of functionality, implemented in custom C++ classes, wh
 
 ![(UML diagram)](https://www.guydcutting.com/images/OCCAM-structure.png)
 
-This core of functionality can be accessed by two methods: command line (CL) or web interfaces. The command-line files (at install/cl/) are functional, and provide essentially the same output as the web version (without the HTML). The small existing OCCAM user base uses the web version almost exclusively. The CL files are useful for debugging/tracing or otherwise inspecting the behavior of the application, but are not in current use. The web interface, though dated, provides a reasonably good level of functionality (load data; search; fit; examine variable states, predictions, and statistical and info-theoretic measures) for the researchers currently using OCCAM.
+This core of functionality can be accessed by two methods: command line (CL) or web interfacs. The command-line files (at install/cl/) are functional, and provide essentially the same output as the web version (without the HTML). The small existing OCCAM user base uses the web version almost exclusively. The CL files are useful for debugging/tracing or otherwise inspecting the behavior of the application, but are not in current use. The web interface, though dated, provides a reasonably good level of functionality (load data; search; fit; examine variable states, predictions, and statistical and info-theoretic measures) for the researchers currently using OCCAM.
 
 ### Core Functionality (C++)
 The core functionality is reliable and rationally implemented. Implementation in C++ allows computation to be performed very quickly - OCCAM can quickly search a very large space of variables and states, and fit a model once it is selected from search results. Speed is the primary motivation for this application structure (C++ extensions to python). There are some scattered issues (for example with memory management in the state-based part of OCCAM), but overall the essential RA methods are well-implemented.It is important, in developing OCCAM, that this core functionality be preserved in its current form. There is no need, at least in the short term, to redo any significant parts of the RA computation (though the code will definitely need some cleanup and separation of the core functions from the input/output and other components best handled by the user or application programmer).
@@ -28,9 +28,10 @@ After many years of proprietary development, it is time to update the approach t
 This is in many ways the most important place to focus in the coming weeks and months. The interface between Python/C++, the functionality exposed to the python layer, and the improvements needed to make OCCAM a modern python package that makes RA functionality easy for any Python user to access in a modular and expressive way, are at the center of a new approach to developing OCCAM.
 
 ### Output
-Example of output generated directly in C++: ![](https://lh6.googleusercontent.com/-BAwk6w6B0CVzG4vziOIWBE4OWTPrw1DhfT3CFM2QSW3GjIJPOU28HCqwSy79ihpooshz-Y8-Qt_dbz_Zpp4JBZwnlNJNjOjrEuXFj39acWoELFiJsvDMS5PtuCOrKM5xqL3-K44)
+Example of output generated directly in C++: !
+![
+](https://www.guydcutting.com/images/occam-cpp-output.png)
 
-  
 ### Input (file format and otherwise)
 Input data formatting is, in my view, perhaps the biggest obstacle to OCCAM adoption. OCCAM has finally been open-sourced (or the process begun anyway), but it has for years been available in the (proprietary) web format. The current software world moves at the speed of light - someone can install packages with pip or similar tools, combine multiple python libraries, extend python with C++ or other languages, and build a powerful application in a matter of days or hours. Being forced to use a proprietary data format for which we do not have good conversion tools is a major barrier to using OCCAM.
 
@@ -43,7 +44,8 @@ OCCAM employs a hash-based caching mechanism
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTkxMTk2Mjg3NywzMDE2MzE0MTAsODQ1OT
-M5NTUzLC0yMDkxMDY3OTc3LDE4MzkzNDc4MTksLTExNDI5Mzk0
-NTcsLTk5MDkzNTkxLC0xNjI1OTYxOTQyXX0=
+eyJoaXN0b3J5IjpbLTE0NjM1MDY3NTUsLTkxMTk2Mjg3NywzMD
+E2MzE0MTAsODQ1OTM5NTUzLC0yMDkxMDY3OTc3LDE4MzkzNDc4
+MTksLTExNDI5Mzk0NTcsLTk5MDkzNTkxLC0xNjI1OTYxOTQyXX
+0=
 -->
