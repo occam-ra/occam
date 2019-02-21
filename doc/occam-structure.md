@@ -6,7 +6,7 @@ The current structure of OCCAM appears to date to about 2000 (see the Design Pro
 
 OCCAM consists of a core of functionality, implemented in custom C++ classes, which is wrapped in Python (apparently using SWIG, a package which automatically generates the code needed for the wrapping, saving laborious hand-coding of API function calls). The python wrapper consists primarily of ocUtils, a very lightweight helper class which mostly passes parameters to the C++ objects which perform nearly all of the RA computation and generate some/most (though not all) of the output. In some places there is high-level logic (though almost no actual RA computation) handled by python functions - see, for example, doFit() at ocutils.py(684).
 
-(UML diagram)
+![(UML diagram)](https://photos.google.com/photo/AF1QipNYFvDZmOVXKceU9YtwY83wmFt85sJlDevhS1xz)
 
 This core of functionality can be accessed by two methods: command line (CL) or web interfaces. The command-line files (at install/cl/) are functional, and provide essentially the same output as the web version (without the HTML). The small existing OCCAM user base uses the web version almost exclusively. The CL files are useful for debugging/tracing or otherwise inspecting the behavior of the application, but are not in current use. The web interface, though dated, provides a reasonably good level of functionality (load data; search; fit; examine variable states, predictions, and statistical and info-theoretic measures) for the researchers currently using OCCAM.
 
@@ -43,7 +43,7 @@ OCCAM employs a hash-based caching mechanism
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbODQ1OTM5NTUzLC0yMDkxMDY3OTc3LDE4Mz
-kzNDc4MTksLTExNDI5Mzk0NTcsLTk5MDkzNTkxLC0xNjI1OTYx
-OTQyXX0=
+eyJoaXN0b3J5IjpbMzAxNjMxNDEwLDg0NTkzOTU1MywtMjA5MT
+A2Nzk3NywxODM5MzQ3ODE5LC0xMTQyOTM5NDU3LC05OTA5MzU5
+MSwtMTYyNTk2MTk0Ml19
 -->
