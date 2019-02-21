@@ -7,7 +7,7 @@ The current structure of OCCAM appears to date to about 2000 (see the Design Pro
 OCCAM consists of a core of functionality, implemented in custom C++ classes, which is wrapped in Python (apparently using SWIG - details from Joe?). The python wrapper consists primarily of ocUtils, a very lightweight helper class which mostly passes parameters to the C++ objects which perform nearly all of the RA computation and generate some/most (though not all) of the output. In some places there is high-level logic (though almost no actual RA computation) handled by python functions - see, for example, doFit() at ocutils.py(684).
 
 (UML diagram of structure)
-  
+ 
 This core of functionality can be accessed by two methods: command line (CL) or web interfaces. The command-line files (at install/cl/) are functional, and provide essentially the same output as the web version (without the HTML). The small existing OCCAM user base uses the web version almost exclusively. The CL files are useful for debugging/tracing or otherwise inspecting the behavior of the application, but are not in current use. The web interface, though dated, provides a reasonably good level of functionality (load data; search; fit; examine variable states, predictions, and statistical and info-theoretic measures) for the researchers currently using OCCAM.
 
 The core functionality is reliable and rationally implemented. Implementation in C++ allows computation to be performed very quickly - OCCAM can quickly search a very large space of variables and states, and fit a model once it is selected from search results. Speed is the primary motivation for this application structure (C++ extensions to python). There are some scattered issues (for example with memory management in the state-based part of OCCAM), but overall the essential RA methods are well-implemented.It is important, in developing OCCAM, that this core functionality be preserved in its current form. There is no need, at least in the short term, to redo any significant parts of the RA computation (though the code will definitely need some cleanup and separation of the core functions from the input/output and other components best handled by the user or application programmer).
@@ -33,5 +33,6 @@ Caching results (reports): OCCAM employs a hash-based caching mechanism
 
 > Written with [StackEdit](https://stackedit.io/).
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTk5MDkzNTkxLC0xNjI1OTYxOTQyXX0=
+eyJoaXN0b3J5IjpbMTYxMjA4NDcwNSwtOTkwOTM1OTEsLTE2Mj
+U5NjE5NDJdfQ==
 -->
