@@ -35,12 +35,13 @@ Input data formatting is, in my view, perhaps the biggest obstacle to OCCAM adop
 
 There are many existing data formats which should be suitable for OCCAM, and which can be manipulated using functionality from the python standard library or other packages such as pandas. The
 
-**Caching results** (reports): OCCAM employs a hash-based caching mechanism
+### Caching results (reports and session handling) 
+OCCAM employs a hash-based caching mechanism
 
 > Written with [StackEdit](https://stackedit.io/).
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTQzNDgxMjAyMywxODM5MzQ3ODE5LC0xMT
-QyOTM5NDU3LC05OTA5MzU5MSwtMTYyNTk2MTk0Ml19
+eyJoaXN0b3J5IjpbNTg3OTc3NDQyLDE4MzkzNDc4MTksLTExND
+I5Mzk0NTcsLTk5MDkzNTkxLC0xNjI1OTYxOTQyXX0=
 -->
