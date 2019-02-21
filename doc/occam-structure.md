@@ -17,10 +17,14 @@ What is needed, is a reworking of the python layer (which handles high-level wor
 
 After many years of proprietary development, it is time to update the approach to developing OCCAM to incorporate open-source practices and ideals, modern paradigms of design and implementation, and best available tools, into a structure which will be easier to update and maintain.
 
-### Python Wra
+### Python Wrapping
+
+### User Interface
 (Find an existing project - and maybe even a design specification - that uses python/c++ in a similar way as an example of what we want this to look like).
 
-**Output**:
+## Most Needed Updates
+### 
+### Output:
 Example of output generated directly in C++: ![](https://lh6.googleusercontent.com/-BAwk6w6B0CVzG4vziOIWBE4OWTPrw1DhfT3CFM2QSW3GjIJPOU28HCqwSy79ihpooshz-Y8-Qt_dbz_Zpp4JBZwnlNJNjOjrEuXFj39acWoELFiJsvDMS5PtuCOrKM5xqL3-K44)
 
   
@@ -34,6 +38,6 @@ There are many existing data formats which should be suitable for OCCAM, and whi
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTU5MTI5MzM0NywxODM5MzQ3ODE5LC0xMT
+eyJoaXN0b3J5IjpbMjA4MzAyNDAzNiwxODM5MzQ3ODE5LC0xMT
 QyOTM5NDU3LC05OTA5MzU5MSwtMTYyNTk2MTk0Ml19
 -->
