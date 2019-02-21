@@ -26,11 +26,12 @@ After many years of proprietary development, it is time to update the approach t
 
 ### Python Layer
 
-### Output:
+### Output
 Example of output generated directly in C++: ![](https://lh6.googleusercontent.com/-BAwk6w6B0CVzG4vziOIWBE4OWTPrw1DhfT3CFM2QSW3GjIJPOU28HCqwSy79ihpooshz-Y8-Qt_dbz_Zpp4JBZwnlNJNjOjrEuXFj39acWoELFiJsvDMS5PtuCOrKM5xqL3-K44)
 
   
-### Input (file format and otherwise): input data formatting is, in my view, perhaps the biggest obstacle to OCCAM adoption. OCCAM has finally been open-sourced, but it has for years been available in the (proprietary) web format. The current software world moves at the speed of light - someone can install packages with pip or similar tools, combine multiple python libraries, extend python with C++ or other languages, and build a powerful application in a matter of days or hours. Being forced to use a proprietary data format for which we do not have good conversion tools is a major barrier to using OCCAM.
+### Input (file format and otherwise)
+Input data formatting is, in my view, perhaps the biggest obstacle to OCCAM adoption. OCCAM has finally been open-sourced (or the process begun anyway), but it has for years been available in the (proprietary) web format. The current software world moves at the speed of light - someone can install packages with pip or similar tools, combine multiple python libraries, extend python with C++ or other languages, and build a powerful application in a matter of days or hours. Being forced to use a proprietary data format for which we do not have good conversion tools is a major barrier to using OCCAM.
 
 There are many existing data formats which should be suitable for OCCAM, and which can be manipulated using functionality from the python standard library or other packages such as pandas. The
 
@@ -40,6 +41,6 @@ There are many existing data formats which should be suitable for OCCAM, and whi
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTY0MTU5ODU5MSwxODM5MzQ3ODE5LC0xMT
+eyJoaXN0b3J5IjpbMTQzNDgxMjAyMywxODM5MzQ3ODE5LC0xMT
 QyOTM5NDU3LC05OTA5MzU5MSwtMTYyNTk2MTk0Ml19
 -->
