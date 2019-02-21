@@ -28,8 +28,7 @@ After many years of proprietary development, it is time to update the approach t
 This is in many ways the most important place to focus in the coming weeks and months. The interface between Python/C++, the functionality exposed to the python layer, and the improvements needed to make OCCAM a modern python package that makes RA functionality easy for any Python user to access in a modular and expressive way, are at the center of a new approach to developing OCCAM.
 
 ### Output
-Example of output generated directly in C++: !
-![
+Example of output generated directly in C++: [
 ](https://www.guydcutting.com/images/occam-cpp-output.png)
 
 ### Input (file format and otherwise)
@@ -44,8 +43,8 @@ OCCAM employs a hash-based caching mechanism
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE0NjM1MDY3NTUsLTkxMTk2Mjg3NywzMD
-E2MzE0MTAsODQ1OTM5NTUzLC0yMDkxMDY3OTc3LDE4MzkzNDc4
-MTksLTExNDI5Mzk0NTcsLTk5MDkzNTkxLC0xNjI1OTYxOTQyXX
-0=
+eyJoaXN0b3J5IjpbLTkzMjQ3NDIyOSwtMTQ2MzUwNjc1NSwtOT
+ExOTYyODc3LDMwMTYzMTQxMCw4NDU5Mzk1NTMsLTIwOTEwNjc5
+NzcsMTgzOTM0NzgxOSwtMTE0MjkzOTQ1NywtOTkwOTM1OTEsLT
+E2MjU5NjE5NDJdfQ==
 -->
