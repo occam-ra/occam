@@ -18,21 +18,20 @@ After many years of proprietary development, it is time to update the approach t
 
 (Find an existing project - and maybe even a design specification - that uses python/c++ in a similar way as an example of what we want this to look like).
 
-Output:
-
+**Output**:
 Example of output generated directly in C++: ![](https://lh6.googleusercontent.com/-BAwk6w6B0CVzG4vziOIWBE4OWTPrw1DhfT3CFM2QSW3GjIJPOU28HCqwSy79ihpooshz-Y8-Qt_dbz_Zpp4JBZwnlNJNjOjrEuXFj39acWoELFiJsvDMS5PtuCOrKM5xqL3-K44)
 
   
-Data handling (file format and otherwise): input data formatting is, in my view, perhaps the biggest obstacle to OCCAM adoption. OCCAM has finally been open-sourced, but it has for years been available in the (proprietary) web format. The current software world moves at the speed of light - someone can install packages with pip or similar tools, combine multiple python libraries, extend python with C++ or other languages, and build a powerful application in a matter of days or hours. Being forced to use a proprietary data format for which we do not have good conversion tools is a major barrier to using OCCAM.
+**Data handling** (file format and otherwise): input data formatting is, in my view, perhaps the biggest obstacle to OCCAM adoption. OCCAM has finally been open-sourced, but it has for years been available in the (proprietary) web format. The current software world moves at the speed of light - someone can install packages with pip or similar tools, combine multiple python libraries, extend python with C++ or other languages, and build a powerful application in a matter of days or hours. Being forced to use a proprietary data format for which we do not have good conversion tools is a major barrier to using OCCAM.
 
 There are many existing data formats which should be suitable for OCCAM, and which can be manipulated using functionality from the python standard library or other packages such as pandas. The
 
-Caching results (reports): OCCAM employs a hash-based caching mechanism
+**Caching results** (reports): OCCAM employs a hash-based caching mechanism
 
 > Written with [StackEdit](https://stackedit.io/).
 
 (references)
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbMTgzOTM0NzgxOSwtMTE0MjkzOTQ1NywtOT
-kwOTM1OTEsLTE2MjU5NjE5NDJdfQ==
+eyJoaXN0b3J5IjpbLTE3NTk5NDMyMDcsMTgzOTM0NzgxOSwtMT
+E0MjkzOTQ1NywtOTkwOTM1OTEsLTE2MjU5NjE5NDJdfQ==
 -->
