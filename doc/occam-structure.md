@@ -12,11 +12,7 @@ This core of functionality can be accessed by two methods: command line (CL) or 
 
 The core functionality is reliable and rationally implemented. Implementation in C++ allows computation to be performed very quickly - OCCAM can quickly search a very large space of variables and states, and fit a model once it is selected from search results. Speed is the primary motivation for this application structure (C++ extensions to python). There are some scattered issues (for example with memory management in the state-based part of OCCAM), but overall the essential RA methods are well-implemented.It is important, in developing OCCAM, that this core functionality be preserved in its current form. There is no need, at least in the short term, to redo any significant parts of the RA computation (though the code will definitely need some cleanup and separation of the core functions from the input/output and other components best handled by the user or application programmer).
 
-  
-
-What is needed, is a thorough reworking of the python layer (which handles high-level workflow), the user interface,
-
-  
+What is needed, is a reworking of the python layer (which handles high-level workflow), the user interface, and 
 
 After many years of proprietary development, it is time to update the approach to developing OCCAM to incorporate open-source practices and ideals, modern paradigms of design and implementation, best-available tools, and a structure which will be easier to update and maintain.
 
@@ -37,5 +33,5 @@ Caching results (reports): OCCAM employs a hash-based caching mechanism
 
 > Written with [StackEdit](https://stackedit.io/).
 <!--stackedit_data:
-eyJoaXN0b3J5IjpbLTE2MjU5NjE5NDJdfQ==
+eyJoaXN0b3J5IjpbLTk5MDkzNTkxLC0xNjI1OTYxOTQyXX0=
 -->
