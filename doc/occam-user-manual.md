@@ -330,7 +330,7 @@ After each conditional DV table (for the main model or for a component relation)
 
 Confusion Matrix for Fit Rule (Training)
 
-![Confusion matrix](occam-confusion-matrix.png)
+![Confusion matrix](images/occam-confusion-matrix.png)
 
 Along with the main counts in the confusion matrix, Occam provides the marginal totals for all of the ‘actual negative’ and ‘actual positive’ cases from the data, and the ‘rule negative’ and ‘rule positive’ cases predicted by the model. The “diagonal” margin in the bottom-right corner indicates the number of correct predictions, obtained by summing the true negative and true positive counts. The confusion matrix cells and margins are labeled with abbreviations for ‘true negative’ (TN), ‘false positive’ (FP), ‘true positive’ (TP), ‘false negative’ (FP), ‘actual negative’ (AN), ‘actual positive’ (AP), ‘rule negative’ (RN), and ‘rule positive’ (RP), as well as the number of correct predictions (“\#correct”).
 
