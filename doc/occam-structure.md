@@ -17,6 +17,8 @@ This core of functionality can be accessed by two methods: command line (CL) or 
 The application was designed at a time when web applications were a new frontier, and most of the more modern infrastructure of tools, packages, UIs did not exist. After many years of proprietary development, it is time to update the approach to developing OCCAM to incorporate open-source practices and ideals, modern paradigms of design and implementation, and best available tools, into a structure which will be easier to update and maintain.
 
 ## Key Principles of Software Design and Engineering
+I wish to highlight some important principles of software design and engineering. These are not the only important concepts, but they are a very important part of the discussion of how to proceed with the structural upgrade.
+
 ### Modularity
 "The scenario is software that consists of thousands or even hundreds of thousands of
 lines of code. The complexity of such systems can easily be overwhelming. Some means
@@ -28,12 +30,15 @@ ware development..." (Bell, 67)
 
 ### Object-Oriented Design
 OOD has three key component principles:
-* encapsulation ("allows a class to be reused without knowing how it works – thus
-modularity and abstraction are provided")
-* inheritance ("allows a class to be reused by
-using some of the existing facilities, while adding new facilities in a secure manner.")
-* polymorphism ("further promotes encapsulation by allowing general purpose classes to
-be written that will work successfully with many different types of object") (Bell, 139)
+* encapsulation
+* inheritance
+* polymorphism
+"The advantages of these features is that they promote the reusability of software com-
+ponents. Encapsulation allows a class to be reused without knowing how it works – thus
+modularity and abstraction are provided. Inheritance allows a class to be reused by
+using some of the existing facilities, while adding new facilities in a secure manner.
+Polymorphism further promotes encapsulation by allowing general purpose classes to
+be written that will work successfully with many different types of object." (Bell, 139)
 
 ## Method (RA) vs. Application (OCCAM)
 A useful way to think about the big picture of design issues is to distinguish between the RA method and the application which implements it. RA provides a number of conceptual tools and practical procedures for analyzing data - that conceptual and practical content can be separated from the implementation - the data handling (I/O), user interface, etc. We are very lucky to have the core RA functionality largely built already (thanks Ken, Heather, Joe, and others!).
