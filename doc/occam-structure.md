@@ -33,12 +33,12 @@ ware development..." (Bell, 67)
 * [inheritance](https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)) - a "mechanism of basing an object or class upon another object (prototype-based inheritance) or class (class-based inheritance), retaining similar implementation"
 * [polymorphism](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) - "the provision of a single interface to entities of different types[1] or the use of a single symbol to represent multiple different types.[2]"
 
-"The advantages of these features is that they promote the reusability of software com-
-ponents. Encapsulation allows a class to be reused without knowing how it works – thus
-modularity and abstraction are provided. Inheritance allows a class to be reused by
-using some of the existing facilities, while adding new facilities in a secure manner.
-Polymorphism further promotes encapsulation by allowing general purpose classes to
-be written that will work successfully with many different types of object." (Bell, 139)
+> The advantages of these features is that they promote the reusability of software com-
+> ponents. Encapsulation allows a class to be reused without knowing how it works – thus
+> modularity and abstraction are provided. Inheritance allows a class to be reused by
+> using some of the existing facilities, while adding new facilities in a secure manner.
+> Polymorphism further promotes encapsulation by allowing general purpose classes to
+> be written that will work successfully with many different types of object." (Bell, 139)
 
 ### Interfaces
 [Interfaces: The Most Important Software Engineering Concept](http://blog.robertelder.org/interfaces-most-important-software-engineering-concept/)
