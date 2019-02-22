@@ -1,4 +1,5 @@
-# OCCAM: A Reconstructability Analysis Program 
+
+# OCCAM: A Reconstructibility Analysis Program
 ## (Organizational Complexity Computation and Modeling)
 ## User Manual
 
