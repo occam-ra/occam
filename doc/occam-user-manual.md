@@ -2,7 +2,7 @@
 
 **Project Director: Martin Zwick** zwick@pdx.edu
 
-Past Programmers (most recent first): Forrest Alexander, Joe Fusion, Kenneth Willett^1\ ^
+Past Programmers (most recent first): Forrest Alexander, Joe Fusion, Kenneth Willett
 
 **Systems Science Program Portland State University Portland OR 97207 **
 
@@ -10,9 +10,9 @@ Past Programmers (most recent first): Forrest Alexander, Joe Fusion, Kenneth Wil
 
 **Occam version 3.4.0, copyright 2006-2017. **
 
-1 ~Ken\ Willett\ totally\ rewrote\ earlier\ versions\ of\ Occam.\ His\ version\ was\ originally\ called\ “Occam3”\ to~ distinguish it from these earlier Occam incarnations; the “3” has finally been dropped in this manual
+Ken Willett totally rewrote earlier versions of Occam. His version was originally called “Occam3” to distinguish it from these earlier Occam incarnations; the “3” has finally been dropped in this manual.
 
-Occam User’s Manual 3/13/2017 2
+Occam User’s Manual (3/13/2017)
 
 **Table of Contents **
 
