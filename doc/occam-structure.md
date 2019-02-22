@@ -28,6 +28,17 @@ possible. Ideally, each component should be self-contained and have as few refer
 as possible to other components. This aim has consequences for nearly all stages of soft-
 ware development..." (Bell, 67)
 
+### Refactoring 
+"Refactoring is about improving an architectural design. Nowadays a design tends to be an
+OOD, expressed in terms of classes and their interrelationships (methods). However,
+design does not usually proceed in a straightforward, linear manner. Most often, design
+tends to be an iterative process. First, candidate classes are identified. Then some will be
+accepted while others will be rejected – perhaps because they have no methods or because
+their methods are subsumed by some other class. Methods tend to migrate from one class
+to another as a better understanding of the objects and their role within the problem
+emerges. This process is known as refactoring. Refactoring is the transformation of a cor-
+rect program structure (e.g., a class diagram) into an improved structure." (Bell, 165)
+
 ### Object-Oriented Design
 OOD has three key component principles:
 * encapsulation
@@ -71,6 +82,7 @@ The core functionality is reliable and rationally implemented. Implementation in
 
 There are some scattered issues (for example with memory management in the state-based part of OCCAM), but overall the essential RA methods are well-implemented. It is important, in developing OCCAM, that this core analytical functionality be preserved in its current form. There is likely no need, at least in the short term, to redo any significant parts of the RA computation (though the code will definitely need some cleanup and separation of the core functions from the input/output and other components best handled by the user or application programmer).
 
+
 What is that core functionality (brief overview of workflow/functions)?
 
 * Task selection
@@ -79,6 +91,8 @@ What is that core functionality (brief overview of workflow/functions)?
 * Fit Model in detail, examine variable relationships and statistical/IT measures. (VB or SB)
 
 (link to separate doc which covers the C++ classes and interfaces)1
+
+Much encapsulation is already provided...
 
 ### Python Wrapping
 One of the most important structural improvements is, in my view, a partial reworking of the python layer (which handles high-level workflow). This change will touch on nearly every aspect of the updated application, because the design of the extension structure will underlay nearly every other element of the implementation (data handling, UI, integration, etc.). Other improvements, such as the user interface, input/output handling, etc., will follow naturally from that update. The current python layer is very thin, meaning that only a very small of computation is actually being handled by this layer. The python functionality falls into two categories: very high-level workflow, and helpers for c++ objects. Here's an example showing both some very high level workflow, and the use of ocUtils to pass parameters to the c++ objects through the manager:
@@ -90,6 +104,15 @@ One of the most important structural improvements is, in my view, a partial rewo
 (Find an existing project - and maybe even a design specification - that uses python/c++ in a similar way as an example of what we want this to look like).
 
 ## Most Needed Updates
+
+"In both cases, the selection of the parts and the specification of the interfaces between the parts
+is where the most experience and taste is required. Such selection is not a simple mechanical pro-
+cess but typically requires insights that can be achieved only through a thorough understanding of a
+system at suitable levels of abstraction (see §23.4.2, §24.3.1, and §25.3). A myopic view of a pro-
+gram or of a software development process often leads to seriously flawed systems. Note also that
+for both people and programs, separation is easy. The hard part is to ensure effective
+communication between parties on different sides of a barrier without destroying the barrier or sti-
+fling the communication necessary to achieve cooperation." (Stroustrop, 694)
 
 ### Python Layer
 This is in many ways the most important place to focus in the coming weeks and months. The interface between Python/C++, the functionality exposed to the python layer, and the improvements needed to make OCCAM a modern python package that makes RA functionality easy for any Python user to access in a modular and expressive way, are a primary priority in an updated approach to developing OCCAM.
