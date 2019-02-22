@@ -1,23 +1,23 @@
 # OCCAM Structural Upgrade - Design Notes
-
-## OCCAM Application Structure
-
-### Overview of existing design
-
+## Introduction and Overview
 The current structure of OCCAM appears to date to about 2000 (see the Design Proposal document which contains references to some of the existing core classes). The application design and implementation is not well-documented. This document reflects an initial attempt at providing some transparency on the OCCAM structure, and helping developers new to the project (capstone team members or others) to get oriented without having to spend an excessive amount of time digging through the code (though there's no perfect substitute for spending time with the code). 
 
-To some extent the discussion of design and implementation issues cannot happen without reference to the code. But it should be possible to understand and discuss these issues, at least in a general way, without intimate code familiarity or even knowledge of programming languages. Key concepts of software design and engineering can be discussed without reference to a specific language or implementation platform. This design overview attempts to provide a helpful view of the current application structure, and approaches to updating it, that can be understood by non-programmers. At the same time, it provides code-specific details which help illuminate the design issues, and will help coding contributors to get oriented.
+To some extent the discussion of design and implementation issues cannot happen without reference to the code. But it should be possible to understand and discuss these issues, at least in a general way, without intimate code familiarity or even knowledge of programming languages. Key concepts of software design and engineering can be discussed without reference to a specific language or implementation platform.  This design overview attempts to provide a helpful view of the current application structure, and approaches to updating it, that can be understood by programmers and non-programmers alike. At the same time, it provides code-specific details which help illuminate the design issues, and will help coding contributors to get oriented.
 
-OCCAM consists of a core of functionality, implemented in custom C++ classes, which is wrapped in Python (apparently using SWIG, a package which automatically generates the code needed for the wrapping, saving laborious hand-coding of API function calls). The python wrapper consists primarily of ocUtils, a very lightweight helper class which mostly passes parameters to the C++ objects which perform nearly all of the RA computation and generate some/most (though not all) of the output. In some places there is high-level logic (though almost no actual RA computation) handled by python functions - see below under "Python Wrapping" for an example.
+## Key Concepts of Software Design and Engineering
+I wish to highlight a few important principles of software design and engineering that will inform high-level discussion of how to upgrade OCCAM. These are not the only relevant concepts, but they are of primary importance in the discussion of how to proceed with the structural improvements.
 
-![(UML diagram)](https://www.guydcutting.com/images/OCCAM-structure.png)
+"The most fundamental problem in software development is complexity. There is only one basic
+way of dealing with complexity: divide and conquer. A problem that can be separated into two
+sub-problems that can be handled separately is more than half solved by that separation. This sim-
+ple principle can be applied in an amazing variety of ways. In particular, the **use of a module or a
+class in the design of systems separates the program into two parts – the implementation and its
+users – connected only by an (ideally) well-defined interface**. This is the fundamental approach to
+handling the inherent complexity of a program. Similarly, **the process of designing a program can
+be broken into distinct activities with (ideally) well-defined interactions between the people
+involved.** This is the basic approach to handling the inherent complexity of the development pro-
+cess *and the people involved in it.*" (Stroustrop, 693)[emphasis added]
 
-This core of functionality can be accessed by two methods: command line (CL) or web interfaces. The command-line files (at install/cl/) are functional, and provide essentially the same output as the web version (without the HTML). The small existing OCCAM user base uses the web version almost exclusively. The CL files are useful for debugging/tracing or otherwise inspecting the behavior of the application, but are not in current use. The web interface, though dated, provides a reasonably good level of functionality (load data; search; fit; examine variable states, predictions, and statistical and info-theoretic measures) for the researchers currently using OCCAM.
-
-The application was designed at a time when web applications were a new frontier, and most of the more modern infrastructure of tools, packages, UIs did not exist. After many years of proprietary development, it is time to update the approach to developing OCCAM to incorporate open-source practices and ideals, modern paradigms of design and implementation, and best available tools, into a structure which will be easier to update and maintain.
-
-## Key Principles of Software Design and Engineering
-I wish to highlight some important principles of software design and engineering. These are not the only important concepts, but they are a very important part of the discussion of how to proceed with the structural upgrade.
 
 ### Modularity
 "The scenario is software that consists of thousands or even hundreds of thousands of
@@ -51,6 +51,18 @@ That does not mean that we cannot provide a(n) interface(s). At a minimum, a pyt
 Some surgery is needed to disentangle the core RA functionality from the interface. Here's a blog post that provides more detail on interfaces from a software engineering perspective:
 
 [Interfaces: The Most Important Software Engineering Concept](http://blog.robertelder.org/interfaces-most-important-software-engineering-concept/)
+
+## OCCAM Application Structure
+
+### Overview of existing design
+
+OCCAM consists of a core of functionality, implemented in custom C++ classes, which is wrapped in Python (apparently using SWIG, a package which automatically generates the code needed for the wrapping, saving laborious hand-coding of API function calls). The python wrapper consists primarily of ocUtils, a very lightweight helper class which mostly passes parameters to the C++ objects which perform nearly all of the RA computation and generate some/most (though not all) of the output. In some places there is high-level logic (though almost no actual RA computation) handled by python functions - see below under "Python Wrapping" for an example.
+
+![(UML diagram)](https://www.guydcutting.com/images/OCCAM-structure.png)
+
+This core of functionality can be accessed by two methods: command line (CL) or web interfaces. The command-line files (at install/cl/) are functional, and provide essentially the same output as the web version (without the HTML). The small existing OCCAM user base uses the web version almost exclusively. The CL files are useful for debugging/tracing or otherwise inspecting the behavior of the application, but are not in current use. The web interface, though dated, provides a reasonably good level of functionality (load data; search; fit; examine variable states, predictions, and statistical and info-theoretic measures) for the researchers currently using OCCAM.
+
+The application was designed at a time when web applications were a new frontier, and most of the more modern infrastructure of tools, packages, UIs did not exist. After many years of proprietary development, it is time to update the approach to developing OCCAM to incorporate open-source practices and ideals, modern paradigms of design and implementation, and best available tools, into a structure which will be easier to update and maintain.
 
 ### Core Functionality (C++)
 The core functionality is reliable and rationally implemented. Implementation in C++ allows computation to be performed very quickly - OCCAM can quickly search a very large space of variables and states, and fit a model once it is selected from search results. Balancing speed (c++) with flexibility/productivity (python) is the primary motivation for this application structure (C++ extensions to python). This guide gives a good overview of the paradigm of extending python with c++: .
