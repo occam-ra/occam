@@ -516,7 +516,7 @@ Occam has been run with up to about 225 variables. To our knowledge, the maximum
 
 ***Search* 1. Complete implementation of searches of all model classes**. Systems are either directed or neutral. The user can choose between different classes of models: all, loopless, disjoint, chain. Search direction can also be either up or down. However, not all classes of models are actually currently implemented for both up and down search directions for both neutral and directed systems. More specifically, what is and what is not currently implemented is indicated in the following table.
 
-![Search implementation](occam-search-implementation.png)
+![Search implementation](images/occam-search-implementation.png)
 
 **2. Other types of searches**. Currently, only beam searches are done, that is, given a set of models at a given level, all of the parents at the next level up or all of the descendants at the next level down are considered, and the “Search Width” best models are selected at this next level (up or down). This process iterates. Other types of searches, such as depth- first searches, should also be implemented.
 
