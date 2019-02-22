@@ -661,8 +661,6 @@ The number of levels to be searched and the search width (number of models to co
 
 In comparing best models from two datasets, it is sometimes important to identify one of the best models as being more complex (q~complex)\ and\ the\ other\ as\ being\ simpler\ (qsimple).~ By default, the more complex model is identified as the one with lower entropy, shown as “*min H”*. Other options are to pick the model which uses more degrees of freedom (max DF) or the one which has the lower dAIC (min dAIC) or lower dBIC (min dBIC).
 
-Occam User’s Manual 3/13/2017 45
-
 **Data statistics **
 
 One or more statistics of the *data distribution* (for each of the 2 files in the pair) can be included in the report. Currently, the options are entropy (“*H”*) and total degrees of freedom (“*DF”*).
@@ -680,8 +678,6 @@ Several pairwise comparison functions are available to compare the best model pi
 ***Additional settings ***
 
 Like other OCCAM modes, the results of *Compare* can be returned in spreadsheet format, with or without option settings, and can be returned via email instead of in the web browser.
-
-Occam User’s Manual 3/13/2017 46
 
 ## Appendix 6. Cached Data Mode
 For Search, Fit, SB-Search and SB-Fit, Occam can cache the variable declaration block, data block, and test block of an input file for later use. This is useful when working with large files, as it eliminates the delay incurred by repeatedly upload the file.
