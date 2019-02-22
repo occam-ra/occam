@@ -4,9 +4,9 @@
 
 Past Programmers (most recent first): Forrest Alexander, Joe Fusion, Kenneth Willett
 
-**Systems Science Program Portland State University Portland OR 97207 **
+**Systems Science Program Portland State University Portland OR 97207**
 
-**This manual was last revised on 14 November 2018. **
+**This manual was last revised on 14 November 2018.**
 
 **Occam version 3.4.0, copyright 2006-2017. **
 
