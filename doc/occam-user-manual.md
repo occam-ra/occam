@@ -245,7 +245,7 @@ Finally, if test data was included in the input file, Occam will also report the
 
 ***Output for a neutral system ***
 
-ID MODEL Level H dDF dLR Alpha Inf dAIC dBIC 1 ABC 0 2.7612 0 0.0000 1.0000 1.0000 0.0000 0.0000 2 AB:AC:BC 1 2.7616 1 0.7646 0.3818 0.9875 1.2354 6.5338 3 AB:BC 2 2.7618 2 1.3143 0.5183 0.9785 2.6857 13.2826 4 AB:AC 2 2.7663 2 10.5837 0.0050 0.8266 -6.5837 4.0132 5 AB:C 3 2.7664 3 10.6122 0.0140 0.8261 -4.6122 11.2832 6 AC:BC 2 2.7864 2 51.7065 0.0000 0.1528 -47.7065 -37.1097 7 A:BC 3 2.7864 3 51.7350 0.0000 0.1523 -45.7350 -29.8397 8 AC:B 3 2.7910 3 61.0044 0.0000 0.0005 -55.0044 -39.1091 9 A:B:C 4 2.7910 4 61.0329 0.0000 0.0000 -53.0329 -31.8391
+![Output, neutral system](images/occam-neutral-output.png)
 
 Using the same data file (from the “Wholes and Parts” paper) as shown above in the Data files section of **III. Search Input**, if C is regarded as an IV along with A and B, then the system is neutral. Below are the measures for the lattice of neutral systems. Note that the column for uncertainty reduction is omitted because there are no DVs. Values in the table are rounded to four digits after the decimal.
 
@@ -258,9 +258,7 @@ One strategy in shifting from variable-based to state-based searches is to leave
 
 An obvious difference in SB-Search is the model notation. Because relations can be composed of variables or individual states, model names look different. A variable included in a relation is shown by its abbreviation, (e.g., A), while an individual state is shown by the abbreviation combined with the state value (e.g., A1). Because of this, the restriction that abbreviations contain only letters and state values contain only numbers is strictly enforced for state-based models. Additionally, for directed systems, the relation containing only the DV will be included to enforce the constraint of the DV’s marginal probabilities. Examples appear below for the models found in an all-model bottom-up *directed* SB-Search (on the left) and a *neutral* SB-Search (on the right).
 
-MODELS (directed) MODELS (neutral) IV:A1B2C1Z1:B1Z1:Z A:A2B1C2D2:B:B1D1:C:D IV:A1C1Z3:B1Z2:Z A:A2B1C1D1:A1B1D1:B:C:D
-
-IV:A1B2C1Z3:B1Z2:Z A:A2C2D1:B:B1D1:C:D IV:A1B2C1Z1:Z A:B:B1D1:C:D IV:B1Z2:Z A:A1B1D2:B:C:D IV:B2C1Z2:Z A:A1B1D1:B:C:D IV:Z A:B:C:D
+![Output, directed](images/occam-sb-search.png)
 
 The web input page and the output file for a State-Based Search will appear much like that for a normal (variable-based) Search, as described above. Some of the search options have not been implemented for SB-Search, and these are either missing from the web page, or have been disabled. (Disabled options are likely to be implemented, while missing options are those that may not make sense for state-based RA.) For instance, “disjoint” and “downward” searches are not yet available, but will be in the future. “Use Inverse Notation” has been removed, because this option does not make sense with state- based model notation. Currently, only three main types of state-based search are available: directed bottom-up loopless; directed bottom-up all-model; and neutral bottom- up all-model.
 
@@ -316,13 +314,7 @@ After echoing the input parameters (which are requested by default), Occam print
 
 ***Output file for a directed system*** Below is the first Fit table outputted for a sample directed system, where the model is Top, “ABC”, where A and B are IVs, and C is the DV. The first columns show all of the “IV” state combinations that appear in the data. (Note that these IV states include states where the value of B is missing; these are shown as “.”) The next three columns, marked “Data”, show the frequencies in the data for each of those IV states, along with the observed conditional probabilities for the DV states. The following columns, marked Model, show the calculated conditional probabilities for the model, along with the selected prediction rule. The prediction rule specifies which DV state is expected given some particular IV state (row). The columns labelled “\#correct” and “%correct” show the performance of those rules on the data.
 
-IV | Data | Model
-
-| obs. p(DV|IV) | calc. q(DV|IV) A B | freq C=0 C=1 | C=0 C=1 rule \#correct %correct p(rule) p(margin) 0 . | 2.000 100.000 0.000 | 28.530 71.470 1 0.000 0.000 0.543 0.504 0 0 | 5.000 0.000 100.000 | 14.417 85.583 1 5.000 100.000 0.112 0.092 0 1 | 15.000 13.333 86.667 | 13.039 86.961 1 13.000 86.667 0.004 0.002 0 2 | 6.000 16.667 83.333 | 29.331 70.669 1 5.000 83.333 0.355 0.308 1 . | 1.000 0.000 100.000 | 69.935 30.065 0 0.000 0.000 0.690 0.721 1 0 | 44.000 54.545 45.455 | 49.537 50.463 1 20.000 45.455 0.952 0.734 1 1 | 61.000 44.262 55.738 | 46.631 53.369 1 34.000 55.738 0.598 0.390 1 2 | 34.000 70.588 29.412 | 70.748 29.252 0 24.000 70.588 0.015 0.030 2 . | 8.000 62.500 37.500 | 71.573 28.427 0 5.000 62.500 0.223 0.271 2 0 | 98.000 50.000 50.000 | 51.515 48.485 0 49.000 50.000 0.765 0.904 2 1 | 100.000 50.000 50.000 | 48.604 51.396 1 50.000 50.000 0.781 0.483 2 2 | 50.000 74.000 26.000 | 72.359 27.641 0 37.000 74.000 0.002 0.004
-
-| 424.000 52.123 47.877 | 52.123 47.877 0 242.000 57.075 The | column freq labeled C=0 “p(rule)” C=1 shows | the C=0 chi-square C=1 p-value rule testing \#correct the statistical
-
-%correct p(rule) p(margin) significance of the difference between the model distribution of conditional DV states obtained from the rule and a uniform distribution over DV states (the uniform distribution is the null hypothesis here). For example, in the example table shown, the row for IV
+![Fit, directed](images/occam-fit-directed.png)
 
 state A=0, B=1 has p(rule)=0.004, which indicates that the difference between the distribution of conditional DVs for this IV state and a uniform distribution over DV states is statistically significant assuming the standard threshold of p=0.05. In contrast, the row for IV state A=0, B=0 has p(rule)=0.112, indicating that the difference between the conditional DV distribution and a uniform distribution is not significant (under the standard cutoff). Intuitively, although the rule distribution (.144, .856) differs from a uniform distribution (.5, .5), the overall chi-square value is low due to the small sample size (5). Similarly, in the row for IV state A=1, B=0 has p(rule)=0.952, indicating that the difference between the predicted distribution and a uniform distribution is not significant: while this row has a larger sample size (44), the conditional DV distribution is very close to a uniform distribution.
 
@@ -338,13 +330,7 @@ After each conditional DV table (for the main model or for a component relation)
 
 Confusion Matrix for Fit Rule (Training)
 
-Actual | Rule
-
-| Z=0 Z≠0 Z=0 | TN=114.000 FP=105.000 AN=219.000 Z≠0 | FN=76.000 TP=126.000 AP=202.000
-
-| RN=190.000 RP=231.000 \#correct=240.000
-
-Additional Statistics (Training) **Statistic Definition Value** Accuracy correct / sample size 0.570 Sensitivity (aka Recall) (TP / AP) 0.624 Specificity (TN / AN) 0.521 Precision (TP / RP) 0.545 Negative Predictive Value (TN / RN) 0.600
+![Confusion matrix](occam-confusion-matrix.png)
 
 Along with the main counts in the confusion matrix, Occam provides the marginal totals for all of the ‘actual negative’ and ‘actual positive’ cases from the data, and the ‘rule negative’ and ‘rule positive’ cases predicted by the model. The “diagonal” margin in the bottom-right corner indicates the number of correct predictions, obtained by summing the true negative and true positive counts. The confusion matrix cells and margins are labeled with abbreviations for ‘true negative’ (TN), ‘false positive’ (FP), ‘true positive’ (TP), ‘false negative’ (FP), ‘actual negative’ (AN), ‘actual positive’ (AP), ‘rule negative’ (RN), and ‘rule positive’ (RP), as well as the number of correct predictions (“\#correct”).
 
@@ -352,7 +338,7 @@ Along with the main counts in the confusion matrix, Occam provides the marginal 
 
 **Summary of dyadic relations contained in the model** The summary of dyadic relations shows a brief overview of each 2-variable relation in the model. For example, the following table shows the summary for a (2-component) model, “IVI:ApZ:KZ”:
 
-**Relation | T H(1) H(2) T/Tmax %DH(1|2) %DH(2|1) | Max.Lift State Freq.** ApZ | 0.0895 0.932 0.999 0.096 9.6 9.0 | 1.495 1 1 105 KZ | 0.0266 1.67 0.999 0.027 1.6 2.7 | 1.327 2 0 62
+![Dyadic relations](images/occam-dyadic-relations.png)
 
 Note that in the H and %DH columns, ‘1’ and ‘2’ refer to the 1^st^ and 2^nd^ variables in the relation, not to states of these variables. However, in the ‘State’ column, the numbers refer to variable states.
 
@@ -372,9 +358,7 @@ There is 1 row for each dyadic relation in the model; the columns are as follows
 
 **Observations for a relation** The observations for a single relation are shown in a table with 1 row for each state in the margins of the data for that relation, and a single summary row. For example, the following table is for a relation, ApEd:
 
-**Ap Ed | Obs.Prob. Obs.Freq. | Ind.Prob. Ind.Freq. Lift** 0 0 | 0.038095238 16.000000 | 0.041938776 17.614286 0.90835361 0 1 | 0.21428571 90.000000 | 0.21435374 90.028571 0.99968264 0 2 | 0.40000000 168.00000 | 0.39608844 166.35714 1.0098755 1 0 | 0.026190476 11.000000 | 0.022346939 9.3857143 1.1719939 1 1 | 0.11428571 48.000000 | 0.11421769 47.971429 1.0005956 1 2 | 0.20714286 87.000000 | 0.21105442 88.642857 0.98146656
-
-| 1.0000000 420.00000 | 1.0000000 420.00000 1.0000000 **Ap Ed | Obs.Prob. Obs.Freq. | Ind.Prob. Ind.Freq. Lift **
+![Relation observations](images/occam-relation-observations.png)
 
 The columns are as follows:
 
@@ -532,11 +516,7 @@ Occam has been run with up to about 225 variables. To our knowledge, the maximum
 
 ***Search* 1. Complete implementation of searches of all model classes**. Systems are either directed or neutral. The user can choose between different classes of models: all, loopless, disjoint, chain. Search direction can also be either up or down. However, not all classes of models are actually currently implemented for both up and down search directions for both neutral and directed systems. More specifically, what is and what is not currently implemented is indicated in the following table.
 
-Implemented?
-
-variable-based
-
-state- based directed up all yes yes directed up disjoint yes no directed up loopless yes yes directed down all yes no directed down disjoint no no directed down loopless yes no neutral up all yes yes neutral up disjoint yes no neutral up loopless yes no neutral down all yes no neutral down disjoint yes no neutral down loopless yes no directed up\* chain yes n/a neutral up\* chain yes n/a \* n/a = not applicable. For chain models, "up" vs. "down" searches are meaningless, but one needs to specify "up" to get a chain search done.
+![Search implementation](occam-search-implementation.png)
 
 **2. Other types of searches**. Currently, only beam searches are done, that is, given a set of models at a given level, all of the parents at the next level up or all of the descendants at the next level down are considered, and the “Search Width” best models are selected at this next level (up or down). This process iterates. Other types of searches, such as depth- first searches, should also be implemented.
 
@@ -557,7 +537,9 @@ Age, 4,1,a,exclude(1)
 
 This will exclude all the information for state 1 of Variable Age from the analysis; that is, all data having Age = 1 will not be considered. The motivation for this might be that for some cases (records) values may be missing for some variables; or, one might want to exclude outliers or other particular values. In SPSS, missing data is marked by the character “.”, and this convention may be used in the data given to Occam (see Data Specification, below). Thus, to exclude records in which Age is missing, the 5^th^ field would be “exclude(.)”. By contrast,
 
+```
 Age, 4,1,a,1
+```
 
 has the reverse effect: only data where Age = 1 will be considered for analysis. Also, since Age has only one state for analysis, variable Age will be lost.
 
@@ -565,11 +547,15 @@ One can also *regroup* several values of a variable into a new value. One might 
 
 Regrouping is done by specifying a fifth field in a variable definition surrounded by brackets, and having no spaces between any of the characters inside the brackets (the rebinning string is *“white space intolerant”*). For example:
 
+```
 theta, 3,1,t, \[1(1,2);2(3)\]
+```
 
 In this example, theta originally has 3 states but because of rebinning, old states 1 and 2 now become new state 1 and old state 3 becomes new state 2. The cardinality of theta has become 2. The general form of this regrouping specification is
 
+```
 \[new\_state ( old\_state , old\_state, ...) ; new\_state (old\_state, ...); ... \]
+```
 
 An old state cannot be present in more than one bin. Note the *commas* between old states and the *semicolons* between new states.
 
@@ -577,31 +563,41 @@ Regrouping can also be used to select or ignore *more than one* state of a varia
 
 Some uses of Regrouping 1. To *ignore* more than one state of a variable:
 
+```
 Age, 4,1,a,\[1(1),2(2)\]
+```
 
 Values 3 and 4 of Age are excluded; that is, all data records (rows) having such Age values are omitted from the analysis. If one uses this approach to exclude a single state, the result is equivalent to using “exclude( )” as the 5^th^ field.
 
 2\. To *select* more than one state of a variable, and (thus in effect) omit the variable:
 
+```
 Age, 4,1,a,\[1(1,2)\]
+```
 
 Only data entries (rows) with Age equals 1 or 2 are considered; data entries with Age equals 3 and 4 are ignored. Variable Age is thus lost (the column for Age is ignored). The motivation for this usage is that one wishes to do the analysis of other variables only for particular values of the specified variable(s).
 
 3\. To *regroup* states, i.e., to reduce the number of states of a variable (this also includes non-sequential states).
 
+```
 Age, 4,1,a,\[1(1,3);2(2,4)\]
+```
 
 The cardinality of A changes from 4 to 2.
 
 4\. To combine ignoring and regrouping:
 
+```
 Age, 4,1,a,\[1(1,3);2(2)\]
+```
 
 This causes data where Age = 4 to be ignored; also old states 1 and 3 become new state 1. The cardinality of Age becomes 2.
 
 Finally, there is a wild card character that the rebinning module identifies, which is “\*”, which means “everything else.” This can be used only in the last bin as in
 
+```
 kappa, 5,1,k, \[1(1,3);2(4);3(\*)\]
+```
 
 In this case kappa will be rebinned and original states 1 and 3 will become new state 1, original state 4 will become new state 2 and rest of the states of kappa will become new state 3 (in this case states 2 and 5).
 
@@ -615,9 +611,15 @@ At present *the only parameters that can be set **only** in the data file* (asid
 
 One can specify in the data file the number of levels to be searched and the search width (the number of models retained at each level). For example, to search 10 levels and keep the best 5 models at each level, one adds the following lines above the data:
 
-:search-levels 10 :optimize-search-width 5 ~However,\ one\ can\ specify\ the\ number\ of\ search\ levels\ and\ the\ search\ width\ on\ the\ web~ input page, and it is more convenient to do so there. When search levels and width are specified *both* in the data file and on the web input page, the web input page values take priority. If these values are *not* specified in either the data file or the web input page, they will take on their default values, as follows:
+```
+:search-levels 
+10 
+:optimize-search-width 
+5
+```
+However, one can specify the number of search levels and the search width on the web input page, and it is more convenient to do so there. When search levels and width are specified *both* in the data file and on the web input page, the web input page values take priority. If these values are *not* specified in either the data file or the web input page, they will take on their default values, as follows:
 
-parameter default search-levels 7 optimize-search-width 3 ipf-maxit 266 ipf-maxdev .25
+![Default search options](images/occam-search-defaults.png)
 
 Parameter settings are echoed in Occam’s output by checking “Print Options Settings” so that one has a record of them. This is good practice, so this option is on by default.
 
@@ -673,23 +675,7 @@ One or more statistics of the *model distribution* (for all best models being co
 
 Several pairwise comparison functions are available to compare the best model picked for each of the two files in a pair. These functions are listed below, expressed in terms of the calculated probability distributions of each best model in a pair (q~complex\ and\ qsimple),~ which imply one-to-one comparisons of all of their states.
 
-• absolute distance: L~1=∑|qqcccccccccccccc~ − qq~sssscccccccc~|, a.k.a. the Manhattan distance, or sum of absolute differences between corresponding states in each model. This has a maximum value of 2, obtained when every state with nonzero probability in q~complex\ has\ zero\ probability\ in\ qsimple\ and\ vice\ versa.\ ~
-
-• Euclidean distance: L~2=\ ∑��qqcccccccccccccc~ − qq~sssscccccccc~�^2\ ^
-
-• maximum distance: L~∞=max(qqcccccccccccccc~ − qq~sssscccccccc~) a.k.a. the Chebyshev distance, or maximum difference between any pair of corresponding states.
-
-• Hellinger distance: �1 − BBBB(qq~cccccccccccccc~,qq~sssscccccccc~), where BBBB�qq~cccccccccccccc~,qq~sssscccccccc~� = ∑�qq~cccccccccccccc~ ∗ qq~sssscccccccc~. This distance is expressed in terms of the Bhattacharyya coefficient (BC). It obeys the triangle inequality and has a maximum value of 1, obtained when every state with nonzero probability in q~complex\ has\ zero\ probability~ in q~simple\ and\ vice\ versa.\ ~
-
-• Kullback-Leibler (KL) distance:∑qq~cccccccccccccc~ log~2\ ~
-
-qq~cccccccccccccc\ ~
-
-qq~sssscccccccc~ . A theoretical caveat with KL model distance states is that that have it relies zero on probability. an ad-hoc Hence, definition the calculation of 0 log~2~ 0=0 of this to distance
-
-deal with
-
-works by ignoring states with zero probability in q~complex\ or\ qsimple.\ ~
+![Pairwise comparisons](occam-pairwise-comparisons.png)
 
 ***Additional settings ***
 
