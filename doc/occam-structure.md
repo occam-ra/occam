@@ -35,7 +35,7 @@ One of the most important structural improvements is, in my view, a partial rewo
 ## Most Needed Updates
 
 ### Python Layer
-This is in many ways the most important place to focus in the coming weeks and months. The interface between Python/C++, the functionality exposed to the python layer, and the improvements needed to make OCCAM a modern python package that makes RA functionality easy for any Python user to access in a modular and expressive way, are at the center of a new approach to developing OCCAM.
+This is in many ways the most important place to focus in the coming weeks and months. The interface between Python/C++, the functionality exposed to the python layer, and the improvements needed to make OCCAM a modern python package that makes RA functionality easy for any Python user to access in a modular and expressive way, are a primary priority in an updated approach to developing OCCAM.
 
 ### Output
 Example of output generated directly in C++: [OCCAM output in c++](https://www.guydcutting.com/images/occam-cpp-output.png)
