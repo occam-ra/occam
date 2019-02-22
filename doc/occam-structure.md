@@ -4,6 +4,8 @@
 
 The current structure of OCCAM appears to date to about 2000 (see the Design Proposal document which contains references to some of the existing core classes). The application design and implementation is not well-documented. This document reflects an initial attempt at providing some transparency on the OCCAM structure, and helping developers new to the project (capstone team members or others) to get oriented without having to spend an excessive amount of time digging through the code (though there's no perfect substitute for spending time with the code). 
 
+To some extent the discussion of design and implementation issues cannot happen without reference to the code. But it should be possible to understand and discuss these issues without intimate code familiarity. This design overview attempts to provide a helpful view of the current application structure, and approaches to updating it, that can be understood by non-programmers. At the same time, it provides code-specific details which help elucidate the design issues, and will help coding contributors to get oriented.
+
 OCCAM consists of a core of functionality, implemented in custom C++ classes, which is wrapped in Python (apparently using SWIG, a package which automatically generates the code needed for the wrapping, saving laborious hand-coding of API function calls). The python wrapper consists primarily of ocUtils, a very lightweight helper class which mostly passes parameters to the C++ objects which perform nearly all of the RA computation and generate some/most (though not all) of the output. In some places there is high-level logic (though almost no actual RA computation) handled by python functions - see below under "Python Wrapping" for an example.
 
 ![(UML diagram)](https://www.guydcutting.com/images/OCCAM-structure.png)
@@ -15,6 +17,8 @@ The application was designed at a time when web applications were a new frontier
 ### Method (RA) vs. Application (OCCAM)
 One way to think about the big picture of design issues is to distinguish between the RA method and the application which implements it. RA provides a number of conceptual tools and practical procedures for analyzing data - that conceptual and practical content can be separated from the implementation - the data handling (I/O), user interface, etc. We are very lucky to have the core RA functionality largely built already (thanks Ken, Heather, Joe, and others!).
 
+This conceptual distinction has important practical consequences. Publishing OCCAM as a python package should give the package user (who might just be using a couple of RA functions in a small notebook, or could be incorporating RA functionality into a much larger application) to core functionality while not enforcing any single way of accessing it (as the implementation currently does). Packaging OCCAM in a modular way will allow users/developers to use that functionality in whatever way works best for them.
+
 #### Core Functionality (C++)
 The core functionality is reliable and rationally implemented. Implementation in C++ allows computation to be performed very quickly - OCCAM can quickly search a very large space of variables and states, and fit a model once it is selected from search results. Balancing speed (c++) with flexibility/productivity (python) is the primary motivation for this application structure (C++ extensions to python). This guide gives a good overview of the paradigm of extending python with c++: .
 
@@ -22,6 +26,7 @@ The core functionality is reliable and rationally implemented. Implementation in
 
 ThisThere are some scattered issues (for example with memory management in the state-based part of OCCAM), but overall the essential RA methods are well-implemented. It is important, in developing OCCAM, that this core functionality be preserved in its current form. There is no need, at least in the short term, to redo any significant parts of the RA computation (though the code will definitely need some cleanup and separation of the core functions from the input/output and other components best handled by the user or application programmer).
 
+What is that core functionality (brief overview of workflow/functions)?
 
 #### Python Wrapping
 One of the most important structural improvements is, in my view, a partial reworking of the python layer (which handles high-level workflow). This change will touch on nearly every aspect of the updated application, because the design of the extension structure will underlay nearly every other element of the implementation (data handling, UI, integration, etc.). Other improvements, such as the user interface, input/output handling, etc., will follow naturally from that update. The current python layer is very thin, meaning that only a very small of computation is actually being handled by this layer. The python functionality falls into two categories: very high-level workflow, and helpers for c++ objects. Here's an example showing both some very high level workflow, and the use of ocUtils to pass parameters to the c++ objects through the manager:
