@@ -18,17 +18,6 @@ be broken into distinct activities with (ideally) well-defined interactions betw
 involved.** This is the basic approach to handling the inherent complexity of the development pro-
 cess *and the people involved in it.*" (Stroustrop, 693)[emphasis added]
 
-### Refactoring 
-"Refactoring is about improving an architectural design. Nowadays a design tends to be an
-OOD, expressed in terms of classes and their interrelationships (methods). However,
-design does not usually proceed in a straightforward, linear manner. Most often, design
-tends to be an iterative process. First, candidate classes are identified. Then some will be
-accepted while others will be rejected – perhaps because they have no methods or because
-their methods are subsumed by some other class. Methods tend to migrate from one class
-to another as a better understanding of the objects and their role within the problem
-emerges. This process is known as refactoring. Refactoring is the transformation of a cor-
-rect program structure (e.g., a class diagram) into an improved structure." (Bell, 165)
-
 ### Modularity
 "The scenario is software that consists of thousands or even hundreds of thousands of
 lines of code. The complexity of such systems can easily be overwhelming. Some means
@@ -39,10 +28,10 @@ as possible to other components. This aim has consequences for nearly all stages
 ware development..." (Bell, 67)
 
 ### Object-Oriented Design
-OOD has three key component principles:
-* encapsulation
-* inheritance
-* polymorphism
+[Object-oriented design](https://en.wikipedia.org/wiki/Object-oriented_design) "is the process of planning a system of interacting objects for the purpose of solving a software problem." OOD has three key component principles:
+* [encapsulation](https://en.wikipedia.org/wiki/Encapsulation_(computer_programming))- "bundling of data with the methods that operate on that data.Encapsulation is used to hide the values or state of a structured data object inside a class, preventing unauthorized parties' direct access to them. Publicly accessible methods are generally provided in the class (so-called getters and setters) to access the values, and other client classes call these methods to retrieve and modify the values within the object."
+* [inheritance](https://en.wikipedia.org/wiki/Inheritance_(object-oriented_programming)) - a "mechanism of basing an object or class upon another object (prototype-based inheritance) or class (class-based inheritance), retaining similar implementation"
+* [polymorphism](https://en.wikipedia.org/wiki/Polymorphism_(computer_science)) - "the provision of a single interface to entities of different types[1] or the use of a single symbol to represent multiple different types.[2]"
 
 "The advantages of these features is that they promote the reusability of software com-
 ponents. Encapsulation allows a class to be reused without knowing how it works – thus
@@ -50,6 +39,17 @@ modularity and abstraction are provided. Inheritance allows a class to be reused
 using some of the existing facilities, while adding new facilities in a secure manner.
 Polymorphism further promotes encapsulation by allowing general purpose classes to
 be written that will work successfully with many different types of object." (Bell, 139)
+
+### Refactoring 
+"Refactoring is about improving an architectural design. Nowadays a design tends to be an
+OOD, expressed in terms of classes and their interrelationships (methods). However,
+design does not usually proceed in a straightforward, linear manner. Most often, design
+tends to be an iterative process. First, candidate classes are identified. Then some will be
+accepted while others will be rejected – perhaps because they have no methods or because
+their methods are subsumed by some other class. Methods tend to migrate from one class
+to another as a better understanding of the objects and their role within the problem
+emerges. This process is known as refactoring. Refactoring is the transformation of a cor-
+rect program structure (e.g., a class diagram) into an improved structure." (Bell, 165)
 
 ## Another View: Method (RA) vs. Application (OCCAM)
 Another useful way to think about the big picture of design issues is to distinguish between the RA method and the application which implements it. RA provides a number of conceptual tools and practical procedures for analyzing data - that conceptual and practical content can be separated from the implementation - the data handling (I/O), user interface, etc. We are very lucky to have the core RA functionality largely built already (thanks Ken, Heather, Joe, and others!).
