@@ -74,7 +74,7 @@ This simple file has 2 parts: (1) specification of the variables (the ‘variabl
 
 **Variable specification** Variable specification begins with “:nominal” which reminds the user that nominal (categorical, qualitative) variables must be used. (For tips on binning quantitative variables, see FAQ \#6.) After “:nominal”, the variables are specified, one per line. White space between values is ignored. In the above example, the first line is:
 
-alpha, 2,1,a
+```alpha, 2,1,a```
 
 “alpha” is the name of the first variable. The second field indicates that it has 2 possible states (a “cardinality” of 2). The third field (shown above as 1) is 0, 1 or 2. A value of 1 defines the variable as an “independent variable” (IV) or input. A value of 2 defines it as a “dependent variable” (DV) or output. A value of 0 means that the variable (and the corresponding column in the data) will be ignored. This allows the user to have data for more variables than can be analyzed at any one time; the user could then easily alter which variables are to be included in the analysis and which are to be omitted. If the value in the third field is 0, any rebinning string (described below in Appendix-1) will be ignored. If all variables are designated as IVs (1) or as DVs (2), the system is “neutral.” If some variables are IVs, and one is a DV, the system is “directed.” At present, only one variable can be a DV. Occam cannot analyze multiple DVs simultaneously; they must be analyzed separately one at a time. The above data file is for a directed system. A useful but not obligatory convention (it is in fact not followed in the above input file) is to give the DV the short name “Z”, and name all the IVs from the beginning of the alphabet.
 
@@ -92,9 +92,7 @@ Since variables are nominal, their values (states) are *names*. Normally, these 
 
 Data can be provided to Occam *without frequencies*, where each line (row) represents a single *case*. The rows do not have to be ordered in any particular way. Occam will generate the frequencies itself, but it needs to be told that the data do not include frequencies, as follows:
 
-:no-frequency
-
-:data ~0\ 0\ 0~ 1 1 1 0 1 1 1 0 1 0 0 1 0 1 0 0 1 1 0 0 1 1 0 0 1 0 1 1 1 0 1 1 1
+![Input, no frequencies](images/occam-input-no-frequencies.png)
 
 Uploading data will be faster if the data provides frequencies, so if the data file is big, the user might consider doing this operation before calling Occam.
 
