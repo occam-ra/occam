@@ -18,16 +18,6 @@ be broken into distinct activities with (ideally) well-defined interactions betw
 involved.** This is the basic approach to handling the inherent complexity of the development pro-
 cess *and the people involved in it.*" (Stroustrop, 693)[emphasis added]
 
-
-### Modularity
-"The scenario is software that consists of thousands or even hundreds of thousands of
-lines of code. The complexity of such systems can easily be overwhelming. Some means
-of coping with the complexity are essential. In essence, the desire for modularity is
-about trying to construct software from pieces that are as independent of each other as
-possible. Ideally, each component should be self-contained and have as few references
-as possible to other components. This aim has consequences for nearly all stages of soft-
-ware development..." (Bell, 67)
-
 ### Refactoring 
 "Refactoring is about improving an architectural design. Nowadays a design tends to be an
 OOD, expressed in terms of classes and their interrelationships (methods). However,
@@ -38,6 +28,15 @@ their methods are subsumed by some other class. Methods tend to migrate from one
 to another as a better understanding of the objects and their role within the problem
 emerges. This process is known as refactoring. Refactoring is the transformation of a cor-
 rect program structure (e.g., a class diagram) into an improved structure." (Bell, 165)
+
+### Modularity
+"The scenario is software that consists of thousands or even hundreds of thousands of
+lines of code. The complexity of such systems can easily be overwhelming. Some means
+of coping with the complexity are essential. In essence, the desire for modularity is
+about trying to construct software from pieces that are as independent of each other as
+possible. Ideally, each component should be self-contained and have as few references
+as possible to other components. This aim has consequences for nearly all stages of soft-
+ware development..." (Bell, 67)
 
 ### Object-Oriented Design
 OOD has three key component principles:
