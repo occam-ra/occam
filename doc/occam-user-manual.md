@@ -15,47 +15,27 @@ Past Programmers (most recent first): Forrest Alexander, Joe Fusion, Kenneth Wil
 
 Ken Willett totally rewrote earlier versions of Occam. His version was originally called “Occam3” to distinguish it from these earlier Occam incarnations; the “3” has finally been dropped in this manual.
 
-**Table of Contents**
+## Table of Contents
 
-**I. FOR INFORMATION ON RECONSTRUCTABILITY ANALYSIS 3**
-
-**II. ACCESSING OCCAM 3**
-
-**III. SEARCH INPUT 4**
-
-**IV. SEARCH OUTPUT 15**
-
-**V. STATE-BASED SEARCH 19**
-
-**VI. FIT INPUT 20**
-
-**VII. FIT OUTPUT 24**
-
-**VIII. STATE-BASED FIT 31**
-
-**IX. SHOW LOG 31**
-
-**X. MANAGE JOBS 31**
-
-**XI. FREQUENTLY ASKED QUESTIONS 31**
-
-**XII. ERROR AND WARNING MESSAGES 36**
-
-**XIII. KNOWN BUGS & INFELICITIES; LIMITATIONS 37**
-
-**XIV. PLANNED BUT NOT-YET-IMPLEMENTED FEATURES 38**
-
-**APPENDIX 1. REBINNING (RECODING) 40**
-
-**APPENDIX 2. MISSING VALUES IN THE DATA 42**
-
-**APPENDIX 3. ADDITIONAL PARAMETERS IN THE INPUT FILE 42**
-
-**APPENDIX 4. ZIPPING THE INPUT FILE 43**
-
-**APPENDIX 5. COMPARE MODE 43**
-
-**APPENDIX 6. CACHED DATA MODE 46**
+      * [I. For Information on Reconstructability Analysis](#i-for-information-on-reconstructability-analysis)
+      * [II. Accessing Occam](#ii-accessing-occam)
+      * [III. Search Input](#iii-search-input)
+      * [IV. Search Output](#iv-search-output)
+      * [V. State-Based Search](#v-state-based-search)
+      * [VII. Fit Output](#vii-fit-output)
+      * [VIII. State-Based Fit](#viii-state-based-fit)
+      * [IX. Show Log](#ix-show-log)
+      * [X. Manage Jobs](#x-manage-jobs)
+      * [XI. Frequently Asked Questions](#xi-frequently-asked-questions)
+      * [XII. Error And Warning Messages](#xii-error-and-warning-messages)
+      * [XIII. Known Bugs &amp; Infelicities; Limitations](#xiii-known-bugs--infelicities-limitations)
+      * [XIV. Planned But Not-Yet-Implemented Features](#xiv-planned-but-not-yet-implemented-features)
+      * [Appendix 1. Rebinning (Recoding)](#appendix-1-rebinning-recoding)
+      * [Appendix 2. Missing Values in the Data](#appendix-2-missing-values-in-the-data)
+      * [Appendix 3. Additional Parameters in the Input File](#appendix-3-additional-parameters-in-the-input-file)
+      * [Appendix 4. Zipping the Input File](#appendix-4-zipping-the-input-file)
+      * [Appendix 5. Compare Mode](#appendix-5-compare-mode)
+      * [Appendix 6. Cached Data Mode](#appendix-6-cached-data-mode)
 
 ## I. For Information on Reconstructability Analysis
 For papers on Reconstructability Analysis, see the Discrete Multivariate Modeling (DMM) page at http://www.pdx.edu/sysc/research-discrete-multivariate-modeling. For an overview of RA, see the following two papers that are on the DMM page:
