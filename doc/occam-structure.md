@@ -44,6 +44,7 @@ OOD has three key component principles:
 * encapsulation
 * inheritance
 * polymorphism
+
 "The advantages of these features is that they promote the reusability of software com-
 ponents. Encapsulation allows a class to be reused without knowing how it works – thus
 modularity and abstraction are provided. Inheritance allows a class to be reused by
