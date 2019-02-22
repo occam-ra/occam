@@ -40,6 +40,9 @@ using some of the existing facilities, while adding new facilities in a secure m
 Polymorphism further promotes encapsulation by allowing general purpose classes to
 be written that will work successfully with many different types of object." (Bell, 139)
 
+### Interfaces
+[Interfaces: The Most Important Software Engineering Concept](http://blog.robertelder.org/interfaces-most-important-software-engineering-concept/)
+
 ### Refactoring 
 "Refactoring is about improving an architectural design. Nowadays a design tends to be an
 OOD, expressed in terms of classes and their interrelationships (methods). However,
@@ -59,9 +62,7 @@ This conceptual distinction has important practical consequences. Publishing OCC
 That does not mean that we cannot provide a(n) interface(s). At a minimum, a python package should provide a set of methods which express the full range of RA functions, and therefore make it straightforward to design an interface. If we include, along with that package, a modern, well-designed application interface, then users can immediately begin using RA's powerful analytical methods. A good working paradigm might be:
 **Separate core objects and methods from the interface; let the user or app. designer easily create their own interface; provide our own interface to make the application even more accessible** 
 
-Some surgery is needed to disentangle the core RA functionality from the interface. Here's a blog post that provides more detail on interfaces from a software engineering perspective:
-
-[Interfaces: The Most Important Software Engineering Concept](http://blog.robertelder.org/interfaces-most-important-software-engineering-concept/)
+Some surgery is needed to disentangle the core RA functionality from the interface...
 
 ## OCCAM Application Structure
 
