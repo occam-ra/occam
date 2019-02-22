@@ -1,4 +1,6 @@
-**OCCAM: A Reconstructability Analysis Program** (Organizational Complexity Computation and Modeling)
+# OCCAM: A Reconstructability Analysis Program 
+## (Organizational Complexity Computation and Modeling)
+## User Manual
 
 **Project Director: Martin Zwick** zwick@pdx.edu
 
@@ -11,8 +13,6 @@ Past Programmers (most recent first): Forrest Alexander, Joe Fusion, Kenneth Wil
 **Occam version 3.4.0, copyright 2006-2017.**
 
 Ken Willett totally rewrote earlier versions of Occam. His version was originally called “Occam3” to distinguish it from these earlier Occam incarnations; the “3” has finally been dropped in this manual.
-
-Occam User’s Manual (3/13/2017)
 
 **Table of Contents**
 
@@ -56,15 +56,14 @@ Occam User’s Manual (3/13/2017)
 
 **APPENDIX 6. CACHED DATA MODE 46**
 
-Occam User’s Manual 3/13/2017 3
-
-**I. For Information on Reconstructability Analysis** For papers on Reconstructability Analysis, see the Discrete Multivariate Modeling (DMM) page at http://www.pdx.edu/sysc/research-discrete-multivariate-modeling. For an overview of RA, see the following two papers that are on the DMM page:
+## I. For Information on Reconstructability Analysis
+For papers on Reconstructability Analysis, see the Discrete Multivariate Modeling (DMM) page at http://www.pdx.edu/sysc/research-discrete-multivariate-modeling. For an overview of RA, see the following two papers that are on the DMM page:
 
 “Wholes and Parts in General Systems Methodology” at http://www.sysc.pdx.edu/download/papers/wholesg.pdf
 
 “An Overview of Reconstructability Analysis” at http://www.sysc.pdx.edu/download/papers/ldlpitf.pdf
 
-**II. Accessing Occam **
+## II. Accessing Occam
 
 ***Occam location & general use*** Occam is at: http://dmit.sysc.pdx.edu/. It can also be accessed from the DMM web page:
 
@@ -76,21 +75,16 @@ We also need your support in maintaining this user’s manual. Please let us kno
 
 ***Action*** When one brings Occam up, one first must choose between several Occam *actions*. The modeling options are: “Do Fit,” “Do Search,” “Do SB-Fit,” and “Do SB-Search.” There are also options for “Show Log” and “Manage Jobs,” which allow the user to track the status of jobs submitted for background processing. You can see this first web page by clicking on: http://dmit.sysc.pdx.edu/weboccam.cgi.
 
-There is one additional available action, “Do Compare”, which is a specialized tool for doing pairwise comparisons between related datasets (explained in the Appendix). Finally, for any of the Search and Fit actions, there is a checkbox for “Cached Data Mode”, which allows the separate uploading of the parts of the Occam input file: the
-
-Occam User’s Manual 3/13/2017 4
-
-variable block, the (training) data block, and (optionally) the test data block for the dataset (explained in the Appendix).
+There is one additional available action, “Do Compare”, which is a specialized tool for doing pairwise comparisons between related datasets (explained in the Appendix). Finally, for any of the Search and Fit actions, there is a checkbox for “Cached Data Mode”, which allows the separate uploading of the parts of the Occam input file: the variable block, the (training) data block, and (optionally) the test data block for the dataset (explained in the Appendix).
 
 When an option is selected, Occam returns a window specific to the choice made. **Search** assesses *many models* either from the full set of all possible models or from various partial subsets of models. **Fit** examines *one model* in detail. In an exploratory mode, one would do **Search** first, and then **Fit**, but in a confirmatory mode, one would simply do **Fit**. The options for **SB-Fit** and **SB-Search** function similarly, but for *state-based models*, rather than the default variable-based models. Let’s focus first on the main option of “Do Search.”
 
-**III. Search Input** On the first line, the user specifies a data file, which describes the variables used and provides the data to be analyzed. The data file allows the user to set certain parameters, but parameters should be specified on the Occam web input page, since parameters set on the web page override any in the data file. The only parameters that currently can be specified *only* in the data file are the two parameters that govern the iterative method, IPF, used in Occam. These should be modified only if there is reason to believe that IPF is not converging properly; see Appendix 3 for further information. (The capacity to specify parameters in the data file is designed for command line use of Occam within a Unix environment; such use of Occam is not currently functional, but may be restored to functionality in the future.) The data file will now be discussed, and then the other parameters on this web input page will be explained.
+## III. Search Input
+On the first line, the user specifies a data file, which describes the variables used and provides the data to be analyzed. The data file allows the user to set certain parameters, but parameters should be specified on the Occam web input page, since parameters set on the web page override any in the data file. The only parameters that currently can be specified *only* in the data file are the two parameters that govern the iterative method, IPF, used in Occam. These should be modified only if there is reason to believe that IPF is not converging properly; see Appendix 3 for further information. (The capacity to specify parameters in the data file is designed for command line use of Occam within a Unix environment; such use of Occam is not currently functional, but may be restored to functionality in the future.) The data file will now be discussed, and then the other parameters on this web input page will be explained.
 
 ***Data file*** The user must specify a data file on the user’s computer by typing its name (and location) in or finding it by browsing. The data file is then uploaded to the Occam server. This is actually all that is needed to submit an Occam job, if the user is satisfied with the default setting of all the parameters.
 
 Data files should be plain-text ASCII files, such as those generated by Notepad, Word, or Excel if the file is saved in a .txt format. (Note that in Excel, you should *not* use the “Space Delimited Text” format, with the .prn extension, as it can be incompatible with Occam.) Each line of the data file has a maximum length, currently set to 1000 characters. Occam will give an error if this is exceeded. If your data set requires lines longer than this limit, please contact the feedback address listed above.
-
-Occam User’s Manual 3/13/2017 5
 
 A minimal data file looks like (data from the “Wholes & Parts” paper.)
 
@@ -110,8 +104,6 @@ alpha, 2,1,a
 
 The fourth field is a variable abbreviation, ideally and most simply one letter. Lower case letters may be used, but will appear in Occam output with the first letter capitalized. In
 
-Occam User’s Manual 3/13/2017 6
-
 the above example, variable “alpha” will be referred to in Occam output as “A”. If there are more than 26 variables, one can use double (or triple, etc.) letters as abbreviations, for example “aa” or “ab”. Such variables would appear in model names as AaB:AbC, for example. The capital letters help one to see the variables as separate. If State-based Search or Fit will be used, variable abbreviations must be only *letters*. Numbers (e.g., A2) or other symbols may *not* be used to abbreviate variables, since numbers are reserved for use as the names of specific states in State-Based RA. However, if you are *sure* that you will not be using State-Based Search or State-Based Fit, you may use numbers in your variable names.
 
 Although data submitted to Occam must already have been binned (discretized), an optional fifth field tells Occam to “rebin” the data. Rebinning allows one to recode the bins by selecting only certain bin values for consideration or for omission, or by aggregating two or more bins. This is discussed in depth in Appendix-1.
@@ -121,8 +113,6 @@ Although data submitted to Occam must already have been binned (discretized), an
 Note that since non-integer frequencies are allowed, one can use Occam to analyze–and compress–*arbitrary functions* of nominal variables. Occam simply scales the function value so that it can be treated as a probability value, and then does a decomposition analysis on this pseudo-probability distribution. In the work of Bush Jones, this is called “g-to-k” normalization. However, if Occam is used in this way, statistical measures that depend on sample size (e.g., Alpha, dLR, BIC, AIC) do not have their usual meaning. This use of Occam, and two other approaches to continuous DVs, is documented in the paper “Reconstructability of Epistatic Functions” available from the DMM page.
 
 Since variables are nominal, their values (states) are *names*. Normally, these will be 0,1,2... or 1,2,3... but the character “.” is to be used to designate missing values. When using “.” it must be included in the cardinality of the variable; that is, if the variable has 3 possible values, but a value is sometimes also missing, the cardinality of the variable is 4. *No other non-numeric characters are allowed as variable states*. To avoid confusion, it is best to start the labeling of *all* variables either with 0 or with 1, i.e., it is best not to start one variable with 0 and another with 1 (though Occam can handle such inconsistencies of convention). The user should know the number of different states that occur for each variable and indicate the cardinality of the variable correctly in the variable specification.
-
-Occam User’s Manual 3/13/2017 7
 
 Data can be provided to Occam *without frequencies*, where each line (row) represents a single *case*. The rows do not have to be ordered in any particular way. Occam will generate the frequencies itself, but it needs to be told that the data do not include frequencies, as follows:
 
@@ -157,9 +147,6 @@ read past a “\#” character, so comments can be added at the end of lines whi
 **Reference Model** Assessing the quality of a model involves comparing it to a reference model, often either Top or Bottom. If the reference model specified in the browser page is left as default, it will be “bottom” for both directed and neutral systems (the same as the convention for the starting model). If the reference model is Top one is asking if it is reasonable to represent the data by a simpler model. If the reference model is Bottom one is asking whether the data justifies a model more complex than the independence model.
 
 The reference model can be the starting model. When the starting model is neither Top nor Bottom, this can be used to determine whether “incremental” changes from the starting model are acceptable, as opposed to whether “cumulative” changes from the top or bottom are acceptable. The starting model may be a good model obtained in a prior
-
-Occam User’s Manual 3/13/2017 9
-
 search, and one may now be investigating whether it can be improved upon. At present, if the reference model is chosen to be the starting model, the starting model must be entered explicitly on the browser input page; Occam will not pick it up from the data file.
 
 **Models to Consider** Occam offers a choice between (a) all, (b) loopless, (c) disjoint, and (d) chain models.
@@ -171,8 +158,6 @@ search, and one may now be investigating whether it can be improved upon. At pre
 An important use of a loopless search is for variable screening (also known as feature selection or dimensionality reduction) in directed systems. In a directed system, all models have one component that includes all the IVs, and all other components include the DV. (At present, Occam cannot consider multiple DVs.) Call a component that includes a DV a “predicting component”; these are shown in bold in this paragraph and the next. A *single-predicting-component* (SPC) model, e.g., AB:**AZ**, will never have a loop, but *multiple-predicting-component* (MPC) models, e.g., AB:**AZ**:**BZ**, will always have loops. So a loopless search looks only at SPC models. This is valuable for screening IVs, i.e., for eliminating IVs that don’t impact the DV(s) very much. Suppose one had 100 IVs and 1 DV, and wanted to find out which of the 100 IVs has predictive value for the DV. A loopless search will provide this information.
 
 For a loopless search, “Search Levels” determines how many IVs will be in the SPC, and “Search Width” determines how many such models are considered at each level. To illustrate: suppose one has four IVs, A,B,C,D, and one DV, Z, and one starts the search at the bottom. If “Search Width” is 2 and “Search Levels” is 3, then at the first search level Occam generates all parents of ABCD:**Z**, i.e., all one-IV SPC models: ABCD:**AZ**, ABCD:**BZ**, ABCD:**CZ**, ABCD:**DZ**. On the basis of the Sort parameter specified in the browser input page, Occam then picks the best 2 of these, say ABCD:**BZ** and ABCD:**DZ**.
-
-Occam User’s Manual 3/13/2017 10
 
 Then, at the second search level, all parents of these 2 models are considered. These will include predicting components of **ABZ**, **CBZ**, **DBZ**, and **ADZ**, **BDZ**, **CDZ**. The best 2 of these 5 models will be retained. Say these are ABCD:**ABZ** and ABCD:**BDZ**. Occam then examines, at the third search level, all parents of these models, and again keeps the best 2.
 
@@ -186,11 +171,7 @@ For directed systems, the notion of a disjoint model is not as straightforward. 
 
 In summary, for neutral systems, disjoint models partition all the variables into non- overlapping subsets. For directed systems (with one DV), disjoint models partition all the IVs which affect the DV into non-overlapping subsets.
 
-**d. Chain models** AB:BC:CD:DE illustrates the idea of a chain model. All components have two variables, and every component, except for the ends, overlaps the component to the left with one variable and the component to the right with the other. Chain model searches are not searches in the sense of starting with a model and going either up or down the lattice. Occam simply generates and evaluates all chain models. Chain models have been used
-
-Occam User’s Manual 3/13/2017 11
-
-for studies on the use of RA to prestructure genetic algorithm genomes. One could compare all lineal causal chains, of form A → B → C → D, by using chain models.
+**d. Chain models** AB:BC:CD:DE illustrates the idea of a chain model. All components have two variables, and every component, except for the ends, overlaps the component to the left with one variable and the component to the right with the other. Chain model searches are not searches in the sense of starting with a model and going either up or down the lattice. Occam simply generates and evaluates all chain models. Chain models have been used for studies on the use of RA to prestructure genetic algorithm genomes. One could compare all lineal causal chains, of form A → B → C → D, by using chain models.
 
 **Search Direction** The default direction is up for both directed and neutral systems. For some purposes one might wish to do downward searches. The Search Direction should not be confused with the Reference Model. Model assessments depend on the Reference Model, not on the Search Direction.
 
@@ -220,8 +201,6 @@ data) or “Smaller Values” (if the reference model is Bottom and one cares a 
 
 **In Report, Sort:** Occam output can be printed in either (a) Descending or (b) Ascending order of the magnitudes of the sorting measure. For example, if the report is sorted on Information in a descending order, then the most complex, high information, models will appear in the output at the top of the page.
 
-Occam User’s Manual 3/13/2017 13
-
 **Include in Report:** Many of the search criteria and other output measures can be turned on or off as desired. A standard set is turned on by default. Some of these options are described below.
 
 **Include in Report: Incremental Alpha** When selecting this option, the Search report includes the statistical significance of each step through the lattice. This provides another method for selecting the best model in a Search. Two columns are added to the report: "Inc.Alpha" and "Prog." The first of these columns lists the (incremental) chi-square alpha between the model and the ‘progenitor’ model from which it was derived. When searching up from the bottom, the progenitor will be a model lower on the lattice; when searching down from Top, it will be a model higher on the lattice. The “Prog.” column lists the row ID of the progenitor. When there are multiple progenitors—multiple ways to reach the model in the search—the listed progenitor is one with the best incremental alpha. When searching from the bottom, smaller alpha values are preferred; from the top, larger. A typical way to use this feature is in a Search up from the bottom. When selecting a best model, such as by highest information value, you might select one where every step also has an alpha less than the Alpha Threshold (default 0.05). To assist in this, each model that is “reachable” (that is, where every step has alpha less than the threshold) is marked by an asterisk in the ID column.
@@ -248,8 +227,6 @@ Inverse notation can also be used to specify the Starting Model in a Search, whe
 
 You can check the status of your job by choosing **Show Log** on the main Occam page and typing in your email address. The log contains *two lines* for every job submitted for background running. When the job is submitted, the log adds the line “*Job started: *
 
-Occam User’s Manual 3/13/2017 15
-
 *data/filename*.” When the results are emailed to the user, a second line is added: “*Results for data/filename sent to username@emailaddress*.”
 
 **Subject line for email (optional):** When using the “Run in Background” option, you may optionally specify a subject line for the resulting email. This can be used to easily differentiate between multiple runs with the same data set, for instance, by placing the search options used into the subject line.
@@ -258,13 +235,12 @@ Occam User’s Manual 3/13/2017 15
 
 When jobs are submitted to run in the background, the browser will first say: “*Batch job started*.” When the data file has been read in, and the background job has been started, the browser will add: “*data file: filename, received from username@emailaddress*”. Do not close this browser window until after you see this second line appear.
 
-**IV. Search Output** If “Print options settings” has been selected, the Occam output will begin by echoing the parameter settings from the web input page and from the data file. Occam also outputs the values of “Search Levels” and “Search Width,” even if these have not been explicitly specified in the data file; this tells the user what the default values currently are.
+## IV. Search Output
+If “Print options settings” has been selected, the Occam output will begin by echoing the parameter settings from the web input page and from the data file. Occam also outputs the values of “Search Levels” and “Search Width,” even if these have not been explicitly specified in the data file; this tells the user what the default values currently are.
 
 Occam will always print out, as it goes from level to level, how many models are generated at each level and how many of these are kept. This lets the user track the progress of Occam. It also shows whether an exhaustive search is being done (all models generated are kept) or only a partial (heuristic) search is being done (only some generated models are kept, i.e., the lattice is being pruned). It also informs the user about memory used in the computation.
 
 ***Output for a directed system*** Below is a sample output of a directed system with Z as the DV and the other variables as IVs. (This is data from the Kramer et al 2012 study on Alzheimer Disease; a paper, given at Kobe, Japan, on this study can be downloaded from the DMM web page.) The output has been sorted on Information. Values in tables output by Occam are rounded to four digits after the decimal. However, to make the example shown here fit on the page, the values were rounded to two digits after the decimal. The lower case “d” in dDF, dLR, %dH(DV), dAIC, and dBIC means “delta” (i.e., it is a difference from the reference model).
-
-Occam User’s Manual 3/13/2017 16
 
 **ID MODEL Level H dDF dLR Alpha Inf %dH(DV)dAIC dBIC Inc. Alpha Prog.%C(Data) %cover %C(Test) %miss** 13\* IV:ApAZ:CZ 4 9.21 7 80.54 0.00 0.17 17.35 66.54 39.84 0.01 10 71.04 100.00 59.55 0.00 12 IV:ApZ:SxZ:C4 9.22 7 79.36 0.00 0.17 17.09 65.36 38.67 0.00 8 70.45 83.33 58.43 2.25 11\* IV:ApZ:CZ:KZ3 9.22 6 78.47 0.00 0.17 16.90 66.47 43.58 0.00 6 69.25 87.50 53.93 0.00 10\* IV:ApZ:AZ:CZ3 9.23 5 71.22 0.00 0.15 15.34 61.22 42.15 0.00 5 68.06 100.00 57.30 0.00 9 IV:ApSxZ:CZ 4 9.24 5 70.10 0.00 0.15 15.10 60.10 41.03 0.04 8 68.36 100.00 59.55 0.00 8 IV:ApZ:SxZ:C3 9.25 4 65.91 0.00 0.14 14.20 57.91 42.65 0.30 7 68.66 100.00 62.92 0.00 7\* IV:ApZ:CZ 2 9.25 3 64.83 0.00 0.14 13.96 58.83 47.39 0.00 3 68.96 100.00 64.04 0.00 6\* IV:ApZ:KZ 2 9.26 4 61.15 0.00 0.13 13.17 53.15 37.90 0.00 2 68.06 100.00 62.92 0.00 5\* IV:ApZ:AZ 2 9.27 3 52.64 0.00 0.11 11.34 46.64 35.19 0.03 4 68.06 100.00 62.92 0.00 4\* IV:ApZ 1 9.29 1 45.93 0.00 0.10 9.89 43.93 40.11 0.00 1 68.06 100.00 62.92 0.00 3\* IV:CZ 1 9.34 2 21.12 0.00 0.05 4.55 17.12 9.49 0.00 1 61.19 100.00 46.07 0.00 2\* IV:KZ 1 9.35 3 15.85 0.00 0.03 3.41 9.85 -1.59 0.00 1 58.81 100.00 48.31 0.00 1\* IV:Z 0 9.39 0 0.00 1.00 0.00 0.00 0.00 0.00 0.00 0 51.04 100.00 56.18 0.00 **ID MODEL Level H dDF dLR Alpha Inf %dH(DV)dAIC dBIC Inc. Alpha Prog.%C(Data) %cover %C(Test) %miss **
 
@@ -288,8 +264,6 @@ Occam User’s Manual 3/13/2017 16
 
 • **%dH(DV)** is the percent reduction in uncertainty of the DV, given the IVs in the predicting components. While Information is a standardized measure, scaled from 0 to 1, so it tells the user how much of the constraint in the data is captured in the model. %dH(DV) is the actual reduction of uncertainty achieved by any model. A model could capture all (100%) of
 
-Occam User’s Manual 3/13/2017 17
-
 the constraint in the data, but this constraint might only minimally reduce the uncertainty of the DV. That is, Information is a relative number; %dH is an absolute number. But these two measures (and H and dLR) are linearly related: %dH(DV) = Information \* %dH(DV) for the top (saturated) model. For more information on these measures, see the “Wholes and Parts” and “Overview of Reconstructability Analysis” papers mentioned above.
 
 • **dAIC** and **dBIC** are differences in the Akaike Information Criterion and the Bayesian Information Criterion. dAIC is calculated as AIC(reference model) – AIC(model), and similarly for dBIC. AIC and BIC are measures of model goodness that integrate error and complexity and that do not require–as does Alpha–that the models being compared are hierarchically related. A “best” model is the one having a *minimum* AIC (or BIC) value, and hence a *maximum* dAIC (or dBIC) value. This means that, when using dAIC or dBIC to select a model, the highest positive value is preferred. This is true regardless of whether Top or Bottom is chosen as the reference.
@@ -300,9 +274,7 @@ the constraint in the data, but this constraint might only minimally reduce the 
 
 Note that Level depends on the choice of starting model, while dDF, dLR, Alpha, dAIC, and dBIC depend on the choice of reference model. Values for H, Information, and %dH(DV) are “absolute” and do not depend on starting or reference model.
 
-At the end of the Search output, after the list of models found during the search (the number of these models is width\*levels), the best of these models are summarized. These include the models with the best (highest) values of dBIC and dAIC. (Lower absolute values of BIC and AIC are normally preferred, but Occam reports these measures as differences between a reference and a model, and for such differences, higher values are better.) There may be more than one such model if there is a tie between models for best score. Similarly, the best model by Information is reported, considering – for Bottom as reference and searching upwards – only models that can be reached from the starting model with Incremental Alpha less than the Alpha Threshold (default 0.05) at each step
-
-Occam User’s Manual 3/13/2017 18
+At the end of the Search output, after the list of models found during the search (the number of these models is width\*levels), the best of these models are summarized. These include the models with the best (highest) values of dBIC and dAIC. (Lower absolute values of BIC and AIC are normally preferred, but Occam reports these measures as differences between a reference and a model, and for such differences, higher values are better.) There may be more than one such model if there is a tie between models for best score. Similarly, the best model by Information is reported, considering – for Bottom as reference and searching upwards – only models that can be reached from the starting model with Incremental Alpha less than the Alpha Threshold (default 0.05) at each step.
 
 of increasing complexity. Also, note that the models with Incremental Alpha less than Alpha Threshold at each step are marked with a \* next to their name in the search report.
 
@@ -316,9 +288,8 @@ ID MODEL Level H dDF dLR Alpha Inf dAIC dBIC 1 ABC 0 2.7612 0 0.0000 1.0000 1.00
 
 Using the same data file (from the “Wholes and Parts” paper) as shown above in the Data files section of **III. Search Input**, if C is regarded as an IV along with A and B, then the system is neutral. Below are the measures for the lattice of neutral systems. Note that the column for uncertainty reduction is omitted because there are no DVs. Values in the table are rounded to four digits after the decimal.
 
-Occam User’s Manual 3/13/2017 19
-
-**V. State-Based Search** The differences between state-based RA and variable-based RA are too lengthy to describe here. For a better description, see the paper, “State-Based Reconstructability Analysis” at http://www.sysc.pdx.edu/download/papers/mjpitf.pdf.
+## V. State-Based Search
+The differences between state-based RA and variable-based RA are too lengthy to describe here. For a better description, see the paper, “State-Based Reconstructability Analysis” at http://www.sysc.pdx.edu/download/papers/mjpitf.pdf.
 
 In the operation of Occam, the main difference for the user is that state-based RA will consider many more models than variable-based RA, for a typical input file. This is caused by the finer granularity of the Lattice of Structures. For instance, in an all-models search, each step will have a dDF of 1, regardless of variable cardinality. With lower dDFs at each level, it is easier for a search to move through the lattice while maintaining high measures of fitness. The cost of this is that many more models must be considered. Occam’s practical limitations on number of variables and state space size are lower for state-based RA. We are working on a better understanding of these limitations. If you encounter problems while using these new features, try reducing the dimensions of your data (for instance, by turning off variables) or the scope of your search (by reducing levels or width). An even better approach would be: have only a few IVs (like 2 or 3) turned on initially, and see how long it takes for Occam to run; then gradually increase the number of IVs. For variables with cardinalities of about 3, it is exceedingly unlikely that Occam can handle more than 10 IVs, and 5 IVs might be a more reasonable practical maximum. The main point is that going from variable-based searches to state-based searches, you must turn off many (perhaps most) of your IVs.
 
@@ -330,8 +301,6 @@ MODELS (directed) MODELS (neutral) IV:A1B2C1Z1:B1Z1:Z A:A2B1C2D2:B:B1D1:C:D IV:A
 
 IV:A1B2C1Z3:B1Z2:Z A:A2C2D1:B:B1D1:C:D IV:A1B2C1Z1:Z A:B:B1D1:C:D IV:B1Z2:Z A:A1B1D2:B:C:D IV:B2C1Z2:Z A:A1B1D1:B:C:D IV:Z A:B:C:D
 
-Occam User’s Manual 3/13/2017 20
-
 The web input page and the output file for a State-Based Search will appear much like that for a normal (variable-based) Search, as described above. Some of the search options have not been implemented for SB-Search, and these are either missing from the web page, or have been disabled. (Disabled options are likely to be implemented, while missing options are those that may not make sense for state-based RA.) For instance, “disjoint” and “downward” searches are not yet available, but will be in the future. “Use Inverse Notation” has been removed, because this option does not make sense with state- based model notation. Currently, only three main types of state-based search are available: directed bottom-up loopless; directed bottom-up all-model; and neutral bottom- up all-model.
 
 **VI. Fit Input** The Fit option is designed to give the user a detailed look at a particular model. That is, Search examines many models and then outputs different measures to characterize these models. Fit outputs many measures for a particular model, but more critically, it also outputs *the actual model* itself, not just its name. That is, it outputs the calculated frequency/probability distribution for the model.
@@ -342,11 +311,7 @@ Fit takes the same input file described above for Search. The web input page is,
 
 **Optional default model:** When fitting a directed system, a model may be able to generate DV prediction rules for all IV states. This can happen when there is a tie between predicted DV states, or when evaluating test data that was not present in the training data. In these cases, Fit will use the independence model as a default, to break the tie or to fill in the missing data. (When there is a tie in the independence model as well, the DV is selected by lexicographical order.) When a DV prediction is based on the independence model, it will be marked in the output with an asterisk in the “rule” column.
 
-You may be able to provide an alternate default model that is more sensible than the independence model. To do so, enter a model in this field that is a descendent of the model to fit. That is, the alternate default model should be on the lattice somewhere between the model to fit and Bottom, where this alternative default model has at least one fewer predicting IV. (Omission of this IV may break the tie, or the predicting IV states
-
-Occam User’s Manual 3/13/2017 21
-
-may now include all the test IV states). Occam will use this model first when breaking ties or filling in missing data. If it too fails to specify a prediction, Occam will fall back to the independence model.
+You may be able to provide an alternate default model that is more sensible than the independence model. To do so, enter a model in this field that is a descendent of the model to fit. That is, the alternate default model should be on the lattice somewhere between the model to fit and Bottom, where this alternative default model has at least one fewer predicting IV. (Omission of this IV may break the tie, or the predicting IV states may now include all the test IV states). Occam will use this model first when breaking ties or filling in missing data. If it too fails to specify a prediction, Occam will fall back to the independence model.
 
 **For directed systems: Default (‘negative’) DV state for confusion matrices:** For directed systems, Occam can output in Fit confusion matrices based on the model rule, and for the rules obtained for each component relation in the model. These matrices evaluate Occam’s predictions on the training data as well as the test data (if it is present). These confusion matrices indicate the correctness of prediction results when the Fit rule is used for a binary (“one state-vs-other states”) classification. To use this feature, specify a single ‘negative’ DV state, as an integer equal to or greater than 0. This selection represents a DV state, *after rebinning* (or recoding; see Appendix 1).
 
@@ -356,15 +321,11 @@ For example, if the DV represents the results of a medical test with state ‘0�
 
 With rebinning, multiple DV states can be aggregated into a single state before selecting that state as the default (‘negative’) DV state for confusion matrices. For example, if the DV represents the results of a medical test with ‘0’ representing “no symptoms reported”, ‘1’ representing “diagnostically-irrelevant symptom” and additional DV states representing diagnostically-relevant symptoms, the data can be rebinned (see Appendix 1) to aggregate DV states ‘0’ and ‘1’ into a new state ‘0’ and the remaining DV states into a new state ‘1’. Then, if the default (‘negative’) state ‘0’ is selected, Occam will output confusion matrices where ‘negative’ represents either “no symptoms” or “diagnostically-irrelevant symptom” and ‘positive’ represents any diagnostically-relevant symptom.
 
-Occam User’s Manual 3/13/2017 22
-
 **For neutral systems: omit full model and variable tables from output** For neutral systems, by default, Occam prints out a summary of the Fit results as well as tables showing all of the cells for the distributions projected from each relation, and for the overall model summarizing over IVI states (see the section “Fit Output: Output for a neutral system”, below). Occam can also print out a table showing all of the cells for the overall model distribution, including one cell for every combination of states seen in the data. However, since this table is very large, it is omitted by default. To enable this table in the output, uncheck the box “Omit table showing all states for entire model”. Additionally, Occam can print a table for each variable among the IVI, showing the margins for that variable. Since these tables are often not particularly informative, and since there may be many such tables, they are disabled by default. To enable them, uncheck the box labelled “also omit tables for IVI variables”.
 
 **Hypergraph Display Settings** In Fit mode, Occam can generate a hypergraph visualizing the structure of the “Model to Fit.” To enable this feature, check the “Generate graph images” box (which is enabled by default). Occam can also generate “Gephi” output files, which describe the same graph structure in a format suitable for the “Gephi” graph visualization program (by checking “Generate Gephi files.
 
 The hypergraph is displayed as a graph with nodes for each variable, and for each relation. Variables nodes are connected to the node for each associated relation. Although this method of displaying hypergraphs has probably been discovered many times, the algorithm in Occam is based on a script by Teresa Schmidt. The hypergraph is determined solely by the model description and the “:nominal” variable declaration block. The output will look similar to the following example, for the model “IVI:ApZ:EdK:AKZ”:
-
-Occam User’s Manual 3/13/2017 23
 
 By default, the generated graph will omit all of the IV/IVI components that are not explicitly present in the model (and, in the case of directed systems, associated with the DV). To show these variables as (disconnected) nodes in the graph, uncheck the “Hide IV/IVI components” box.
 
@@ -384,13 +345,12 @@ drawing is proportional to the graph-theoretic distance between them (Kamada and
 
 Additionally, the image width and height, font size, and overall size of the variable nodes can be controlled with the 4 text boxes in this section, which accept positive integer-valued sizes. Note that Occam will choose a node size that is, at minimum, big enough to hold each of the variable labels (even if a smaller node size is chosen using the input box).
 
-Occam User’s Manual 3/13/2017 24
 
 At present, Occam is only able to generate graph files for the HTML output or when “Return data in CSV format” is enabled, and is unable to include the graphs when returning results via email. That is, when “Run in Background, Email Results To:” is enabled by entering an email address, Occam will disable graph generation (and return the usual results via email). This is a known bug that the programmer will eventually fix.
 
 When returning results as HTML output, Occam includes the graph images as SVG format images. When returning results in CSV format, Occam includes graph images as PDF files (which are suitable for printing or for inclusion in a Word document).
 
-**VII. Fit Output** After echoing the input parameters (which are requested by default), Occam prints out some properties of the model and some measures for the model where the reference model is first the top and then the bottom of the lattice.
+## VII. Fit Output** After echoing the input parameters (which are requested by default), Occam prints out some properties of the model and some measures for the model where the reference model is first the top and then the bottom of the lattice.
 
 ***Output file for a directed system*** Below is the first Fit table outputted for a sample directed system, where the model is Top, “ABC”, where A and B are IVs, and C is the DV. The first columns show all of the “IV” state combinations that appear in the data. (Note that these IV states include states where the value of B is missing; these are shown as “.”) The next three columns, marked “Data”, show the frequencies in the data for each of those IV states, along with the observed conditional probabilities for the DV states. The following columns, marked Model, show the calculated conditional probabilities for the model, along with the selected prediction rule. The prediction rule specifies which DV state is expected given some particular IV state (row). The columns labelled “\#correct” and “%correct” show the performance of those rules on the data.
 
@@ -402,8 +362,6 @@ IV | Data | Model
 
 %correct p(rule) p(margin) significance of the difference between the model distribution of conditional DV states obtained from the rule and a uniform distribution over DV states (the uniform distribution is the null hypothesis here). For example, in the example table shown, the row for IV
 
-Occam User’s Manual 3/13/2017 25
-
 state A=0, B=1 has p(rule)=0.004, which indicates that the difference between the distribution of conditional DVs for this IV state and a uniform distribution over DV states is statistically significant assuming the standard threshold of p=0.05. In contrast, the row for IV state A=0, B=0 has p(rule)=0.112, indicating that the difference between the conditional DV distribution and a uniform distribution is not significant (under the standard cutoff). Intuitively, although the rule distribution (.144, .856) differs from a uniform distribution (.5, .5), the overall chi-square value is low due to the small sample size (5). Similarly, in the row for IV state A=1, B=0 has p(rule)=0.952, indicating that the difference between the predicted distribution and a uniform distribution is not significant: while this row has a larger sample size (44), the conditional DV distribution is very close to a uniform distribution.
 
 The column labeled “p(margin)” is similar, but instead of comparing the conditional DV distribution to a uniform distribution over DV states, the conditional DV distribution is compared to the marginal distribution of DV states (across all IV states). In the example shown, the marginal distribution has C=0 with probability 0.52 and C=1 with probability 0.48 – which is fairly similar to a uniform distribution – so the p(margin) values are generally fairly similar to the p(rule) values. For data with a less evenly distributed marginal DV state, the p(rule) and p(margin) results will differ more greatly. Note that if the marginal distribution is heavily skewed to one state, for example if this distribution is (.95, .05), an IV state with a conditional distribution of (.6, .4) would still yield the same prediction rule (predicting the first of these two states), but the risk of the second state as increased by 8X. In such situations, it is p(margin) and not p(rule) that is of interest.
@@ -411,8 +369,6 @@ The column labeled “p(margin)” is similar, but instead of comparing the cond
 At the bottom of the table, Occam prints out a summary row including the marginal frequencies of the DV states, also expressed as percentages. Under the “rule” column for the Model, the summary row includes the default rule for the data. This default rule is based on the most common DV value. (In cases of ties, the tie is broken by alphanumeric order. For example: if a DV has two states “0” and “1” that appear with equal frequency, the default rule would be “0”.)
 
 If test data was included in the input file, the remaining columns, marked Test Data, show the observed frequencies for the IV states and conditional DV states, the percentage of the test cases guessed correctly by the rule obtained from the model fitted on the training data. Below the table, Occam also outputs a summary of the model’s test performance. This summary compares the model to the default rule and also to the “best possible” rule set. The best possible rule set is the set of rules that would best predict the test data for all IV states. The actual model rules, gotten from the training data, are thus assessed on the test data by comparing these rules to rules that would have given optimum performance on the test data. Since the test data is in general stochastic, even the best possible prediction rules will err in many cases. (For example, for a binary DV, if the conditional DV for an IV state is uniformly distributed in the test data, no possible rule for that IV state can achieve better than 50% accuracy in predicting the DV). A percent improvement is given, showing how the model performed, scaled between the default and best possible outcomes.
-
-Occam User’s Manual 3/13/2017 26
 
 This first table produced by Fit is an integrated table for a whole model, and when the model is TOP this table is the only conditional distribution that Fit outputs. If the model as multiple predicting components, as in IV:AZ:BZ, then in addition to outputting the conditional distribution of Z, given A and B, Fit also outputs separate conditional DV distribution tables for each predicting component, here AZ and BZ.
 
@@ -429,8 +385,6 @@ Actual | Rule
 Additional Statistics (Training) **Statistic Definition Value** Accuracy correct / sample size 0.570 Sensitivity (aka Recall) (TP / AP) 0.624 Specificity (TN / AN) 0.521 Precision (TP / RP) 0.545 Negative Predictive Value (TN / RN) 0.600
 
 Along with the main counts in the confusion matrix, Occam provides the marginal totals for all of the ‘actual negative’ and ‘actual positive’ cases from the data, and the ‘rule negative’ and ‘rule positive’ cases predicted by the model. The “diagonal” margin in the bottom-right corner indicates the number of correct predictions, obtained by summing the true negative and true positive counts. The confusion matrix cells and margins are labeled with abbreviations for ‘true negative’ (TN), ‘false positive’ (FP), ‘true positive’ (TP), ‘false negative’ (FP), ‘actual negative’ (AN), ‘actual positive’ (AP), ‘rule negative’ (RN), and ‘rule positive’ (RP), as well as the number of correct predictions (“\#correct”).
-
-Occam User’s Manual 3/13/2017 27
 
 ***Output file for a neutral system*** For neutral systems, by default, Occam prints out a summary table showing a quick overview of all of the dyadic (2-variable) relations in the model, as well as a table showing observations for each relation in the model, and for the overall model (summarizing over IVI states). Additionally, if requested, Occam can print observations for every cell in the model distribution, and for the margins for each variable among the IVI (but these tables are omitted by default; see “Fit Input: for neutral systems” above.
 
@@ -454,8 +408,6 @@ There is 1 row for each dyadic relation in the model; the columns are as follows
 
 • Max.Lift shows the maximum Lift among all of the states in the model (see the section on “Observations for the overall model”, below). Lift is defined as Obs.Prob./Ind.Prob. for a state, where Obs.Prob. is the observed probability of that state in the data, and Ind.Prob. is the probability of that state in the independence distribution. Along with this, State shows the state that maximizes Lift and Freq. shows the frequency of that state. If two or more states have the same Lift value, ties are broken by favoring the state with the higher frequency.
 
-Occam User’s Manual 3/13/2017 28
-
 **Observations for a relation** The observations for a single relation are shown in a table with 1 row for each state in the margins of the data for that relation, and a single summary row. For example, the following table is for a relation, ApEd:
 
 **Ap Ed | Obs.Prob. Obs.Freq. | Ind.Prob. Ind.Freq. Lift** 0 0 | 0.038095238 16.000000 | 0.041938776 17.614286 0.90835361 0 1 | 0.21428571 90.000000 | 0.21435374 90.028571 0.99968264 0 2 | 0.40000000 168.00000 | 0.39608844 166.35714 1.0098755 1 0 | 0.026190476 11.000000 | 0.022346939 9.3857143 1.1719939 1 1 | 0.11428571 48.000000 | 0.11421769 47.971429 1.0005956 1 2 | 0.20714286 87.000000 | 0.21105442 88.642857 0.98146656
@@ -478,8 +430,6 @@ The single summary row omits the first few columns showing the state, since it i
 
 • Ind.Prob. is the sum of the individual Ind.Prob. values. If all of the possible combinations of variable states were observed in the data, this should be equal to 1.0, since the Ind.Prob. values should also form a probability distribution.
 
-Occam User’s Manual 3/13/2017 29
-
 However, if the states observed in the data do not exhaustively cover the state space (i.e. some possible states were never observed), the omitted states will not be shown in the table and will not contribute to this sum. In this case, the summary Ind.Prob. may be less than 1.0. This indicates that the independence distribution assigns non-zero probability to some of the states that were not observed in the data. Similarly, Ind.Freq. will equal the sample size if all possible states were observed, but may be less if some states were not observed. The summary Lift is defined as the summary Obs.Prob. / summary Ind.Prob.; Lift will equal 1.0 if Ind.Prob.=Obs.Prob.=1.0, but may be greater than 1.0 if Ind.Prob. is less than 1.0. The summary Lift describes the extent to which the independence distribution assigns non-zero probability to states that were not seen in the data; a low value (close to 0) indicates that the independence distribution assigns substantial likelihood to states not observed in the data.
 
 **Observations for the overall model (summarizing over IVIs)** The table for the overall model is similar to the table for a component relation. However, in the leftmost columns specifying the state described in each row, there will be one column for each variable in the overall model (except for those among the IVI).
@@ -500,8 +450,6 @@ The summary row has the following interpretation:
 
 • The row for Calc.Prob. shows the sum of Calc.Prob. for each state. Similar to Ind.Prob., the calculated (q) distribution may assign non-zero probabilities to states that were not seen in the data (and thus not included in this table). In this case, the Calc.Prob. will be less than 1. If all of the possible combinations of variable states were observed in the data, then the summary Calc.Prob. should be equal to 1.0. Similarly, Calc.Freq. shows the sum of Calc.Freq. for each cell, which will be equal to the sample size if every possible state was observed. The summary Residual is just the summary Calc.Prob – summary Obs.Prob., which will be 0.0 if every possible state was observed, or a negative value otherwise.
 
-Occam User’s Manual 3/13/2017 30
-
 • Similarly, the summary Ind.Prob. is the sum of Ind.Prob. for each cell; likewise for Ind.Freq. The summary Lift is just the summary Calc.Prob / summary Ind.Prob.; again, summary Lift will be equal to 1.0 just in the case that summary Obs.Prob. and summary Ind.Prob. are both 1.0. The summary Lift describes the extent to which the calculated (q) distribution assigns probability to states not seen in the data, compared to the extent to which the independence distribution does so. A low value (close to 0) indicates that the calculated distribution assigns substantial probability to states not observed in the data (compared to the independence distribution), whereas a high value (greater than 1) indicates that the independence distribution assigns substantial probability to states not observed in the data, compared to the calculated distribution.
 
 If the model has only one component relation, the overall model (summarizing over IVI states) will have observed, calculated, and independence values that are the same as those contained in the table for that single component relation; in this case Occam will omit the table containing these observations (since they are already contained in the table for the individual component relation).
@@ -512,23 +460,22 @@ Note that the observed and calculated values will be different only for a model 
 
 **Observations for each variable among the IVIs** Similar to the tables for each relation, Occam can also print out a table for each variable among the IVIs, although these are omitted by default. These tables contain a row for each observed state of the variable. Besides the column denoting these states, the tables also include Obs.Prob. and Obs.Freq.; note that for a single variable margin, Obs.Prob.=Calc.Prob.=Ind.Prob., so the Calc.Prob. and Ind.Prob (and associated frequency) columns are omitted.
 
-Occam User’s Manual 3/13/2017 31
+## VIII. State-Based Fit State-Based Fit (or SB-Fit) provides the same functionality and output as the standard variable-based Fit action. However, it operates on state-based models, such as those returned by a state-based search. As such, it has the same restrictions as state-based search: in the input file, variable abbreviations must be composed of only letters, and state names must be only numbers. Also, the optional “inverse notation” that can be used for variable-based models is not allowed for state-based models.
 
-**VIII. State-Based Fit** State-Based Fit (or SB-Fit) provides the same functionality and output as the standard variable-based Fit action. However, it operates on state-based models, such as those returned by a state-based search. As such, it has the same restrictions as state-based search: in the input file, variable abbreviations must be composed of only letters, and state names must be only numbers. Also, the optional “inverse notation” that can be used for variable-based models is not allowed for state-based models.
+## IX. Show Log
+This lets the user input his/her email address and see the history of the batch jobs that have been submitted and the Occam outputs for these jobs that have been emailed back to the user.
 
-**IX. Show Log** This lets the user input his/her email address and see the history of the batch jobs that have been submitted and the Occam outputs for these jobs that have been emailed back to the user.
+## X. Manage Jobs
+This allows the user to kill runaway or obsolete jobs. If a job appears to have crashed or stalled, please try to quit it using this page. Note that interactive jobs (when results are delivered in your browser) are not necessarily ended by closing the web page. Be careful to delete only your own jobs, and only the job you intend to delete. If you encounter problems with this, please email occam-feedback@lists.pdx.edu.
 
-**X. Manage Jobs** This allows the user to kill runaway or obsolete jobs. If a job appears to have crashed or stalled, please try to quit it using this page. Note that interactive jobs (when results are delivered in your browser) are not necessarily ended by closing the web page. Be careful to delete only your own jobs, and only the job you intend to delete. If you encounter problems with this, please email occam-feedback@lists.pdx.edu.
-
-**XI. Frequently Asked Questions** 0. Are these really frequently asked questions or did you make them up? Some of them have actually been asked, but mostly they are made up. These are some questions that an Occam user might find it valuable to know the answers to.
+## XI. Frequently Asked Questions 
+0. Are these really frequently asked questions or did you make them up? Some of them have actually been asked, but mostly they are made up. These are some questions that an Occam user might find it valuable to know the answers to.
 
 *1. How do I determine the best predictor or best set of IV predictors of some dependent variable?* Do an upward search, from the independence (bottom) model, IV:DV, using this bottom also as the reference model, looking only at loopless models. The best dBIC, dAIC, and Information models give you three answers to this question of the best predictors. The dBIC model is the most conservative of these answers, i.e., it posits the fewest best predictors. The other two best models are more ‘aggressive’ and posit more predictors.
 
 If you are interested only in the best single IV predictor, you need only to do this upward search for one level. If you want to see several IVs ranked by their predictive power, set “Search Width” to the number of single predictors you want reported. For example, if it is set to three, what will be reported is the best single predictor, the 2^nd^ best single predictor, and the 3^rd^ best single predictor. If you want the best *pair* predictors, go *two* levels up; again the width parameter will indicate how many of these will be reported.
 
 *2. How do I determine the best multi-predicting component model for some set of IV predictors?* Multi-predicting-component models are models with loops. Do an upwards ‘All models’ search from the independence model, with the independence model as reference.
-
-Occam User’s Manual 3/13/2017 32
 
 *3. For what purposes are loopless models used for directed systems?* Loopless models for directed systems are models that have a single predicting component, in addition to a component defined by all the IVs. Loopless models are used to find a best set of IV predictors; see question \#1.
 
@@ -541,9 +488,6 @@ Suppose one has three IVs: A, B, and C. If one tests whether ABCZ is statistical
 *6. How many bins shall I bin my quantitative variables into?* Binning can be done “rationally,” i.e., using substantive knowledge about how qualitatively distinct values ought sensibly to be defined, or “technically” by some mathematical procedure, without regard to substantive issues of interpretation. For example, plotting your data on a histogram and assigning bins to clear and natural groups is a rational procedure, but be aware that if these groupings put very many cases into one bin and only a few into others, one is losing discriminating power by such a binning assignment. If there are conventions in the field you are working in about how variables should be binned (for example, there might be conventions about how age groups should be defined), these conventions should be used, since you will be communicating your results to people in your field, and they will expect these conventions to be followed.
 
 For binning technically, 3 bins is a good default, since it allows detection of non-linear relations, while 2 bins do not, but if your sample size is very small, it may be advisable – indeed you may be forced to use – 2 bins. More bins give finer discrimination but bins should be thought of as a resource to be optimally distributed among all the variables. If
-
-Occam User’s Manual 3/13/2017 33
-
 one wanted to be able to use the *data* as your model, a rule of thumb is that the product of the number of bins for all variables should be about a fifth of the sample size, or to put it the other way, the sample size should be 5 times the number of bins (the size of the state space). But one doesn’t normally want to use the data as a predictive model, since this would be overfitting, so to use a simpler model is less demanding on the sample size – and thus more tolerant of variables with high cardinality (large number of bins). For upwards searches from the independence model, with this model also as the reference, a rule of thumb is that the sample size should be 5x the delta-degrees of freedom (dDF). Occam reports p-values (called ‘alpha’), so you can see for yourself if your sample size is too small to allow models of adequate complexity or conversely if your variables have too many bins for the sample size that you have.
 
 Viewing the numbers of bins as a scarce resource suggests that predictive variables should have more bins while non-predictive variables should have fewer bins. But since one doesn’t know in advance which IVs will be predictive, a good strategy is to bin with a large number of bins, like 12, a number which is also highly composite, and then rebin in the Occam input file, using the rebinning option explained in the Appendix, down to 3 or 2 bins. Then those variables that turn out to be more predictive can be quickly rebinned differently with more bins.
@@ -555,8 +499,6 @@ Binning is not included in Occam, but a binning utility program written for Exce
 *8. I don’t want to search through many models. I just want to test a particular model. Can Occam do that for me?* Yes. To use Occam in a confirmatory rather than exploratory mode, either (a) simply use the Fit rather than the Search option or (b) use the Search option with the starting model being the model you want to test, choosing the appropriate reference model, and setting “Search Width” to 1 and “Search Levels” to 0.
 
 *9. Why are models with high alpha better for downwards searches, and how high should alpha be?* In downwards searches, the null hypothesis is usually that a model is the same as (agrees with) the data. The probability of a Type I error means the probability of being wrong in rejecting this hypothesis that the model agrees with the data. For a model we are hoping
-
-Occam User’s Manual 3/13/2017 34
 
 to accept, we want alpha to be relatively high because we want to be sure that we would be wrong if we said that the model differs from the data.
 
@@ -572,8 +514,6 @@ Technically, one here would like to know the value of beta, the probability of m
 
 Note that the model AB:BZ does not actually require the above causal interpretation. It could also be interpreted as A → B ← Z or A ← B ← Z. That is, RA does not and cannot distinguish between these situations, and an argument that it is one rather than another has to be made by the user. Occam only reports associations; it cannot say anything about causation. (Relating what Occam calculates to claims by Judea Pearl that it is in principle possible to make assertions about causation is work for the future.)
 
-Occam User’s Manual 3/13/2017 35
-
 *13. I am doing a downward search with the top as my reference model and I find that any decomposition results in a severe drop in alpha. Does that mean that I cannot decompose the data at all?* Not necessarily. This effect could be due to your having a very large sample size (at least relative to the state space), so that any deviation from the data is statistically significant. In such situations, you could base your decisions not on statistical significance, but instead on %Information. That is, you can go down the Lattice of Structures as far as you can, as long as %Information is greater than some minimal value of your choosing.
 
 *14. What are chain models and how are they useful?* Chain models for directed systems are models like IV:ABZ:BCZ:CDZ, and for neutral systems are models like AB:BC:CD. These models were used in a project where RA was a preprocessor for genetic algorithms. They may or may not be of more general usefulness.
@@ -586,13 +526,12 @@ The “Search Width” parameter has a default of 3, which is a modest initial v
 
 *17. Loopless searches seem to be pretty fast, but searching all models often takes very long. Why is this, and is there some way to speed up all-model searches?* Loopless searches don’t need IPF, and scale with the data and not the state space. At present, all-model searches need IPF and computation time goes with the state space and not the data, so these searches will necessarily take a long time.
 
-Occam User’s Manual 3/13/2017 36
-
 *18. What about set-theoretic RA?* This is not yet implemented in Occam. Set-theoretic RA is available in a separate program.
 
 *19. What about latent variable models?* This is not yet implemented in Occam or in any separate RA program. However, latent variable log linear programs exist (though they are likely to work in the confirmatory, and not the exploratory, mode, so they do not search many models).
 
-**XII. Error And Warning Messages** The following error and warning messages may appear in the search output.
+## XII. Error And Warning Messages
+The following error and warning messages may appear in the search output.
 
 **1. Cardinality Error:** If the user specifies a value of Cardinality less than the total number of states present in the data for the variable, an error will be issued (“new value exceeds cardinality of variable x”) and the program will halt. However, if the specified Cardinality is greater than the number of states of the variable in the data, Occam will give a warning that says so, and continue. The analysis presented by Occam in such situations may not be valid and therefore care should be taken to make sure the specified Cardinality of the variable is correct. Specifying a variable Cardinality smaller than its actual Cardinality is the more severe of these two errors, but EITHER ERROR SHOULD BE CORRECTED BEFORE PROCEEDING FURTHER. In particular, variables with cardinality=1 should be removed or disabled for best results.
 
@@ -604,9 +543,7 @@ Occam User’s Manual 3/13/2017 36
 
 **5. Rebinning an ignored variable warning:** If a variable is marked to be ignored but a rebinning string is present, Occam will ignore the rebinning string and the analysis will be done without rebinning. Occam will issue a small warning: “For variable =&gt;x rebinning parameters will not be considered since it is marked for no use.”
 
-Occam User’s Manual 3/13/2017 37
-
-**XIII. Known Bugs & Infelicities; Limitations **
+## XIII. Known Bugs & Infelicities; Limitations 
 
 ***Bugs and infelicities* 1. DF for large state spaces**. For large state spaces, a calculation of DF would be inaccurate if the state space nears a limitation of the underlying computer architecture, currently 2^53^ (\~10^16^). Occam does not calculate DF directly, but rather calculates delta- DF, which does not actually require a DF calculation. However, if delta-DF exceeds 2^63^ (\~10^19^), values may become inaccurate. This should be relatively apparent, if one is careful to always check that the output makes sense. For example, if delta-DF values appear negative, these limitations have likely been exceeded
 
@@ -616,15 +553,11 @@ Occam User’s Manual 3/13/2017 37
 
 ***Limitations*** Limitations are of computer processor time or storage space or both. Occam calculations for models without loops scale with the data and are relatively fast, so it is advisable to begin studies with loopless investigations. Calculations for models *with* loops, e.g., the “all” models option, are typically much slower (and at worst scale with the state space). (For directed systems, disjoint and chain models have loops; for neutral systems they do not.) This would be a very serious limitation if it could not be overcome, since, e.g., thirty binary variables have a state space of one billion, and one would not like calculations of this order for every iteration. Fortunately, in directed systems, advantage can be taken of sparse sampling so that sometimes calculations with loops approximately scale more with the data than with the complete state space. To get this benefit, however, the user must define the DV (output) as the *last* variable of the set of variables. Calculations for models with loops also scale with the number of components of the model.
 
-The user might plausibly ask one or more of the following questions: How many variables can I give Occam? How many data records can I give Occam? Is there a
-
-Occam User’s Manual 3/13/2017 38
-
-maximum total state space that Occam can handle? Is there some maximum number of models that Occam can search? What is the longest running time of any Occam run? The gathering of such statistics has begun only with the March 1, 2005 edition of this manual, but here are a few answers.
+The user might plausibly ask one or more of the following questions: How many variables can I give Occam? How many data records can I give Occam? Is there a maximum total state space that Occam can handle? Is there some maximum number of models that Occam can search? What is the longest running time of any Occam run? The gathering of such statistics has begun only with the March 1, 2005 edition of this manual, but here are a few answers.
 
 Occam has been run with up to about 225 variables. To our knowledge, the maximum number of bins for variables that has been used so far is about 50. Input files so far have been as large as about a million records (the sample size). Total state spaces have sometimes been extremely large, e.g., 10^47^. Occam has been run for days, but this is strongly **discouraged**, as this kind of intensive use makes it much less available to other users. At present, access to Occam is not controlled, but if–or when–computational load exceeds the capacity of the one server and inhibits the use of Occam by its multiple users, access will have to be controlled and limited. Note that for very large state spaces, if the sparseness of the data is not taken advantage of by having the DV be the last variable, all- model searches downwards from Top are impossible. In general, large state spaces suggest searches in the upward direction because models at or near the bottom of the lattice have very small dDFs.
 
-**XIV. Planned But Not-Yet-Implemented Features **
+## XIV. Planned But Not-Yet-Implemented Features
 
 ***Preprocessing data* 1. Using inputs only for test data**. For directed systems, there should be an option to add test set *inputs* to the training set, and have Occam output either a best prediction of the DV for each input record or a conditional probability distribution for the different possible DV values.
 
@@ -633,8 +566,6 @@ Occam has been run with up to about 225 variables. To our knowledge, the maximum
 **3. Missing data**. Currently, Occam can only handle missing data, i.e., values of some variables being missing in some records, by either (a) assigning “missing” as another variable value, or (b) ignoring records with missing values for particular IVs (see the section below on Rebinning). Missing values should be coded with a period (“.”). In principle, there ought also to be an option for Occam to impute missing values.
 
 ***Models considered* 1. Omitting IV (input) component**. For directed systems, there should be an option to omit the IV component of the model, e.g., the AB of models AB:Z, AB:AZ, etc. This would (a) allow some models to make predictions for inputs not in the training set, (b) make some models loopless, so they can be assessed algebraically without IPF, and (c) make RA more resemble Bayesian networks, which often do not utilize (incorporate) such input components in their models.
-
-Occam User’s Manual 3/13/2017 39
 
 ***Search* 1. Complete implementation of searches of all model classes**. Systems are either directed or neutral. The user can choose between different classes of models: all, loopless, disjoint, chain. Search direction can also be either up or down. However, not all classes of models are actually currently implemented for both up and down search directions for both neutral and directed systems. More specifically, what is and what is not currently implemented is indicated in the following table.
 
@@ -650,9 +581,8 @@ state- based directed up all yes yes directed up disjoint yes no directed up loo
 
 **2. Other goodness measures**. There are other measures of model goodness that it would be desirable to calculate and output: beta (probability of a Type II error), transmission, absolute rather than relative AIC values, AIC (or dAIC) corrected for small sample sizes relative to the state space, minimum description length (MDL), Receiver Operating Characteristic (ROC) area under curve, etc.
 
-Occam User’s Manual 3/13/2017 40
-
-**Appendix 1. Rebinning (Recoding)** This feature allows the user to:
+## Appendix 1. Rebinning (Recoding)
+This feature allows the user to:
 
 \(a) *ignore* data where some variables have particular values, (b) *select* only data where some variables have particular values, and (c) *regroup* (recode) states of a variable.
 
@@ -673,8 +603,6 @@ One can also *regroup* several values of a variable into a new value. One might 
 Regrouping is done by specifying a fifth field in a variable definition surrounded by brackets, and having no spaces between any of the characters inside the brackets (the rebinning string is *“white space intolerant”*). For example:
 
 theta, 3,1,t, \[1(1,2);2(3)\]
-
-Occam User’s Manual 3/13/2017 41
 
 In this example, theta originally has 3 states but because of rebinning, old states 1 and 2 now become new state 1 and old state 3 becomes new state 2. The cardinality of theta has become 2. The general form of this regrouping specification is
 
@@ -710,31 +638,28 @@ This causes data where Age = 4 to be ignored; also old states 1 and 3 become new
 
 Finally, there is a wild card character that the rebinning module identifies, which is “\*”, which means “everything else.” This can be used only in the last bin as in
 
-Occam User’s Manual 3/13/2017 42
-
 kappa, 5,1,k, \[1(1,3);2(4);3(\*)\]
 
 In this case kappa will be rebinned and original states 1 and 3 will become new state 1, original state 4 will become new state 2 and rest of the states of kappa will become new state 3 (in this case states 2 and 5).
 
-**Appendix 2. Missing Values in the Data** In the data that Occam actually sees, a row (case) and column (variable) cannot have a a blank in a variable’s field. In preparing data for Occam, a missing value can be handled in one of three ways: (a) the row can be deleted from the data, (b) an additional value for the variable can be defined, namely “.”, which means “missing”, or (c) the value can be assigned randomly based on the observed probabilities of the different values in the rest of the data (this must be done by the user before running Occam). Note that the rebinning option described above allows one to have Occam omit rows (cases) where variables are marked as having missing values indicated as “.”.
+## Appendix 2. Missing Values in the Data
+In the data that Occam actually sees, a row (case) and column (variable) cannot have a a blank in a variable’s field. In preparing data for Occam, a missing value can be handled in one of three ways: (a) the row can be deleted from the data, (b) an additional value for the variable can be defined, namely “.”, which means “missing”, or (c) the value can be assigned randomly based on the observed probabilities of the different values in the rest of the data (this must be done by the user before running Occam). Note that the rebinning option described above allows one to have Occam omit rows (cases) where variables are marked as having missing values indicated as “.”.
 
-**Appendix 3. Additional Parameters in the Input File** In addition to action, variables, and data, the data file may include additional parameter specifications. A parameter specification is either just a single line when the parameter is a “switch,” such as the “no-frequency” parameter shown above, or it involves two lines, the first giving the parameter name and the second its value.
+## Appendix 3. Additional Parameters in the Input File
+In addition to action, variables, and data, the data file may include additional parameter specifications. A parameter specification is either just a single line when the parameter is a “switch,” such as the “no-frequency” parameter shown above, or it involves two lines, the first giving the parameter name and the second its value.
 
 At present *the only parameters that can be set **only** in the data file* (aside from the “:no- frequency” declaration) and not on the web input page are ipf-maxit and ipf-maxdev, which control the Iterative Proportional Fitting Algorithm. The user will in general not need to think about these parameters or change them from their default values. IPF generates calculated probabilities for some types of models. ipf-maxit is the maximum number of IPF iterations; ipf-maxdev is the maximum difference of frequencies (not probabilities) allowed between a state in the distribution for a calculated projection included in the model and the same state in the observed projection. If Chi-square errors are reported in a run, consider increasing “ipf-maxit” and decreasing “ipf-maxdev.”
 
 One can specify in the data file the number of levels to be searched and the search width (the number of models retained at each level). For example, to search 10 levels and keep the best 5 models at each level, one adds the following lines above the data:
 
-:search-levels 10 :optimize-search-width 5 ~However,\ one\ can\ specify\ the\ number\ of\ search\ levels\ and\ the\ search\ width\ on\ the\ web~ input page, and it is more convenient to do so there. When search levels and width are specified *both* in the data file and on the web input page, the web input page values take
-
-Occam User’s Manual 3/13/2017 43
-
-priority. If these values are *not* specified in either the data file or the web input page, they will take on their default values, as follows:
+:search-levels 10 :optimize-search-width 5 ~However,\ one\ can\ specify\ the\ number\ of\ search\ levels\ and\ the\ search\ width\ on\ the\ web~ input page, and it is more convenient to do so there. When search levels and width are specified *both* in the data file and on the web input page, the web input page values take priority. If these values are *not* specified in either the data file or the web input page, they will take on their default values, as follows:
 
 parameter default search-levels 7 optimize-search-width 3 ipf-maxit 266 ipf-maxdev .25
 
 Parameter settings are echoed in Occam’s output by checking “Print Options Settings” so that one has a record of them. This is good practice, so this option is on by default.
 
-**Appendix 4. Zipping the Input File** Occam can now accept input files in the “zip” format. Zipping a file creates a compressed version that is potentially much smaller, allowing for a faster upload when submitting a new job. The file is unzipped on the Occam server, and the data in the file are unaffected. Because Occam input files are typically very simple, zip compression can reduce their size by as much as 90%.
+## Appendix 4. Zipping the Input File
+Occam can now accept input files in the “zip” format. Zipping a file creates a compressed version that is potentially much smaller, allowing for a faster upload when submitting a new job. The file is unzipped on the Occam server, and the data in the file are unaffected. Because Occam input files are typically very simple, zip compression can reduce their size by as much as 90%.
 
 To zip your input file, first prepare it as you would normally. Once it is ready for submission, you must zip it with a compression program. Fortunately, these are now included by default in most modern operating systems. To use this feature, create a new document, with the ‘.zip’ suffix. Select this .zip file from the Occam web page, in place of your normal input file. As long as you have submitted only a single file, Occam should handle the zipped file the same way it handles a text file.
 
@@ -742,11 +667,7 @@ If you encounter an error with this new feature, please send the zip file to Occ
 
 **Appendix 5. Compare Mode** OCCAM’s *Compare* mode allows the user to compare best models derived from one or more pairs of datasets. This is a specialized mode originally created for Teresa Schmidt’s research, which may be of interest for other research projects. *Compare* uses the Search function to find the best model for each dataset, uses the Fit function to define the calculated (q) distribution for each best model, and then compares the best models along a variety of metrics. Many datasets can be submitted in a single batch job, which allows multiple pairs of models to be compared simultaneously.
 
-***Data Files*** The input file to *Compare* must be a single .zip archive. This archive must contain 1 or more *pairs* of datafiles. A pair of datafiles is 2 files with exactly the same name, except for a difference in the character immediately preceding the .txt file extension. For example, valid paired names could be ‘fileA.txt’ and ‘fileB.txt’. *Compare* determines which files are in corresponding pairs by sorting the list of files in the archive
-
-Occam User’s Manual 3/13/2017 44
-
-and checking that adjacent files in the sorted order meet this criterion. *Compare* will fail with an error when file names cannot do not match in this way. The single differing character before the extension can be anything in the two files so long as it differs, but the output of the analysis will refer to the lexically first filename as variant “A” and the lexically second one as variant “B”, so “A” and “B” are the most intuitive suffix characters to distinguish the files in a pair.
+***Data Files*** The input file to *Compare* must be a single .zip archive. This archive must contain 1 or more *pairs* of datafiles. A pair of datafiles is 2 files with exactly the same name, except for a difference in the character immediately preceding the .txt file extension. For example, valid paired names could be ‘fileA.txt’ and ‘fileB.txt’. *Compare* determines which files are in corresponding pairs by sorting the list of files in the archive and checking that adjacent files in the sorted order meet this criterion. *Compare* will fail with an error when file names cannot do not match in this way. The single differing character before the extension can be anything in the two files so long as it differs, but the output of the analysis will refer to the lexically first filename as variant “A” and the lexically second one as variant “B”, so “A” and “B” are the most intuitive suffix characters to distinguish the files in a pair.
 
 ***Search Settings ***
 
@@ -812,7 +733,8 @@ Like other OCCAM modes, the results of *Compare* can be returned in spreadsheet 
 
 Occam User’s Manual 3/13/2017 46
 
-**Appendix 6. Cached Data Mode** For Search, Fit, SB-Search and SB-Fit, Occam can cache the variable declaration block, data block, and test block of an input file for later use. This is useful when working with large files, as it eliminates the delay incurred by repeatedly upload the file.
+## Appendix 6. Cached Data Mode
+For Search, Fit, SB-Search and SB-Fit, Occam can cache the variable declaration block, data block, and test block of an input file for later use. This is useful when working with large files, as it eliminates the delay incurred by repeatedly upload the file.
 
 To cache data in this manner, first navigate to the main page for Search, Fit, SB-Search, or SB-Fit mode. Then, click to enable the checkbox labelled “Cached Data Mode”, located to the right-hand side of the mode selection header. This will open up a variant of the option page for the selected mode; the top input section should now be labelled “Cached Data Settings”. Note that toggling “Cached Data Mode” loads a fresh copy of the Occam input page, so any options (such as model name) already entered into the fields will be reset to the defaults upon toggling this mode.
 
