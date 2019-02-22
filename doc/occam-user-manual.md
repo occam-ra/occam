@@ -97,15 +97,9 @@ Data can be provided to Occam *without frequencies*, where each line (row) repre
 Uploading data will be faster if the data provides frequencies, so if the data file is big, the user might consider doing this operation before calling Occam.
 
 **Test data specification** Optionally, a data file can include “test data.” Typically, test data are a fraction of the original data that has been set aside, so that models can be measured against data that were not used in their creation. In Search, if test data are present and the “Percent Correct” option is checked, the report will include the performance of the models on the test data. In Fit, the performance of the model on test data is shown automatically, whenever test data are present. To include test data in a data file, use the “:test” parameter, followed by lines of data in the same format used for “:data”.
-
-:test
-
-0 0 0 70 0 0 1 125 0 1 0 26 0 1 1 100 1 0 0 120 1 0 1 190 1 1 0 25 1 1 1 80
+![Input, test data](images/occam-input-test-data.png)
 
 **Comments in the data file** A line beginning with “\#” will be ignored when Occam reads the data file, so this character can be used to begin comment lines. Also on any given line, Occam will not
-
-Occam User’s Manual 3/13/2017 8
-
 read past a “\#” character, so comments can be added at the end of lines which provide actual input to the program. Comments do not count toward the maximum line length mentioned above.
 
 ***Web input*** We now discuss the other parts of the Search web input page.
