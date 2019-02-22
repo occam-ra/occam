@@ -673,7 +673,7 @@ One or more statistics of the *model distribution* (for all best models being co
 
 Several pairwise comparison functions are available to compare the best model picked for each of the two files in a pair. These functions are listed below, expressed in terms of the calculated probability distributions of each best model in a pair (q~complex\ and\ qsimple),~ which imply one-to-one comparisons of all of their states.
 
-![Pairwise comparisons](occam-pairwise-comparisons.png)
+![Pairwise comparisons](images/occam-pairwise-comparisons.png)
 
 ***Additional settings ***
 
