@@ -19,10 +19,10 @@ The core functionality is reliable and rationally implemented. Implementation in
 ### Python Wrapping
 What is needed first and foremost is a reworking of the python layer (which handles high-level workflow). Other improvements, such as the user interface, input/output handling, etc., will follow naturally from that update. The current python layer is very thin, meaning that only a very small of computation is actually being handled by this layer. The python functionality falls into two categories: very high-level workflow, and helpers for c++ objects. Here's an example of the workflow:
 
-[High-level logic in python](https://www.guydcutting.com/images/occam-python-logic.png)
+![High-level logic in python](https://www.guydcutting.com/images/occam-python-logic.png)
 
 and and example of passing parameters/attributes/settings to the C++ objects:
-[Python helper functions](https://www.guydcutting.com/images/occam-python-helpers.png)
+![Python helper functions](https://www.guydcutting.com/images/occam-python-helpers.png)
 
 ### User Interface
 (Find an existing project - and maybe even a design specification - that uses python/c++ in a similar way as an example of what we want this to look like).
