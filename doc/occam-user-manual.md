@@ -351,7 +351,8 @@ At present, Occam is only able to generate graph files for the HTML output or wh
 
 When returning results as HTML output, Occam includes the graph images as SVG format images. When returning results in CSV format, Occam includes graph images as PDF files (which are suitable for printing or for inclusion in a Word document).
 
-## VII. Fit Output After echoing the input parameters (which are requested by default), Occam prints out some properties of the model and some measures for the model where the reference model is first the top and then the bottom of the lattice.
+## VII. Fit Output 
+After echoing the input parameters (which are requested by default), Occam prints out some properties of the model and some measures for the model where the reference model is first the top and then the bottom of the lattice.
 
 ***Output file for a directed system*** Below is the first Fit table outputted for a sample directed system, where the model is Top, “ABC”, where A and B are IVs, and C is the DV. The first columns show all of the “IV” state combinations that appear in the data. (Note that these IV states include states where the value of B is missing; these are shown as “.”) The next three columns, marked “Data”, show the frequencies in the data for each of those IV states, along with the observed conditional probabilities for the DV states. The following columns, marked Model, show the calculated conditional probabilities for the model, along with the selected prediction rule. The prediction rule specifies which DV state is expected given some particular IV state (row). The columns labelled “\#correct” and “%correct” show the performance of those rules on the data.
 
