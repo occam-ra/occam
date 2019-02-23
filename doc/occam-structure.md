@@ -27,19 +27,21 @@ The current structure of OCCAM appears to date to about 2000 (see the Design Pro
 
 To some extent the discussion of design and implementation issues cannot happen without reference to the code. But it should be possible to understand and discuss these issues, at least in a general way, without intimate code familiarity or even knowledge of programming languages. Key concepts of software design and engineering can be discussed without reference to a specific language or implementation platform.  This design overview attempts to provide a helpful view of the current application structure, and approaches to updating it, that can be understood by programmers and non-programmers alike. At the same time, it provides code-specific details which help illuminate the design issues, and will help coding contributors to get oriented.
 
+My initial instinct in creating this document was to proceed immediately to a discussion of application structure and language-specific implementation issues. I realized, though, that such a discussion is not well-founded without some preliminaries. In particular, it is important to turn first to a discussion of **design considerations**. Focusing first on implementation details, language features, etc. is putting the cart before the horse. Following sound principles of design will lay a solid foundation for the project going forward. Attempting to execute structural improvements without a clear plant of attack which is based on a well-worked out design is not a formula for success.
+
 ## Key Concepts of Software Design and Engineering
 I wish to highlight a few important principles of software design and engineering that will inform high-level discussion of how to upgrade OCCAM. These are not the only relevant concepts, but they are of primary importance in the discussion of how to proceed with the structural improvements.
 
-"The most fundamental problem in software development is complexity. There is only one basic
-way of dealing with complexity: divide and conquer. A problem that can be separated into two
-sub-problems that can be handled separately is more than half solved by that separation. This sim-
-ple principle can be applied in an amazing variety of ways. In particular, the **use of a module or a
-class in the design of systems separates the program into two parts – the implementation and its
-users – connected only by an (ideally) well-defined interface**. This is the fundamental approach to
-handling the inherent complexity of a program. Similarly, **the process of designing a program can
-be broken into distinct activities with (ideally) well-defined interactions between the people
-involved.** This is the basic approach to handling the inherent complexity of the development pro-
-cess *and the people involved in it.*" (Stroustrop, 693)[emphasis added]
+> The most fundamental problem in software development is complexity. There is only one basic
+> way of dealing with complexity: divide and conquer. A problem that can be separated into two
+> sub-problems that can be handled separately is more than half solved by that separation. This sim-
+> ple principle can be applied in an amazing variety of ways. In particular, the **use of a module or a
+> class in the design of systems separates the program into two parts – the implementation and its
+> users – connected only by an (ideally) well-defined interface**. This is the fundamental approach to
+> handling the inherent complexity of a program. Similarly, **the process of designing a program can
+> be broken into distinct activities with (ideally) well-defined interactions between the people
+> involved.** This is the basic approach to handling the inherent complexity of the development process 
+> *and the people involved in it.*" (Stroustrop, 693)[emphasis added]
 
 ### Modularity
 "The scenario is software that consists of thousands or even hundreds of thousands of
