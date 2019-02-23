@@ -93,7 +93,7 @@ The steps of refactoring are:
 3. identify possible refactorings
 4. carry out refactoring.
 
-We are at step 0 in this process - getting organized. It is important, as soon as possible, to produce and begin discussing design proposals. This document is a first step in that direction.
+We are at step 0 in this process - getting organized. It is important to start work now on a design proposal - this document is a first step in that direction.
 
 ## Another View: Method (RA) vs. Application (OCCAM)
 Another useful way to think about the big picture of design issues is to distinguish between the RA method and the application which implements it. RA provides a number of conceptual tools and practical procedures for analyzing data - that conceptual and practical content can be separated from the implementation - the data handling (I/O), user interface, etc. We are very lucky to have the core RA functionality largely built already (thanks Ken, Heather, Joe, and others!).
