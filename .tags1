@@ -1,0 +1,29 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	0	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+OCCAM: A Reconstructibility Analysis Program	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^# OCCAM: A Reconstructibility Analysis Program$/;"	function	line:2
+(Organizational Complexity Computation and Modeling)	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## (Organizational Complexity Computation and Modeling)$/;"	function	line:3
+User Manual	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## User Manual$/;"	function	line:4
+Table of Contents	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## Table of Contents$/;"	function	line:18
+I. For Information on Reconstructability Analysis	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## I. For Information on Reconstructability Analysis$/;"	function	line:40
+II. Accessing Occam	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## II. Accessing Occam$/;"	function	line:47
+III. Search Input	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## III. Search Input$/;"	function	line:63
+IV. Search Output	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## IV. Search Output$/;"	function	line:201
+V. State-Based Search	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## V. State-Based Search$/;"	function	line:252
+VII. Fit Output	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## VII. Fit Output$/;"	function	line:312
+VIII. State-Based Fit	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## VIII. State-Based Fit$/;"	function	line:409
+IX. Show Log	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## IX. Show Log$/;"	function	line:412
+X. Manage Jobs	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## X. Manage Jobs$/;"	function	line:415
+XI. Frequently Asked Questions	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## XI. Frequently Asked Questions$/;"	function	line:418
+XII. Error And Warning Messages	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## XII. Error And Warning Messages$/;"	function	line:480
+XIII. Known Bugs & Infelicities; Limitations	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## XIII. Known Bugs & Infelicities; Limitations$/;"	function	line:493
+XIV. Planned But Not-Yet-Implemented Features	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## XIV. Planned But Not-Yet-Implemented Features$/;"	function	line:507
+Appendix 1. Rebinning (Recoding)	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## Appendix 1. Rebinning (Recoding)$/;"	function	line:529
+Appendix 2. Missing Values in the Data	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## Appendix 2. Missing Values in the Data$/;"	function	line:606
+Appendix 3. Additional Parameters in the Input File	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## Appendix 3. Additional Parameters in the Input File$/;"	function	line:609
+Appendix 4. Zipping the Input File	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## Appendix 4. Zipping the Input File$/;"	function	line:628
+Appendix 5. Compare Mode	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## Appendix 5. Compare Mode$/;"	function	line:635
+Appendix 6. Cached Data Mode	/Users/gdcutting/MEGA/Projects/OCCAM project/occam/doc/occam-user-manual.md	/^## Appendix 6. Cached Data Mode$/;"	function	line:684
