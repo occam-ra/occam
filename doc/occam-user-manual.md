@@ -506,7 +506,7 @@ Occam has been run with up to about 225 variables. To our knowledge, the maximum
 
 ## XIV. Planned But Not-Yet-Implemented Features
 
-***Preprocessing data* 1. Using inputs only for test data**. For directed systems, there should be an option to add test set *inputs* to the training set, and have Occam output either a best prediction of the DV for each input record or a conditional probability distribution for the different possible DV values.
+**Preprocessing data. Using inputs only for test data**. For directed systems, there should be an option to add test set *inputs* to the training set, and have Occam output either a best prediction of the DV for each input record or a conditional probability distribution for the different possible DV values.
 
 **2. Binning**. It should be possible for Occam itself to bin quantitative variables. However, binning can be done with a utility program written for Excel available from: http://www.pdx.edu/sysc/research-discrete-multivariate-modeling.
 
