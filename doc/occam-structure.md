@@ -2,6 +2,7 @@
 
 ## Table of Contents
    * [OCCAM Structural Upgrade - Design Notes](#occam-structural-upgrade---design-notes)
+      * [Table of Contents](#table-of-contents)
       * [Introduction and Overview](#introduction-and-overview)
       * [Key Concepts of Software Design and Engineering](#key-concepts-of-software-design-and-engineering)
          * [Modularity](#modularity)
@@ -14,7 +15,7 @@
          * [Core Functionality (C  )](#core-functionality-c)
          * [Python Wrapping](#python-wrapping)
          * [User Interface](#user-interface)
-      * [Most Needed Updates](#most-needed-updates)
+      * [Structural Upgrade - Initial Proposals](#structural-upgrade---initial-proposals)
          * [Python Layer](#python-layer)
          * [Input and Output (I/O)](#input-and-output-io)
             * [Output](#output)
