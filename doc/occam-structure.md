@@ -93,7 +93,7 @@ The steps of refactoring are:
 3. identify possible refactorings
 4. carry out refactoring.
 
-We are at step 0 in this process - getting organized. It is important to start work now on a design proposal - this document is a first step in that direction. The most recent design proposal was from 2000 - that's almost twenty years ago. That document was severely limited in scope, even at the time - it focused narrowly on the c++ classes with no discussion of the python layer, user interface, etc. That is to say, it did not include any discussion of design at the level of the system as a whole.
+This is a good general description of the process that we are beginning to engage in. We are at step 0 in this process - getting organized. It is important to start work now on a design proposal - this document is a first step in that direction. The most recent design proposal was from 2000 - that's almost twenty years ago. That document was severely limited in scope, even at the time - it focused narrowly on the c++ classes with no discussion of the python layer, user interface, etc. That is to say, it did not include any discussion of design at the level of the system as a whole.
 
 A final note on the structural imrovement process. One might object that this approach threatens to bog down development in endless discussion about design at the expense of actually implementing changes. There is always a danger, in attempting to solve any complex problem, of becoming overly enamored with formalisms...
 
