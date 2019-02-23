@@ -12,7 +12,7 @@
       * [Another View: Method (RA) vs. Application (OCCAM)](#another-view-method-ra-vs-application-occam)
       * [OCCAM Application Structure](#occam-application-structure)
          * [Overview of existing design](#overview-of-existing-design)
-         * [Core Functionality (C  )](#core-functionality-c)
+         * [Core Functionality (C++)](#core-functionality-c)
          * [Python Wrapping](#python-wrapping)
          * [User Interface](#user-interface)
       * [Structural Upgrade - Initial Proposals](#structural-upgrade---initial-proposals)
@@ -27,7 +27,7 @@ The current structure of OCCAM appears to date to about 2000 (see the Design Pro
 
 To some extent the discussion of design and implementation issues cannot happen without reference to the code. But it should be possible to understand and discuss these issues, at least in a general way, without intimate code familiarity or even knowledge of programming languages. Key concepts of software design and engineering can be discussed without reference to a specific language or implementation platform.  This design overview attempts to provide a helpful view of the current application structure, and approaches to updating it, that can be understood by programmers and non-programmers alike. At the same time, it provides code-specific details which help illuminate the design issues, and will help coding contributors to get oriented.
 
-My initial instinct in creating this document was to proceed immediately to a discussion of application structure and language-specific implementation issues. I realized, though, that such a discussion is not well-founded without some preliminaries. In particular, it is important to turn first to a discussion of **design considerations**. Focusing first on implementation details, language features, etc. is putting the cart before the horse. Following sound principles of design will lay a solid foundation for the project going forward. Attempting to execute structural improvements without a clear plant of attack which is based on a well-worked out design is not a formula for success.
+My initial instinct in creating this document was to proceed immediately to a discussion of application structure and language-specific implementation issues. I realized, though, that such a discussion is not well-founded without some preliminaries. In particular, it is important to turn first to a discussion of **design considerations**. Focusing first on implementation details, language features, etc. is putting the cart before the horse. Following sound principles of design will lay a solid foundation for the project going forward. Attempting to execute structural improvements without a clear plan of attack which is based on a well-worked out design is not a formula for success.
 
 ## Key Concepts of Software Design and Engineering
 I wish to highlight a few important principles of software design and engineering that will inform high-level discussion of how to upgrade OCCAM. These are not the only relevant concepts, but they are of primary importance in the discussion of how to proceed with the structural improvements.
@@ -44,13 +44,13 @@ I wish to highlight a few important principles of software design and engineerin
 > *and the people involved in it.*" (Stroustrop, 693)[emphasis added]
 
 ### Modularity
-"The scenario is software that consists of thousands or even hundreds of thousands of
-lines of code. The complexity of such systems can easily be overwhelming. Some means
-of coping with the complexity are essential. In essence, the desire for modularity is
-about trying to construct software from pieces that are as independent of each other as
-possible. Ideally, each component should be self-contained and have as few references
-as possible to other components. This aim has consequences for nearly all stages of soft-
-ware development..." (Bell, 67)
+> The scenario is software that consists of thousands or even hundreds of thousands of
+> lines of code. The complexity of such systems can easily be overwhelming. Some means
+> of coping with the complexity are essential. In essence, the desire for modularity is
+> about trying to construct software from pieces that are as independent of each other as
+> possible. Ideally, each component should be self-contained and have as few references
+> as possible to other components. This aim has consequences for nearly all stages of 
+> software development..." (Bell, 67)
 
 ### Object-Oriented Design
 [Object-oriented design](https://en.wikipedia.org/wiki/Object-oriented_design) "is the process of planning a system of interacting objects for the purpose of solving a software problem." OOD has three key component principles:
@@ -68,16 +68,32 @@ ware development..." (Bell, 67)
 ### Interfaces
 [Interfaces: The Most Important Software Engineering Concept](http://blog.robertelder.org/interfaces-most-important-software-engineering-concept/)
 
+Interface is a very abstract concept that can be applied from many perspectives. The OCCAM project contains a number of interfaces. Here is a partial list of them:
+* The user interface
+* The technical interfaces: between the python and C++ components; between the webserver and other components; the interfaces provided by the python and C++ classes such as ocUtils and the RA classes like VariableList, Model, Relation, etc.
+* The interfaces between programmers and code (IDE, GitHub, etc.), contributors and documents
+* The interface between the capstone team and the existing OCCAM team
+* The interfaces between individuals and other individuals
+* Etc. 
+
 ### Refactoring 
-"Refactoring is about improving an architectural design. Nowadays a design tends to be an
-OOD, expressed in terms of classes and their interrelationships (methods). However,
-design does not usually proceed in a straightforward, linear manner. Most often, design
-tends to be an iterative process. First, candidate classes are identified. Then some will be
-accepted while others will be rejected – perhaps because they have no methods or because
-their methods are subsumed by some other class. Methods tend to migrate from one class
-to another as a better understanding of the objects and their role within the problem
-emerges. This process is known as refactoring. Refactoring is the transformation of a cor-
-rect program structure (e.g., a class diagram) into an improved structure." (Bell, 165)
+> Refactoring is about improving an architectural design. Nowadays a design tends to be an
+> OOD, expressed in terms of classes and their interrelationships (methods). However,
+> design does not usually proceed in a straightforward, linear manner. Most often, design
+> tends to be an iterative process. First, candidate classes are identified. Then some will be
+> accepted while others will be rejected – perhaps because they have no methods or because
+> their methods are subsumed by some other class. Methods tend to migrate from one class
+> to another as a better understanding of the objects and their role within the problem
+> emerges. This process is known as refactoring. Refactoring is the transformation of a 
+> correct program structure (e.g., a class diagram) into an improved structure. (Bell, 165)
+
+The steps of refactoring are: 
+1. create a design
+2. review the design
+3. identify possible refactorings
+4. carry out refactoring.
+
+We are at step 0 in this process - getting organized. It is important, as soon as possible, to produce and begin discussing design proposals. This document is a first step in that direction.
 
 ## Another View: Method (RA) vs. Application (OCCAM)
 Another useful way to think about the big picture of design issues is to distinguish between the RA method and the application which implements it. RA provides a number of conceptual tools and practical procedures for analyzing data - that conceptual and practical content can be separated from the implementation - the data handling (I/O), user interface, etc. We are very lucky to have the core RA functionality largely built already (thanks Ken, Heather, Joe, and others!).
@@ -156,4 +172,7 @@ There are many existing data formats which should be suitable for OCCAM, and whi
 ### Caching results (reports and session handling) 
 OCCAM employs a hash-based caching mechanism
 
+## Recommendations:
+* Design specs
+* Structured walkthrough with capstone students
 (references)
