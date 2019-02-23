@@ -104,16 +104,16 @@ One of the most important structural improvements is, in my view, a partial rewo
 ### User Interface
 (Find an existing project - and maybe even a design specification - that uses python/c++ in a similar way as an example of what we want this to look like).
 
-## Most Needed Updates
+## Structural Upgrade - Initial Proposals
 
-"In both cases, the selection of the parts and the specification of the interfaces between the parts
-is where the most experience and taste is required. Such selection is not a simple mechanical pro-
-cess but typically requires insights that can be achieved only through a thorough understanding of a
-system at suitable levels of abstraction (see §23.4.2, §24.3.1, and §25.3). A myopic view of a pro-
-gram or of a software development process often leads to seriously flawed systems. Note also that
-for both people and programs, separation is easy. The hard part is to ensure effective
-communication between parties on different sides of a barrier without destroying the barrier or sti-
-fling the communication necessary to achieve cooperation." (Stroustrop, 694)
+>In both cases, the selection of the parts and the specification of the interfaces between the parts
+> is where the most experience and taste is required. Such selection is not a simple mechanical process 
+> but typically requires insights that can be achieved only through a thorough understanding of a
+> system at suitable levels of abstraction (see §23.4.2, §24.3.1, and §25.3). A myopic view of a pro-
+> gram or of a software development process often leads to seriously flawed systems. Note also that
+> for both people and programs, separation is easy. The hard part is to ensure effective
+> communication between parties on different sides of a barrier without destroying the barrier or sti-
+> fling the communication necessary to achieve cooperation." (Stroustrop, 694)
 
 ### Python Layer
 This is in many ways the most important place to focus in the coming weeks and months. The interface between Python/C++, the functionality exposed to the python layer, and the improvements needed to make OCCAM a modern python package that makes RA functionality easy for any Python user to access in a modular and expressive way, are a primary priority in an updated approach to developing OCCAM.
