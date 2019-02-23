@@ -1,4 +1,26 @@
 # OCCAM Structural Upgrade - Design Notes
+
+## Table of Contents
+   * [OCCAM Structural Upgrade - Design Notes](#occam-structural-upgrade---design-notes)
+      * [Introduction and Overview](#introduction-and-overview)
+      * [Key Concepts of Software Design and Engineering](#key-concepts-of-software-design-and-engineering)
+         * [Modularity](#modularity)
+         * [Object-Oriented Design](#object-oriented-design)
+         * [Interfaces](#interfaces)
+         * [Refactoring](#refactoring)
+      * [Another View: Method (RA) vs. Application (OCCAM)](#another-view-method-ra-vs-application-occam)
+      * [OCCAM Application Structure](#occam-application-structure)
+         * [Overview of existing design](#overview-of-existing-design)
+         * [Core Functionality (C  )](#core-functionality-c)
+         * [Python Wrapping](#python-wrapping)
+         * [User Interface](#user-interface)
+      * [Most Needed Updates](#most-needed-updates)
+         * [Python Layer](#python-layer)
+         * [Input and Output (I/O)](#input-and-output-io)
+            * [Output](#output)
+            * [Input (file format and otherwise)](#input-file-format-and-otherwise)
+         * [Caching results (reports and session handling)](#caching-results-reports-and-session-handling)
+
 ## Introduction and Overview
 The current structure of OCCAM appears to date to about 2000 (see the Design Proposal document which contains references to some of the existing core classes). The application design and implementation is not well-documented. This document reflects an initial attempt at providing some transparency on the OCCAM structure, presenting key concepts and considerations of software and system design and engineering, and helping developers new to the project (capstone team members or others) to get oriented without having to spend an excessive amount of time digging through the code (though there's no perfect substitute for spending time with the code). 
 
