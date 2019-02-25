@@ -11,6 +11,7 @@ Welcome to occam-ra's documentation!
    :caption: Contents:
    
    occam-user-manual
+   occam-structure
 
 
 
