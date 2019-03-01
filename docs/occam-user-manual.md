@@ -5,7 +5,7 @@
 
 **Project Director: Martin Zwick** zwick@pdx.edu
 
-Past Programmers (most recent first): Forrest Alexander, Joe Fusion, Kenneth Willett
+Past Programmers (most recent first): Heather Alexander, Joe Fusion, Kenneth Willett
 
 **Systems Science Program Portland State University Portland OR 97207**
 
