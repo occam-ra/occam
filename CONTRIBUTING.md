@@ -245,3 +245,19 @@ The important things to remember from this document are
 7. Comment on the pull request when you want people to know that you have
    pushed new changes. Although GitHub does notify people of commit pushes,
    people are more likely notice your changes if you leave a comment.
+
+## More Resources
+This guide gives an overview of typical basic workflow, but obviously is not comprehensive.
+Git is very powerful, and there is always more than one way to do things. Oftentimes, situations arise for which the typical workflow is not adequate. Here are some additional resources for learning about git and GitHub:
+
+### GitLab
+Github also provides the [GitHub Learning Lab](https://lab.github.com/), an interactive guide to GitHub which lets you learn in a hands-on way, performing actual GitHub tasks on dedicated learning repos (so you don't mess something up at a real repo before you get familiar with the workflow). This is a great resource as it lets you walk through common GitHub tasks with documentation right there for easy access. Highly recommended for those new to git(hub) (or those with some experience but still climbing the learning curve.)
+
+### GitHub Guides and other resources
+* [Guides master page](https://guides.github.com/) - top-level collection of guides
+* [Understanding the GitHub Workflow](https://guides.github.com/introduction/flow/)
+* [Git Handbook](https://guides.github.com/introduction/git-handbook/) - more on basic git commands, typical workflow, version control, and the git information model
+* [Guide to Issues](https://guides.github.com/features/issues/) - 
+* [About Pull Requests](https://help.github.com/en/articles/about-pull-requests)
+
+If these still don't answer your questions, ask a project maintainer in the [https://occam-dev.slack.com](Slack project) or see the [issues page](https://github.com/occam-ra/occam/issues) to see further discussion or submit an issue.
