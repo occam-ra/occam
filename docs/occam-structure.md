@@ -23,7 +23,7 @@
          * [Caching results (reports and session handling)](#caching-results-reports-and-session-handling)
 
 ## Introduction and Overview
-The current structure of OCCAM appears to date to about 2000 (see the Design Proposal document which contains references to some of the existing core classes). The application design and implementation is not well-documented. This document reflects an initial attempt at providing some transparency on the OCCAM structure, presenting key concepts and considerations of software and system design and engineering, and helping developers new to the project (capstone team members or others) to get oriented without having to spend an excessive amount of time digging through the code (though there's no perfect substitute for spending time with the code). 
+The current structure of OCCAM appears to date to about 2000 (see the Design Proposal document which contains references to some of the existing core classes). The application design and implementation is not well-documented. This document reflects an initial attempt at providing some transparency on the OCCAM structure, presenting key concepts and considerations of software and system design and engineering, and helping developers new to the project (capstone team members or others) to get oriented without having to spend an excessive amount of time digging through the code (though there's no perfect substitute for spending time with the code).
 
 To some extent the discussion of design and implementation issues cannot happen without reference to the code. But it should be possible to understand and discuss these issues, at least in a general way, without intimate code familiarity or even knowledge of programming languages. Key concepts of software design and engineering can be discussed without reference to a specific language or implementation platform.  This design overview attempts to provide a helpful view of the current application structure, and approaches to updating it, that can be understood by programmers and non-programmers alike. At the same time, it provides code-specific details which help illuminate the design issues, and will help coding contributors to get oriented.
 
@@ -40,7 +40,7 @@ I wish to highlight a few important principles of software design and engineerin
 > users – connected only by an (ideally) well-defined interface**. This is the fundamental approach to
 > handling the inherent complexity of a program. Similarly, **the process of designing a program can
 > be broken into distinct activities with (ideally) well-defined interactions between the people
-> involved.** This is the basic approach to handling the inherent complexity of the development process 
+> involved.** This is the basic approach to handling the inherent complexity of the development process
 > *and the people involved in it.*" (Stroustrop, 693)[emphasis added]
 
 ### Modularity
@@ -49,7 +49,7 @@ I wish to highlight a few important principles of software design and engineerin
 > of coping with the complexity are essential. In essence, the desire for modularity is
 > about trying to construct software from pieces that are as independent of each other as
 > possible. Ideally, each component should be self-contained and have as few references
-> as possible to other components. This aim has consequences for nearly all stages of 
+> as possible to other components. This aim has consequences for nearly all stages of
 > software development..." (Bell, 67)
 
 ### Object-Oriented Design
@@ -74,9 +74,9 @@ Interface is a very abstract concept that can be applied from many perspectives.
 * The interfaces between programmers and code (IDE, GitHub, etc.), contributors and documents
 * The interface between the capstone team and the existing OCCAM team
 * The interfaces between individuals and other individuals
-* Etc. 
+* Etc.
 
-### Refactoring 
+### Refactoring
 > Refactoring is about improving an architectural design. Nowadays a design tends to be an
 > OOD, expressed in terms of classes and their interrelationships (methods). However,
 > design does not usually proceed in a straightforward, linear manner. Most often, design
@@ -84,10 +84,10 @@ Interface is a very abstract concept that can be applied from many perspectives.
 > accepted while others will be rejected – perhaps because they have no methods or because
 > their methods are subsumed by some other class. Methods tend to migrate from one class
 > to another as a better understanding of the objects and their role within the problem
-> emerges. This process is known as refactoring. Refactoring is the transformation of a 
+> emerges. This process is known as refactoring. Refactoring is the transformation of a
 > correct program structure (e.g., a class diagram) into an improved structure. (Bell, 165)
 
-The steps of refactoring are: 
+The steps of refactoring are:
 1. create a design
 2. review the design
 3. identify possible refactorings
@@ -100,10 +100,10 @@ A final note on the structural imrovement process. One might object that this ap
 ## Another View: Method (RA) vs. Application (OCCAM)
 Another useful way to think about the big picture of design issues is to distinguish between the RA method and the application which implements it. RA provides a number of conceptual tools and practical procedures for analyzing data - that conceptual and practical content can be separated from the implementation - the data handling (I/O), user interface, etc. We are very lucky to have the core RA functionality largely built already (thanks Ken, Heather, Joe, and others!).
 
-This conceptual distinction has important practical consequences. Publishing OCCAM as a python package should give the package user (who might just be using a couple of RA functions in a small notebook, or could be incorporating RA into a much larger application which includes other ML methods, a complex data pipeline, etc.) to core functionality while not enforcing any single way of accessing it (as the implementation currently does). Packaging OCCAM in a modular way will allow users/developers to use that functionality in whatever way works best for them. 
+This conceptual distinction has important practical consequences. Publishing OCCAM as a python package should give the package user (who might just be using a couple of RA functions in a small notebook, or could be incorporating RA into a much larger application which includes other ML methods, a complex data pipeline, etc.) to core functionality while not enforcing any single way of accessing it (as the implementation currently does). Packaging OCCAM in a modular way will allow users/developers to use that functionality in whatever way works best for them.
 
 That does not mean that we cannot provide a(n) interface(s). At a minimum, a python package should provide a set of methods which express the full range of RA functions, and therefore make it straightforward to design an interface. If we include, along with that package, a modern, well-designed application interface, then users can immediately begin using RA's powerful analytical methods. A good working paradigm might be:
-**Separate core objects and methods from the interface; let the user or app. designer easily create their own interface; provide our own interface to make the application even more accessible** 
+**Separate core objects and methods from the interface; let the user or app. designer easily create their own interface; provide our own interface to make the application even more accessible**
 
 Some surgery is needed to disentangle the core RA functionality from the interface...
 
@@ -134,12 +134,8 @@ What is that core functionality (brief overview of workflow/functions)?
 * Search and report model results (identify candidate models) (variable- or state-based)
 * Fit Model in detail, examine variable relationships and statistical/IT measures. (VB or SB)
 
-(link to separate doc which covers the C++ classes and interfaces)1
-
-Much encapsulation is already provided...
-
 ### Python Wrapping
-One of the most important structural improvements is, in my view, a partial reworking of the python layer (which handles high-level workflow). This change will touch on nearly every aspect of the updated application, because the design of the extension structure will underlay nearly every other element of the implementation (data handling, UI, integration, etc.). Other improvements, such as the user interface, input/output handling, etc., will follow naturally from that update. The current python layer is very thin, meaning that only a very small of computation is actually being handled by this layer. The python functionality falls into two categories: very high-level workflow, and helpers for c++ objects. Here's an example showing both some very high level workflow, and the use of ocUtils to pass parameters to the c++ objects through the manager:
+One of the most important structural improvements is a partial reworking of the python layer (which handles high-level workflow). This change will touch on nearly every aspect of the updated application, because the design of the extension structure will underlay nearly every other element of the implementation (data handling, UI, integration, etc.). Other improvements, such as the user interface, input/output handling, etc., will follow naturally from that update. The current python layer is very thin, meaning that only a very small of computation is actually being handled by this layer. The python functionality falls into two categories: very high-level workflow, and helpers for c++ objects. Here's an example showing both some very high level workflow, and the use of ocUtils to pass parameters to the c++ objects through the manager:
 
 ![High-level logic in python](images/occam-python-logic.png)
 (from fit.py)
@@ -149,8 +145,8 @@ One of the most important structural improvements is, in my view, a partial rewo
 
 ## Structural Upgrade - Initial Proposals
 
->In both cases, the selection of the parts and the specification of the interfaces between the parts
-> is where the most experience and taste is required. Such selection is not a simple mechanical process 
+> In both cases, the selection of the parts and the specification of the interfaces between the parts
+> is where the most experience and taste is required. Such selection is not a simple mechanical process
 > but typically requires insights that can be achieved only through a thorough understanding of a
 > system at suitable levels of abstraction (see §23.4.2, §24.3.1, and §25.3). A myopic view of a pro-
 > gram or of a software development process often leads to seriously flawed systems. Note also that
@@ -161,6 +157,10 @@ One of the most important structural improvements is, in my view, a partial rewo
 ### Python Layer
 This is in many ways the most important place to focus in the coming weeks and months. The interface between Python/C++, the functionality exposed to the python layer, and the improvements needed to make OCCAM a modern python package that makes RA functionality easy for any Python user to access in a modular and expressive way, are a primary priority in an updated approach to developing OCCAM.
 
+There are a number of existing python bindings (see cpp/pyoccam.cpp), and many of them are underutilized. The key RA workflow objects (VBMManager, SBMManager, Relation, Model, Variable) are available in python, but are not being used to the extent that we would like. Reporting is still taking place largely in the c++ layer, and we would like to make it happen in the python layer. That's probably possible with the existing bindings (not too many more additional bindings needed). We just need to fully implement the existing bindings.
+
+The current bindings allow us to work with many of the RA objects in python, but only a portion of these are being used in the way that we want. This is a primary goal of the capstone project, to more fully implement RA functionality in the python layer. This upgrade will allow us to bring OCCAM into the python ecosystem, and also will accelerate future development efforts.
+
 ### Input and Output (I/O)
 
 #### Output
@@ -169,12 +169,6 @@ Output handling is a good example of the messy entanglement of core RA functions
 #### Input (file format and otherwise)
 Input data formatting is, in my view, perhaps the biggest obstacle to OCCAM adoption. OCCAM has finally been open-sourced (or the process begun anyway), but it has for years been available in the (proprietary) web format. The current software world moves at the speed of light - someone can install packages with pip or similar tools, combine multiple python libraries, extend python with C++ or other languages, and build a powerful application in a matter of days or hours. Being forced to use a proprietary data format for which we do not have good conversion tools is a major barrier to using OCCAM.
 
-There are many existing data formats which should be suitable for OCCAM, and which can be manipulated using functionality from the python standard library or other packages such as pandas. 
+There are many existing data formats which should be suitable for OCCAM, and which can be manipulated using functionality from the python standard library or other packages such as pandas.
 
-### Caching results (reports and session handling) 
-OCCAM employs a hash-based caching mechanism
-
-## Recommendations:
-* Design specs
-* Structured walkthrough with capstone students
-(references)
+Improving the I/O handling (and many other things) will be much easier after we upgrade the structure and more fully implement RA functionality in python.
