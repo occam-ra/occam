@@ -1,7 +1,13 @@
 ## OCCAM Contributor Guidelines (Git Workflow)
 
+Welcome to the OCCAM contributor guidlines. We welcome contributions, and there are a number of areas of active developement on the project. We are still roadmapping and getting organized, but that shouldn't prevent anyone from making contributions if they want to get involved.
+
+### Code of Conduct
+First review the [project Code of Conduct](CODE_OF_CONDUCT.md) for guidelines of contributor behavior. We are intent on providing a fun, productive, harassment-free environment for all contributors.
+
+### Recommended Git Workflow
 This document describes the git workflow that should be used when contributing
-to open source projects on GitHub. It assumes a very basic understanding of
+to OCCAM. Because we want to follow established open-source practice, it is based largely on similar guides from other open source projects on GitHub. It assumes a very basic understanding of
 git (commits, branches, etc.) using the command line.
 
 *Note: This workflow is designed for open source (i.e., public)
