@@ -257,7 +257,7 @@ Github also provides the [GitHub Learning Lab](https://lab.github.com/), an inte
 * [Guides master page](https://guides.github.com/) - top-level collection of guides
 * [Understanding the GitHub Workflow](https://guides.github.com/introduction/flow/)
 * [Git Handbook](https://guides.github.com/introduction/git-handbook/) - more on basic git commands, typical workflow, version control, and the git information model
-* [Guide to Issues](https://guides.github.com/features/issues/) -
+* [Guide to Issues](https://guides.github.com/features/issues/)
 * [About Pull Requests](https://help.github.com/en/articles/about-pull-requests)
 
-If these still don't answer your questions, ask a project maintainer in the [https://occam-dev.slack.com](Slack project) or see the [issues page](https://github.com/occam-ra/occam/issues) to see further discussion or submit an issue.
+If these still don't answer your questions, ask a project maintainer in the [Slack project](https://occam-dev.slack.com) or see the [issues page](https://github.com/occam-ra/occam/issues) to see further discussion or submit an issue.
