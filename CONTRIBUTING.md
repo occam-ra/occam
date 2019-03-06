@@ -22,9 +22,9 @@ change.**
 ## Cloning and forking the repository
 
 **Note: The steps in this section only need to be performed once per
-repository (e.g., if you contribute a second change to sympy/sympy, you would
+repository (e.g., if you contribute a second change to occam-raoccamsympy, you would
 not need to repeat them, but if you contribute to
-[sympy/sympy-live](https://github.com/sympy/sympy-live) you will need to
+[occam-ra/occam-ra.github.io](https://github.com/occam-ra/occam-ra.github.io) you will need to
 repeat them for that repository).**
 
 1. **Clone the repository.** Click the green "<font color="green">Clone or download</font>" button,
