@@ -1,4 +1,4 @@
-## OCCAM Contributor Guidlines (Git Workflow)
+## OCCAM Contributor Guidelines (Git Workflow)
 
 This document describes the git workflow that should be used when contributing
 to open source projects on GitHub. It assumes a very basic understanding of
@@ -16,7 +16,7 @@ For this document, we will suppose that you want to contribute a patch to
 
 **NOTE: If you want to test out this guide without making an
 actual fix, please test against THIS REPO (`gdcutting/git-workflow`). Do not
-make a pull request against `sympy/sympy` unless you are making an actual
+make a pull request against `occam-ra/occam` unless you are making an actual
 change.**
 
 ## Cloning and forking the repository
@@ -27,18 +27,19 @@ not need to repeat them, but if you contribute to
 [sympy/sympy-live](https://github.com/sympy/sympy-live) you will need to
 repeat them for that repository).**
 
-1. **Clone the repository.** Click the green "<font color="green">Clone or download</font>" button <font color="blue">①</font>,
-   and copy the url <font color="blue">②</font> and type
+1. **Clone the repository.** Click the green "<font color="green">Clone or download</font>" button,
+   and copy the url  and type
 
    <code>git clone <i>clone-url</i></code>
 
    at the terminal. Replace *`clone-url`* with the url that has been copied to
-   your clipboard. For sympy/sympy, it will be
-   `git@github.com:sympy/sympy.git`. If you have not set up your ssh keys with
+   your clipboard. For occam-ra/occam, it will be
+   `git@github.com:occam-ra/occam.git`. If you have not set up your ssh keys with
    GitHub, use the https url by first clicking the `https` button.
 
-   <!---<font
-   color="blue">③</font>.--->
+   <!---
+   <font color="blue">②</font>
+   <font color="blue">③</font>.--->
 
    <!---![clone.png](clone.png)--->
 
@@ -67,7 +68,7 @@ repeat them for that repository).**
    *`fork-url`* with the url that was copied to your clipboard). You will be
    able to tell it is your fork url because it will have your GitHub username
    in it. For instance, if your username is `github_user`, you would run the
-   command `git remote add github_user git@github.com:github_user/sympy.git`.
+   command `git remote add github_user git@github.com:github_user/occam.git`.
 
 Remember, the above three steps only need to be performed once per
 repository. Once you have cloned and forked a repository once, there is no
@@ -104,7 +105,7 @@ occam-ra/occam).
 2. **Create a branch.** Once you have done this, create a new branch. You
    should make a branch name that is short, descriptive, and unique. Some
    examples of good branch names are `fix-install`, `docs-cleanup`, and
-   `add-travis-ci`. Some examples of bad branch names are `feature`, `fix`,
+   `data-conversion`. Some examples of bad branch names are `feature`, `fix`,
    and `patch`. The branch name choice is not too important, so don't stress
    over it, but it is what people will use to reference your changes if they
    want to pull them down on their own computers to test them, so a good name
