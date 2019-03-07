@@ -92,10 +92,10 @@ occam-ra/occam).
    git checkout master
    ```
 
-   and pull in the latest changes
+   and fetch the latest changes
 
    ```
-   git pull
+   git fetch
    ```
 
    This will make it so that your changes are against the very latest master,
