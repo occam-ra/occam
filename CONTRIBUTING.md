@@ -98,15 +98,23 @@ occam-ra/occam).
    git checkout master
    ```
 
-   and pull in the latest changes
+   and fetch the latest changes
 
    ```
-   git pull
+   git fetch
    ```
 
    This will make it so that your changes are against the very latest master,
    which will reduce the likelihood of merge conflicts due to your changes
    conflicting with changes made by someone else.
+
+   You can also use pull instead of fetch (pull is a shortcut for completing both git fetch and git merge in the same command:)
+
+   ```
+   git pull
+   ```
+
+   For more on fetch vs. pull, see the [GitHub Guide to fetching remotes](https://help.github.com/en/articles/fetching-a-remote). There is **A LOT** of discussion about fetch vs. pull, and when each is appropriate. See [this stackoverflow thread](https://stackoverflow.com/questions/292357/what-is-the-difference-between-git-pull-and-git-fetch) for more details.
 
 2. **Create a branch.** Once you have done this, create a new branch. You
    should make a branch name that is short, descriptive, and unique. Some
