@@ -107,7 +107,7 @@ read past a “\#” character, so comments can be added at the end of lines whi
 
 ***Web input*** We now discuss the other parts of the Search web input page.
 
-***General settings ***
+***General settings***
 
 **Starting Model** Occam searches from a starting model. This can be specified on the browser page as “Top” (the data or “saturated model”), “Bottom” (the independence model), or some structure other than the top or bottom, e.g., “AB:BC”. (Lower case “top” and “bottom” are also OK.) This field can also be omitted, in which case Occam uses the starting model specified in the data file (after the variable specification and before the data), as follows:
 
@@ -162,7 +162,7 @@ The currently recommended choice is to sort by dBIC, since the currently recomme
 
 **Search Levels** This is the number of levels to be searched, *including* the starting model. If the value is specified it overrides any value specified in the data file. If the value is omitted, the value in the data file is used, and if it also does not specify a value, the default of 7 is used.
 
-***Report settings ***
+***Report settings***
 
 **In Report, Sort By:** Output can be sorted by (a) Information, (b) Alpha, (c) dDF, (d) Level, (e) % Correct, (f) dBIC, and (g) dAIC. (NB: the measure used to sort the Occam output report need not be the same as the measure used to sort during the search process.) dDF is the change of degrees of freedom relative to the reference model. Sorting by levels allows the user to have output which truly follows the order of the Lattice of Structures; this is not actually accomplished by sorting on dDF, because different variable cardinalities can result in a model at a lower level still having a higher dDF than a model at a higher level.
 
@@ -243,7 +243,7 @@ The user should normally select a model from among these summary best models. Ch
 
 Finally, if test data was included in the input file, Occam will also report the best model by accuracy (%C) on the test dataset. This is potentially useful for evaluating how well a model chosen by *another* score (dBIC, dAIC, or Information) does on the test set, and this can be valuable for research on RA methodology. However, %C(test) may not be used as a method of *selecting* a model in data analysis projects. The purpose of test data is to validate a model selected by other criteria, and thus test data must not be involved in any way, even indirectly, in model selection. (However, if the test data given to Occam is really *pseudo*-test data – also known as cross-validation data – and the user has held out real test data to be used later to assess the selected model, then using this pseudo-test data to select a model is OK.)
 
-***Output for a neutral system ***
+***Output for a neutral system***
 
 ![Output, neutral system](images/occam-neutral-output.png)
 
@@ -309,7 +309,7 @@ At present, Occam is only able to generate graph files for the HTML output or wh
 
 When returning results as HTML output, Occam includes the graph images as SVG format images. When returning results in CSV format, Occam includes graph images as PDF files (which are suitable for printing or for inclusion in a Word document).
 
-## VII. Fit Output 
+## VII. Fit Output
 After echoing the input parameters (which are requested by default), Occam prints out some properties of the model and some measures for the model where the reference model is first the top and then the bottom of the lattice.
 
 ***Output file for a directed system*** Below is the first Fit table outputted for a sample directed system, where the model is Top, “ABC”, where A and B are IVs, and C is the DV. The first columns show all of the “IV” state combinations that appear in the data. (Note that these IV states include states where the value of B is missing; these are shown as “.”) The next three columns, marked “Data”, show the frequencies in the data for each of those IV states, along with the observed conditional probabilities for the DV states. The following columns, marked Model, show the calculated conditional probabilities for the model, along with the selected prediction rule. The prediction rule specifies which DV state is expected given some particular IV state (row). The columns labelled “\#correct” and “%correct” show the performance of those rules on the data.
@@ -406,7 +406,7 @@ Note that the observed and calculated values will be different only for a model 
 
 **Observations for each variable among the IVIs** Similar to the tables for each relation, Occam can also print out a table for each variable among the IVIs, although these are omitted by default. These tables contain a row for each observed state of the variable. Besides the column denoting these states, the tables also include Obs.Prob. and Obs.Freq.; note that for a single variable margin, Obs.Prob.=Calc.Prob.=Ind.Prob., so the Calc.Prob. and Ind.Prob (and associated frequency) columns are omitted.
 
-## VIII. State-Based Fit 
+## VIII. State-Based Fit
 State-Based Fit (or SB-Fit) provides the same functionality and output as the standard variable-based Fit action. However, it operates on state-based models, such as those returned by a state-based search. As such, it has the same restrictions as state-based search: in the input file, variable abbreviations must be composed of only letters, and state names must be only numbers. Also, the optional “inverse notation” that can be used for variable-based models is not allowed for state-based models.
 
 ## IX. Show Log
@@ -415,7 +415,7 @@ This lets the user input his/her email address and see the history of the batch 
 ## X. Manage Jobs
 This allows the user to kill runaway or obsolete jobs. If a job appears to have crashed or stalled, please try to quit it using this page. Note that interactive jobs (when results are delivered in your browser) are not necessarily ended by closing the web page. Be careful to delete only your own jobs, and only the job you intend to delete. If you encounter problems with this, please email occam-feedback@lists.pdx.edu.
 
-## XI. Frequently Asked Questions 
+## XI. Frequently Asked Questions
 0. Are these really frequently asked questions or did you make them up? Some of them have actually been asked, but mostly they are made up. These are some questions that an Occam user might find it valuable to know the answers to.
 
 *1. How do I determine the best predictor or best set of IV predictors of some dependent variable?* Do an upward search, from the independence (bottom) model, IV:DV, using this bottom also as the reference model, looking only at loopless models. The best dBIC, dAIC, and Information models give you three answers to this question of the best predictors. The dBIC model is the most conservative of these answers, i.e., it posits the fewest best predictors. The other two best models are more ‘aggressive’ and posit more predictors.
@@ -490,9 +490,9 @@ The following error and warning messages may appear in the search output.
 
 **5. Rebinning an ignored variable warning:** If a variable is marked to be ignored but a rebinning string is present, Occam will ignore the rebinning string and the analysis will be done without rebinning. Occam will issue a small warning: “For variable =&gt;x rebinning parameters will not be considered since it is marked for no use.”
 
-## XIII. Known Bugs & Infelicities; Limitations 
+## XIII. Known Bugs & Infelicities; Limitations
 
-***Bugs and infelicities* 1. DF for large state spaces**. For large state spaces, a calculation of DF would be inaccurate if the state space nears a limitation of the underlying computer architecture, currently 2^53^ (\~10^16^). Occam does not calculate DF directly, but rather calculates delta- DF, which does not actually require a DF calculation. However, if delta-DF exceeds 2^63^ (\~10^19^), values may become inaccurate. This should be relatively apparent, if one is careful to always check that the output makes sense. For example, if delta-DF values appear negative, these limitations have likely been exceeded
+***Bugs and infelicities*** 1. DF for large state spaces**. For large state spaces, a calculation of DF would be inaccurate if the state space nears a limitation of the underlying computer architecture, currently 2^53^ (\~10^16^). Occam does not calculate DF directly, but rather calculates delta- DF, which does not actually require a DF calculation. However, if delta-DF exceeds 2^63^ (\~10^19^), values may become inaccurate. This should be relatively apparent, if one is careful to always check that the output makes sense. For example, if delta-DF values appear negative, these limitations have likely been exceeded
 
 **2. Rounding error and model order**. Occasionally, rounding errors will cause some model to have higher information content than some model above it in the Lattice of Structures. Either this error will occur only in the least significant digits of the measure, or, more commonly, it will not be visible at all in the Occam output, being indicated only by the placement in the output list of the two models. It is possible that such errors result from incomplete IPF convergence; consider increasing the parameter ipf-maxit (the maximum number of IPF iterations) or decreasing ipf-maxdev (the maximum error allowed in IPF iteration); see the discussion of these two parameters below.
 
@@ -506,21 +506,23 @@ Occam has been run with up to about 225 variables. To our knowledge, the maximum
 
 ## XIV. Planned But Not-Yet-Implemented Features
 
-**Preprocessing data. Using inputs only for test data**. For directed systems, there should be an option to add test set *inputs* to the training set, and have Occam output either a best prediction of the DV for each input record or a conditional probability distribution for the different possible DV values.
+**Preprocessing data**
+
+**1.Using inputs only for test data.** For directed systems, there should be an option to add test set *inputs* to the training set, and have Occam output either a best prediction of the DV for each input record or a conditional probability distribution for the different possible DV values.
 
 **2. Binning**. It should be possible for Occam itself to bin quantitative variables. However, binning can be done with a utility program written for Excel available from: http://www.pdx.edu/sysc/research-discrete-multivariate-modeling.
 
 **3. Missing data**. Currently, Occam can only handle missing data, i.e., values of some variables being missing in some records, by either (a) assigning “missing” as another variable value, or (b) ignoring records with missing values for particular IVs (see the section below on Rebinning). Missing values should be coded with a period (“.”). In principle, there ought also to be an option for Occam to impute missing values.
 
-***Models considered* 1. Omitting IV (input) component**. For directed systems, there should be an option to omit the IV component of the model, e.g., the AB of models AB:Z, AB:AZ, etc. This would (a) allow some models to make predictions for inputs not in the training set, (b) make some models loopless, so they can be assessed algebraically without IPF, and (c) make RA more resemble Bayesian networks, which often do not utilize (incorporate) such input components in their models.
+**Models considered - Omitting IV (input) component**. For directed systems, there should be an option to omit the IV component of the model, e.g., the AB of models AB:Z, AB:AZ, etc. This would (a) allow some models to make predictions for inputs not in the training set, (b) make some models loopless, so they can be assessed algebraically without IPF, and (c) make RA more resemble Bayesian networks, which often do not utilize (incorporate) such input components in their models.
 
-***Search* 1. Complete implementation of searches of all model classes**. Systems are either directed or neutral. The user can choose between different classes of models: all, loopless, disjoint, chain. Search direction can also be either up or down. However, not all classes of models are actually currently implemented for both up and down search directions for both neutral and directed systems. More specifically, what is and what is not currently implemented is indicated in the following table.
+**Search 1. Complete implementation of searches of all model classes**. Systems are either directed or neutral. The user can choose between different classes of models: all, loopless, disjoint, chain. Search direction can also be either up or down. However, not all classes of models are actually currently implemented for both up and down search directions for both neutral and directed systems. More specifically, what is and what is not currently implemented is indicated in the following table.
 
 ![Search implementation](images/occam-search-implementation.png)
 
 **2. Other types of searches**. Currently, only beam searches are done, that is, given a set of models at a given level, all of the parents at the next level up or all of the descendants at the next level down are considered, and the “Search Width” best models are selected at this next level (up or down). This process iterates. Other types of searches, such as depth- first searches, should also be implemented.
 
-***Model use and evaluation* 1. Prediction algorithm**. Models currently are used for directed systems to make predictions of test set outputs, using only the most obvious prediction scheme, namely to predict the output state that has the highest conditional probability given the inputs. This decision rule may sometimes be *non-optimal*, so the %correct specified for different models can be considered a lower bound on the %correct potentially achievable. More sophisticated prediction decision rules are under investigation.
+***Model use and evaluation 1. Prediction algorithm***. Models currently are used for directed systems to make predictions of test set outputs, using only the most obvious prediction scheme, namely to predict the output state that has the highest conditional probability given the inputs. This decision rule may sometimes be *non-optimal*, so the %correct specified for different models can be considered a lower bound on the %correct potentially achievable. More sophisticated prediction decision rules are under investigation.
 
 **2. Other goodness measures**. There are other measures of model goodness that it would be desirable to calculate and output: beta (probability of a Type II error), transmission, absolute rather than relative AIC values, AIC (or dAIC) corrected for small sample sizes relative to the state space, minimum description length (MDL), Receiver Operating Characteristic (ROC) area under curve, etc.
 
@@ -612,9 +614,9 @@ At present *the only parameters that can be set **only** in the data file* (asid
 One can specify in the data file the number of levels to be searched and the search width (the number of models retained at each level). For example, to search 10 levels and keep the best 5 models at each level, one adds the following lines above the data:
 
 ```
-:search-levels 
-10 
-:optimize-search-width 
+:search-levels
+10
+:optimize-search-width
 5
 ```
 However, one can specify the number of search levels and the search width on the web input page, and it is more convenient to do so there. When search levels and width are specified *both* in the data file and on the web input page, the web input page values take priority. If these values are *not* specified in either the data file or the web input page, they will take on their default values, as follows:
@@ -635,7 +637,7 @@ OCCAM’s *Compare* mode allows the user to compare best models derived from one
 
 ***Data Files*** The input file to *Compare* must be a single .zip archive. This archive must contain 1 or more *pairs* of datafiles. A pair of datafiles is 2 files with exactly the same name, except for a difference in the character immediately preceding the .txt file extension. For example, valid paired names could be ‘fileA.txt’ and ‘fileB.txt’. *Compare* determines which files are in corresponding pairs by sorting the list of files in the archive and checking that adjacent files in the sorted order meet this criterion. *Compare* will fail with an error when file names cannot do not match in this way. The single differing character before the extension can be anything in the two files so long as it differs, but the output of the analysis will refer to the lexically first filename as variant “A” and the lexically second one as variant “B”, so “A” and “B” are the most intuitive suffix characters to distinguish the files in a pair.
 
-***Search Settings ***
+***Search Settings***
 
 The search done in this mode *always* uses the bottom (independence) model as a reference, even when conducting a “top down” search.
 

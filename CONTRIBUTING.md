@@ -1,7 +1,13 @@
 ## OCCAM Contributor Guidelines (Git Workflow)
 
+Welcome to the OCCAM contributor guidlines. We welcome contributions, and there are a number of areas of active developement on the project. We are still roadmapping and getting organized, but that shouldn't prevent anyone from making contributions if they want to get involved.
+
+### Code of Conduct
+First review the [project Code of Conduct](CODE_OF_CONDUCT.md) for guidelines of contributor behavior. We are intent on providing a fun, productive, harassment-free environment for all contributors.
+
+### Recommended Git Workflow
 This document describes the git workflow that should be used when contributing
-to open source projects on GitHub. It assumes a very basic understanding of
+to OCCAM. Because we want to follow established open-source practice, it is based largely on similar guides from other open source projects on GitHub. It assumes a very basic understanding of
 git (commits, branches, etc.) using the command line.
 
 *Note: This workflow is designed for open source (i.e., public)
@@ -101,6 +107,14 @@ occam-ra/occam).
    This will make it so that your changes are against the very latest master,
    which will reduce the likelihood of merge conflicts due to your changes
    conflicting with changes made by someone else.
+
+   You can also use pull instead of fetch (pull is a shortcut for completing both git fetch and git merge in the same command:)
+
+   ```
+   git pull
+   ```
+
+   For more on fetch vs. pull, see the [GitHub Guide to fetching remotes](https://help.github.com/en/articles/fetching-a-remote). There is **A LOT** of discussion about fetch vs. pull, and when each is appropriate. See [this stackoverflow thread](https://stackoverflow.com/questions/292357/what-is-the-difference-between-git-pull-and-git-fetch) for more details.
 
 2. **Create a branch.** Once you have done this, create a new branch. You
    should make a branch name that is short, descriptive, and unique. Some
@@ -245,3 +259,19 @@ The important things to remember from this document are
 7. Comment on the pull request when you want people to know that you have
    pushed new changes. Although GitHub does notify people of commit pushes,
    people are more likely notice your changes if you leave a comment.
+
+## More Resources
+This guide gives an overview of typical basic workflow, but obviously is not comprehensive.
+Git is very powerful, and there is always more than one way to do things. Oftentimes, situations arise for which the typical workflow is not adequate. Here are some additional resources for learning about git and GitHub:
+
+### GitHub Learning Lab
+Github also provides the [GitHub Learning Lab](https://lab.github.com/), an interactive guide to GitHub which lets you learn in a hands-on way, performing actual GitHub tasks on dedicated learning repos (so you don't mess something up at a real repo before you get familiar with the workflow). This is a great resource as it lets you walk through common GitHub tasks with documentation right there for easy access. Highly recommended for those new to git(hub) (or those with some experience but still climbing the learning curve.)
+
+### GitHub Guides and other resources
+* [Guides master page](https://guides.github.com/) - top-level collection of guides
+* [Understanding the GitHub Workflow](https://guides.github.com/introduction/flow/)
+* [Git Handbook](https://guides.github.com/introduction/git-handbook/) - more on basic git commands, typical workflow, version control, and the git information model
+* [Guide to Issues](https://guides.github.com/features/issues/)
+* [About Pull Requests](https://help.github.com/en/articles/about-pull-requests)
+
+If these still don't answer your questions, ask a project maintainer in the [Slack project](https://occam-dev.slack.com) or see the [issues page](https://github.com/occam-ra/occam/issues) to see further discussion or submit an issue.
