@@ -34,14 +34,16 @@ not need to repeat them, but if you contribute to
 repeat them for that repository).**
 
 1. **Clone the repository.** Click the green "<font color="green">Clone or download</font>" button,
-   and copy the url  and type
+   copy the url, and type
 
    <code>git clone <i>clone-url</i></code>
 
    at the terminal. Replace *`clone-url`* with the url that has been copied to
    your clipboard. For occam-ra/occam, it will be
-   `git@github.com:occam-ra/occam.git`. If you have not set up your ssh keys with
-   GitHub, use the https url by first clicking the `https` button.
+   `https://github.com/occam-ra/occam.git`. 
+
+   <!---If you have not set up your ssh keys with
+   GitHub, use the https url by first clicking the `https` button.--->
 
    <!---
    <font color="blue">②</font>
@@ -67,14 +69,15 @@ repeat them for that repository).**
    clone from step 1 and run
 
    <code>
-   git remote add <i>your-github-username</i> <i>fork-url</i>
+   git remote add origin <i>fork-url</i>
    </code>
 
-   (replace *`your-github-username`* with your GitHub username and
-   *`fork-url`* with the url that was copied to your clipboard). You will be
+   <!---(replace *`your-github-username`* with your GitHub username --->
+   
+   Replace *`fork-url`* with the url that was copied to your clipboard). You will be
    able to tell it is your fork url because it will have your GitHub username
    in it. For instance, if your username is `github_user`, you would run the
-   command `git remote add github_user git@github.com:github_user/occam.git`.
+   command `git remote add origin https://www.github.com/github_user/occam.git`.
 
 Remember, the above three steps only need to be performed once per
 repository. Once you have cloned and forked a repository once, there is no
@@ -82,7 +85,7 @@ need to clone or fork it again.
 
 ## Making changes
 
-Before you make any changes, you should make a branch. Remember to **never
+Before you make any changes, you should make a branch. Remember that you should **never
 commit to master**. The command `git status` will tell you what branch you are
 on. I recommend putting the git branch in your command prompt, so that you
 will always know what branch you are on. See
@@ -154,19 +157,18 @@ occam-ra/occam).
    running
 
    <code>
-   git push <i>your-github-username</i> <i>branch-name</i>
+   git push <i>origin</i> <i>branch-name</i>
    </code>
 
-   (replace *`your-github-username`* with your GitHub username and
-   *`branch-name`* with the name of the branch).
+   (replace *`branch-name`* with the name of the branch).
 
 5. **Make a pull request.** If you then go to your fork on GitHub, you should
-   see a button to create a pull request from your branch. It will look
-   something like this:
+   see a button to create a pull request from your branch. 
 
-   <!---![pull.png](pull.png)--->
+   <!---It will look
+   something like this: ![pull.png](pull.png)--->
 
-   If you do not see this, go to the GitHub page for your fork , select the branch from the branch popup, and click the pull request button
+   If you do not see this, go to the GitHub page for your fork , select the branch from the branch popup, and click the pull request button.
 
    <!---
    <font color="blue">①</font>
@@ -176,11 +178,10 @@ occam-ra/occam).
 
    <!---![pull2.png](pull2.png)--->
 
-   Once doing this, you will be presented with a page. This page will show you
-   the diff of the changes. Double check them to make sure you are making a
-   pull request against the right branch.
+   Once doing this, you will be presented with a page that shows you
+   the diff of the changes (a detailed list of differences between your branch and the upstream branch). Double check them to make sure you are making a pull request against the right branch.
 
-   Things to check here are that the base fork is the upstream repo  (in this case, sympy/sympy) and the branch for the upstream repo is master, and that the head fork is your fork and the branch is the branch you wish to make the
+   Things to check here are that the base fork is the upstream repo  (in this case, occam-ra/occam) and the branch for the upstream repo is master, and that the head fork is your fork and the branch is the branch you wish to make the
    pull request from.
 
    <!---
