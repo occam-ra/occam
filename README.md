@@ -1,4 +1,21 @@
-# OCCAM: Reconstructability Analysis Tools
+### Winter-Spring 2019 Capstone Team A
+### Project: OCCAM
+### Description
+This package is a Python middle layer for interacting with OCCAM, a research tool and C++ implementation of reconstructability analysis.
+
+### Team Members:
+- Tim Coutinho - Team Lead
+- Huy Yang
+- Lily Cox
+- Gabriel Miller
+- Sebastian Reynolds
+- Carla Rubio-Lamas
+- Evghenii Siretanu
+- Ian McBride
+
+### Sponsor: Joe Fusion
+
+### OCCAM: Reconstructability Analysis Tools
 Copyright (c) 1990 The Portland State University OCCAM Project Team
 
 OCCAM is a collection of software tools comprising a library
