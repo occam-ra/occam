@@ -4,14 +4,14 @@
 # Please see the file LICENSE in the source
 # distribution of this software for license terms.
 
-import re
-import itertools
 import igraph
+import re
 from common import *
 
 # Drawing library boilerplate
 
-class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
+
+class StripDrawer(igraph.drawing.shapes.Shape_drawer):
     names = "strip"
 
     @staticmethod
@@ -25,25 +25,25 @@ class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
         if delta_x == 0 and delta_y == 0:
             return center_x, center_y
 
-        if delta_y > 0 and delta_x <= delta_y and delta_x >= -delta_y:
+        if delta_y > 0 and delta_y >= delta_x >= -delta_y:
             # this is the top edge
             ry = center_y - height/2
             ratio = (height/2) / delta_y
             return center_x-ratio*delta_x, ry
 
-        if delta_y < 0 and delta_x <= -delta_y and delta_x >= delta_y:
+        if delta_y < 0 and -delta_y >= delta_x >= delta_y:
             # this is the bottom edge
             ry = center_y + height/2
             ratio = (height/2) / -delta_y
             return center_x-ratio*delta_x, ry
 
-        if delta_x > 0 and delta_y <= delta_x and delta_y >= -delta_x:
+        if delta_x > 0 and delta_x >= delta_y >= -delta_x:
             # this is the left edge
             rx = center_x - width/2
             ratio = (width/2) / delta_x
             return rx, center_y-ratio*delta_y
 
-        if delta_x < 0 and delta_y <= -delta_x and delta_y >= delta_x:
+        if delta_x < 0 and -delta_x >= delta_y >= delta_x:
             # this is the right edge
             rx = center_x + width/2
             ratio = (width/2) / -delta_x
@@ -58,13 +58,15 @@ class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
             if delta_x > 0:
                 return center_x - width/2, center_y
             return center_x + width/2, center_y
-    
-igraph.drawing.shapes.ShapeDrawerDirectory.register(StripDrawer)
+
+
+igraph.drawing.shapes.Shape_drawer_directory.register(StripDrawer)
+
 
 def textwidth(text, fontsize=14):
     try:
         import cairo
-    except Exception, e:
+    except Exception:
         return len(str) * fontsize
     surface = cairo.SVGSurface('data/undefined.svg', 600, 600)
     cr = cairo.Context(surface)
@@ -73,51 +75,49 @@ def textwidth(text, fontsize=14):
     xbearing, ybearing, width, height, xadvance, yadvance = cr.text_extents(text)
     return width
 
-# Graph generation based on Teresa Schmidt's R script (2016)
 
-def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder):
+# Graph generation based on Teresa Schmidt's R script (2016)
+def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all_higher_order):
 
     # TODO fix this... the split is not quite working out right.
 
-# PARAMETERS:
+    # PARAMETERS:
     # model name: the model to make a graph of
     # variable list: variables from the data not necessarily in the model
     #   (list of pairs, containing (full name, abbrev))
-    # if allHigherOrder were set to true,
+    # if all_higher_order were set to true,
     # dyadic relations would get a hyperedge instead of normal edge,
     # like a -- ab -- b, instead of simply a -- b
     
     # Clean up the model name into a list of associations:
     # Get rid of IVI and IV
-    components = modelName.split(':')
-    components = filter(lambda s : not (s == 'IVI' or s == 'IV'), components)
+    components = model_name.split(':')
+    components = filter(lambda s: not (s == 'IVI' or s == 'IV'), components)
     # Split on uppercase letters
-    model = map(lambda s : re.findall('[A-Z][^A-Z]*', s), components)
-    if dvName != "":
-        model = filter(lambda r : dvName in r, model)
-    
+    model = map(lambda s: re.findall('[A-Z][^A-Z]*', s), components)
+    if dv_name != "":
+        model = filter(lambda r: dv_name in r, model)
 
     # Index full names from abbreviated 
-    varDict = dict(map(lambda p : (p[1],p[0]), varlist))
-    varNames = varDict.keys()
+    var_dict = dict(map(lambda p: (p[1], p[0]), varlist))
+    var_names = var_dict.keys()
     
-    if hideIV:
-        varNames = set([v for r in model for v in r])
+    if hide_iv:
+        var_names = set([v for r in model for v in r])
    
         if not components:
             return igraph.Graph()
 
-
     # For each variable, and each association, get a unique number:
     nodes = {}
-    num_nodes = len(varNames)
+    num_nodes = len(var_names)
     num_edges = 0
 
-    for i, v in enumerate(varNames):
+    for i, v in enumerate(var_names):
         nodes[v] = i
 
     for j, v in enumerate(model):
-        if allHigherOrder or len(v) > 2:
+        if all_higher_order or len(v) > 2:
             nodes["**".join(v)] = num_nodes + num_edges
             num_edges += 1
    
@@ -130,11 +130,11 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
         graph.vs[node]["id"] = val
         short = val.replace("**", "")
         graph.vs[node]["abbrev"] = short
-        graph.vs[node]["name"] = short if "**" in val else varDict[val]
+        graph.vs[node]["name"] = short if "**" in val else var_dict[val]
         graph.vs[node]["type"] = True if "**" in val else False
 
     for rel in model:
-        if len(rel) == 2 and not allHigherOrder:
+        if len(rel) == 2 and not all_higher_order:
             graph.add_edges([(nodes[rel[0]], nodes[rel[1]])])
         else:
             comp = nodes["**".join(rel)]
@@ -142,104 +142,106 @@ def generate(modelName, varlist, hideIV, hideDV, dvName, fullVarNames, allHigher
                 var = nodes[v]
                 graph.add_edges([(comp, var)])
 
-
-
     # If the DV is to be hidden, eliminate the node corresponding to it.
-    if dvName != "" and hideDV:
-        graph.delete_vertices(nodes[dvName])
+    if dv_name != "" and hide_dv:
+        graph.delete_vertices(nodes[dv_name])
     
     # Add labels (right now, just based on the name):
-    graph.vs["label"] = graph.vs["name" if fullVarNames else "abbrev"]
+    graph.vs["label"] = graph.vs["name" if full_var_names else "abbrev"]
     return graph
 
-def printPlot(graph, layout, extension, filename, width, height, fontSize, nodeSizeOrig):
+
+def print_plot(graph, layout, extension, filename, width, height, font_size, node_size_orig):
     # Setup the graph plotting aesthetics.
     tys = graph.vs["type"]
     tylabs = zip(graph.vs["type"], graph.vs["label"])
-    fontsize = fontSize
-    labWidth = lambda lab : textwidth(lab,fontsize*1.5)
+    fontsize = font_size
+    lab_width = lambda lab: textwidth(lab, fontsize*1.5)
     dotsize = 5
 
     # Calculate node sizes.
-    nodeSize = max([0 if ty else max(nodeSizeOrig, labWidth(lab)) for (ty,lab) in tylabs])
-    sizeFn = (lambda ty,lab : max(nodeSize, labWidth(lab))) if layout=="bipartite" else (lambda ty,lab : dotsize if ty else nodeSize) 
-
+    node_size = max([0 if ty else max(node_size_orig, lab_width(lab)) for (ty, lab) in tylabs])
+    size_fn = (lambda ty, lab : max(node_size, lab_width(lab))) if layout == "bipartite" else (lambda ty, lab : dotsize if ty else node_size)
 
     visual_style = {
-        "vertex_size":[sizeFn(ty, lab) for (ty,lab) in tylabs],
-        "vertex_color":["lightblue" if ty else "white" for ty in tys],
-        "vertex_shape":["strip" if layout == "bipartite" and ty else "circle" for ty in tys],
-        "vertex_label_size": [0 if layout!="bipartite" and ty else fontsize for ty in tys],
-        "margin":max([sizeFn(ty,lab)/2 for (ty,lab) in tylabs]+[nodeSize]),
+        "vertex_size": [size_fn(ty, lab) for (ty,lab) in tylabs],
+        "vertex_color": ["lightblue" if ty else "white" for ty in tys],
+        "vertex_shape": ["strip" if layout == "bipartite" and ty else "circle" for ty in tys],
+        "vertex_label_size": [0 if layout != "bipartite" and ty else fontsize for ty in tys],
+        "margin":max([size_fn(ty, lab)/2 for (ty, lab) in tylabs]+[node_size]),
 
         "vertex_label_dist": 0,
         "bbox":(width, height)
     }
 
-
     # Set the layout. None is a valid choice.
-    layoutChoice = None
+    layout_choice = None
 
     try:
         if layout == "Fruchterman-Reingold":
-            layoutChoice = graph.layout("fr")
+            layout_choice = graph.layout("fr")
         elif layout == "bipartite":
-            layoutChoice = graph.layout_as_bipartite()
+            layout_choice = graph.layout_as_bipartite()
         elif layout == "Reingold-Tilford":
-            layoutChoice = graph.layout("rt")
-        elif layout == "GraphOpt":
-            layoutChoice = "graphopt"
+            layout_choice = graph.layout("rt")
+        elif layout == "Graph_opt":
+            layout_choice = "graphopt"
         elif layout == "Kamada-Kawai":
-            layoutChoice = "kk"
+            layout_choice = "kk"
         elif layout == "Sugiyama":
-            layoutChoice = "sugiyama"
-    except Exception as e:
+            layout_choice = "sugiyama"
+    except Exception:
         raise RuntimeError("The hypergraph layout library failed to apply the " + layout + " layout.")
 
     # Generate a unique file for the graph;
     # using the layout (if any), generate a plot.
-    graphFile = getUniqueFilename("data/"+filename+"."+extension)
-    igraph.plot(graph, graphFile, layout=layoutChoice, **visual_style)
-    return graphFile
+    graph_file = get_unique_filename("data/" + filename + "." + extension)
+    igraph.plot(graph, graph_file, layout=layout_choice, **visual_style)
+    return graph_file
 
-def printSVG(graph, layout, width, height, fontSize, nodeSize):
+
+def print_svg(graph, layout, width, height, font_size, node_size):
     print "<br>"
-    graphFile = printPlot(graph, layout, "svg", "graph", width, height, fontSize, nodeSize)
-    with open(graphFile) as gf:
+    graph_file = print_plot(graph, layout, "svg", "graph", width, height, font_size, node_size)
+    with open(graph_file) as gf:
         contents = gf.read()
         print contents
 
-def printPDF(filename, graph, layout, width, height, fontSize, nodeSize):
-    graphFile = printPlot(graph, layout, "pdf", filename, width, height, fontSize, nodeSize)
-    return graphFile
 
-def printGephi(graph):
+def print_pdf(filename, graph, layout, width, height, font_size, node_size):
+    graph_file = print_plot(graph, layout, "pdf", filename, width, height, font_size, node_size)
+    return graph_file
 
-    nlHeader = "<br><br><i>Gephi 'Nodes table' file:</i><pre><code>"
-    nlFooter = "</code></pre>"
-    elHeader = "<br><br><i>Gephi 'Edges table' file:</i><pre><code>"
-    elFooter = "</code></pre>"
 
-    nl = gephiNodes(graph)
-    el = gephiEdges(graph)
+def print_gephi(graph):
 
-    gephiCode = nlHeader + nl + nlFooter + elHeader + el + elFooter
-    return gephiCode
+    nl_header = "<br><br><i>Gephi 'Nodes table' file:</i><pre><code>"
+    nl_footer = "</code></pre>"
+    el_header = "<br><br><i>Gephi 'Edges table' file:</i><pre><code>"
+    el_footer = "</code></pre>"
 
-def gephiNodes(graph):
+    nl = gephi_nodes(graph)
+    el = gephi_edges(graph)
+
+    gephi_code = nl_header + nl + nl_footer + el_header + el + el_footer
+    return gephi_code
+
+
+def gephi_nodes(graph):
     header = "ID,Label,Type,Size\n"
     content = ""
     for n in graph.vs:
-        ty = "HyperEdge" if n["type"] else "Variable"
+        ty = "Hyper_edge" if n["type"] else "Variable"
         size = 4 if n["type"] else 10
         line = ",".join([n["abbrev"], n["name"], ty, str(size)])
         content += line + "\n" 
     return header + content
 
-def gephiEdges(graph):
+
+def gephi_edges(graph):
     header = "Source,Target\n"
     content = ""
-    for n1,n2 in graph.get_edgelist():
+    for n1, n2 in graph.get_edgelist():
         nn1 = graph.vs[n1]
         nn2 = graph.vs[n2]
         content += nn1["abbrev"] + "," + nn2["abbrev"] + "\n"

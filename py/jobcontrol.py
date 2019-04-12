@@ -4,18 +4,21 @@
 # Please see the file LICENSE in the source
 # distribution of this software for license terms.
 
-import os, sys, re
+import os
+import re
+import sys
+
 
 class JobControl:
-	def showJobs(self, formFields):
+	def show_jobs(self, form_fields):
 		# Kill job if requested
-		pid = formFields.get("pid", 0)
-		if pid <> 0:
+		pid = form_fields.get("pid", 0)
+		if pid != 0:
 			killed = False
 			try:
 				procfd = os.popen("ps -o pid,command")
 				procstat = procfd.read()
-				procs = procstat.split('\n');
+				procs = procstat.split('\n')
 				del(procs[0])
 				for proc in procs:
 					if proc.find("occam") >= 0:
@@ -32,7 +35,6 @@ class JobControl:
 				print "<b>Kill of " + pid + " failed: " + sys.exc_info()[0] + "</b><p><p>"
 			if not killed:
 				print "<b>Kill of " + pid + " failed.</b><p><p>"
-			
 
 		# Show active occam-related jobs
 		print "<b>Active Jobs</b><p>"
@@ -40,9 +42,9 @@ class JobControl:
 		print "<tr class=em align=left><th>Process</th><th>Start Time</th><th>Elapsed Time</th><td>%CPU</th><th>%Mem</th><th width='40%'>Command</th><th> </th></tr>"
 		procfd = os.popen("ps -o pid,lstart,etime,pcpu,pmem,command")
 		procstat = procfd.read()
-		procs = procstat.split('\n');
+		procs = procstat.split('\n')
 		del(procs[0])
-		evenRow = False
+		even_row = False
 		for proc in procs:
 			if proc.find("occam") >= 0:
 				fields = re.split("[ \t]+", proc.lstrip(), 9)
@@ -54,12 +56,12 @@ class JobControl:
 				del fields[-1]
 				fields[1] = " ".join(fields[1:4]) + " " + fields[5] + "<br>" + fields[4]
 				del fields[2:6]
-				if evenRow:
+				if even_row:
 					print "<tr valign='top'>"
-					evenRow = False
+					even_row = False
 				else:
 					print "<tr class=r1 valign='top'>"
-					evenRow = True
+					even_row = True
 				for n in range(0, len(fields)):
 					print "<td>", fields[n], "</td>"
 				command = ""
@@ -75,13 +77,13 @@ class JobControl:
 				elif len(cmds) == 5:
 					command = cmds[1] + " " + cmds[2] + "<br>" + cmds[3]
 					if cmds[4] != "":
-						 command += '<br>\nSubject: "' + cmds[4].decode("hex") + '"'
+						command += '<br>\n_subject: "' + cmds[4].decode("hex") + '"'
 				elif len(cmds) == 6:
 					command = cmds[1].split('/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
 				elif len(cmds) == 7:
 					command = cmds[1].split('/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
 					if cmds[6] != "":
-						command += '<br>\nSubject: "' + cmds[6].decode("hex") + '"'
+						command += '<br>\n_subject: "' + cmds[6].decode("hex") + '"'
 				print "<td>", command, "</td>"
 				print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[0] + '">kill</a></td>'
 				print "</tr>"
