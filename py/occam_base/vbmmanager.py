@@ -19,7 +19,8 @@ class VBMManager:
         else:
             self._object_reference = object_reference
 
-    def get_variable_list(self):
+    @property
+    def variable_list(self):
         """
         Returns a new VariableList object
         """
