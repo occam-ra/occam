@@ -5,13 +5,11 @@
 # Please see the file LICENSE in the source
 # distribution of this software for license terms.
 
-import pdb
-import os, sys
-sys.path.append("/www")
-import occam
+import sys
+# sys.path.append("/www")
 import time
 
-from ocutils import ocUtils
+from ocutils import OCUtils
 
 if len(sys.argv) < 3:
 	print 'Incorrect parameters.'
@@ -19,20 +17,19 @@ if len(sys.argv) < 3:
 	sys.exit()
 
 
-oc = ocUtils("SB")
+oc = OCUtils("SB")
 
 t1 = time.time()
-oc.initFromCommandLine(sys.argv[0:2]) # initialize with the data file
+oc.init_from_command_line(sys.argv[0:2])  # initialize with the data file
 
-oc.setFitModel(sys.argv[2])
-oc.setAction("SBfit")
-oc.setReportSeparator(3)
-#oc.setDDFMethod(1)
+oc.set_fit_model(sys.argv[2])
+oc.set_action("SBfit")
+oc.set_report_separator(3)
+# oc.set_ddf_method(1)
 
 t2 = time.time()
-oc.doAction(0)
+oc.do_action(0)
 t3 = time.time()
 
 print "start:  %8f" % (t2 - t1)
 print "fit: %8f" % (t3 - t2)
-
