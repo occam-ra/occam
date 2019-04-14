@@ -11,6 +11,7 @@
 #include "SBMManager.h"
 #include "SearchBase.h"
 #include "VBMManager.h"
+#include "VariableList.h"
 #include <limits>
 #include <unistd.h>
 #include <Python.h>
@@ -65,6 +66,7 @@ DefinePyObject(SBMManager);
 DefinePyObject(Relation);
 DefinePyObject(Model);
 DefinePyObject(Report);
+DefinePyObject(VariableList);
 
 /**************************/
 /****** VBMManager ******/
@@ -127,28 +129,6 @@ DefinePyFunction(VBMManager, getDvName) {
     PyObject* name = PyString_FromString(abbrev);
     return name;
 }
-
-
-DefinePyFunction(VBMManager, getVariableList) {
-    VBMManager* mgr = ObjRef(self, VBMManager);
-    VariableList* varlist = mgr->getVariableList();
-    long var_count = varlist->getVarCount();
-
-    PyObject* ret = PyList_New(var_count);
-    for (long i = 0; i < var_count; ++i) {
-
-        const char* printName = varlist->getVariable(i)->name;
-        const char* abbrevName = varlist->getVariable(i)->abbrev;
-        PyObject* name = PyString_FromString(printName);
-        PyObject* abbrev = PyString_FromString(abbrevName);
-        PyObject* names = PyTuple_Pack(2,name,abbrev);
-        PyList_SetItem(ret, i, names);
-    }
-
-    return ret;
-}
-
-
 
 // Model **searchOneLevel(Model *)
 DefinePyFunction(VBMManager, searchOneLevel) {
@@ -664,6 +644,17 @@ DefinePyFunction(VBMManager, dumpRelations) {
     return Py_BuildValue("i", 0);
 }
 
+DefinePyFunction(VBMManager, getVariableList) {
+    VBMManager* manager = ObjRef(self, VBMManager);
+    PVariableList *var_list = ObjNew(VariableList);
+    var_list->obj = manager->getVariableList();
+
+    Py_INCREF(var_list);
+
+    return (PyObject*) var_list;
+}
+
+
 static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initFromCommandLine),
         PyMethodDef(VBMManager, getDvName),
         PyMethodDef(VBMManager, makeAllChildRelations), PyMethodDef(VBMManager, makeChildModel),
@@ -704,7 +695,7 @@ PyObject * VBMManager_getattr(PyObject *self, char *name) {
 }
 
 /****** Type Definition ******/
-PyTypeObject TVBMManager = { PyObject_HEAD_INIT(&PyType_Type) 0, "VBMManager",
+PyTypeObject TVBMManager = { PyObject_HEAD_INIT(&PyType_Type) 0, "VBMManager_cpp",
 sizeof(PVBMManager), 0,
 //-- standard methods
         (destructor) VBMManager_dealloc,
@@ -1908,6 +1899,38 @@ PyTypeObject TReport = { PyObject_HEAD_INIT(&PyType_Type) 0, "Report", sizeof(PR
         (getattrofunc) 0,
         (setattrofunc) 0,
     };
+
+
+/*
+    VariableList definition
+*/
+static struct PyMethodDef VariableList_methods[] = 
+{
+        { NULL, NULL, 0 } 
+};
+
+
+PyTypeObject TVariableList = 
+{
+    PyObject_HEAD_INIT(&PyType_Type) 0,
+    "VariableList_cpp",
+    sizeof(VariableList),
+    0,
+    (destructor) 0,
+    (printfunc) 0,
+    (getattrfunc) 0,
+    (setattrfunc) 0,
+    (cmpfunc) 0,
+    (reprfunc) 0,
+    0,
+    0,
+    0,
+    (hashfunc) 0,
+    (ternaryfunc) 0,
+    (reprfunc) 0,
+    (getattrofunc) 0,
+    (setattrofunc) 0,
+};
 
 /**************************/
 /****** MODULE LOGIC ******/
