@@ -72,6 +72,10 @@ CORE_FILES = \
 	py/distanceFunctions.py \
 	py/ocGraph.py
 
+CAPSTONE_FILES = \
+	py/occam_base/variablelist.py \
+	py/occam_base/vbmmanager.py
+
 CL_FILES = \
 	cpp/occ \
 	py/basic.py \
@@ -111,23 +115,23 @@ WEB_FILES = \
 	html/compare.footer.html \
 	html/occambatch
 
-install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES)
+install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES) $(CAPSTONE_FILES)
 	-rm -rf $(INSTALL_ROOT)
 	mkdir -p $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)
 	mkdir -p $(CL_ROOT)
 	cp $(WEB_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(CL_ROOT)
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(WEB_ROOT)
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
 	mkdir -p $(WEB_ROOT)/data
 
 web:
 	cp $(WEB_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(WEB_ROOT)
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(WEB_ROOT)
 
 cli:
-	cp $(CORE_FILES) $(CL_ROOT)
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
 
 lib: $(HEADERS) $(CPP_FILES)
