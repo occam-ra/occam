@@ -24,7 +24,7 @@ class OCUtils:
     SPACE_SEP = 3
     HTML_FORMAT = 4
 
-    def _init_(self, man):
+    def __init__(self, man):
         if man == "VB":
             self._manager = occam.VBMManager()
         else:

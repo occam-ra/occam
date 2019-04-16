@@ -11,7 +11,7 @@ from common import *
 # Drawing library boilerplate
 
 
-class StripDrawer(igraph.drawing.shapes.Shape_drawer):
+class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
     names = "strip"
 
     @staticmethod
@@ -60,7 +60,7 @@ class StripDrawer(igraph.drawing.shapes.Shape_drawer):
             return center_x + width/2, center_y
 
 
-igraph.drawing.shapes.Shape_drawer_directory.register(StripDrawer)
+igraph.drawing.shapes.ShapeDrawer_directory.register(StripDrawer)
 
 
 def textwidth(text, fontsize=14):
@@ -88,7 +88,7 @@ def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all
     # if all_higher_order were set to true,
     # dyadic relations would get a hyperedge instead of normal edge,
     # like a -- ab -- b, instead of simply a -- b
-    
+
     # Clean up the model name into a list of associations:
     # Get rid of IVI and IV
     components = model_name.split(':')
@@ -98,13 +98,13 @@ def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all
     if dv_name != "":
         model = filter(lambda r: dv_name in r, model)
 
-    # Index full names from abbreviated 
+    # Index full names from abbreviated
     var_dict = dict(map(lambda p: (p[1], p[0]), varlist))
     var_names = var_dict.keys()
-    
+
     if hide_iv:
         var_names = set([v for r in model for v in r])
-   
+
         if not components:
             return igraph.Graph()
 
@@ -120,9 +120,9 @@ def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all
         if all_higher_order or len(v) > 2:
             nodes["**".join(v)] = num_nodes + num_edges
             num_edges += 1
-   
+
     num_vertices = num_nodes + num_edges
-     
+
     # Start with an empty graph
     graph = igraph.Graph()
     graph.add_vertices(num_vertices)
@@ -145,7 +145,7 @@ def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all
     # If the DV is to be hidden, eliminate the node corresponding to it.
     if dv_name != "" and hide_dv:
         graph.delete_vertices(nodes[dv_name])
-    
+
     # Add labels (right now, just based on the name):
     graph.vs["label"] = graph.vs["name" if full_var_names else "abbrev"]
     return graph
@@ -234,7 +234,7 @@ def gephi_nodes(graph):
         ty = "Hyper_edge" if n["type"] else "Variable"
         size = 4 if n["type"] else 10
         line = ",".join([n["abbrev"], n["name"], ty, str(size)])
-        content += line + "\n" 
+        content += line + "\n"
     return header + content
 
 
