@@ -31,7 +31,7 @@ class OCUtils:
             self._manager = occam.SBMManager()
         self._hide_intermediate_output = False
         self._report = self._manager.Report()
-        self._DDFMethod = 0
+        self._ddf_method = 0
         self.sort_name = "ddf"
         self._report_sort_name = ""
         self._sort_dir = "ascending"
@@ -39,7 +39,7 @@ class OCUtils:
         self._alpha_threshold = 0.05
         self._fit_classifier_target = ""
         self._skip_trained_model_table = 1
-        self._skip_IVI_tables = 1
+        self._skip_ivi_tables = 1
         self._search_width = 3
         self._search_levels = 7
         self.search_dir = "default"
@@ -49,18 +49,17 @@ class OCUtils:
         self._fit_models = []
         self._report_file = ""
         self._data_file = ""
-        self._calc_expectedDV = 0
+        self._calc_expected_dv = 0
         self._default_fit_model = ""
         self._report.setSeparator(OCUtils.SPACE_SEP)  # align columns using spaces
         self._HTMLFormat = 0
         self._skip_nominal = 0
         self._use_inverse_notation = 0
         self._values_are_functions = 0
-        self._BPStatistics = 0
-        self._Percent_correct = 0
-        self._Incremental_alpha = 0
+        self._bp_statistics = 0
+        self._percent_correct = 0
+        self._incremental_alpha = 0
         self._no_ipf = 0
-
         self.graphs = {}
         self._graph_width = 500
         self._graph_height = 500
@@ -72,12 +71,11 @@ class OCUtils:
         self._graph_hideDV = False
         self._full_var_names = False
         self._layout_style = None
-        #        self._show_edge_weights = True
-        #        self._weight_fn = "Mutual Information"
-
-        self.totalgen = 0
-        self.totalkept = 0
-        self._nextID = 0
+        # self._show_edge_weights = True
+        # self._weight_fn = "Mutual Information"
+        self.total_gen = 0
+        self.total_kept = 0
+        self._next_id = 0
 
     # -- Read command line args and process input file
     def init_from_command_line(self, argv):
@@ -97,11 +95,11 @@ class OCUtils:
             pass
         self._report.setAttributes(report_attributes)
         if re.search('bp_t', report_attributes):
-            self._BPStatistics = 1
+            self._bp_statistics = 1
         if re.search('pct_correct', report_attributes):
-            self._Percent_correct = 1
+            self._percent_correct = 1
         if re.search('incr_alpha', report_attributes):
-            self._Incremental_alpha = 1
+            self._incremental_alpha = 1
 
     def set_report_separator(self, format_):
         occam.setHTMLMode(format_ == OCUtils.HTML_FORMAT)
@@ -115,7 +113,7 @@ class OCUtils:
         self._skip_trained_model_table = b
 
     def set_skip_ivi_tables(self, b):
-        self._skip_IVI_tables = b
+        self._skip_ivi_tables = b
 
     def set_skip_nominal(self, use_flag):
         flag = int(use_flag)
@@ -140,7 +138,7 @@ class OCUtils:
         method = int(ddf_method)
         if method != 1:
             method = 0
-        self._DDFMethod = method
+        self._ddf_method = method
 
     def set_sort_dir(self, sort_dir):
         if sort_dir == "":
@@ -174,7 +172,7 @@ class OCUtils:
     def set_search_filter(self, search_filter):
         self._search_filter = search_filter
 
-    def setAlphaThreshold(self, alpha_threshold):
+    def set_alpha_threshold(self, alpha_threshold):
         self._alpha_threshold = float(alpha_threshold)
 
     def set_ref_model(self, ref_model):
@@ -201,7 +199,7 @@ class OCUtils:
         self._data_file = data_file
 
     def set_calc_expected_dv(self, calc_expected_dv):
-        self._calc_expectedDV = calc_expected_dv
+        self._calc_expected_dv = calc_expected_dv
 
     def set_default_fit_model(self, model):
         self._default_fit_model = model
@@ -272,7 +270,7 @@ class OCUtils:
                 heapq.heappush(new_models_heap, ([key, new_model.get("name")], new_model))  # appending the model name makes sort alphabet-consistent
                 add_count += 1
             else:
-                if self._Incremental_alpha:
+                if self._incremental_alpha:
                     # this model has been made already, but this progenitor might lead to a better Incr.Alpha
                     # so we ask the manager to check on that, and save the best progenitor
                     self._manager.compareProgenitors(new_model, model)
@@ -298,12 +296,12 @@ class OCUtils:
             else:
                 break
         trunc_count = len(best_models)
-        self.totalgen = full_count + self.totalgen
-        self.totalkept = trunc_count + self.totalkept
+        self.total_gen = full_count + self.total_gen
+        self.total_kept = trunc_count + self.total_kept
         mem_used = self._manager.getMemUsage()
         if not self._hide_intermediate_output:
             print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (
-                full_count, trunc_count, self.totalgen + 1, self.totalkept + 1,
+                full_count, trunc_count, self.total_gen + 1, self.total_kept + 1,
                 mem_used / 1024),
         sys.stdout.flush()
         if clear_cache_flag:
@@ -410,16 +408,16 @@ class OCUtils:
         self._manager.printBasicStatistics()
         self._manager.computeL2Statistics(start)
         self._manager.computeDependentStatistics(start)
-        if self._BPStatistics:
+        if self._bp_statistics:
             self._manager.computeBPStatistics(start)
-        if self._Percent_correct and self._manager.isDirected():
+        if self._percent_correct and self._manager.isDirected():
             self._manager.computePercentCorrect(start)
-        if self._Incremental_alpha:
+        if self._incremental_alpha:
             self._manager.computeIncrementalAlpha(start)
         start.level = 0
         self._report.addModel(start)
-        self._nextID = 1
-        start.setID(self._nextID)
+        self._next_id = 1
+        start.setID(self._next_id)
         start.setProgenitor(start)
         old_models = [start]
         try:
@@ -451,14 +449,14 @@ class OCUtils:
                 if not self._no_ipf:
                     self._manager.computeL2Statistics(model)
                     self._manager.computeDependentStatistics(model)
-                if self._BPStatistics:
+                if self._bp_statistics:
                     self._manager.computeBPStatistics(model)
-                if self._Percent_correct:
+                if self._percent_correct:
                     self._manager.computePercentCorrect(model)
-                if self._Incremental_alpha:
+                if self._incremental_alpha:
                     self._manager.computeIncrementalAlpha(model)
-                self._nextID += 1
-                model.setID(self._nextID)
+                self._next_id += 1
+                model.setID(self._next_id)
                 # model.deleteFitTable()  #recover fit table memory
                 self._report.addModel(model)
             old_models = new_models
@@ -499,14 +497,14 @@ class OCUtils:
         self._manager.printBasicStatistics()
         self._manager.computeL2Statistics(start)
         self._manager.computeDependentStatistics(start)
-        if self._Percent_correct and self._manager.isDirected():
+        if self._percent_correct and self._manager.isDirected():
             self._manager.computePercentCorrect(start)
-        if self._Incremental_alpha:
+        if self._incremental_alpha:
             self._manager.computeIncrementalAlpha(start)
         start.level = 0
         self._report.addModel(start)
-        self._nextID = 1
-        start.setID(self._nextID)
+        self._next_id = 1
+        start.setID(self._next_id)
         start.setProgenitor(start)
         old_models = [start]
         try:
@@ -535,14 +533,14 @@ class OCUtils:
                 if not self._no_ipf:
                     self._manager.computeL2Statistics(model)
                     self._manager.computeDependentStatistics(model)
-                if self._BPStatistics:
+                if self._bp_statistics:
                     self._manager.computeBPStatistics(model)
-                if self._Percent_correct:
+                if self._percent_correct:
                     self._manager.computePercentCorrect(model)
-                if self._Incremental_alpha:
+                if self._incremental_alpha:
                     self._manager.computeIncrementalAlpha(model)
-                self._nextID += 1
-                model.setID(self._nextID)
+                self._next_id += 1
+                model.setID(self._next_id)
                 model.deleteFitTable()  # recover fit table memory
                 self._report.addModel(model)
             old_models = new_models
@@ -741,8 +739,8 @@ class OCUtils:
                     print "\nERROR: Unable to create model " + self._default_fit_model
                     sys.exit(0)
                 self._report.setDefaultFitModel(default_model)
-            self._report.printConditional_DV(model, self._calc_expectedDV,
-                                              self._fit_classifier_target)
+            self._report.printConditional_DV(model, self._calc_expected_dv,
+                                             self._fit_classifier_target)
 
             self.print_graph(model_name, only_gfx)
 
@@ -783,7 +781,8 @@ class OCUtils:
             pass
         else:
             self.graphs[model] = ocGraph.generate(model, varlist, hide_iv,
-                                                  hide_dv, dv_name, full_var_names,
+                                                  hide_dv, dv_name,
+                                                  full_var_names,
                                                   all_higher_order)
 
     def set_gfx(self, use_gfx, layout=None, gephi=False, hide_iv=True,
@@ -808,7 +807,7 @@ class OCUtils:
         self._manager.printFitReport(model)
         self._manager.makeFitTable(model)
         self._report.printResiduals(model, self._skip_trained_model_table,
-                                    self._skip_IVI_tables)
+                                    self._skip_ivi_tables)
 
     def do_sb_fit(self, print_options):
         # self._manager.setValuesAreFunctions(self._values_are_functions)
@@ -827,8 +826,8 @@ class OCUtils:
                     print "\nERROR: Unable to create model " + self._default_fit_model
                     sys.exit(0)
                 self._report.setDefaultFitModel(default_model)
-            self._report.printConditional_DV(model, self._calc_expectedDV,
-                                              self._fit_classifier_target)
+            self._report.printConditional_DV(model, self._calc_expected_dv,
+                                             self._fit_classifier_target)
 
             print
             print
@@ -869,11 +868,11 @@ class OCUtils:
                 self._ref_model = "bottom"
         option = self._action
         if option == "search":
-            self._manager.setDDFMethod(self._DDFMethod)
+            self._manager.setDDFMethod(self._ddf_method)
             self.do_search(print_options)
             self.print_search_report()
         elif option == "fit":
-            self._manager.setDDFMethod(self._DDFMethod)
+            self._manager.setDDFMethod(self._ddf_method)
             self.do_fit(print_options, only_gfx)
         elif option == "SBsearch":
             # self._manager.setDDFMethod(self._DDFMethod)
@@ -952,8 +951,8 @@ class OCUtils:
         self._manager.computeL2Statistics(start)
         self._manager.computeDependentStatistics(start)
         self._report.addModel(start)
-        self._nextID = 1
-        start.setID(self._nextID)
+        self._next_id = 1
+        start.setID(self._next_id)
         start.setProgenitor(start)
 
         # Perform the search to find the best model
@@ -965,8 +964,8 @@ class OCUtils:
             for model in new_models:
                 self._manager.computeL2Statistics(model)
                 self._manager.computeDependentStatistics(model)
-                self._nextID += 1
-                model.setID(self._nextID)
+                self._next_id += 1
+                model.setID(self._next_id)
                 self._report.addModel(model)
             old_models = new_models
 
@@ -981,5 +980,5 @@ class OCUtils:
     def compute_binary_statistic(self, compare_order, key):
         file_ref, model_ref, file_comp, model_comp = compare_order
         return self._manager.computeBinaryStatistic(file_ref, model_ref,
-                                                      file_comp, model_comp,
-                                                      key)
+                                                    file_comp, model_comp,
+                                                    key)

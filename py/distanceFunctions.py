@@ -61,7 +61,7 @@ def klDist(compare_order):
     return zipwise_sum(klComponentSum, compare_order) / math.log(2)
 
 def maxDist(compare_order):
-    return zipwise_max(lambda x, y: abs(x-y), compare_order)
+    return zipwise_max(lambda x, y: abs(x - y), compare_order)
 
 distanceMetrics = {
 

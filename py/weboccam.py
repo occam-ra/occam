@@ -220,7 +220,6 @@ def print_form(form_fields):
     template = OpagCGI()
     action = form_fields.get("action", "")
 
-    format_text = ""
     if "format_text" in form_fields:
         form_fields['format_text'] = "checked"
     template.set_template('switchform.html')
@@ -343,7 +342,6 @@ def prepare_cached_data(form_fields):
 
     decls, decls_rn = unpack_to_string(decls_file_name, decls_file)
 
-    data = ""
     if data_file_name == "":  # search for the Cached Data Name and combine.
         drn = os.path.join(datadir, data_refr_name)
         if not os.path.isfile(drn):
@@ -843,7 +841,6 @@ def action_batch_compare(form_fields):
         else:
             return hl + s + hr
 
-    line = lambda s: bracket(s, "<br>", "</br>", "", "")
     tab_row = lambda s: bracket(s, "<tr>", "</tr>", "", "")
     tab_col = lambda s: bracket(s, "<td>", "</td>", " ", ",")
     tab_head = lambda s: bracket(s, "<th align=left>", "</th>", " ", ",")

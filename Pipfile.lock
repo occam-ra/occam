@@ -1,0 +1,28 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "90cb702c50d082daef3f53caef1900162159ddd21e35b1cb369e0fa0d77a837c"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "2.7"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "python-igraph": {
+            "hashes": [
+                "sha256:a5ea42790a077eadb3d1e8f82edc47516fea4a2b26bbf52bfc148370fe0fe676"
+            ],
+            "index": "pypi",
+            "version": "==0.7.1.post6"
+        }
+    },
+    "develop": {}
+}
