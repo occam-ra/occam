@@ -673,7 +673,7 @@ def action_search(form_fields):
         elif report_sort == "alpha": report_sort = "bp_alpha"
         if search_sort == "information": search_sort = "bp_information"
         elif search_sort == "alpha": search_sort = "bp_alpha"
-        if oc.isDirected():
+        if oc.is_directed():
             reportvars += ", bp_cond_pct_dh"
         reportvars += ", bp_aic, bp_bic"
     """
@@ -1077,7 +1077,7 @@ def action_sb_search(form_fields):
         elif report_sort == "alpha": report_sort = "bp_alpha"
         if search_sort == "information": search_sort = "bp_information"
         elif search_sort == "alpha": search_sort = "bp_alpha"
-        if oc.isDirected():
+        if oc.is_directed():
             reportvars += ", bp_cond_pct_dh"
         reportvars += ", bp_aic, bp_bic"
     """
