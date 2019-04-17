@@ -436,7 +436,7 @@ def unzip_data_file(datafile):
 
 
 def process_fit(fn, model, negative_dv_for_confusion, oc, only_gfx):
-    global datafile, text_format, print_options
+    global datafile, text_format, printOptions
 
     if text_format:
         oc.set_report_separator(OCUtils.COMMA_SEP)
@@ -449,7 +449,7 @@ def process_fit(fn, model, negative_dv_for_confusion, oc, only_gfx):
 
     oc.set_fit_classifier_target(negative_dv_for_confusion)
     oc.set_action("fit")
-    oc.do_action(print_options, only_gfx)
+    oc.do_action(printOptions, only_gfx)
 
     if not text_format:
         print "</span>"
@@ -459,7 +459,7 @@ def process_fit(fn, model, negative_dv_for_confusion, oc, only_gfx):
 # ---- process_sb_fit ---- Do state based fit operation
 #
 def process_sb_fit(fn, model, negative_dv_for_confusion, oc, only_gfx):
-    global datafile, text_format, print_options
+    global datafile, text_format, printOptions
     if text_format:
         oc.set_report_separator(OCUtils.COMMA_SEP)
     else:
@@ -471,7 +471,7 @@ def process_sb_fit(fn, model, negative_dv_for_confusion, oc, only_gfx):
 
     oc.set_fit_classifier_target(negative_dv_for_confusion)
     oc.set_action("SBfit")
-    oc.do_action(print_options, only_gfx)
+    oc.do_action(printOptions, only_gfx)
 
 
 def maybe_skip_residuals(form_fields, oc):
@@ -673,7 +673,7 @@ def action_search(form_fields):
         elif report_sort == "alpha": report_sort = "bp_alpha"
         if search_sort == "information": search_sort = "bp_information"
         elif search_sort == "alpha": search_sort = "bp_alpha"
-        if oc.is_directed():
+        if oc.isDirected():
             reportvars += ", bp_cond_pct_dh"
         reportvars += ", bp_aic, bp_bic"
     """
@@ -723,11 +723,11 @@ def action_search(form_fields):
     oc.sort_name = search_sort
     oc.set_report_variables(reportvars)
     if text_format:
-        oc.do_action(print_options)
+        oc.do_action(printOptions)
     else:
         print "<hr><p>"
         print '<div class="data">'
-        oc.do_action(print_options)
+        oc.do_action(printOptions)
         print "</div>"
     os.remove(fn)
 
@@ -834,7 +834,7 @@ def action_batch_compare(form_fields):
                 headers.append(i + "(model(A) : model(B))")
         return headers
 
-    global text_format, print_options
+    global text_format, printOptions
 
     # Definitions used in the report
     def bracket(s, hl, hr, tl, tr):
@@ -971,7 +971,7 @@ def action_batch_compare(form_fields):
         print table_start
     print tab_row(
         tab_head("Input archive: ") + tab_col(get_data_file_name(form_fields)))
-    if print_options:
+    if printOptions:
         print tab_row(tab_head("Options:"))
         pp_options()
         pp_column_list()
@@ -1077,7 +1077,7 @@ def action_sb_search(form_fields):
         elif report_sort == "alpha": report_sort = "bp_alpha"
         if search_sort == "information": search_sort = "bp_information"
         elif search_sort == "alpha": search_sort = "bp_alpha"
-        if oc.is_directed():
+        if oc.isDirected():
             reportvars += ", bp_cond_pct_dh"
         reportvars += ", bp_aic, bp_bic"
     """
@@ -1127,11 +1127,11 @@ def action_sb_search(form_fields):
     oc.sort_name = search_sort
     oc.set_report_variables(reportvars)
     if text_format:
-        oc.do_action(print_options)
+        oc.do_action(printOptions)
     else:
         print "<hr><p>"
         print '<div class="data">'
-        oc.do_action(print_options)
+        oc.do_action(printOptions)
         print "</div>"
     os.remove(fn)
 
@@ -1309,7 +1309,7 @@ def finalize_gfx():
 template = OpagCGI()
 datafile = ""
 text_format = ""
-print_options = ""
+printOptions = ""
 # thispage = os.environ.get('SCRIPT_NAME', '')
 startt = time.time()
 
@@ -1329,7 +1329,7 @@ if "batch_output" in form_fields and form_fields["batch_output"]:
 print_headers(form_fields, text_format)
 
 if "printoptions" in form_fields:
-    print_options = "true"
+    printOptions = "true"
 
 print_top(template, text_format)
 

@@ -74,7 +74,7 @@ class OpagCGI:
         """parse(dict) -> string
         This method parses the open file object passed, replacing any keys
         found using the replacement dictionary passed."""
-        if isinstance(dict_, dict):
+        if not isinstance(dict_, dict):
             raise TypeError("Second argument must be a dictionary")
         if not self.template:
             raise OpagMissingPrecondition, "template path is not set"

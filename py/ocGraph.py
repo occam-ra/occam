@@ -60,7 +60,7 @@ class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
             return center_x + width/2, center_y
 
 
-igraph.drawing.shapes.ShapeDrawer_directory.register(StripDrawer)
+igraph.drawing.shapes.ShapeDrawerDirectory.register(StripDrawer)
 
 
 def textwidth(text, fontsize=14):
