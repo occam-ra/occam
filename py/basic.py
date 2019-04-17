@@ -67,15 +67,14 @@ util.set_use_inverse_notation(0)
 # Set the start model for search [top, bottom, default, a specific model].
 # Skip this to use the model set in the data file.
 util.set_start_model("default")
-#util.setStartModel("IV:A38Z")
+#util.set_start_model("IV:A38Z")
 
 # Set the ref model [top, bottom, default, a specific model].
 util.set_ref_model("default")
 
 # Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
-#util.setSearchDir("descending")
-# Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
 util.set_search_sort_dir("descending")
+# Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
 util.set_search_filter(filter_)
 
 # Set the action [fit, search].  Skip this to set it from the data file.
@@ -94,11 +93,11 @@ util.set_report_sort_name("information")
 # Set report names, from the list above. If omitted, the list is set based on whether the ref model
 # is top or bottom.  List is separated by commas, and provided as a single text string.
 # For ref=top, this is a good list:
-#util.setReportVariables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
-#util.setNoIPF(1)
+#util.set_report_variables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
+#util.set_no_ipf(1)
 # For ref=bottom, use something like this:
 util.set_report_variables("Level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id, pct_correct_data")
-#util.setReportVariables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, ipf_iterations, ipf_error")
+#util.set_report_variables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, ipf_iterations, ipf_error")
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()

@@ -93,7 +93,7 @@ util.set_report_sort_name("information")
 # is top or bottom.  List is separated by commas, and provided as a single text string.
 # For ref=top, this is a good list:
 # util.set_report_variables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
-# util.set_noIPF(1)
+# util.set_no_ipf(1)
 # For ref=bottom, use something like this:
 # util.set_report_variables("Level$i, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
 util.set_report_variables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, pct_correct_data")
