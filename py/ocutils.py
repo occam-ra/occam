@@ -29,53 +29,54 @@ class OCUtils:
             self._manager = occam.VBMManager()
         else:
             self._manager = occam.SBMManager()
-        self._hide_intermediate_output = False
-        self._report = self._manager.Report()
-        self._ddf_method = 0
-        self.sort_name = "ddf"
-        self._report_sort_name = ""
-        self._sort_dir = "ascending"
-        self._search_sort_dir = "ascending"
+        self._action = ""
         self._alpha_threshold = 0.05
-        self._fit_classifier_target = ""
-        self._skip_trained_model_table = 1
-        self._skip_ivi_tables = 1
-        self._search_width = 3
-        self._search_levels = 7
-        self.search_dir = "default"
-        self._search_filter = "loopless"
-        self._start_model = "default"
-        self._ref_model = "default"
-        self._fit_models = []
-        self._report_file = ""
-        self._data_file = ""
+        self._bp_statistics = 0
         self._calc_expected_dv = 0
+        self._data_file = ""
+        self._ddf_method = 0
         self._default_fit_model = ""
-        self._report.setSeparator(OCUtils.SPACE_SEP)  # align columns using spaces
+        self._fit_classifier_target = ""
+        self._fit_models = []
+        self._full_var_names = False
+        self._generate_gephi = False
+        self._generate_graph = False
+        self._graph_font_size = 12
+        self._graph_height = 500
+        self._graph_hideDV = False
+        self._graph_node_size = 36
+        self._graph_width = 500
+        self._hide_intermediate_output = False
+        self._hide_isolated = True
         self._HTMLFormat = 0
+        self._incremental_alpha = 0
+        self._layout_style = None
+        self._next_id = 0
+        self._no_ipf = 0
+        self._percent_correct = 0
+        self._ref_model = "default"
+        self._report = self._manager.Report()
+        self._report.setSeparator(OCUtils.SPACE_SEP)  # align columns using spaces
+        self._report_file = ""
+        self._report_sort_name = ""
+        self._search_filter = "loopless"
+        self._search_levels = 7
+        self._search_sort_dir = "ascending"
+        self._search_width = 3
+        self._skip_ivi_tables = 1
         self._skip_nominal = 0
+        self._skip_trained_model_table = 1
+        self._sort_dir = "ascending"
+        self._start_model = "default"
+        self._total_gen = 0
+        self._total_kept = 0
         self._use_inverse_notation = 0
         self._values_are_functions = 0
-        self._bp_statistics = 0
-        self._percent_correct = 0
-        self._incremental_alpha = 0
-        self._no_ipf = 0
         self.graphs = {}
-        self._graph_width = 500
-        self._graph_height = 500
-        self._graph_font_size = 12
-        self._graph_node_size = 36
-        self._generate_graph = False
-        self._generate_gephi = False
-        self._hide_isolated = True
-        self._graph_hideDV = False
-        self._full_var_names = False
-        self._layout_style = None
+        self.search_dir = "default"
+        self.sort_name = "ddf"
         # self._show_edge_weights = True
         # self._weight_fn = "Mutual Information"
-        self.total_gen = 0
-        self.total_kept = 0
-        self._next_id = 0
 
     # -- Read command line args and process input file
     def init_from_command_line(self, argv):
@@ -296,12 +297,12 @@ class OCUtils:
             else:
                 break
         trunc_count = len(best_models)
-        self.total_gen = full_count + self.total_gen
-        self.total_kept = trunc_count + self.total_kept
+        self._total_gen = full_count + self._total_gen
+        self._total_kept = trunc_count + self._total_kept
         mem_used = self._manager.getMemUsage()
         if not self._hide_intermediate_output:
             print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (
-                full_count, trunc_count, self.total_gen + 1, self.total_kept + 1,
+                full_count, trunc_count, self._total_gen + 1, self._total_kept + 1,
                 mem_used / 1024),
         sys.stdout.flush()
         if clear_cache_flag:
@@ -592,7 +593,8 @@ class OCUtils:
         if self._HTMLFormat:
             print "<br>"
 
-    def split_caps(self, s):
+    @staticmethod
+    def split_caps(s):
         return re.findall('[A-Z][^A-Z]*', s)
 
     def split_model(self, model_name):
@@ -603,14 +605,14 @@ class OCUtils:
         return model
 
     def check_model_name(self, model_name):
-        varlist = map(lambda c: c[1], self._manager.getVariableList())
+        varlist = [v.getAbbrev() for v in self._manager.getVariableList()]
         model = self.split_model(model_name)
-        isDirected = self.is_directed()
+        is_directed = self.is_directed()
         have_ivs = False
         saw_maybe_wrong_iv = False
 
         # IV can be present if directed system; IVI otherwise
-        if isDirected:
+        if is_directed:
             if ["I", "V", "I"] in model:
                 saw_maybe_wrong_iv = True
             if ["IV"] in model:
@@ -626,7 +628,7 @@ class OCUtils:
 
         varset = set(varlist)
         modset = set(modelvars)
-        if isDirected:
+        if is_directed:
             modset.discard("IV")
         else:
             modset.discard("IVI")
@@ -640,11 +642,11 @@ class OCUtils:
                     print "<br>"
                 if saw_maybe_wrong_iv:
                     print "\n_did you mean '" + (
-                        "IV" if isDirected else "IVI") + "' instead of '" + (
-                              "IVI" if isDirected else "IV") + "'?"
+                        "IV" if is_directed else "IVI") + "' instead of '" + (
+                              "IVI" if is_directed else "IV") + "'?"
                 else:
                     print "\n Did you forget the " + (
-                        "IV" if isDirected else "IVI") + " component?"
+                        "IV" if is_directed else "IVI") + " component?"
                 if self._HTMLFormat:
                     print "<br>"
                 print "\n Not in model: "
@@ -662,8 +664,8 @@ class OCUtils:
             diffset = modset.difference(varset)
             if saw_maybe_wrong_iv or diffset == {"I", "V"}:
                 print "\n_did you mean '" + (
-                    "IV" if isDirected else "IVI") + "' instead of '" + (
-                          "IVI" if isDirected else "IV") + "'?"
+                    "IV" if is_directed else "IVI") + "' instead of '" + (
+                          "IVI" if is_directed else "IV") + "'?"
             else:
                 print "\n Not declared: "
                 print ", ".join(["'" + i + "'" for i in diffset])
@@ -671,7 +673,7 @@ class OCUtils:
             sys.exit(1)
 
         # dv must be in all components (except IV) if directed
-        if isDirected:
+        if is_directed:
             dv = self._manager.getDvName()
             for rel in model:
                 if not (rel == ["IVI"] or rel == ["IV"]) and dv not in rel:

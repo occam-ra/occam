@@ -12,6 +12,7 @@
 #include "SearchBase.h"
 #include "VBMManager.h"
 #include "VariableList.h"
+#include "Variable.h"
 #include <limits>
 #include <unistd.h>
 #include <Python.h>
@@ -46,6 +47,18 @@
 //-- Creates a new instance of a python wrapper type.
 #define ObjNew(type) ((P##type*)PyObject_NEW(P##type, &T##type))
 
+// Define the struct for a PyObject type which carries a pointer to an instance
+// of the actual type and indexes used by iterators
+#define DefineIterablePyObject(type) \
+extern PyTypeObject T##type;   \
+struct P##type                  \
+{                               \
+    PyObject_HEAD          \
+    type *obj;             \
+    int current_it_index;       \
+    int max_it_index;           \
+};
+
 //-- Trace output
 #ifdef TRACE_ON
 #define TRACE printf
@@ -66,7 +79,10 @@ DefinePyObject(SBMManager);
 DefinePyObject(Relation);
 DefinePyObject(Model);
 DefinePyObject(Report);
-DefinePyObject(VariableList);
+DefinePyObject(Variable);
+
+DefineIterablePyObject(VariableList)
+
 
 /**************************/
 /****** VBMManager ******/
@@ -644,14 +660,23 @@ DefinePyFunction(VBMManager, dumpRelations) {
     return Py_BuildValue("i", 0);
 }
 
-DefinePyFunction(VBMManager, getVariableList) {
+DefinePyFunction(VBMManager, getVariableList)
+{
     VBMManager* manager = ObjRef(self, VBMManager);
-    PVariableList *var_list = ObjNew(VariableList);
-    var_list->obj = manager->getVariableList();
+    VariableList *variable_list = manager->getVariableList();
 
-    Py_INCREF(var_list);
+    //Variable list is NULL
+    if(!variable_list)
+    {
+       Py_INCREF(Py_None);
+       return Py_None;
+    }
 
-    return (PyObject*) var_list;
+    PVariableList *py_variable_list = ObjNew(VariableList);
+    py_variable_list->obj = variable_list;
+    Py_INCREF(py_variable_list);
+
+    return (PyObject*) py_variable_list;
 }
 
 
@@ -1973,7 +1998,53 @@ PyTypeObject TReport = { PyObject_HEAD_INIT(&PyType_Type) 0, "Report", sizeof(PR
 /*
     VariableList definition
 */
-static struct PyMethodDef VariableList_methods[] =
+
+/*
+*   Called when an iterator is requested
+*   Similar to __iter__ function in python
+*/
+PyObject* variable_list_iter(PyObject *self)
+{
+    PVariableList *py_variable_list = (PVariableList *)self;
+
+    // Set the starting and ending indexes used by the iterator
+    py_variable_list->current_it_index = 0;
+    py_variable_list->max_it_index = py_variable_list->obj->getVarCount();
+
+    Py_INCREF(self);
+
+    return self;
+}
+
+/*
+*   Called when the next item from the iterator is requested
+*   Similar to __next__ function in python
+*/
+PyObject* variable_list_iternext(PyObject *self)
+{
+    PVariableList *py_variable_list = (PVariableList *)self;
+
+    // Iterator reached the end
+    if (py_variable_list->current_it_index >= py_variable_list->max_it_index)
+    {
+        // Raising of standard StopIteration exception with empty value.
+        PyErr_SetNone(PyExc_StopIteration);
+        return NULL;
+    }
+
+    // Create a new Variable object and return it
+    PVariable *py_variable = ObjNew(Variable);
+    VariableList *variable_list = py_variable_list->obj;
+
+    py_variable->obj = variable_list->getVariable(py_variable_list->current_it_index);
+    py_variable_list->current_it_index++;
+
+    Py_INCREF(py_variable);
+
+    return (PyObject *)py_variable;
+}
+
+static struct PyMethodDef VariableList_methods[] = 
 {
         { NULL, NULL, 0 }
 };
@@ -1999,6 +2070,71 @@ PyTypeObject TVariableList =
     (reprfunc) 0,
     (getattrofunc) 0,
     (setattrofunc) 0,
+    0,
+    Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_ITER,
+    0, // tp_doc
+    0, // tp_traverse
+    0, // tp_clear
+    0, // tp_richcompare
+    0, // tp_weaklistoffset
+    (getiterfunc) variable_list_iter,
+    (iternextfunc) variable_list_iternext
+};
+
+/*
+    Variable definition
+*/
+
+DefinePyFunction(Variable, getAbbrev)
+{
+    Variable *variable = ObjRef(self, Variable);
+
+    return PyString_FromString(variable->getAbbrev());
+}
+
+static struct PyMethodDef Variable_methods[] =
+{
+    PyMethodDef(Variable, getAbbrev),
+    { NULL, NULL, 0 }
+};
+
+PyObject *Variable_getattr(PyObject *self, char *name) {
+    PyObject *method = Py_FindMethod(Variable_methods, self, name);
+    if (method)
+        return method;
+
+    return NULL;
+}
+
+PyTypeObject TVariable =
+{
+    PyObject_HEAD_INIT(&PyType_Type) 0,
+    "Variable_cpp",
+    sizeof(Variable),
+    0,
+    (destructor) 0,
+    (printfunc) 0,
+    (getattrfunc) Variable_getattr,
+    (setattrfunc) 0,
+    (cmpfunc) 0,
+    (reprfunc) 0,
+    0,
+    0,
+    0,
+    (hashfunc) 0,
+    (ternaryfunc) 0,
+    (reprfunc) 0,
+    (getattrofunc) 0,
+    (setattrofunc) 0,
+    0,
+    Py_TPFLAGS_DEFAULT, // FLAGS
+    0, // tp_doc
+    0, // tp_traverse
+    0, // tp_clear
+    0, // tp_richcompare
+    0, // tp_weaklistoffset
+    0, // getiterfunc
+    0  // iternextfunc
 };
 
 /**************************/

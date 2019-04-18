@@ -99,11 +99,11 @@ def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all
         model = filter(lambda r: dv_name in r, model)
 
     # Index full names from abbreviated
-    var_dict = dict(map(lambda p: (p[1], p[0]), varlist))
+    var_dict = {p[1]: p[0] for p in varlist}
     var_names = var_dict.keys()
 
     if hide_iv:
-        var_names = set([v for r in model for v in r])
+        var_names = {v for r in model for v in r}
 
         if not components:
             return igraph.Graph()
@@ -164,7 +164,7 @@ def print_plot(graph, layout, extension, filename, width, height, font_size, nod
     size_fn = (lambda ty, lab: max(node_size, lab_width(lab))) if layout == "bipartite" else (lambda ty, lab: dotsize if ty else node_size)
 
     visual_style = {
-        "vertex_size": [size_fn(ty, lab) for (ty,lab) in tylabs],
+        "vertex_size": [size_fn(ty, lab) for (ty, lab) in tylabs],
         "vertex_color": ["lightblue" if ty else "white" for ty in tys],
         "vertex_shape": ["strip" if layout == "bipartite" and ty else "circle" for ty in tys],
         "vertex_label_size": [0 if layout != "bipartite" and ty else fontsize for ty in tys],

@@ -734,14 +734,9 @@ def action_batch_compare(form_fields):
     # Get data from the form
 
     # Get Occam search parameters
-    search_assoc_list = []
     search_fields = ["type", "direction", "levels", "width", "sort by",
                      "selection function"]
-
-    for key in search_fields:
-        search_assoc_list.append((key, form_fields.get(key)))
-
-    search = dict(search_assoc_list)
+    search = {key: form_fields.get(key) for key in search_fields}
 
     # Get Occam report parameters
     report_1 = []
@@ -892,13 +887,12 @@ def action_batch_compare(form_fields):
         return d, s
 
     def compute_binary_statistics(report_items, comp_order):
-        stats = dict(
-            [(k, distanceFunctions.computeDistanceMetric(k, comp_order)) for k
-             in report_items])
+        stats = {k: distanceFunctions.compute_distance_metric(k, comp_order)
+                 for k in report_items}
         return stats
 
     def compute_model_stats(model_a, model_b):
-        stats_1 = dict([(k, [model_a[k], model_b[k]]) for k in report_1])
+        stats_1 = {k: [model_a[k], model_b[k]] for k in report_1}
 
         # Find the best model based on the single-model stats
         best_d, best_s = select_best(stats_1)
@@ -931,7 +925,7 @@ def action_batch_compare(form_fields):
     # * Print out the header again as a footer
 
     def pp_options():
-        for (k, v) in search_assoc_list:
+        for (k, v) in search.items():
             if v != '':
                 print tab_row(tab_col(k + ": ") + tab_col(v))
 
