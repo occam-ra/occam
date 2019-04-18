@@ -5,555 +5,579 @@
 # distribution of this software for license terms.
 
 # coding=utf8
-import sys, re, occam, time, heapq, ocGraph
+import heapq
+import ocGraph
+import occam
+import re
+import sys
+import time
 
-totalgen=0
-totalkept=0
-maxMemoryToUse = 8 * 2**30
+totalgen = 0
+totalkept = 0
+max_memory_to_use = 8 * 2 ** 30
 
-class ocUtils:
+
+class OCUtils:
     # Separator styles for reporting
-    TABSEP=1
-    COMMASEP=2
-    SPACESEP=3
-    HTMLFORMAT=4
-    
+    TAB_SEP = 1
+    COMMA_SEP = 2
+    SPACE_SEP = 3
+    HTML_FORMAT = 4
 
-    def __init__(self,man):
+    def __init__(self, man):
         if man == "VB":
-            self.__manager = occam.VBMManager()
-        else:           
-            self.__manager = occam.SBMManager()
-        self.__hide_intermediate_output = False
-        self.__report = self.__manager.Report()
-        self.__DDFMethod = 0
-        self.sortName = "ddf"
-        self.__reportSortName = ""
-        self.__sortDir = "ascending"
-        self.__searchSortDir = "ascending"
-        self.__alphaThreshold = 0.05
-        self.__fitClassifierTarget = ""
-        self.__skipTrainedModelTable = 1
-        self.__skipIVITables = 1
-        self.__searchWidth = 3
-        self.__searchLevels = 7
-        self.searchDir = "default"
-        self.__searchFilter = "loopless"
-        self.__startModel = "default"
-        self.__refModel = "default"
-        self.__fitModels = []
-        self.__reportFile = ""
-        self.__dataFile = ""
-        self.__calcExpectedDV = 0
-        self.__defaultFitModel = ""
-        self.__report.setSeparator(ocUtils.SPACESEP)    # align columns using spaces
-        self.__HTMLFormat = 0
-        self.__skipNominal = 0
-        self.__useInverseNotation = 0
-        self.__valuesAreFunctions = 0
-        self.__BPStatistics = 0
-        self.__PercentCorrect = 0
-        self.__IncrementalAlpha = 0
-        self.__NoIPF = 0
-        
-        self.graphs = {}
-        self.__graphWidth = 500
-        self.__graphHeight = 500
-        self.__graphFontSize = 12
-        self.__graphNodeSize = 36
-        self.__generateGraph = False
-        self.__generateGephi = False
-        self.__hideIsolated = True
-        self.__graphHideDV = False
-        self.__fullVarNames = False
-        self.__layoutStyle = None
-#        self.__showEdgeWeights = True
-#        self.__weightFn = "Mutual Information"
+            self._manager = occam.VBMManager()
+        else:
+            self._manager = occam.SBMManager()
+        self._hide_intermediate_output = False
+        self._report = self._manager.Report()
+        self._DDFMethod = 0
+        self.sort_name = "ddf"
+        self._report_sort_name = ""
+        self._sort_dir = "ascending"
+        self._search_sort_dir = "ascending"
+        self._alpha_threshold = 0.05
+        self._fit_classifier_target = ""
+        self._skip_trained_model_table = 1
+        self._skip_IVI_tables = 1
+        self._search_width = 3
+        self._search_levels = 7
+        self.search_dir = "default"
+        self._search_filter = "loopless"
+        self._start_model = "default"
+        self._ref_model = "default"
+        self._fit_models = []
+        self._report_file = ""
+        self._data_file = ""
+        self._calc_expectedDV = 0
+        self._default_fit_model = ""
+        self._report.setSeparator(OCUtils.SPACE_SEP)  # align columns using spaces
+        self._HTMLFormat = 0
+        self._skip_nominal = 0
+        self._use_inverse_notation = 0
+        self._values_are_functions = 0
+        self._BPStatistics = 0
+        self._Percent_correct = 0
+        self._Incremental_alpha = 0
+        self._no_ipf = 0
 
+        self.graphs = {}
+        self._graph_width = 500
+        self._graph_height = 500
+        self._graph_font_size = 12
+        self._graph_node_size = 36
+        self._generate_graph = False
+        self._generate_gephi = False
+        self._hide_isolated = True
+        self._graph_hideDV = False
+        self._full_var_names = False
+        self._layout_style = None
+        #        self._show_edge_weights = True
+        #        self._weight_fn = "Mutual Information"
 
         self.totalgen = 0
         self.totalkept = 0
-        self.__nextID = 0
+        self._nextID = 0
 
-    #-- Read command line args and process input file
-    def initFromCommandLine(self, argv):
-        self.__manager.initFromCommandLine(argv)
-        self.occam2Settings()
+    # -- Read command line args and process input file
+    def init_from_command_line(self, argv):
+        self._manager.initFromCommandLine(argv)
+        self.occam2_settings()
 
-    #-- Set up report variables
-    def setReportVariables(self, reportAttributes):
+    # -- Set up report variables
+    def set_report_variables(self, report_attributes):
         # if the data uses function values, we want to skip the attributes that require a sample size
-        option = self.__manager.getOption("function-values")
-        if option != "" or self.__valuesAreFunctions != 0:
-            reportAttributes = re.sub(r",\salpha", '', reportAttributes)
-            reportAttributes = re.sub(r",\sincr_alpha", '', reportAttributes)
-            reportAttributes = re.sub(r",\slr", '', reportAttributes)
-            reportAttributes = re.sub(r",\saic", '', reportAttributes)
-            reportAttributes = re.sub(r",\sbic", '', reportAttributes)
+        option = self._manager.getOption("function-values")
+        if option != "" or self._values_are_functions != 0:
+            report_attributes = re.sub(r",\salpha", '', report_attributes)
+            report_attributes = re.sub(r",\sincr_alpha", '', report_attributes)
+            report_attributes = re.sub(r",\slr", '', report_attributes)
+            report_attributes = re.sub(r",\saic", '', report_attributes)
+            report_attributes = re.sub(r",\sbic", '', report_attributes)
             pass
-        self.__report.setAttributes(reportAttributes)
-        if re.search('bp_t', reportAttributes):
-            self.__BPStatistics = 1
-        if re.search('pct_correct', reportAttributes):
-            self.__PercentCorrect = 1
-        if re.search('incr_alpha', reportAttributes):
-            self.__IncrementalAlpha = 1
+        self._report.setAttributes(report_attributes)
+        if re.search('bp_t', report_attributes):
+            self._BPStatistics = 1
+        if re.search('pct_correct', report_attributes):
+            self._Percent_correct = 1
+        if re.search('incr_alpha', report_attributes):
+            self._Incremental_alpha = 1
 
-    def setReportSeparator(self, format):
-        occam.setHTMLMode(format == ocUtils.HTMLFORMAT)
-        self.__report.setSeparator(format)
-        self.__HTMLFormat = (format == ocUtils.HTMLFORMAT)
+    def set_report_separator(self, format_):
+        occam.setHTMLMode(format_ == OCUtils.HTML_FORMAT)
+        self._report.setSeparator(format_)
+        self._HTMLFormat = (format_ == OCUtils.HTML_FORMAT)
 
-    def setFitClassifierTarget(self, target):
-        self.__fitClassifierTarget = target
+    def set_fit_classifier_target(self, target):
+        self._fit_classifier_target = target
 
-    def setSkipTrainedModelTable(self, b):
-        self.__skipTrainedModelTable = b
+    def set_skip_trained_model_table(self, b):
+        self._skip_trained_model_table = b
 
-    def setSkipIVITables(self, b):
-        self.__skipIVITables = b
-    
-    def setSkipNominal(self, useFlag):
-        flag = int(useFlag)
+    def set_skip_ivi_tables(self, b):
+        self._skip_IVI_tables = b
+
+    def set_skip_nominal(self, use_flag):
+        flag = int(use_flag)
         if flag != 1:
             flag = 0
-        self.__skipNominal = flag
+        self._skip_nominal = flag
 
-    def setUseInverseNotation(self, useFlag):
-        flag = int(useFlag)
+    def set_use_inverse_notation(self, use_flag):
+        flag = int(use_flag)
         if flag != 1:
             flag = 0
-        self.__useInverseNotation = flag
+        self._use_inverse_notation = flag
 
-    def setValuesAreFunctions(self, useFlag):
-        flag = int(useFlag)
+    def set_values_are_functions(self, use_flag):
+        flag = int(use_flag)
         if flag != 1:
             flag = 0
-        self.__valuesAreFunctions = flag
+        self._values_are_functions = flag
 
-    #-- Set control attributes
-    def setDDFMethod(self, DDFMethod):
-        method = int(DDFMethod)
+    # -- Set control attributes
+    def set_ddf_method(self, ddf_method):
+        method = int(ddf_method)
         if method != 1:
             method = 0
-        self.__DDFMethod = method
+        self._DDFMethod = method
 
-    def setSortDir(self, sortDir):
-        if sortDir == "": sortDir = "descending"
-        if sortDir != "ascending" and sortDir != "descending":
-            raise AttributeError, "setSortDir"
-        self.__sortDir = sortDir
+    def set_sort_dir(self, sort_dir):
+        if sort_dir == "":
+            sort_dir = "descending"
+        if sort_dir != "ascending" and sort_dir != "descending":
+            raise AttributeError("set_sort_dir")
+        self._sort_dir = sort_dir
 
-    def setSearchSortDir(self, sortDir):
-        if sortDir == "": sortDir = "descending"
-        if sortDir != "ascending" and sortDir != "descending":
-            raise AttributeError, "setSearchSortDir"
-        self.__searchSortDir = sortDir
+    def set_search_sort_dir(self, sort_dir):
+        if sort_dir == "":
+            sort_dir = "descending"
+        if sort_dir != "ascending" and sort_dir != "descending":
+            raise AttributeError("set_search_sort_dir")
+        self._search_sort_dir = sort_dir
 
-    def setSearchWidth(self, searchWidth):
-        width = int(round(float(searchWidth)))
+    def set_search_width(self, search_width):
+        width = int(round(float(search_width)))
         if width <= 0:
             width = 1
-        self.__searchWidth = width
+        self._search_width = width
 
-    def setSearchLevels(self, searchLevels):
-        levels = int(round(float(searchLevels)))
+    def set_search_levels(self, search_levels):
+        levels = int(round(float(search_levels)))
         if levels < 0:  # zero is OK here
             levels = 0
-        self.__searchLevels = levels
+        self._search_levels = levels
 
-    def setReportSortName(self, sortName):
-        self.__reportSortName = sortName
+    def set_report_sort_name(self, sort_name):
+        self._report_sort_name = sort_name
 
-    def setSearchFilter(self, searchFilter):
-        self.__searchFilter = searchFilter
+    def set_search_filter(self, search_filter):
+        self._search_filter = search_filter
 
-    def setAlphaThreshold(self, alphaThreshold):
- 	self.__alphaThreshold = float(alphaThreshold)
+    def setAlphaThreshold(self, alpha_threshold):
+        self._alpha_threshold = float(alpha_threshold)
 
-    def setRefModel(self, refModel):
-        self.__refModel = refModel
+    def set_ref_model(self, ref_model):
+        self._ref_model = ref_model
 
-    def setStartModel(self, startModel):
-        if not (startModel in ["top", "bottom", "default", ""]):
-            self.checkModelName(startModel)
-        self.__startModel = startModel
+    def set_start_model(self, start_model):
+        if not (start_model in ["top", "bottom", "default", ""]):
+            self.check_model_name(start_model)
+        self._start_model = start_model
 
-    def getStartModel(self):
-        return self.__startModel
+    def get_start_model(self):
+        return self._start_model
 
-    def setFitModel(self, fitModel):
-        self.__fitModels = [fitModel]
+    def set_fit_model(self, fit_model):
+        self._fit_models = [fit_model]
 
-    def setReportFile(self, reportFile):
-        self.__reportFile = reportFile
+    def set_report_file(self, report_file):
+        self._report_file = report_file
 
-    def setAction(self, action):
-        self.__action = action
+    def set_action(self, action):
+        self._action = action
 
-    def setDataFile(self, dataFile):
-        self.__dataFile = dataFile
+    def set_data_file(self, data_file):
+        self._data_file = data_file
 
-    def setCalcExpectedDV(self, calcExpectedDV):
-        self.__calcExpectedDV = calcExpectedDV
+    def set_calc_expected_dv(self, calc_expected_dv):
+        self._calc_expectedDV = calc_expected_dv
 
-    def setDefaultFitModel(self, model):
-        self.__defaultFitModel = model
+    def set_default_fit_model(self, model):
+        self._default_fit_model = model
 
-    def setNoIPF(self, state):
-        self.__NoIPF = state
+    def set_no_ipf(self, state):
+        self._no_ipf = state
 
-    def isDirected(self):
-        return self.__manager.isDirected()
+    def is_directed(self):
+        return self._manager.isDirected()
 
-    def hasTestData(self):
-        return self.__manager.hasTestData()
+    def has_test_data(self):
+        return self._manager.hasTestData()
 
-    #-- Search operations
+    # -- Search operations
     # compare function for sorting models. The python list sort function uses this
     # the name of the attribute to sort on is given above, as well as ascending or descending
-    def __compareModels(self, m1, m2):
+    def _compare_models(self, m1, m2):
         result = 0
-        a1 = m1.get(self.sortName)
-        a2 = m2.get(self.sortName)
-        if self.__searchSortDir == "ascending":
-            if a1 > a2: result = 1
-            if a1 < a2: result = -1
+        a1 = m1.get(self.sort_name)
+        a2 = m2.get(self.sort_name)
+        if self._search_sort_dir == "ascending":
+            if a1 > a2:
+                result = 1
+            if a1 < a2:
+                result = -1
         else:
-            if a1 > a2: result = -1
-            if a1 < a2: result = 1
+            if a1 > a2:
+                result = -1
+            if a1 < a2:
+                result = 1
         return result
 
     # this function decides which statistic to computed, based
     # on how search is sorting the models. We want to avoid any
     # extra expensive computations
-    def computeSortStatistic(self, model):
-        if self.sortName == "h" or self.sortName == "information" or self.sortName == "unexplained" or self.sortName == "alg_t" :
-            self.__manager.computeInformationStatistics(model)
-        elif self.sortName == "df" or self.sortName == "ddf" :
-            self.__manager.computeDFStatistics(model)
-        elif self.sortName == "bp_t" or self.sortName == "bp_information" or self.sortName == "bp_alpha" :
-            self.__manager.computeBPStatistics(model)
-        elif self.sortName == "pct_correct_data":
-            self.__manager.computePercentCorrect(model)
+    def compute_sort_statistic(self, model):
+        if self.sort_name == "h" or self.sort_name == "information" or self.sort_name == "unexplained" or self.sort_name == "alg_t":
+            self._manager.computeInformationsStatistics(model)
+        elif self.sort_name == "df" or self.sort_name == "ddf":
+            self._manager.computeDFStatistics(model)
+        elif self.sort_name == "bp_t" or self.sort_name == "bp_information" or self.sort_name == "bp_alpha":
+            self._manager.computeBPStatistics(model)
+        elif self.sort_name == "pct_correct_data":
+            self._manager.computePercentCorrect(model)
         # anything else, just compute everything we might need
         else:
-            self.__manager.computeL2Statistics(model)
-            self.__manager.computeDependentStatistics(model)
- 
+            self._manager.computeL2Statistics(model)
+            self._manager.computeDependentStatistics(model)
+
     # this function generates the parents/children of the given model, and for
-    # any which haven't been seen before puts them into the newModel list
+    # any which haven't been seen before puts them into the new_model list
     # this function also computes the LR statistics (H, LR, DF, etc.) as well
     # as the dependent statistics (dH, %dH, etc.)
-    def processModel(self, level, newModelsHeap, model):
-        addCount = 0
-        generatedModels = self.__manager.searchOneLevel(model)
-        for newModel in generatedModels:
-            if newModel.get("processed") <= 0.0 :
-                newModel.processed = 1.0
-                newModel.level = level
-                newModel.setProgenitor(model)
-                self.computeSortStatistic(newModel)
-    # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
+    def process_model(self, level, new_models_heap, model):
+        add_count = 0
+        generated_models = self._manager.searchOneLevel(model)
+        for new_model in generated_models:
+            if new_model.get("processed") <= 0.0:
+                new_model.processed = 1.0
+                new_model.level = level
+                new_model.setProgenitor(model)
+                self.compute_sort_statistic(new_model)
+                # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
                 # decorate model with a key for sorting, & push onto heap
-                key = newModel.get(self.sortName)
-                if self.__searchSortDir == "descending":
+                key = new_model.get(self.sort_name)
+                if self._search_sort_dir == "descending":
                     key = -key
-                heapq.heappush(newModelsHeap, ([key, newModel.get("name")] , newModel))     # appending the model name makes sort alphabet-consistent
-                addCount += 1
+                heapq.heappush(new_models_heap, ([key, new_model.get("name")], new_model))  # appending the model name makes sort alphabet-consistent
+                add_count += 1
             else:
-                if self.__IncrementalAlpha:
+                if self._Incremental_alpha:
                     # this model has been made already, but this progenitor might lead to a better Incr.Alpha
                     # so we ask the manager to check on that, and save the best progenitor
-                    self.__manager.compareProgenitors(newModel, model)
-        return addCount
+                    self._manager.compareProgenitors(new_model, model)
+        return add_count
 
-            
     # This function processes models from one level, and return models for the next level.
-    def processLevel(self, level, oldModels, clear_cache_flag):
+    def process_level(self, level, old_models, clear_cache_flag):
         # start a new heap
-        newModelsHeap = []
-        fullCount = 0
-        for model in oldModels:
-            fullCount += self.processModel(level, newModelsHeap, model)
-        # if searchWidth < heapsize, pop off searchWidth and add to bestModels
-        bestModels = []
-        lastKey = ['','']
-        while len(newModelsHeap) > 0:
+        new_models_heap = []
+        full_count = 0
+        for model in old_models:
+            full_count += self.process_model(level, new_models_heap, model)
+        # if search_width < heapsize, pop off search_width and add to best_models
+        best_models = []
+        while len(new_models_heap) > 0:
             # make sure that we're adding unique models to the list (mostly for state-based)
-            key, candidate = heapq.heappop(newModelsHeap)
-            if (len(bestModels) < self.__searchWidth): # or key[0] == lastKey[0]:      # comparing keys allows us to select more than <width> models,
-                if True not in [n.isEquivalentTo(candidate) for n in bestModels]:   # in the case of ties
-                    bestModels.append(candidate)
-                    lastKey = key
+            key, candidate = heapq.heappop(new_models_heap)
+            if len(
+                    best_models) < self._search_width:  # or key[0] == last_key[0]:      # comparing keys allows us to select more than <width> models,
+                if True not in [n.isEquivalentTo(candidate) for n in
+                                best_models]:  # in the case of ties
+                    best_models.append(candidate)
             else:
                 break
-        truncCount = len(bestModels)
-        self.totalgen  = fullCount + self.totalgen
-        self.totalkept = truncCount + self.totalkept
-        memUsed = self.__manager.getMemUsage()
-        if not self.__hide_intermediate_output:
-            print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (fullCount, truncCount, self.totalgen+1, self.totalkept+1, memUsed/1024),
+        trunc_count = len(best_models)
+        self.totalgen = full_count + self.totalgen
+        self.totalkept = trunc_count + self.totalkept
+        mem_used = self._manager.getMemUsage()
+        if not self._hide_intermediate_output:
+            print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (
+                full_count, trunc_count, self.totalgen + 1, self.totalkept + 1,
+                mem_used / 1024),
         sys.stdout.flush()
         if clear_cache_flag:
-            for item in newModelsHeap:
-                self.__manager.deleteModelFromCache(item[1])
-        return bestModels
-
+            for item in new_models_heap:
+                self._manager.deleteModelFromCache(item[1])
+        return best_models
 
     # This function returns the name of the search strategy to use based on
-    # the searchMode and loopless settings above
-    def searchType(self):
-        if self.searchDir == "up":
-            if self.__searchFilter == "loopless":
-                searchMode = "loopless-up"
-            elif self.__searchFilter == "disjoint":
-                searchMode = "disjoint-up"
-            elif self.__searchFilter == "chain":
-                searchMode = "chain-up"
+    # the search_mode and loopless settings above
+    def search_type(self):
+        if self.search_dir == "up":
+            if self._search_filter == "loopless":
+                search_mode = "loopless-up"
+            elif self._search_filter == "disjoint":
+                search_mode = "disjoint-up"
+            elif self._search_filter == "chain":
+                search_mode = "chain-up"
             else:
-                searchMode = "full-up"
+                search_mode = "full-up"
         else:
-            if self.__searchFilter == "loopless":
-                searchMode = "loopless-down"
-            elif self.__searchFilter == "disjoint":
+            if self._search_filter == "loopless":
+                search_mode = "loopless-down"
+            elif self._search_filter == "disjoint":
                 # This mode is not implemented
-                searchMode = "disjoint-down"
-            elif self.__searchFilter == "chain":
+                search_mode = "disjoint-down"
+            elif self._search_filter == "chain":
                 # This mode is not implemented
-                searchMode = "chain-down"
+                search_mode = "chain-down"
             else:
-                searchMode = "full-down"
-        return searchMode
+                search_mode = "full-down"
+        return search_mode
 
-    def sbSearchType(self):
-        if self.searchDir == "up":
-            if self.__searchFilter == "loopless":
-                searchMode = "sb-loopless-up"
-            elif self.__searchFilter == "disjoint":
-                searchMode = "sb-disjoint-up"
-            elif self.__searchFilter == "chain":
-                searchMode = "sb-chain-up"
+    def sb_search_type(self):
+        if self.search_dir == "up":
+            if self._search_filter == "loopless":
+                search_mode = "sb-loopless-up"
+            elif self._search_filter == "disjoint":
+                search_mode = "sb-disjoint-up"
+            elif self._search_filter == "chain":
+                search_mode = "sb-chain-up"
             else:
-                searchMode = "sb-full-up"
+                search_mode = "sb-full-up"
         else:
-            if self.__searchFilter == "loopless":
-                searchMode = "sb-loopless-down"
-            elif self.__searchFilter == "disjoint":
+            if self._search_filter == "loopless":
+                search_mode = "sb-loopless-down"
+            elif self._search_filter == "disjoint":
                 # This mode is not implemented
-                searchMode = "sb-disjoint-down"
-            elif self.__searchFilter == "chain":
+                search_mode = "sb-disjoint-down"
+            elif self._search_filter == "chain":
                 # This mode is not implemented
-                searchMode = "sb-chain-down"
+                search_mode = "sb-chain-down"
             else:
-                searchMode = "sb-full-down"
-        return searchMode
+                search_mode = "sb-full-down"
+        return search_mode
 
-    def doSearch(self, printOptions):
-        if self.__manager.isDirected():
-            if self.searchDir == "down":
-                if self.__searchFilter == "disjoint":
-		            pass
-                elif self.__searchFilter == "chain":
+    def do_search(self, print_options):
+        if self._manager.isDirected():
+            if self.search_dir == "down":
+                if self._search_filter == "disjoint":
+                    pass
+                elif self._search_filter == "chain":
                     print 'ERROR: Directed Down Chain Search not yet implemented.'
                     raise sys.exit()
         else:
-            if self.searchDir == "up":
+            if self.search_dir == "up":
                 pass
             else:
-                if self.__searchFilter == "disjoint":
+                if self._search_filter == "disjoint":
                     pass
-                elif self.__searchFilter == "chain":
+                elif self._search_filter == "chain":
                     print 'ERROR: Neutral Down Chain Search not yet implemented.'
                     raise sys.exit()
 
-        if self.__startModel == "":
-            self.__startModel = "default"
-        if self.__manager.isDirected() and self.searchDir == "default":
-            self.searchDir = "up"
-        if not self.__manager.isDirected() and self.searchDir == "default":
-            self.searchDir = "up"
+        if self._start_model == "":
+            self._start_model = "default"
+        if self._manager.isDirected() and self.search_dir == "default":
+            self.search_dir = "up"
+        if not self._manager.isDirected() and self.search_dir == "default":
+            self.search_dir = "up"
         # set start model. For chain search, ignore any specific starting model
         # otherwise, if not set, set the start model based on search direction
-        if (self.__searchFilter == "chain" or self.__startModel == "default") and self.searchDir == "down":
-            self.__startModel = "top"
-        elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.searchDir == "up":
-            self.__startModel = "bottom"
-        if self.__startModel == "top":
-            start = self.__manager.getTopRefModel()
-        elif self.__startModel == "bottom":
-            start = self.__manager.getBottomRefModel()
+        if (
+                self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "down":
+            self._start_model = "top"
+        elif (
+                self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "up":
+            self._start_model = "bottom"
+        if self._start_model == "top":
+            start = self._manager.getTopRefModel()
+        elif self._start_model == "bottom":
+            start = self._manager.getBottomRefModel()
         else:
-            start = self.__manager.makeModel(self.__startModel, 1)
-        self.__manager.setRefModel(self.__refModel)
-        self.__manager.setUseInverseNotation(self.__useInverseNotation)
-        self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
-	self.__manager.setAlphaThreshold(self.__alphaThreshold)
-        if self.searchDir == "down":
-            self.__manager.setSearchDirection(1)
+            start = self._manager.makeModel(self._start_model, 1)
+        self.set_ref_model(self._ref_model)
+        self._manager.setUseInverseNotation(self._use_inverse_notation)
+        self._manager.setValuesAreFunctions(self._values_are_functions)
+        self._manager.setAlphaThreshold(self._alpha_threshold)
+        if self.search_dir == "down":
+            self._manager.setSearchDirection(1)
         else:
-            self.__manager.setSearchDirection(0)
-        if printOptions: self.printOptions(1)
-        self.__manager.printBasicStatistics()
-        self.__manager.computeL2Statistics(start)
-        self.__manager.computeDependentStatistics(start)
-        if self.__BPStatistics:
-            self.__manager.computeBPStatistics(start)
-        if self.__PercentCorrect and self.__manager.isDirected():
-            self.__manager.computePercentCorrect(start)
-        if self.__IncrementalAlpha:
-            self.__manager.computeIncrementalAlpha(start)
+            self._manager.setSearchDirection(0)
+        if print_options:
+            self.print_options(1)
+        self._manager.printBasicStatistics()
+        self._manager.computeL2Statistics(start)
+        self._manager.computeDependentStatistics(start)
+        if self._BPStatistics:
+            self._manager.computeBPStatistics(start)
+        if self._Percent_correct and self._manager.isDirected():
+            self._manager.computePercentCorrect(start)
+        if self._Incremental_alpha:
+            self._manager.computeIncrementalAlpha(start)
         start.level = 0
-        self.__report.addModel(start)
-        self.__nextID = 1
-        start.setID(self.__nextID)
+        self._report.addModel(start)
+        self._nextID = 1
+        start.setID(self._nextID)
         start.setProgenitor(start)
-        oldModels = [start]
+        old_models = [start]
         try:
-            self.__manager.setSearchType(self.searchType())
-        except:
-            print "ERROR: UNDEFINED SEARCH TYPE " + self.searchType()
+            self._manager.setSearchType(self.search_type())
+        except Exception:
+            print "ERROR: UNDEFINED SEARCH TYPE " + self.search_type()
             return
         # process each level, up to the number of levels indicated. Each of the best models
         # is added to the report generator for later output
-        if self.__HTMLFormat: print '<pre>'
+        if self._HTMLFormat:
+            print '<pre>'
         print "Searching levels:"
         start_time = time.time()
         last_time = start_time
-        for i in xrange(1,self.__searchLevels+1):
-            if self.__manager.getMemUsage() > maxMemoryToUse:
+        for i in xrange(1, self._search_levels + 1):
+            if self._manager.getMemUsage() > max_memory_to_use:
                 print "Memory limit exceeded: stopping search"
                 break
-            print i,':',    # progress indicator
-            newModels = self.processLevel(i, oldModels, i != self.__searchLevels)
+            print i, ':',  # progress indicator
+            new_models = self.process_level(i, old_models,
+                                            i != self._search_levels)
             current_time = time.time()
-            print '%.1f seconds, %.1f total' % (current_time - last_time, current_time - start_time)
+            print '%.1f seconds, %.1f total' % (
+                current_time - last_time, current_time - start_time)
             sys.stdout.flush()
             last_time = current_time
-            for model in newModels:
+            for model in new_models:
                 # Make sure all statistics are calculated. This won't do anything if we did it already.
-                if not self.__NoIPF:
-                    self.__manager.computeL2Statistics(model)
-                    self.__manager.computeDependentStatistics(model)
-                if self.__BPStatistics:
-                    self.__manager.computeBPStatistics(model)
-                if self.__PercentCorrect:
-                    self.__manager.computePercentCorrect(model)
-                if self.__IncrementalAlpha:
-                    self.__manager.computeIncrementalAlpha(model)
-                self.__nextID += 1
-                model.setID(self.__nextID)
-                #model.deleteFitTable()  #recover fit table memory
-                self.__report.addModel(model)
-            oldModels = newModels
+                if not self._no_ipf:
+                    self._manager.computeL2Statistics(model)
+                    self._manager.computeDependentStatistics(model)
+                if self._BPStatistics:
+                    self._manager.computeBPStatistics(model)
+                if self._Percent_correct:
+                    self._manager.computePercentCorrect(model)
+                if self._Incremental_alpha:
+                    self._manager.computeIncrementalAlpha(model)
+                self._nextID += 1
+                model.setID(self._nextID)
+                # model.deleteFitTable()  #recover fit table memory
+                self._report.addModel(model)
+            old_models = new_models
             # if the list is empty, stop. Also, only do one step for chain search
-            if self.__searchFilter == "chain" or len(oldModels) == 0:
+            if self._search_filter == "chain" or len(old_models) == 0:
                 break
-        if self.__HTMLFormat: print '</pre><br>'
-        else: print ""
+        if self._HTMLFormat:
+            print '</pre><br>'
+        else:
+            print ""
 
-    def doSbSearch(self,printOptions):
-        if self.__startModel == "":
-            self.__startModel = "default"
-        if self.__manager.isDirected() and self.searchDir == "default":
-            self.searchDir = "up"
-        if not self.__manager.isDirected() and self.searchDir == "default":
-            self.searchDir = "up"
-        if (self.__searchFilter == "chain" or self.__startModel == "default") and self.searchDir == "down":
-            self.__startModel = "top"
-        elif (self.__searchFilter == "chain" or self.__startModel == "default") and self.searchDir == "up":
-            self.__startModel = "bottom"
-        if self.__startModel == "top":
-            start = self.__manager.getTopRefModel()
-        elif self.__startModel == "bottom":
-            start = self.__manager.getBottomRefModel()
+    def do_sb_search(self, print_options):
+        if self._start_model == "":
+            self._start_model = "default"
+        if self._manager.isDirected() and self.search_dir == "default":
+            self.search_dir = "up"
+        if not self._manager.isDirected() and self.search_dir == "default":
+            self.search_dir = "up"
+        if (
+                self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "down":
+            self._start_model = "top"
+        elif (
+                self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "up":
+            self._start_model = "bottom"
+        if self._start_model == "top":
+            start = self._manager.getTopRefModel()
+        elif self._start_model == "bottom":
+            start = self._manager.getBottomRefModel()
         else:
-            start = self.__manager.makeSbModel(self.__startModel, 1)
-        self.__manager.setRefModel(self.__refModel)
-        if self.searchDir == "down":
-            self.__manager.setSearchDirection(1)
+            start = self._manager.makeSbModel(self._start_model, 1)
+        self.set_ref_model(self._ref_model)
+        if self.search_dir == "down":
+            self._manager.setSearchDirection(1)
         else:
-            self.__manager.setSearchDirection(0)
-        if printOptions: self.printOptions(1)
-        self.__manager.printBasicStatistics()
-        self.__manager.computeL2Statistics(start)
-        self.__manager.computeDependentStatistics(start)
-        if self.__PercentCorrect and self.__manager.isDirected():
-            self.__manager.computePercentCorrect(start)
-        if self.__IncrementalAlpha:
-            self.__manager.computeIncrementalAlpha(start)
+            self._manager.setSearchDirection(0)
+        if print_options:
+            self.print_options(1)
+        self._manager.printBasicStatistics()
+        self._manager.computeL2Statistics(start)
+        self._manager.computeDependentStatistics(start)
+        if self._Percent_correct and self._manager.isDirected():
+            self._manager.computePercentCorrect(start)
+        if self._Incremental_alpha:
+            self._manager.computeIncrementalAlpha(start)
         start.level = 0
-        self.__report.addModel(start)
-        self.__nextID = 1
-        start.setID(self.__nextID)
+        self._report.addModel(start)
+        self._nextID = 1
+        start.setID(self._nextID)
         start.setProgenitor(start)
-        oldModels = [start]
+        old_models = [start]
         try:
-            self.__manager.setSearchType(self.sbSearchType())
-        except:
-            print "ERROR: UNDEFINED SEARCH TYPE " + self.sbSearchType()
+            self._manager.setSearchType(self.sb_search_type())
+        except Exception:
+            print "ERROR: UNDEFINED SEARCH TYPE " + self.sb_search_type()
             return
-        if self.__HTMLFormat: print '<pre>'
+        if self._HTMLFormat:
+            print '<pre>'
         print "Searching levels:"
         start_time = time.time()
         last_time = start_time
-        for i in xrange(1,self.__searchLevels+1):
-            if self.__manager.getMemUsage() > maxMemoryToUse:
+        for i in xrange(1, self._search_levels + 1):
+            if self._manager.getMemUsage() > max_memory_to_use:
                 print "Memory limit exceeded: stopping search"
                 break
-            print i,':',    # progress indicator
-            newModels = self.processLevel(i, oldModels, i != self.__searchLevels)
+            print i, ':',  # progress indicator
+            new_models = self.process_level(i, old_models,
+                                            i != self._search_levels)
             current_time = time.time()
-            print '%.1f seconds, %.1f total' % (current_time - last_time, current_time - start_time)
+            print '%.1f seconds, %.1f total' % (
+                current_time - last_time, current_time - start_time)
             last_time = current_time
-            for model in newModels:
+            for model in new_models:
                 # Make sure all statistics are calculated. This won't do anything if we did it already.
-                if not self.__NoIPF:
-                    self.__manager.computeL2Statistics(model)
-                    self.__manager.computeDependentStatistics(model)
-                if self.__BPStatistics:
-                    self.__manager.computeBPStatistics(model)
-                if self.__PercentCorrect:
-                    self.__manager.computePercentCorrect(model)
-                if self.__IncrementalAlpha:
-                    self.__manager.computeIncrementalAlpha(model)
-                self.__nextID += 1
-                model.setID(self.__nextID)
-                model.deleteFitTable()  #recover fit table memory
-                self.__report.addModel(model)
-            oldModels = newModels
+                if not self._no_ipf:
+                    self._manager.computeL2Statistics(model)
+                    self._manager.computeDependentStatistics(model)
+                if self._BPStatistics:
+                    self._manager.computeBPStatistics(model)
+                if self._Percent_correct:
+                    self._manager.computePercentCorrect(model)
+                if self._Incremental_alpha:
+                    self._manager.computeIncrementalAlpha(model)
+                self._nextID += 1
+                model.setID(self._nextID)
+                model.deleteFitTable()  # recover fit table memory
+                self._report.addModel(model)
+            old_models = new_models
             # if the list is empty, stop. Also, only do one step for chain search
-            if self.__searchFilter == "chain" or len(oldModels) == 0:
+            if self._search_filter == "chain" or len(old_models) == 0:
                 break
-        if self.__HTMLFormat: print '</pre><br>'
-        else: print ""
+        if self._HTMLFormat:
+            print '</pre><br>'
+        else:
+            print ""
 
-    def printSearchReport(self):
+    def print_search_report(self):
         # sort the report as requested, and print it.
-        if self.__reportSortName != "":
-            sortName = self.__reportSortName
+        if self._report_sort_name != "":
+            sort_name = self._report_sort_name
         else:
-            sortName = self.sortName
-        self.__report.sort(sortName, self.__sortDir)
-        if self.__reportFile != "":
-            self.__report.writeReport(self.__reportFile)
+            sort_name = self.sort_name
+        self._report.sort(sort_name, self._sort_dir)
+        if self._report_file != "":
+            self._report.writeReport(self._report_file)
         else:
-            self.__report.printReport()
+            self._report.printReport()
 
-        #-- self.__manager.dumpRelations()
+        # -- self._manager.dumpRelations()
 
+    def print_search_graphs(self):
 
-    def printSearchGraphs(self):
-
-        if not (self.__generateGraph or  self.__generateGephi):
+        if not (self._generate_graph or self._generate_gephi):
             return
 
         # in HTML mode, note that the graphs are being printed.
-        if self.__HTMLFormat:
+        if self._HTMLFormat:
             print('<hr>')
 
         # Get the varlist (used for all graphs)
-
 
         # Graphs for each kind of best model:
         # Generate the graph (but don't print anything yet).
@@ -566,40 +590,42 @@ class ocUtils:
         # For each of the graphs (and headers) above,
         # if HTML mode, print out a brief note and graph/gephi (if enabled)
 
-
     def newl(self):
-        if self.__HTMLFormat: print "<br>"
-    
-    def splitCaps(self,s): 
+        if self._HTMLFormat:
+            print "<br>"
+
+    def split_caps(self, s):
         return re.findall('[A-Z][^A-Z]*', s)
 
-    def splitModel(self,modelName):
-        comps = modelName.split(":")
-        model = map(lambda s: [s] if (s == "IV" if self.isDirected() else s == "IVI") else self.splitCaps(s), comps)
+    def split_model(self, model_name):
+        comps = model_name.split(":")
+        model = map(lambda s: [s] if (
+            s == "IV" if self.is_directed() else s == "IVI") else self.split_caps(
+            s), comps)
         return model
 
-    def checkModelName(self, modelName):
-        varlist = [v.getAbbrev() for v in self.__manager.getVariableList()]
-        model = self.splitModel(modelName)
-        isDirected = self.isDirected()
-        haveIVs = False
-        sawMaybeWrongIV = False
+    def check_model_name(self, model_name):
+        varlist = map(lambda c: c[1], self._manager.getVariableList())
+        model = self.split_model(model_name)
+        isDirected = self.is_directed()
+        have_ivs = False
+        saw_maybe_wrong_iv = False
 
         # IV can be present if directed system; IVI otherwise
         if isDirected:
-            if ["I","V","I"] in model:
-                sawMaybeWrongIV = True
+            if ["I", "V", "I"] in model:
+                saw_maybe_wrong_iv = True
             if ["IV"] in model:
-                haveIVs = True
+                have_ivs = True
         else:
-            if ["I","V"] in model:
-                sawMaybeWrongIV = True               
+            if ["I", "V"] in model:
+                saw_maybe_wrong_iv = True
             if ["IVI"] in model:
-                haveIVs = True     
+                have_ivs = True
 
-        # all variables in varlist are in model (possibly as IV or IVI)
+                # all variables in varlist are in model (possibly as IV or IVI)
         modelvars = [var for rel in model for var in rel]
-        
+
         varset = set(varlist)
         modset = set(modelvars)
         if isDirected:
@@ -607,326 +633,353 @@ class ocUtils:
         else:
             modset.discard("IVI")
 
-        if not haveIVs:
+        if not have_ivs:
             if not varset.issubset(modset):
-                if self.__HTMLFormat:
+                if self._HTMLFormat:
                     print "<br>"
-                print "\nERROR: Not all declared variables are present in the model, '" + modelName + "'."
-                if self.__HTMLFormat:
+                print "\nERROR: Not all declared variables are present in the model, '" + model_name + "'."
+                if self._HTMLFormat:
                     print "<br>"
-                if sawMaybeWrongIV:
-                    print "\nDid you mean '" + ("IV" if isDirected else "IVI") + "' instead of '" + ("IVI" if isDirected else "IV") + "'?"
+                if saw_maybe_wrong_iv:
+                    print "\n_did you mean '" + (
+                        "IV" if isDirected else "IVI") + "' instead of '" + (
+                              "IVI" if isDirected else "IV") + "'?"
                 else:
-                    print "\n Did you forget the " + ("IV" if isDirected else "IVI") + " component?"
-                if self.__HTMLFormat:
+                    print "\n Did you forget the " + (
+                        "IV" if isDirected else "IVI") + " component?"
+                if self._HTMLFormat:
                     print "<br>"
                 print "\n Not in model: "
-                print ", ".join(["'" + i + "'" for i in varset.difference(modset)])
+                print ", ".join(
+                    ["'" + i + "'" for i in varset.difference(modset)])
                 sys.exit(1)
-        
+
         # all variables in model are in varlist
         if not modset.issubset(varset):
-            if self.__HTMLFormat:
+            if self._HTMLFormat:
                 print "<br>"
-            print "\nERROR: Not all variables in the model '" + modelName + "' are declared in the variable list."
-            if self.__HTMLFormat:
+            print "\nERROR: Not all variables in the model '" + model_name + "' are declared in the variable list."
+            if self._HTMLFormat:
                 print "<br>"
             diffset = modset.difference(varset)
-            if sawMaybeWrongIV or diffset == set(["I", "V"]):
-                print "\nDid you mean '" + ("IV" if isDirected else "IVI") + "' instead of '" + ("IVI" if isDirected else "IV") + "'?"
+            if saw_maybe_wrong_iv or diffset == {"I", "V"}:
+                print "\n_did you mean '" + (
+                    "IV" if isDirected else "IVI") + "' instead of '" + (
+                          "IVI" if isDirected else "IV") + "'?"
             else:
                 print "\n Not declared: "
                 print ", ".join(["'" + i + "'" for i in diffset])
-              
+
             sys.exit(1)
 
         # dv must be in all components (except IV) if directed
         if isDirected:
-            dv = self.__manager.getDvName()
+            dv = self._manager.getDvName()
             for rel in model:
                 if not (rel == ["IVI"] or rel == ["IV"]) and dv not in rel:
-                    if self.__HTMLFormat:
+                    if self._HTMLFormat:
                         print "<br>"
-                    print "\nERROR: In the model '" + modelName + "', model component '" + "".join(rel) + "' is missing the DV, '" + dv + "'."
+                    print "\nERROR: In the model '" + model_name + "', model component '" + "".join(
+                        rel) + "' is missing the DV, '" + dv + "'."
                     sys.exit(1)
-    
-    def printGraph(self,modelName, only):
-        if (only and not self.__generateGephi):
-            self.__generateGraph = True
-        if (self.__generateGraph or self.__generateGephi) and (self.__hideIsolated and (modelName == "IVI" or modelName == "IV")):
-            msg = "Note: no " 
-            if self.__generateGraph:
+
+    def print_graph(self, model_name, only):
+        if only and not self._generate_gephi:
+            self._generate_graph = True
+        if (self._generate_graph or self._generate_gephi) and (
+                self._hide_isolated and (
+                model_name == "IVI" or model_name == "IV")):
+            msg = "Note: no "
+            if self._generate_graph:
                 msg = msg + "hypergraph image "
-            if self.__generateGraph and self.__generateGephi:
+            if self._generate_graph and self._generate_gephi:
                 msg = msg + "or "
-            if self.__generateGephi:
+            if self._generate_gephi:
                 msg = msg + "Gephi input "
 
             msg = msg + "was generated, since the model contains only "
-            msg = msg + modelName
+            msg = msg + model_name
             msg = msg + " components, which were requested to be hidden in the graph."
 
-            if self.__HTMLFormat:
+            if self._HTMLFormat:
                 print "<br>"
             print msg
-            if self.__HTMLFormat:
+            if self._HTMLFormat:
                 print "<br>"
 
         else:
-            self.maybePrintGraphSVG(modelName, True)
-            self.maybePrintGraphGephi(modelName, True)
+            self.maybe_print_graph_svg(model_name, True)
+            self.maybe_print_graph_gephi(model_name, True)
         print
         print
 
+    def do_fit(self, print_options, only_gfx):
+        # self._manager.setValuesAreFunctions(self._values_are_functions)
 
+        if print_options and not only_gfx:
+            self.print_options(0)
 
+        if not only_gfx:
+            self._manager.printBasicStatistics()
 
-    def doFit(self,printOptions, onlyGfx):
-        #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
+        for model_name in self._fit_models:
+            self.check_model_name(model_name)
+            self.set_ref_model(self._ref_model)
+            model = self._manager.makeModel(model_name, 1)
 
-
-        if printOptions and not onlyGfx: self.printOptions(0)
-
-        if not onlyGfx: self.__manager.printBasicStatistics()
-       
-
-        for modelName in self.__fitModels:
-            self.checkModelName(modelName)
-            self.__manager.setRefModel(self.__refModel)
-            model = self.__manager.makeModel(modelName, 1)
- 
-            if onlyGfx:
-                self.printGraph(modelName, onlyGfx)
+            if only_gfx:
+                self.print_graph(model_name, only_gfx)
                 continue
 
-            self.doAllComputations(model)
+            self.do_all_computations(model)
 
-
-            if self.__defaultFitModel != "":
+            if self._default_fit_model != "":
                 try:
-                    defaultModel = self.__manager.makeModel(self.__defaultFitModel, 1)
-                except:
-                    print "\nERROR: Unable to create model " + self.__defaultFitModel
+                    default_model = self._manager.makeModel(
+                        self._default_fit_model, 1)
+                except Exception:
+                    print "\nERROR: Unable to create model " + self._default_fit_model
                     sys.exit(0)
-                self.__report.setDefaultFitModel(defaultModel)
-            self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
+                self._report.setDefaultFitModel(default_model)
+            self._report.printConditional_DV(model, self._calc_expectedDV,
+                                              self._fit_classifier_target)
 
-            self.printGraph(modelName, onlyGfx)
+            self.print_graph(model_name, only_gfx)
 
-    def maybePrintGraphSVG(self, model, header):
+    def maybe_print_graph_svg(self, model, header):
 
-        if self.__generateGraph:
-            self.generateGraph(model)
-            if self.__HTMLFormat:
-                if header: 
-                    print "Hypergraph model visualization for the Model " + model + " (using the " + self.__layoutStyle + " layout algorithm)<br>"
-                ocGraph.printSVG(self.graphs[model], self.__layoutStyle, self.__graphWidth, self.__graphHeight, self.__graphFontSize, self.__graphNodeSize)
+        if self._generate_graph:
+            self.generate_graph(model)
+            if self._HTMLFormat:
+                if header:
+                    print "Hypergraph model visualization for the Model " + model + " (using the " + self._layout_style + " layout algorithm)<br>"
+                ocGraph.print_svg(self.graphs[model], self._layout_style,
+                                  self._graph_width, self._graph_height,
+                                  self._graph_font_size, self._graph_node_size)
                 print "<hr>"
 
-    def maybePrintGraphGephi(self, model, header):
-        
-        if self.__generateGephi:
-            self.generateGraph(model)
+    def maybe_print_graph_gephi(self, model, header):
 
-            if self.__HTMLFormat:
+        if self._generate_gephi:
+            self.generate_graph(model)
+
+            if self._HTMLFormat:
                 if header:
                     print "Hypergraph model Gephi input for the Model " + model + "<br>"
-                print ocGraph.printGephi(self.graphs[model])
+                print ocGraph.print_gephi(self.graphs[model])
                 print "<hr>"
 
+    def generate_graph(self, model):
+        varlist = self._report.variableList()
+        hide_iv = self._hide_isolated
+        hide_dv = self._graph_hideDV
+        full_var_names = self._full_var_names
+        dv_name = ""
+        all_higher_order = (self._layout_style == "bipartite")
+        if self.is_directed():
+            dv_name = self._report.dvName()
 
-    def generateGraph(self, model):
-        varlist = self.__report.variableList()
-        hideIV = self.__hideIsolated
-        hideDV = self.__graphHideDV
-        fullVarNames = self.__fullVarNames
-        dvName = ""
-        allHigherOrder = (self.__layoutStyle == "bipartite")
-        if self.isDirected():
-            dvName = self.__report.dvName()
-
-        if self.graphs.has_key(model):
+        if model in self.graphs:
             pass
         else:
-            self.graphs[model] = ocGraph.generate(model, varlist, hideIV, hideDV, dvName, fullVarNames, allHigherOrder)
+            self.graphs[model] = ocGraph.generate(model, varlist, hide_iv,
+                                                  hide_dv, dv_name, full_var_names,
+                                                  all_higher_order)
 
-    def setGfx(self, useGfx, layout=None, gephi=False, hideIV=True, hideDV=True, fullVarNames=False, width=640, height=480, fontSize=12, nodeSize=24):
-       self.__generateGraph = useGfx
-       self.__generateGephi = gephi
-       self.__layoutStyle = layout
-       self.__hideIsolated = hideIV
-       self.__graphHideDV = hideDV
-       self.__fullVarNames = fullVarNames
-       self.__graphWidth = width
-       self.__graphHeight = height
-       self.__graphFontSize = fontSize
-       self.__graphNodeSize = nodeSize
-    
+    def set_gfx(self, use_gfx, layout=None, gephi=False, hide_iv=True,
+                hide_dv=True, full_var_names=False, width=640, height=480,
+                font_size=12, node_size=24):
+        self._generate_graph = use_gfx
+        self._generate_gephi = gephi
+        self._layout_style = layout
+        self._hide_isolated = hide_iv
+        self._graph_hideDV = hide_dv
+        self._full_var_names = full_var_names
+        self._graph_width = width
+        self._graph_height = height
+        self._graph_font_size = font_size
+        self._graph_node_size = node_size
 
-    def doAllComputations(self, model):
-        self.__manager.computeL2Statistics(model)
-        self.__manager.computeDFStatistics(model)
-        self.__manager.computeDependentStatistics(model)
-        self.__report.addModel(model)
-        self.__manager.printFitReport(model)
-        self.__manager.makeFitTable(model)
-        self.__report.printResiduals(model, self.__skipTrainedModelTable, self.__skipIVITables)
+    def do_all_computations(self, model):
+        self._manager.computeL2Statistics(model)
+        self._manager.computeDFStatistics(model)
+        self._manager.computeDependentStatistics(model)
+        self._report.addModel(model)
+        self._manager.printFitReport(model)
+        self._manager.makeFitTable(model)
+        self._report.printResiduals(model, self._skip_trained_model_table,
+                                    self._skip_IVI_tables)
 
-    def doSbFit(self,printOptions):
-        #self.__manager.setValuesAreFunctions(self.__valuesAreFunctions)
-        if printOptions: self.printOptions(0);
-        self.__manager.printBasicStatistics()
-        for modelName in self.__fitModels:
-            self.__manager.setRefModel(self.__refModel)
-            model = self.__manager.makeSbModel(modelName, 1)
-            self.doAllComputations(model)
-            if self.__defaultFitModel != "":
+    def do_sb_fit(self, print_options):
+        # self._manager.setValuesAreFunctions(self._values_are_functions)
+        if print_options:
+            self.print_options(0)
+        self._manager.printBasicStatistics()
+        for model_name in self._fit_models:
+            self.set_ref_model(self._ref_model)
+            model = self._manager.makeSbModel(model_name, 1)
+            self.do_all_computations(model)
+            if self._default_fit_model != "":
                 try:
-                    defaultModel = self.__manager.makeSbModel(self.__defaultFitModel, 1)
-                except:
-                    print "\nERROR: Unable to create model " + self.__defaultFitModel
+                    default_model = self._manager.makeSbModel(
+                        self._default_fit_model, 1)
+                except Exception:
+                    print "\nERROR: Unable to create model " + self._default_fit_model
                     sys.exit(0)
-                self.__report.setDefaultFitModel(defaultModel)
-            self.__report.printConditional_DV(model, self.__calcExpectedDV, self.__fitClassifierTarget)
-            
+                self._report.setDefaultFitModel(default_model)
+            self._report.printConditional_DV(model, self._calc_expectedDV,
+                                              self._fit_classifier_target)
+
             print
             print
 
-    def occam2Settings(self):
-        option = self.__manager.getOption("action")
+    def occam2_settings(self):
+        option = self._manager.getOption("action")
         if option != "":
-            self.__action = option
-        option = self.__manager.getOption("search-levels")
+            self._action = option
+        option = self._manager.getOption("search-levels")
         if option != "":
-            self.__searchLevels = int(float(option))
-        option = self.__manager.getOption("optimize-search-width")
+            self._search_levels = int(float(option))
+        option = self._manager.getOption("optimize-search-width")
         if option != "":
-            self.__searchWidth = int(float(option))
-        option = self.__manager.getOption("reference-model")
+            self._search_width = int(float(option))
+        option = self._manager.getOption("reference-model")
         if option != "":
-            self.__refModel = option
-        option = self.__manager.getOption("search-direction")
+            self._ref_model = option
+        option = self._manager.getOption("search-direction")
         if option != "":
-            self.searchDir = option
-        option = self.__manager.getOptionList("short-model")
+            self.search_dir = option
+        option = self._manager.getOptionList("short-model")
         # for search, only one specified model allowed
         if len(option) > 0:
-            self.__startModel = option[0]
-            self.__fitModels = option
+            self._start_model = option[0]
+            self._fit_models = option
 
-    def doAction(self, printOptions, onlyGfx=False):
+    def do_action(self, print_options, only_gfx=False):
         # set reporting variables based on ref model
-        if self.__manager.isDirected() and self.__refModel == "default":
-            if self.searchDir == "down":
-                self.__refModel = "top"
+        if self._manager.isDirected() and self._ref_model == "default":
+            if self.search_dir == "down":
+                self._ref_model = "top"
             else:
-                self.__refModel = "bottom"
-        if not self.__manager.isDirected() and self.__refModel == "default":
-            if self.searchDir == "down":
-                self.__refModel = "top"
+                self._ref_model = "bottom"
+        if not self._manager.isDirected() and self._ref_model == "default":
+            if self.search_dir == "down":
+                self._ref_model = "top"
             else:
-                self.__refModel = "bottom"
-        option = self.__action
+                self._ref_model = "bottom"
+        option = self._action
         if option == "search":
-            self.__manager.setDDFMethod(self.__DDFMethod)
-            self.doSearch(printOptions)
-            self.printSearchReport()
+            self._manager.setDDFMethod(self._DDFMethod)
+            self.do_search(print_options)
+            self.print_search_report()
         elif option == "fit":
-            self.__manager.setDDFMethod(self.__DDFMethod)
-            self.doFit(printOptions, onlyGfx)
+            self._manager.setDDFMethod(self._DDFMethod)
+            self.do_fit(print_options, only_gfx)
         elif option == "SBsearch":
-            #self.__manager.setDDFMethod(self.__DDFMethod)
-            self.doSbSearch(printOptions)
-            self.printSearchReport()
+            # self._manager.setDDFMethod(self._DDFMethod)
+            self.do_sb_search(print_options)
+            self.print_search_report()
         elif option == "SBfit":
-            self.doSbFit(printOptions)
+            self.do_sb_fit(print_options)
         else:
-            print "Error: unknown operation", self.__action
+            print "Error: unknown operation", self._action
 
-    def printOption(self,label, value):
-        if self.__HTMLFormat:
+    def print_option(self, label, value):
+        if self._HTMLFormat:
             print "<tr><td>" + label + "</td><td>" + str(value) + "</td></tr>"
         else:
             print label + "," + str(value)
 
-    def printOptions(self,r_type):
-        if self.__HTMLFormat:
+    def print_options(self, r_type):
+        if self._HTMLFormat:
             print "<br><table border=0 cellpadding=0 cellspacing=0>"
-        self.__manager.printOptions(self.__HTMLFormat, self.__skipNominal)
-        self.printOption("Input data file", self.__dataFile)
+        self._manager.printOptions(self._HTMLFormat, self._skip_nominal)
+        self.print_option("Input data file", self._data_file)
 
-        if self.__fitClassifierTarget != "":
-            self.printOption("Default ('negative') state for confusion matrices", self.__fitClassifierTarget)
-        if r_type==1:   
-            self.printOption("Starting model", self.__startModel)
-            self.printOption("Search direction", self.searchDir)
-            self.printOption("Ref model", self.__refModel)
-            self.printOption("Models to consider", self.__searchFilter)
-            self.printOption("Search width", self.__searchWidth)
-            self.printOption("Search levels", self.__searchLevels)
-            self.printOption("Search sort by", self.sortName)
-            self.printOption("Search preference", self.__searchSortDir)
-            self.printOption("Report sort by", self.__reportSortName)
-            self.printOption("Report preference", self.__sortDir)
+        if self._fit_classifier_target != "":
+            self.print_option(
+                "Default ('negative') state for confusion matrices",
+                self._fit_classifier_target)
+        if r_type == 1:
+            self.print_option("Starting model", self._start_model)
+            self.print_option("Search direction", self.search_dir)
+            self.print_option("Ref model", self._ref_model)
+            self.print_option("Models to consider", self._search_filter)
+            self.print_option("Search width", self._search_width)
+            self.print_option("Search levels", self._search_levels)
+            self.print_option("Search sort by", self.sort_name)
+            self.print_option("Search preference", self._search_sort_dir)
+            self.print_option("Report sort by", self._report_sort_name)
+            self.print_option("Report preference", self._sort_dir)
 
+        if r_type == 0:
+            self.print_option("Generate hypergraph images",
+                              "Y" if self._generate_graph else "N")
+            self.print_option("Generate Gephi files",
+                              "Y" if self._generate_gephi else "N")
 
-        if r_type==0:
-            self.printOption("Generate hypergraph images", "Y" if self.__generateGraph else "N")
-            self.printOption("Generate Gephi files", "Y" if self.__generateGephi else "N")
+        if self._generate_graph:
+            self.print_option("Hypergraph layout style",
+                              str(self._layout_style))
+            self.print_option("Hypergraph image width", str(self._graph_width))
+            self.print_option("Hypergraph image height",
+                              str(self._graph_height))
+            self.print_option("Hypergraph font size", str(self._graph_font_size))
+            self.print_option("Hypergraph node size", str(self._graph_node_size))
 
-        if self.__generateGraph:
-            self.printOption("Hypergraph layout style", str(self.__layoutStyle))
-            self.printOption("Hypergraph image width", str(self.__graphWidth))
-            self.printOption("Hypergraph image height", str(self.__graphHeight))
-            self.printOption("Hypergraph font size", str(self.__graphFontSize))
-            self.printOption("Hypergraph node size", str(self.__graphNodeSize))
+        if self._generate_gephi or self._generate_graph:
+            self.print_option("Hide " + (
+                "IV" if self.is_directed() else "IVI") + " components in hypergraph",
+                              "Y" if self._hide_isolated else "N")
 
-        if(self.__generateGephi or self.__generateGraph):
-            self.printOption("Hide " + ("IV" if self.isDirected() else "IVI")  + " components in hypergraph", "Y" if self.__hideIsolated else "N")
-            
-        if self.__HTMLFormat:
+        if self._HTMLFormat:
             print "</table>"
         sys.stdout.flush()
 
-    def findBestModel(self):
-        self.__hide_intermediate_output = True
+    def find_best_model(self):
+        self._hide_intermediate_output = True
 
         # Initialize a manager and the starting model
-        self.__manager.setRefModel(self.__refModel)
-        self.__manager.setSearchDirection(1 if (self.searchDir == "down") else 0)
-        self.__manager.setSearchType(self.searchType())
-       
-        # Set up the starting model
-        start = self.__manager.getTopRefModel() if (self.searchDir == "down") else self.__manager.getBottomRefModel()
-        start.level = 0
-        self.__manager.computeL2Statistics(start)
-        self.__manager.computeDependentStatistics(start)
-        self.__report.addModel(start)
-        self.__nextID = 1
-        start.setID(self.__nextID)
-        start.setProgenitor(start)
-        
-        # Perform the search to find the best model
-        oldModels = [start]
-        for i in xrange(1, self.__searchLevels + 1):
-            sys.stdout.write('.')
-            newModels = self.processLevel(i, oldModels, i != self.__searchLevels)
-            for model in newModels:
-                self.__manager.computeL2Statistics(model)
-                self.__manager.computeDependentStatistics(model)
-                self.__nextID += 1
-                model.setID(self.__nextID)
-                self.__report.addModel(model)
-            oldModels = newModels
+        self.set_ref_model(self._ref_model)
+        self._manager.setSearchDirection(
+            1 if (self.search_dir == "down") else 0)
+        self._manager.setSearchType(self.search_type())
 
-        self.__report.sort(self.sortName, self.__sortDir)
-        best = self.__report.bestModelData()
-        self.__hide_intermediate_output = False
+        # Set up the starting model
+        start = self._manager.getTopRefModel() if (
+                self.search_dir == "down") else self._manager.getBottomRefModel()
+        start.level = 0
+        self._manager.computeL2Statistics(start)
+        self._manager.computeDependentStatistics(start)
+        self._report.addModel(start)
+        self._nextID = 1
+        start.setID(self._nextID)
+        start.setProgenitor(start)
+
+        # Perform the search to find the best model
+        old_models = [start]
+        for i in xrange(1, self._search_levels + 1):
+            sys.stdout.write('.')
+            new_models = self.process_level(i, old_models,
+                                            i != self._search_levels)
+            for model in new_models:
+                self._manager.computeL2Statistics(model)
+                self._manager.computeDependentStatistics(model)
+                self._nextID += 1
+                model.setID(self._nextID)
+                self._report.addModel(model)
+            old_models = new_models
+
+        self._report.sort(self.sort_name, self._sort_dir)
+        best = self._report.bestModelData()
+        self._hide_intermediate_output = False
         return best
 
-    def computeUnaryStatistic(self, model, key, modname):
-        return self.__manager.computeUnaryStatistic(model, key, modname)
+    def compute_unary_statistic(self, model, key, modname):
+        return self._manager.computeUnaryStatistic(model, key, modname)
 
-    def computeBinaryStatistic(self, compare_order, key):
-        file_Ref, model_Ref, file_Comp, model_Comp = compare_order
-        return self.__manager.computeBinaryStatistic(file_Ref, model_Ref, file_Comp, model_Comp, key)
+    def compute_binary_statistic(self, compare_order, key):
+        file_ref, model_ref, file_comp, model_comp = compare_order
+        return self._manager.computeBinaryStatistic(file_ref, model_ref,
+                                                      file_comp, model_comp,
+                                                      key)

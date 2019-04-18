@@ -12,7 +12,10 @@
 # 2 filename
 # 3 optional subject line addendum
 
-import sys, os, smtplib, socket
+import smtplib
+import socket
+import sys
+
 if sys.version_info < (2, 5):
     from email.MIMEText import MIMEText
     from email.MIMEMultipart import MIMEMultipart
@@ -20,17 +23,19 @@ else:
     from email.mime.text import MIMEText
     from email.mime.multipart import MIMEMultipart
 
-def sendMessage(toaddr, msg):
+
+def send_message(toaddr, msg):
     server = smtplib.SMTP('mailhost.pdx.edu')
     msg['From'] = 'occam-feedback@lists.pdx.edu'
     msg['To'] = toaddr
     server.sendmail('occam-feedback@lists.pdx.edu', toaddr, msg.as_string())
     server.quit()
 
-def buildMessage(infile, filename, emailSubject):
+
+def build_message(infile, filename, email_subject):
     msg = MIMEMultipart()
-    if emailSubject != "":
-        msg['Subject'] = 'OCCAM Results: ' + emailSubject
+    if email_subject != "":
+        msg['Subject'] = 'OCCAM Results: ' + email_subject
     else:
         msg['Subject'] = 'OCCAM Results: ' + filename
     email = 'OCCAM result file ' + filename + ' is attached.\n'
@@ -51,9 +56,10 @@ def buildMessage(infile, filename, emailSubject):
     msg.attach(csvmsg)
     return msg
 
-toaddr = sys.argv[1]
+
+to_addr = sys.argv[1]
 filename = sys.argv[2]
-emailSubject = sys.argv[3].decode("hex")
-msg = buildMessage(sys.stdin, filename, emailSubject)
-sendMessage(toaddr, msg)
+email_subject = sys.argv[3].decode("hex")
+msg = build_message(sys.stdin, filename, email_subject)
+send_message(to_addr, msg)
 

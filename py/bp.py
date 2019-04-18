@@ -5,13 +5,13 @@
 # Please see the file LICENSE in the source
 # distribution of this software for license terms.
 
-import os, sys, occam
+import sys
 
-from ocutils import ocUtils
+from ocutils import OCUtils
 
-#------------- Main script ---------------
-# This script sets various options on a ocUtils object, and then
-# runs the desired action. ocUtils is a convenience wrapper around
+# ------------- Main script ---------------
+# This script sets various options on a OCUtils object, and then
+# runs the desired action. OCUtils is a convenience wrapper around
 # the basic occam3 objects, and it sets appropriate defaults if you
 # don't set every option.
 
@@ -44,76 +44,76 @@ from ocutils import ocUtils
 # To force a particular attribute to be printed as an integer,
 # append "$I" to the name (e.g., Level$I)
 
-#-------------------------------------------------
+# -------------------------------------------------
 
-# create an ocUtils object. This is a convenience wrapper which can
+# create an OCUtils object. This is a convenience wrapper which can
 # handle Occam2 files and options
 # See the source file for other options which can be set
 
-util = ocUtils()
-util.initFromCommandLine(sys.argv)
+util = OCUtils()
+util.init_from_command_line(sys.argv)
 
 # set desired options which aren't in the data file, or override them
 # here.
 
 # set separator between report fields.
 # 1=tab, 2=comma, 3=space fill, 4=HTML
-util.setReportSeparator(3)
+util.set_report_separator(3)
 
 # set report names, from the list above. If omitted, the list is set
 # based on whether the ref model is top or bottom. List is separated
 # by commas, and provided as a single text string
 # for ref=top, this is a good list:
-#util.setReportVars("Level$I, h, ddf, lr, alpha, information")
+# util.set_report_vars("Level$I, h, ddf, lr, alpha, information")
 # for ref=bottom, use something like this:
-#util.setReportVars("Level$I, h, ddf, lr, alpha, information")
-util.setReportVariables("Level$I, bp_t, ddf, h")
+# util.set_report_vars("Level$I, h, ddf, lr, alpha, information")
+util.set_report_variables("Level$I, bp_t, ddf, h")
 
 
 # set the model attribute on which sorting is done is done. This
 # controls the selection of "best models" during search. It can
-# also control reporting (see setReportSortName, below)
-util.setSortName("bp_t")
+# also control reporting (see set_report_sort_name, below)
+util.set_report_sort_name("bp_t")
 
 # set the model attribute for sorting the report, if it is different
 # from the attribute used during search. Generally this isn't needed.
-util.setReportSortName("bp_t")
+util.set_report_sort_name("bp_t")
 
 # set the search direction (up, down)
-#util.setSearchDir("up")
+# util.set_search_dir("up")
 
 # set the search filter (all, loopless, disjoint)
-util.setSearchFilter("all")
+util.set_search_filter("all")
 
 # set the ref model (bottom, top, default, or a specific model)
-util.setRefModel("bottom")
+util.set_ref_model("bottom")
 
 # set the start model for search (top, bottom, default, or a model name)
 # skip this to use the model set in the data file
-#util.setStartModel("ABC:CD")
+# util.set_start_model("ABC:CD")
 
 # set the sorting direction for pruning and reporting
 # ascending means lower values are better
 # descending means higher values are better
-util.setSortDir("descending")
+util.set_sort_dir("descending")
 
 # set the search width
-util.setSearchWidth(5)
+util.set_search_width(5)
 
 # set the number of levels to search
-util.setSearchLevels(5)
+util.set_search_levels(5)
 
 # set model for fit. Skip this to set it from the data file
-#util.setFitModel("ABC:CD")
+# util.set_fit_model("ABC:CD")
 
 # set the action (fit, search). Skip this to set it from the data file
-#util.setAction("fit")
+# util.set_action("fit")
 
 # leave this in, if you want a full list of program options printed
-util.printOptions()
+util.print_options()
 
-util.setNoIPF(1);
+util.set_no_ipf(1)
 
 # perform the search or fit, and print report
-util.doAction(1)
+util.do_action(1)
 

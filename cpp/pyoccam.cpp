@@ -680,31 +680,54 @@ DefinePyFunction(VBMManager, getVariableList)
 }
 
 
-static struct PyMethodDef VBMManager_methods[] = { PyMethodDef(VBMManager, initFromCommandLine),
+static struct PyMethodDef VBMManager_methods[] = {
+        PyMethodDef(VBMManager, compareProgenitors),
+        PyMethodDef(VBMManager, computeBPStatistics),
+        PyMethodDef(VBMManager, computeDependentStatistics),
+        PyMethodDef(VBMManager, computeDF),
+        PyMethodDef(VBMManager, computeDFStatistics),
+        PyMethodDef(VBMManager, computeH),
+        PyMethodDef(VBMManager, computeIncrementalAlpha),
+        PyMethodDef(VBMManager, computeInformationStatistics),
+        PyMethodDef(VBMManager, computeL2Statistics),
+        PyMethodDef(VBMManager, computePearsonStatistics),
+        PyMethodDef(VBMManager, computePercentCorrect),
+        PyMethodDef(VBMManager, computeT),
+        PyMethodDef(VBMManager, deleteModelFromCache),
+        PyMethodDef(VBMManager, deleteTablesFromCache),
+        PyMethodDef(VBMManager, dumpRelations),
+        PyMethodDef(VBMManager, getBottomRefModel),
         PyMethodDef(VBMManager, getDvName),
-        PyMethodDef(VBMManager, makeAllChildRelations), PyMethodDef(VBMManager, makeChildModel),
-        PyMethodDef(VBMManager, makeModel), PyMethodDef(VBMManager, setFilter),
-        PyMethodDef(VBMManager, searchOneLevel), PyMethodDef(VBMManager, setSearchType),
-        PyMethodDef(VBMManager, getTopRefModel), PyMethodDef(VBMManager, getBottomRefModel),
-        PyMethodDef(VBMManager, getRefModel), PyMethodDef(VBMManager, setRefModel),
-        PyMethodDef(VBMManager, computeDF), PyMethodDef(VBMManager, computeH), PyMethodDef(VBMManager, computeT),
-        PyMethodDef(VBMManager, computeInformationStatistics), PyMethodDef(VBMManager, computeDFStatistics),
-        PyMethodDef(VBMManager, computeL2Statistics), PyMethodDef(VBMManager, computePearsonStatistics),
-        PyMethodDef(VBMManager, computeDependentStatistics), PyMethodDef(VBMManager, computeBPStatistics),
-        PyMethodDef(VBMManager, computeIncrementalAlpha), PyMethodDef(VBMManager, compareProgenitors),
-        PyMethodDef(VBMManager, setDDFMethod), PyMethodDef(VBMManager, setUseInverseNotation),
-        PyMethodDef(VBMManager, setAlphaThreshold),
-        PyMethodDef(VBMManager, setValuesAreFunctions), PyMethodDef(VBMManager, setSearchDirection),
-        PyMethodDef(VBMManager, printFitReport), PyMethodDef(VBMManager, getOption),
-        PyMethodDef(VBMManager, getOptionList), PyMethodDef(VBMManager, Report),
-        PyMethodDef(VBMManager, makeFitTable), PyMethodDef(VBMManager, isDirected),
-        PyMethodDef(VBMManager, printOptions), PyMethodDef(VBMManager, deleteTablesFromCache),
-        PyMethodDef(VBMManager, deleteModelFromCache), PyMethodDef(VBMManager, getSampleSz),
-        PyMethodDef(VBMManager, printBasicStatistics), PyMethodDef(VBMManager, computePercentCorrect),
-        PyMethodDef(VBMManager, printSizes), PyMethodDef(VBMManager, getMemUsage),
-        PyMethodDef(VBMManager, hasTestData), PyMethodDef(VBMManager, dumpRelations),
+        PyMethodDef(VBMManager, getMemUsage),
+        PyMethodDef(VBMManager, getOption),
+        PyMethodDef(VBMManager, getOptionList),
+        PyMethodDef(VBMManager, getRefModel),
+        PyMethodDef(VBMManager, getSampleSz),
+        PyMethodDef(VBMManager, getTopRefModel),
         PyMethodDef(VBMManager, getVariableList),
-        { NULL, NULL, 0 } };
+        PyMethodDef(VBMManager, hasTestData),
+        PyMethodDef(VBMManager, initFromCommandLine),
+        PyMethodDef(VBMManager, isDirected),
+        PyMethodDef(VBMManager, makeAllChildRelations),
+        PyMethodDef(VBMManager, makeChildModel),
+        PyMethodDef(VBMManager, makeFitTable),
+        PyMethodDef(VBMManager, makeModel),
+        PyMethodDef(VBMManager, printBasicStatistics),
+        PyMethodDef(VBMManager, printFitReport),
+        PyMethodDef(VBMManager, printOptions),
+        PyMethodDef(VBMManager, printSizes),
+        PyMethodDef(VBMManager, Report),
+        PyMethodDef(VBMManager, searchOneLevel),
+        PyMethodDef(VBMManager, setAlphaThreshold),
+        PyMethodDef(VBMManager, setDDFMethod),
+        PyMethodDef(VBMManager, setFilter),
+        PyMethodDef(VBMManager, setRefModel),
+        PyMethodDef(VBMManager, setSearchDirection),
+        PyMethodDef(VBMManager, setSearchType),
+        PyMethodDef(VBMManager, setUseInverseNotation),
+        PyMethodDef(VBMManager, setValuesAreFunctions),
+        { NULL, NULL, 0 }
+};
 
 /****** Basic Type Operations ******/
 
@@ -1222,23 +1245,44 @@ DefinePyFunction(SBMManager, hasTestData) {
     return Py_BuildValue("i", result);
 }
 
-static struct PyMethodDef SBMManager_methods[] = { PyMethodDef(SBMManager, initFromCommandLine),
-        PyMethodDef(SBMManager, searchOneLevel), PyMethodDef(SBMManager, makeSbModel),
-        PyMethodDef(SBMManager, setFilter), PyMethodDef(SBMManager, setSearchType),
-        PyMethodDef(SBMManager, getTopRefModel), PyMethodDef(SBMManager, getBottomRefModel),
-        PyMethodDef(SBMManager, getRefModel), PyMethodDef(SBMManager, setRefModel),
-        PyMethodDef(SBMManager, computeDF), PyMethodDef(SBMManager, computeH), PyMethodDef(SBMManager, computeT),
-        PyMethodDef(SBMManager, computeInformationStatistics), PyMethodDef(SBMManager, computeDFStatistics),
-        PyMethodDef(SBMManager, computeL2Statistics), PyMethodDef(SBMManager, computePearsonStatistics),
-        PyMethodDef(SBMManager, computeDependentStatistics), PyMethodDef(SBMManager, computeBPStatistics),
-        PyMethodDef(SBMManager, computeIncrementalAlpha), PyMethodDef(SBMManager, compareProgenitors),
-        PyMethodDef(SBMManager, setSearchDirection), PyMethodDef(SBMManager, printFitReport),
-        PyMethodDef(SBMManager, getOption), PyMethodDef(SBMManager, getOptionList),
-        PyMethodDef(SBMManager, Report), PyMethodDef(SBMManager, makeFitTable),
-        PyMethodDef(SBMManager, isDirected), PyMethodDef(SBMManager, printOptions),
-        PyMethodDef(SBMManager, deleteModelFromCache), PyMethodDef(SBMManager, deleteTablesFromCache),
-        PyMethodDef(SBMManager, computePercentCorrect), PyMethodDef(SBMManager, getSampleSz), PyMethodDef(SBMManager, getMemUsage),
-        PyMethodDef(SBMManager, printBasicStatistics), PyMethodDef(SBMManager, hasTestData), { NULL, NULL, 0 } };
+static struct PyMethodDef SBMManager_methods[] = {
+        PyMethodDef(SBMManager, compareProgenitors),
+        PyMethodDef(SBMManager, computeBPStatistics),
+        PyMethodDef(SBMManager, computeDependentStatistics),
+        PyMethodDef(SBMManager, computeDF),
+        PyMethodDef(SBMManager, computeDFStatistics),
+        PyMethodDef(SBMManager, computeH),
+        PyMethodDef(SBMManager, computeIncrementalAlpha),
+        PyMethodDef(SBMManager, computeInformationStatistics),
+        PyMethodDef(SBMManager, computeL2Statistics),
+        PyMethodDef(SBMManager, computePearsonStatistics),
+        PyMethodDef(SBMManager, computePercentCorrect),
+        PyMethodDef(SBMManager, computeT),
+        PyMethodDef(SBMManager, deleteModelFromCache),
+        PyMethodDef(SBMManager, deleteTablesFromCache),
+        PyMethodDef(SBMManager, getBottomRefModel),
+        PyMethodDef(SBMManager, getMemUsage),
+        PyMethodDef(SBMManager, getOption),
+        PyMethodDef(SBMManager, getOptionList),
+        PyMethodDef(SBMManager, getRefModel),
+        PyMethodDef(SBMManager, getSampleSz),
+        PyMethodDef(SBMManager, getTopRefModel),
+        PyMethodDef(SBMManager, hasTestData),
+        PyMethodDef(SBMManager, initFromCommandLine),
+        PyMethodDef(SBMManager, isDirected),
+        PyMethodDef(SBMManager, makeFitTable),
+        PyMethodDef(SBMManager, makeSbModel),
+        PyMethodDef(SBMManager, printBasicStatistics),
+        PyMethodDef(SBMManager, printFitReport),
+        PyMethodDef(SBMManager, printOptions),
+        PyMethodDef(SBMManager, Report),
+        PyMethodDef(SBMManager, searchOneLevel),
+        PyMethodDef(SBMManager, setFilter),
+        PyMethodDef(SBMManager, setRefModel),
+        PyMethodDef(SBMManager, setSearchDirection),
+        PyMethodDef(SBMManager, setSearchType),
+        { NULL, NULL, 0 }
+};
 
 /****** Basic Type Operations ******/
 static void SBMManager_dealloc(PSBMManager *self) {
@@ -1314,7 +1358,10 @@ DefinePyFunction(Relation, get) {
     return PyFloat_FromDouble(value);
 }
 
-static struct PyMethodDef Relation_methods[] = { PyMethodDef(Relation, get), { NULL, NULL, 0 } };
+static struct PyMethodDef Relation_methods[] = {
+        PyMethodDef(Relation, get),
+        { NULL, NULL, 0 }
+};
 
 /****** Basic Type Operations ******/
 
@@ -1504,10 +1551,18 @@ DefinePyFunction(Model, dump) {
     return Py_None;
 }
 
-static struct PyMethodDef Model_methods[] = { PyMethodDef(Model, getRelation), PyMethodDef(Model, get),
-        PyMethodDef(Model, deleteFitTable), PyMethodDef(Model, deleteRelationLinks),
-        PyMethodDef(Model, setProgenitor), PyMethodDef(Model, getProgenitor), PyMethodDef(Model, setID),
-        PyMethodDef(Model, isEquivalentTo), PyMethodDef(Model, dump), { NULL, NULL, 0 } };
+static struct PyMethodDef Model_methods[] = {
+        PyMethodDef(Model, deleteFitTable),
+        PyMethodDef(Model, deleteRelationLinks),
+        PyMethodDef(Model, dump),
+        PyMethodDef(Model, get),
+        PyMethodDef(Model, getProgenitor),
+        PyMethodDef(Model, getRelation),
+        PyMethodDef(Model, isEquivalentTo),
+        PyMethodDef(Model, setID),
+        PyMethodDef(Model, setProgenitor),
+        { NULL, NULL, 0 }
+};
 
 /****** Basic Type Operations ******/
 
@@ -1746,7 +1801,7 @@ DefinePyFunction(Report, printConditional_DV) {
 }
 
 
-DefinePyFunction(Report, bestModelName) { 
+DefinePyFunction(Report, bestModelName) {
     Report* report = ObjRef(self, Report);
     const char* ret = report->bestModelName();
     return Py_BuildValue("s", ret);
@@ -1793,15 +1848,15 @@ DefinePyFunction(Report, variableList) {
     return ret;
 }
 
-DefinePyFunction(Report, bestModelData) { 
+DefinePyFunction(Report, bestModelData) {
     // Get the report and the manager
-   
+
 
     // RESUME
-     
+
     Report* report = ObjRef(self, Report);
     VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
-    
+
     // Get the best model name
     const char* bestModelName = report->bestModelName();
 
@@ -1822,17 +1877,17 @@ DefinePyFunction(Report, bestModelData) {
     //auto printer = [](char* key, double value) {
     //    printf("%s: %g, \n", key, value);
     //};
-    //tableKVIteration(fit, varlist, var_count, printer); 
+    //tableKVIteration(fit, varlist, var_count, printer);
 
     // Get statistics for the best model
-    
+
     Model* data = mgr->getTopRefModel();
 
     mgr->computeH(mod);
     mgr->computeL2Statistics(mod);
     mgr->computeH(data);
     mgr->computeL2Statistics(data);
-    
+
     double h_model = mod->getAttribute(ATTRIBUTE_H);
     double df_model = mod->getAttribute(ATTRIBUTE_DF);
     double aic_model = mod->getAttribute(ATTRIBUTE_AIC);
@@ -1844,8 +1899,8 @@ DefinePyFunction(Report, bestModelData) {
 
     // Make Python dictionary holding fit table for the best model
     // (as a sparse dictionary of (key, probability))
-    
-    PyObject *sparseTable = PyDict_New(); 
+
+    PyObject *sparseTable = PyDict_New();
     auto dictPopulator = [&sparseTable](char* key, double value) {
         PyObject *keyP = Py_BuildValue("s", key);
         PyObject *valueP = Py_BuildValue("d", value);
@@ -1855,7 +1910,7 @@ DefinePyFunction(Report, bestModelData) {
 
     // Make a Python object to hold everything
     PyObject *ret = Py_BuildValue(
-        "{s:s,s:O,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d}", 
+        "{s:s,s:O,s:d,s:d,s:d,s:d,s:d,s:d,s:d,s:d}",
             "name", bestModelName,
             "sparse_table", sparseTable,
             "H(model)",  h_model,
@@ -1865,17 +1920,31 @@ DefinePyFunction(Report, bestModelData) {
             "H(data)", h_data,
             "DF(data)", df_data,
             "dAIC(data)", aic_data,
-            "dBIC(data)", bic_data 
+            "dBIC(data)", bic_data
             );
 
     return ret;
 }
 
 
-static struct PyMethodDef Report_methods[] = { PyMethodDef(Report, bestModelName), PyMethodDef(Report, bestModelData), PyMethodDef(Report, get), PyMethodDef(Report, addModel),
-        PyMethodDef(Report, setDefaultFitModel), PyMethodDef(Report, setAttributes), PyMethodDef(Report, sort),
-        PyMethodDef(Report, printReport), PyMethodDef(Report, writeReport), PyMethodDef(Report, setSeparator),
-        PyMethodDef(Report, printResiduals), PyMethodDef(Report, printConditional_DV), PyMethodDef(Report, variableList), PyMethodDef(Report, dvName), PyMethodDef(Report, bestModelBIC), { NULL, NULL, 0 } };
+static struct PyMethodDef Report_methods[] = {
+    PyMethodDef(Report, addModel),
+    PyMethodDef(Report, bestModelBIC),
+    PyMethodDef(Report, bestModelData),
+    PyMethodDef(Report, bestModelName),
+    PyMethodDef(Report, dvName),
+    PyMethodDef(Report, get),
+    PyMethodDef(Report, printConditional_DV),
+    PyMethodDef(Report, printReport),
+    PyMethodDef(Report, printResiduals),
+    PyMethodDef(Report, setAttributes),
+    PyMethodDef(Report, setDefaultFitModel),
+    PyMethodDef(Report, setSeparator),
+    PyMethodDef(Report, sort),
+    PyMethodDef(Report, variableList),
+    PyMethodDef(Report, writeReport),
+    { NULL, NULL, 0 }
+};
 /****** Basic Type Operations ******/
 
 /* commented out because it is currently unused
@@ -1977,7 +2046,7 @@ PyObject* variable_list_iternext(PyObject *self)
 
 static struct PyMethodDef VariableList_methods[] = 
 {
-        { NULL, NULL, 0 } 
+        { NULL, NULL, 0 }
 };
 
 
@@ -2081,9 +2150,14 @@ static PyObject *setHTMLMode(PyObject *self, PyObject *args) {
     return Py_None;
 }
 
-static struct PyMethodDef occam_methods[] = { { "Relation", Relation_new, 1 }, { "Model", Model_new, 1 }, {
-        "VBMManager", VBMManager_new, 1 }, { "SBMManager", SBMManager_new, 1 },
-        { "setHTMLMode", setHTMLMode, 1 }, { NULL, NULL } };
+static struct PyMethodDef occam_methods[] = {
+    { "Model", Model_new, 1 },
+    { "Relation", Relation_new, 1 },
+    { "SBMManager", SBMManager_new, 1 },
+    { "setHTMLMode", setHTMLMode, 1 },
+    { "VBMManager", VBMManager_new, 1 },
+    { NULL, NULL }
+};
 
 extern "C" {
     SWIGEXPORT(void) initoccam();
