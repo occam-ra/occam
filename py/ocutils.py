@@ -579,7 +579,7 @@ class ocUtils:
         return model
 
     def checkModelName(self, modelName):
-        varlist = map(lambda c : c[1], self.__manager.getVariableList())
+        varlist = [v.getAbbrev() for v in self.__manager.getVariableList()]
         model = self.splitModel(modelName)
         isDirected = self.isDirected()
         haveIVs = False
