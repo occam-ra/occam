@@ -26,6 +26,11 @@ class Variable { // internal use only - see VariableList
         char * oldnew[2][MAXCARDINALITY];
         int old_card;
         char *exclude;
+
+        const char* getAbbrev()
+        {
+            return abbrev;
+        };
 };
 
 #endif

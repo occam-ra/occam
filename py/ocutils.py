@@ -605,7 +605,7 @@ class OCUtils:
         return model
 
     def check_model_name(self, model_name):
-        varlist = map(lambda c: c[1], self._manager.getVariableList())
+        varlist = [v.getAbbrev() for v in self._manager.getVariableList()]
         model = self.split_model(model_name)
         isDirected = self.is_directed()
         have_ivs = False
