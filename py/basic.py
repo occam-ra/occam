@@ -18,21 +18,21 @@ resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 # This section of the script allows you to specify the most frequently changed options from the command line.
 # The width, levels and filter are determined here, to be used by the rest of the script below.
 if len(sys.argv) < 2:
-	print 'No data file specified.'
-	print 'Usage: %s datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]' % sys.argv[0]
-	sys.exit()
+    print 'No data file specified.'
+    print 'Usage: %s datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]' % sys.argv[0]
+    sys.exit()
 
 if len(sys.argv) >= 4:
-	swidth = sys.argv[2]
-	slevels = sys.argv[3]
+    swidth = sys.argv[2]
+    slevels = sys.argv[3]
 else:
-	swidth = 3
-	slevels = 7
+    swidth = 3
+    slevels = 7
 
 if len(sys.argv) >= 5:
-	filter_ = sys.argv[4]
+    filter_ = sys.argv[4]
 else:
-	filter_ = "loopless"
+    filter_ = "loopless"
 
 
 util = OCUtils("VB")  # create a variable-based manager

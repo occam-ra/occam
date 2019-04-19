@@ -20,7 +20,7 @@ class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
 
     @staticmethod
     def intersection_point(center_x, center_y, source_x, source_y, width, height=20):
-        delta_x, delta_y = center_x-source_x, center_y-source_y
+        delta_x, delta_y = center_x - source_x, center_y - source_y
 
         if delta_x == 0 and delta_y == 0:
             return center_x, center_y
@@ -67,12 +67,12 @@ def textwidth(text, fontsize=14):
     try:
         import cairo
     except Exception:
-        return len(str) * fontsize
+        return len(text) * fontsize
     surface = cairo.SVGSurface('data/undefined.svg', 600, 600)
     cr = cairo.Context(surface)
     cr.select_font_face('sans-serif', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
     cr.set_font_size(fontsize)
-    xbearing, ybearing, width, height, xadvance, yadvance = cr.text_extents(text)
+    x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(text)
     return width
 
 
@@ -99,11 +99,11 @@ def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all
         model = filter(lambda r: dv_name in r, model)
 
     # Index full names from abbreviated
-    var_dict = dict(map(lambda p: (p[1], p[0]), varlist))
+    var_dict = {p[1]: p[0] for p in varlist}
     var_names = var_dict.keys()
 
     if hide_iv:
-        var_names = set([v for r in model for v in r])
+        var_names = {v for r in model for v in r}
 
         if not components:
             return igraph.Graph()
@@ -126,7 +126,7 @@ def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all
     # Start with an empty graph
     graph = igraph.Graph()
     graph.add_vertices(num_vertices)
-    for val,node in nodes.items():
+    for val, node in nodes.items():
         graph.vs[node]["id"] = val
         short = val.replace("**", "")
         graph.vs[node]["abbrev"] = short
@@ -156,22 +156,22 @@ def print_plot(graph, layout, extension, filename, width, height, font_size, nod
     tys = graph.vs["type"]
     tylabs = zip(graph.vs["type"], graph.vs["label"])
     fontsize = font_size
-    lab_width = lambda lab: textwidth(lab, fontsize*1.5)
+    lab_width = lambda lab: textwidth(lab, fontsize * 1.5)
     dotsize = 5
 
     # Calculate node sizes.
     node_size = max([0 if ty else max(node_size_orig, lab_width(lab)) for (ty, lab) in tylabs])
-    size_fn = (lambda ty, lab : max(node_size, lab_width(lab))) if layout == "bipartite" else (lambda ty, lab : dotsize if ty else node_size)
+    size_fn = (lambda ty, lab: max(node_size, lab_width(lab))) if layout == "bipartite" else (lambda ty, lab: dotsize if ty else node_size)
 
     visual_style = {
-        "vertex_size": [size_fn(ty, lab) for (ty,lab) in tylabs],
+        "vertex_size": [size_fn(ty, lab) for (ty, lab) in tylabs],
         "vertex_color": ["lightblue" if ty else "white" for ty in tys],
         "vertex_shape": ["strip" if layout == "bipartite" and ty else "circle" for ty in tys],
         "vertex_label_size": [0 if layout != "bipartite" and ty else fontsize for ty in tys],
-        "margin":max([size_fn(ty, lab)/2 for (ty, lab) in tylabs]+[node_size]),
+        "margin": max([size_fn(ty, lab) / 2 for (ty, lab) in tylabs] + [node_size]),
 
         "vertex_label_dist": 0,
-        "bbox":(width, height)
+        "bbox": (width, height)
     }
 
     # Set the layout. None is a valid choice.

@@ -120,11 +120,11 @@ install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES) $(CAPSTONE_FILES)
 	mkdir -p $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)
 	mkdir -p $(CL_ROOT)
-	cp $(WEB_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(CAPSTONE_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
-	mkdir -p $(WEB_ROOT)/data
+	cp $(WEB_FILES) $(WEB_ROOT)
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(WEB_ROOT)
+	touch $(INSTALL_ROOT)/__init__.py $(CL_ROOT)/__init__.py $(WEB_ROOT)/__init__.py cpp/__init__.py
 
 web:
 	cp $(WEB_FILES) $(WEB_ROOT)
