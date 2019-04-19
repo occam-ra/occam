@@ -1551,6 +1551,15 @@ DefinePyFunction(Model, dump) {
     return Py_None;
 }
 
+//Really just a placeholder at this point. Will need make
+//structMatrix iterable 
+DefinePyFunction(Model, getStructMatrix) {
+  Model *model = ObjRef(self, Model);
+  PyObject *structMatrix = model->getStructMatrix();
+  PY_INCREF(structMatrix);
+  return structMatrix;
+}
+
 static struct PyMethodDef Model_methods[] = {
         PyMethodDef(Model, deleteFitTable),
         PyMethodDef(Model, deleteRelationLinks),
@@ -1561,6 +1570,7 @@ static struct PyMethodDef Model_methods[] = {
         PyMethodDef(Model, isEquivalentTo),
         PyMethodDef(Model, setID),
         PyMethodDef(Model, setProgenitor),
+        PyMethodDef(Model, getStructMatrix),
         { NULL, NULL, 0 }
 };
 
@@ -2044,7 +2054,7 @@ PyObject* variable_list_iternext(PyObject *self)
     return (PyObject *)py_variable;
 }
 
-static struct PyMethodDef VariableList_methods[] = 
+static struct PyMethodDef VariableList_methods[] =
 {
         { NULL, NULL, 0 }
 };
@@ -2173,4 +2183,3 @@ void initoccam() {
     if (PyErr_Occurred())
         Py_FatalError("cannot initialize module occam");
 }
-
