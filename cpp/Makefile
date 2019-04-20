@@ -10,11 +10,14 @@ LFLAGS = -shared
 AR = ar
 COMPILE = $(CC) $(CFLAGS)
 PY_INCLUDE = /usr/include/python2.7
+PY_INCLUDE3 = /usr/include/python3.7
 CL = occ
 RANLIB = ranlib
 LDFLAGS = -lm -lstdc++ -lgmp
 PY = pyoccam.cpp
+PY3 = pyoccam3.cpp
 DYLIB = occam.so
+DYLIB3 = occam3.so
 LIB = liboccam3.a
 
 LIBOBJECTS = \
@@ -43,7 +46,7 @@ LIBOBJECTS = \
 	VariableList.o \
 	_Core.o
 
-all: $(LIB) $(DYLIB) $(CL)
+all: $(LIB) $(DYLIB) $(DYLIB3) $(CL)
 
 .SUFFIXES:
 .SUFFIXES: .cpp .o
@@ -63,6 +66,8 @@ $(LIB): $(LIBOBJECTS)
 # occam.so depends on liboccam3.a and pyoccam.cpp
 $(DYLIB): $(LIB) $(PY)
 	$(COMPILE) $(LFLAGS) -I $(PY_INCLUDE) -o $(DYLIB) $(PY) $(LIB) $(LDFLAGS)
+$(DYLIB3): $(LIB) $(PY3)
+	$(COMPILE) $(LFLAGS) -I $(PY_INCLUDE3) -o $(DYLIB3) $(PY3) $(LIB) $(LDFLAGS)
 $(CL): occ.cpp $(LIB)
 	$(COMPILE) -o $(CL) occ.cpp $(LIBOBJECTS) $(LDFLAGS)
 
@@ -130,6 +135,14 @@ occ.o: occ.cpp ../include/VBMManager.h ../include/ManagerBase.h \
  ../include/Report.h
 Options.o: Options.cpp ../include/Options.h
 pyoccam.o: pyoccam.cpp ../include/AttributeList.h \
+ ../include/Math.h ../include/VBMManager.h ../include/ManagerBase.h \
+ ../include/Model.h ../include/ModelCache.h ../include/Relation.h \
+ ../include/Table.h ../include/Globals.h ../include/Types.h \
+ ../include/VariableList.h ../include/Variable.h ../include/Constants.h \
+ ../include/Options.h ../include/VarIntersect.h  \
+ ../include/Report.h ../include/SBMManager.h ../include/SearchBase.h \
+ ../include/SBMManager.h ../include/VBMManager.h
+pyoccam3.o: pyoccam3.cpp ../include/AttributeList.h \
  ../include/Math.h ../include/VBMManager.h ../include/ManagerBase.h \
  ../include/Model.h ../include/ModelCache.h ../include/Relation.h \
  ../include/Table.h ../include/Globals.h ../include/Types.h \
