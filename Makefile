@@ -8,7 +8,6 @@ SHELL = /bin/sh
 INSTALL_ROOT = install
 WEB_ROOT = $(INSTALL_ROOT)/web
 CL_ROOT = $(INSTALL_ROOT)/cl
-PY_INCLUDE = /usr/include/python2.7
 
 HEADERS = \
 	include/attrDescs.h			\
@@ -50,6 +49,7 @@ CPP_FILES = \
 	cpp/occ.cpp \
 	cpp/Options.cpp \
 	cpp/pyoccam.cpp \
+	cpp/pyoccam3.cpp \
 	cpp/Relation.cpp \
 	cpp/RelCache.cpp \
 	cpp/Report.cpp \
@@ -66,6 +66,7 @@ CPP_FILES = \
 
 CORE_FILES = \
 	cpp/occam.so \
+	cpp/occam3.so \
 	py/occammail.py \
 	py/common.py \
 	py/ocutils.py \
