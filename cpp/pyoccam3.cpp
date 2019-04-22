@@ -1563,6 +1563,20 @@ DefinePyFunction(Model, dump) {
     return Py_None;
 }
 
+//Really just a placeholder at this point. Will need make
+//structMatrix iterable
+DefinePyFunction(Model, getStructMatrix) {
+  int statespace;
+  int Total_const;
+  Model *model = ObjRef(self, Model);
+  PyObject **structMatrix = model->getStructMatrix(&statespace, &Total_const);
+  if(structMatrix != NULL) {
+    PY_INCREF(structMatrix);
+    return structMatrix;
+  }
+  return Py_None;
+}
+
 static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, deleteFitTable),
     PyMethodDef(Model, deleteRelationLinks),
@@ -1573,6 +1587,7 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, isEquivalentTo),
     PyMethodDef(Model, setID),
     PyMethodDef(Model, setProgenitor),
+    PyMethodDef(Model, getStructMatrix),
     { nullptr }
 };
 
@@ -1965,7 +1980,7 @@ PyObject* variable_list_iternext(PyObject *self)
     return (PyObject *)py_variable;
 }
 
-static struct PyMethodDef VariableList_methods[] = 
+static struct PyMethodDef VariableList_methods[] =
 {
     { nullptr }
 };
