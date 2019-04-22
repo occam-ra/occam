@@ -8,6 +8,7 @@ SHELL = /bin/sh
 INSTALL_ROOT = install
 WEB_ROOT = $(INSTALL_ROOT)/web
 CL_ROOT = $(INSTALL_ROOT)/cl
+PACKAGE_ROOT = $(INSTALL_ROOT)/occampy
 
 HEADERS = \
 	include/attrDescs.h			\
@@ -73,9 +74,14 @@ CORE_FILES = \
 	py/distanceFunctions.py \
 	py/ocGraph.py
 
+SETUP_FILE = \
+		py/occam_base/setup.py
+
 CAPSTONE_FILES = \
-	py/occam_base/variablelist.py \
-	py/occam_base/vbmmanager.py
+	py/occam_base/variable_list.py \
+	py/occam_base/vbm_manager.py \
+	py/occam_base/model.py \
+	py/occam_base/__init__.py
 
 CL_FILES = \
 	cpp/occ \
@@ -116,16 +122,19 @@ WEB_FILES = \
 	html/compare.footer.html \
 	html/occambatch
 
-install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES) $(CAPSTONE_FILES)
+install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES) $(CAPSTONE_FILES) $(SETUP_FILE)
 	-rm -rf $(INSTALL_ROOT)
 	mkdir -p $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)
 	mkdir -p $(CL_ROOT)
+	mkdir -p $(PACKAGE_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
 	cp $(WEB_FILES) $(WEB_ROOT)
 	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
 	cp $(CORE_FILES) $(CAPSTONE_FILES) $(WEB_ROOT)
-	touch $(INSTALL_ROOT)/__init__.py $(CL_ROOT)/__init__.py $(WEB_ROOT)/__init__.py cpp/__init__.py
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(PACKAGE_ROOT)
+	cp $(SETUP_FILE) $(INSTALL_ROOT)
+	touch $(CL_ROOT)/__init__.py $(WEB_ROOT)/__init__.py cpp/__init__.py
 
 web:
 	cp $(WEB_FILES) $(WEB_ROOT)
@@ -134,6 +143,10 @@ web:
 cli:
 	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
+
+occampy:
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(PACKAGE_ROOT)
+
 
 lib: $(HEADERS) $(CPP_FILES)
 	cd cpp && make
