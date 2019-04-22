@@ -8,7 +8,6 @@ SHELL = /bin/sh
 INSTALL_ROOT = install
 WEB_ROOT = $(INSTALL_ROOT)/web
 CL_ROOT = $(INSTALL_ROOT)/cl
-PY_INCLUDE = /usr/include/python2.7
 
 HEADERS = \
 	include/attrDescs.h			\
@@ -50,6 +49,7 @@ CPP_FILES = \
 	cpp/occ.cpp \
 	cpp/Options.cpp \
 	cpp/pyoccam.cpp \
+	cpp/pyoccam3.cpp \
 	cpp/Relation.cpp \
 	cpp/RelCache.cpp \
 	cpp/Report.cpp \
@@ -66,6 +66,7 @@ CPP_FILES = \
 
 CORE_FILES = \
 	cpp/occam.so \
+	cpp/occam3.so \
 	py/occammail.py \
 	py/common.py \
 	py/ocutils.py \
@@ -120,11 +121,11 @@ install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES) $(CAPSTONE_FILES)
 	mkdir -p $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)
 	mkdir -p $(CL_ROOT)
-	cp $(WEB_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(CAPSTONE_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
-	mkdir -p $(WEB_ROOT)/data
+	cp $(WEB_FILES) $(WEB_ROOT)
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
+	cp $(CORE_FILES) $(CAPSTONE_FILES) $(WEB_ROOT)
+	touch $(INSTALL_ROOT)/__init__.py $(CL_ROOT)/__init__.py $(WEB_ROOT)/__init__.py cpp/__init__.py
 
 web:
 	cp $(WEB_FILES) $(WEB_ROOT)

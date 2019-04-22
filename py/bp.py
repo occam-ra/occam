@@ -21,7 +21,7 @@ from ocutils import OCUtils
 # t
 # df
 # ddf
-# loops		-- 1=loops, 0=no loops
+# loops     -- 1=loops, 0=no loops
 # information
 # unexplained
 # ipf_iterations
@@ -34,8 +34,8 @@ from ocutils import OCUtils
 # alpha
 # beta
 # level
-# p2		-- note that the Pearson statistics aren't
-# p2		-- computed by default because they are expensive
+# p2        -- note that the Pearson statistics aren't
+# p2        -- computed by default because they are expensive
 # p2_alpha
 # p2_alpha
 # p2_beta

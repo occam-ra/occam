@@ -220,7 +220,6 @@ def print_form(form_fields):
     template = OpagCGI()
     action = form_fields.get("action", "")
 
-    format_text = ""
     if "format_text" in form_fields:
         form_fields['format_text'] = "checked"
     template.set_template('switchform.html')
@@ -343,7 +342,6 @@ def prepare_cached_data(form_fields):
 
     decls, decls_rn = unpack_to_string(decls_file_name, decls_file)
 
-    data = ""
     if data_file_name == "":  # search for the Cached Data Name and combine.
         drn = os.path.join(datadir, data_refr_name)
         if not os.path.isfile(drn):
@@ -736,14 +734,9 @@ def action_batch_compare(form_fields):
     # Get data from the form
 
     # Get Occam search parameters
-    search_assoc_list = []
     search_fields = ["type", "direction", "levels", "width", "sort by",
                      "selection function"]
-
-    for key in search_fields:
-        search_assoc_list.append((key, form_fields.get(key)))
-
-    search = dict(search_assoc_list)
+    search = {key: form_fields.get(key) for key in search_fields}
 
     # Get Occam report parameters
     report_1 = []
@@ -843,7 +836,6 @@ def action_batch_compare(form_fields):
         else:
             return hl + s + hr
 
-    line = lambda s: bracket(s, "<br>", "</br>", "", "")
     tab_row = lambda s: bracket(s, "<tr>", "</tr>", "", "")
     tab_col = lambda s: bracket(s, "<td>", "</td>", " ", ",")
     tab_head = lambda s: bracket(s, "<th align=left>", "</th>", " ", ",")
@@ -895,13 +887,12 @@ def action_batch_compare(form_fields):
         return d, s
 
     def compute_binary_statistics(report_items, comp_order):
-        stats = dict(
-            [(k, distanceFunctions.computeDistanceMetric(k, comp_order)) for k
-             in report_items])
+        stats = {k: distanceFunctions.compute_distance_metric(k, comp_order)
+                 for k in report_items}
         return stats
 
     def compute_model_stats(model_a, model_b):
-        stats_1 = dict([(k, [model_a[k], model_b[k]]) for k in report_1])
+        stats_1 = {k: [model_a[k], model_b[k]] for k in report_1}
 
         # Find the best model based on the single-model stats
         best_d, best_s = select_best(stats_1)
@@ -934,7 +925,7 @@ def action_batch_compare(form_fields):
     # * Print out the header again as a footer
 
     def pp_options():
-        for (k, v) in search_assoc_list:
+        for (k, v) in search.items():
             if v != '':
                 print tab_row(tab_col(k + ": ") + tab_col(v))
 
