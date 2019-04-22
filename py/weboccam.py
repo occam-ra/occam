@@ -1099,7 +1099,7 @@ def action_sb_search(form_fields):
     # This code handles the backpropagation-based evaluation,
     # but it is not currently used (and the HTML forms do not define "evalmode"
     # so it will crash!!)
-    disabledBPCode = """
+    disabled_bp_code = """
         if form_fields.get("show_bp", "") and form_fields["evalmode"] != "bp":
             reportvars += ", bp_t"
         """
@@ -1142,6 +1142,10 @@ def action_error():
         print "Error: unknown action"
     else:
         print "<H1>Error: unknown action</H1>"
+
+
+def action_none(*args, **kwargs):
+    pass
 
 
 # ---- get_form_fields ----

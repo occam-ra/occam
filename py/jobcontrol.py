@@ -31,7 +31,7 @@ class JobControl:
             except Exception, inst:
                 print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed.</b><p><p>"
                 print inst.args
-            except:
+            except Exception:
                 print "<b>Kill of " + pid + " failed: " + sys.exc_info()[0] + "</b><p><p>"
             if not killed:
                 print "<b>Kill of " + pid + " failed.</b><p><p>"

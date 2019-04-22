@@ -77,7 +77,7 @@ class OpagCGI:
         if not isinstance(dict_, dict):
             raise TypeError("Second argument must be a dictionary")
         if not self.template:
-            raise OpagMissingPrecondition, "template path is not set"
+            raise OpagMissingPrecondition("template path is not set")
         # Open the file if its not already open. If it is, seek to the
         # beginning of the file.
         self.template_file = open(self.template, "r")

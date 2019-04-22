@@ -10,7 +10,7 @@ LFLAGS = -shared
 AR = ar
 COMPILE = $(CC) $(CFLAGS)
 PY_INCLUDE = /usr/include/python2.7
-PY_INCLUDE3 = /usr/include/python3.7
+PY_INCLUDE3 = /usr/include/python3.6
 CL = occ
 RANLIB = ranlib
 LDFLAGS = -lm -lstdc++ -lgmp
@@ -53,7 +53,7 @@ all: $(LIB) $(DYLIB) $(DYLIB3) $(CL)
 clean:
 	-rm -f $(LIB) *.o core *.bak *.a *.so *~ occ
 
-.cpp.o: 
+.cpp.o:
 	$(COMPILE) -c $<
 
 
@@ -179,7 +179,7 @@ ReportPrintConditionalDV.o: ReportPrintConditionalDV.cpp \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/ManagerBase.h ../include/Options.h \
  ../include/VarIntersect.h ../include/Math.h ../include/VBMManager.h \
- ../include/ManagerBase.h 
+ ../include/ManagerBase.h
 ReportPrintResiduals.o: ReportPrintResiduals.cpp ../include/Key.h \
  ../include/Types.h ../include/ManagerBase.h ../include/Model.h \
  ../include/ModelCache.h ../include/Relation.h ../include/Table.h \
@@ -211,7 +211,7 @@ Search.o: Search.cpp ../include/Search.h ../include/SearchBase.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/Options.h ../include/VarIntersect.h \
  ../include/VBMManager.h ../include/SBMManager.h ../include/ModelCache.h \
- ../include/_Core.h ../include/Math.h 
+ ../include/_Core.h ../include/Math.h
 StateConstraint.o: StateConstraint.cpp ../include/StateConstraint.h \
  ../include/Types.h ../include/_Core.h
 Table.o: Table.cpp ../include/_Core.h
