@@ -1569,12 +1569,17 @@ DefinePyFunction(Model, getStructMatrix) {
   int statespace;
   int Total_const;
   Model *model = ObjRef(self, Model);
-  PyObject **structMatrix = model->getStructMatrix(&statespace, &Total_const);
-  if(structMatrix != NULL) {
-    PY_INCREF(structMatrix);
-    return structMatrix;
+  PyObject *retlist = PyList_New(0);
+  int **structMatrix = model->getStructMatrix(&statespace, &Total_const);
+  if (str_matrix != NULL) {
+      for (int i = 0; i < Total_const; i++) {
+          for (int j = 0; j < statespace; j++) {
+              //printf("%d,", str_matrix[i][j]);
+              PyObject *valint = PyBuildValue("i", structMatrix[i][j]);
+              PyList_Append(sublist, valint);
+          }
+      }
   }
-  return Py_None;
 }
 
 static struct PyMethodDef Model_methods[] = {
