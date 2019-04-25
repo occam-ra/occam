@@ -1563,6 +1563,12 @@ DefinePyFunction(Model, dump) {
     return Py_None;
 }
 
+DefinePyFunction(Model, getPrintName)
+{
+    Model *model = ObjRef(self, Model);
+    return PyUnicode_FromString(model->getPrintName());
+}
+
 static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, deleteFitTable),
     PyMethodDef(Model, deleteRelationLinks),
@@ -1573,6 +1579,7 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, isEquivalentTo),
     PyMethodDef(Model, setID),
     PyMethodDef(Model, setProgenitor),
+    PyMethodDef(Model, getPrintName),
     { nullptr }
 };
 
@@ -1965,8 +1972,48 @@ PyObject* variable_list_iternext(PyObject *self)
     return (PyObject *)py_variable;
 }
 
+DefinePyFunction(VariableList, getVarCount)
+{
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    return PyLong_FromLong(variable_list->getVarCount());
+}
+
+DefinePyFunction(VariableList, getVariable)
+{
+    int index;
+    PyArg_ParseTuple(args, "i", &index);
+
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    // Create a new Variable object and return it
+    PVariable *py_variable = ObjNew(Variable);
+    py_variable->obj = variable_list->getVariable(index);
+
+    Py_INCREF(py_variable);
+
+    return (PyObject *)py_variable;
+}
+
+DefinePyFunction(VariableList, isDirected)
+{
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    if(variable_list->isDirected())
+    {
+        Py_INCREF(Py_True);
+        return Py_True;
+    }
+
+    Py_INCREF(Py_False);
+    return Py_False;
+}
+
 static struct PyMethodDef VariableList_methods[] = 
 {
+    PyMethodDef(VariableList, getVarCount),
+    PyMethodDef(VariableList, getVariable),
+    PyMethodDef(VariableList, isDirected),
     { nullptr }
 };
 
