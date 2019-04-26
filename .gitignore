@@ -1,0 +1,8 @@
+*.a
+*.o
+*.so
+*.pyc
+occ
+install
+.idea
+.DS_STORE
