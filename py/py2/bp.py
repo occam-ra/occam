@@ -110,7 +110,7 @@ util.set_search_levels(5)
 # util.set_action("fit")
 
 # leave this in, if you want a full list of program options printed
-util.print_options()
+util.print_options(1)
 
 util.set_no_ipf(1)
 

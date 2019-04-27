@@ -24,7 +24,7 @@ class OCUtils:
     SPACE_SEP = 3
     HTML_FORMAT = 4
 
-    def __init__(self, man):
+    def __init__(self, man="VB"):
         if man == "VB":
             self._manager = occam.VBMManager()
         else:
@@ -378,9 +378,7 @@ class OCUtils:
 
         if self._start_model == "":
             self._start_model = "default"
-        if self._manager.isDirected() and self.search_dir == "default":
-            self.search_dir = "up"
-        if not self._manager.isDirected() and self.search_dir == "default":
+        if self.search_dir == "default":
             self.search_dir = "up"
         # set start model. For chain search, ignore any specific starting model
         # otherwise, if not set, set the start model based on search direction
@@ -472,15 +470,11 @@ class OCUtils:
     def do_sb_search(self, print_options):
         if self._start_model == "":
             self._start_model = "default"
-        if self._manager.isDirected() and self.search_dir == "default":
+        if self.search_dir == "default":
             self.search_dir = "up"
-        if not self._manager.isDirected() and self.search_dir == "default":
-            self.search_dir = "up"
-        if (
-                self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "down":
+        if (self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "down":
             self._start_model = "top"
-        elif (
-                self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "up":
+        elif (self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "up":
             self._start_model = "bottom"
         if self._start_model == "top":
             start = self._manager.getTopRefModel()

@@ -8,6 +8,7 @@ SHELL = /bin/sh
 INSTALL_ROOT = install
 WEB_ROOT = $(INSTALL_ROOT)/web
 CL_ROOT = $(INSTALL_ROOT)/cl
+PACKAGE_ROOT = $(INSTALL_ROOT)/occampy
 
 HEADERS = \
 	include/attrDescs.h			\
@@ -66,23 +67,42 @@ CPP_FILES = \
 
 CORE_FILES = \
 	cpp/occam.so \
+	py/py2/occammail.py \
+	py/py2/common.py \
+	py/py2/ocutils.py \
+	py/py2/distanceFunctions.py \
+	py/py2/ocGraph.py
+
+CORE_FILES_PY3 = \
 	cpp/occam3.so \
-	py/occammail.py \
-	py/common.py \
-	py/ocutils.py \
-	py/distanceFunctions.py \
-	py/ocGraph.py
+	py/py3/occammail.py \
+	py/py3/common.py \
+	py/py3/ocutils.py \
+	py/py3/distanceFunctions.py \
+	py/py3/ocGraph.py
+
+SETUP_FILE = \
+		py/py3/occam_base/setup.py
 
 CAPSTONE_FILES = \
-	py/occam_base/variablelist.py \
-	py/occam_base/vbmmanager.py
+	py/py3/occam_base/variable_list.py \
+	py/py3/occam_base/vbm_manager.py \
+	py/py3/occam_base/model.py \
+	py/py3/occam_base/__init__.py
 
 CL_FILES = \
 	cpp/occ \
-	py/basic.py \
-	py/fit.py \
-	py/sbfit.py \
-	py/sbsearch.py
+	py/py2/basic.py \
+	py/py2/fit.py \
+	py/py2/sbfit.py \
+	py/py2/sbsearch.py
+
+CL_FILES_PY3 = \
+	cpp/occ \
+	py/py3/basic.py \
+	py/py3/fit.py \
+	py/py3/sbfit.py \
+	py/py3/sbsearch.py
 
 WEB_FILES = \
 	html/.htaccess \
@@ -91,9 +111,9 @@ WEB_FILES = \
 	html/footer.html \
 	html/header.html \
 	html/index.html \
-	py/OpagCGI.py \
-	py/jobcontrol.py \
-	py/weboccam.py \
+	py/py2/OpagCGI.py \
+	py/py2/jobcontrol.py \
+	py/py2/weboccam.py \
 	html/switchform.html \
 	html/header.txt \
 	html/formheader.html \
@@ -116,16 +136,19 @@ WEB_FILES = \
 	html/compare.footer.html \
 	html/occambatch
 
-install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES) $(CAPSTONE_FILES)
+install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES) $(CAPSTONE_FILES) $(SETUP_FILE)
 	-rm -rf $(INSTALL_ROOT)
 	mkdir -p $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)
 	mkdir -p $(CL_ROOT)
+	mkdir -p $(PACKAGE_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
 	cp $(WEB_FILES) $(WEB_ROOT)
 	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
 	cp $(CORE_FILES) $(CAPSTONE_FILES) $(WEB_ROOT)
-	touch $(INSTALL_ROOT)/__init__.py $(CL_ROOT)/__init__.py $(WEB_ROOT)/__init__.py cpp/__init__.py
+	cp $(CORE_FILES_PY3) $(CAPSTONE_FILES) $(CL_FILES_PY3) $(PACKAGE_ROOT)
+	cp $(SETUP_FILE) $(INSTALL_ROOT)
+	touch $(CL_ROOT)/__init__.py $(WEB_ROOT)/__init__.py cpp/__init__.py
 
 web:
 	cp $(WEB_FILES) $(WEB_ROOT)
@@ -134,6 +157,10 @@ web:
 cli:
 	cp $(CORE_FILES) $(CAPSTONE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
+
+occampy:
+	cp $(CORE_FILES_PY3) $(CAPSTONE_FILES) $(CL_FILES_PY3) $(PACKAGE_ROOT)
+
 
 lib: $(HEADERS) $(CPP_FILES)
 	cd cpp && make

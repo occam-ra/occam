@@ -25,21 +25,21 @@ class JobControl:
                         fields = re.split("[ \t]+", proc.lstrip(), 2)
                         if fields[0] != "" and int(fields[0]) == int(pid):
                             os.kill(int(pid), 9)
-                            print "<b>Job " + pid + " killed.</b><p>"
+                            print("<b>Job " + pid + " killed.</b><p>")
                             killed = True
                             break
-            except Exception, inst:
-                print "<b>Exception of type ", type(inst), ": kill of ", pid, " failed.</b><p><p>"
-                print inst.args
-            except:
-                print "<b>Kill of " + pid + " failed: " + sys.exc_info()[0] + "</b><p><p>"
+            except Exception as inst:
+                print("<b>Exception of type ", type(inst), ": kill of ", pid, " failed.</b><p><p>")
+                print(inst.args)
+            except Exception:
+                print("<b>Kill of " + pid + " failed: " + sys.exc_info()[0] + "</b><p><p>")
             if not killed:
-                print "<b>Kill of " + pid + " failed.</b><p><p>"
+                print("<b>Kill of " + pid + " failed.</b><p><p>")
 
         # Show active occam-related jobs
-        print "<b>Active Jobs</b><p>"
-        print "<table class='data' width='100%'>"
-        print "<tr class=em align=left><th>Process</th><th>Start Time</th><th>Elapsed Time</th><td>%CPU</th><th>%Mem</th><th width='40%'>Command</th><th> </th></tr>"
+        print("<b>Active Jobs</b><p>")
+        print("<table class='data' width='100%'>")
+        print("<tr class=em align=left><th>Process</th><th>Start Time</th><th>Elapsed Time</th><td>%CPU</th><th>%Mem</th><th width='40%'>Command</th><th> </th></tr>")
         procfd = os.popen("ps -o pid,lstart,etime,pcpu,pmem,command")
         procstat = procfd.read()
         procs = procstat.split('\n')
@@ -57,13 +57,13 @@ class JobControl:
                 fields[1] = " ".join(fields[1:4]) + " " + fields[5] + "<br>" + fields[4]
                 del fields[2:6]
                 if even_row:
-                    print "<tr valign='top'>"
+                    print("<tr valign='top'>")
                     even_row = False
                 else:
-                    print "<tr class=r1 valign='top'>"
+                    print("<tr class=r1 valign='top'>")
                     even_row = True
                 for n in range(0, len(fields)):
-                    print "<td>", fields[n], "</td>"
+                    print("<td>", fields[n], "</td>")
                 command = ""
                 if len(cmds) == 2:
                     if cmds[1] != "":
@@ -84,7 +84,7 @@ class JobControl:
                     command = cmds[1].split('/')[-1] + " " + cmds[4] + "<br>" + cmds[5]
                     if cmds[6] != "":
                         command += '<br>\n_subject: "' + cmds[6].decode("hex") + '"'
-                print "<td>", command, "</td>"
-                print '<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[0] + '">kill</a></td>'
-                print "</tr>"
-        print "</table>"
+                print("<td>", command, "</td>")
+                print('<td><a href="weboccam.cgi?action=jobcontrol&pid=' + fields[0] + '">kill</a></td>')
+                print("</tr>")
+        print("</table>")
