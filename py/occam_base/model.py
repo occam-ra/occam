@@ -43,7 +43,8 @@ class Model:
     def set(self, **kwargs):
         pass
 
-    def get_print_name(self) -> str:
+    @property
+    def print_name(self) -> str:
         return self._ref.getPrintName()
 
     def get_ref(self):

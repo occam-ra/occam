@@ -26,7 +26,7 @@ class VBMManager:
         elif type_ is ModelType.BOTTOM:
             model_ref = self._ref.getBottomRefModel()
         else:
-            model_ref = self._ref.makeModel(type_, make_project)
+            model_ref = self._ref.makeModel(type_.value, make_project)
 
         self._model = Model(model_ref)
         return self._model

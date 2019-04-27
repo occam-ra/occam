@@ -1566,6 +1566,13 @@ DefinePyFunction(Model, dump) {
 DefinePyFunction(Model, getPrintName)
 {
     Model *model = ObjRef(self, Model);
+
+    if(!model)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
     return PyUnicode_FromString(model->getPrintName());
 }
 
