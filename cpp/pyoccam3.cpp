@@ -1563,25 +1563,17 @@ DefinePyFunction(Model, dump) {
     return Py_None;
 }
 
-//Really just a placeholder at this point. Will need make
-//structMatrix iterable
-DefinePyFunction(Model, getStructMatrix) {
-  int statespace;
-  int Total_const;
-  Model *model = ObjRef(self, Model);
-  PyObject *retlist = PyList_New(0);
-  int **structMatrix = model->getStructMatrix(&statespace, &Total_const);
-  if (structMatrix != NULL) {
-      for (int i = 0; i < Total_const; i++) {
-          PyObject *temp = PyList_New(0);
-          for (int j = 0; j < statespace; j++) {
-              PyObject *valint = Py_BuildValue("i", structMatrix[i][j]);
-              PyList_Append(temp, valint);
-          }
-          PyList_Append(retlist, temp);
-      }
-  }
-  return retlist;
+DefinePyFunction(Model, getPrintName)
+{
+    Model *model = ObjRef(self, Model);
+
+    if(!model)
+    {
+        Py_INCREF(Py_None);
+        return Py_None;
+    }
+
+    return PyUnicode_FromString(model->getPrintName());
 }
 
 static struct PyMethodDef Model_methods[] = {
@@ -1594,7 +1586,7 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, isEquivalentTo),
     PyMethodDef(Model, setID),
     PyMethodDef(Model, setProgenitor),
-    PyMethodDef(Model, getStructMatrix),
+    PyMethodDef(Model, getPrintName),
     { nullptr }
 };
 
@@ -1987,8 +1979,48 @@ PyObject* variable_list_iternext(PyObject *self)
     return (PyObject *)py_variable;
 }
 
-static struct PyMethodDef VariableList_methods[] =
+DefinePyFunction(VariableList, getVarCount)
 {
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    return PyLong_FromLong(variable_list->getVarCount());
+}
+
+DefinePyFunction(VariableList, getVariable)
+{
+    int index;
+    PyArg_ParseTuple(args, "i", &index);
+
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    // Create a new Variable object and return it
+    PVariable *py_variable = ObjNew(Variable);
+    py_variable->obj = variable_list->getVariable(index);
+
+    Py_INCREF(py_variable);
+
+    return (PyObject *)py_variable;
+}
+
+DefinePyFunction(VariableList, isDirected)
+{
+    VariableList *variable_list = ObjRef(self, VariableList);
+
+    if(variable_list->isDirected())
+    {
+        Py_INCREF(Py_True);
+        return Py_True;
+    }
+
+    Py_INCREF(Py_False);
+    return Py_False;
+}
+
+static struct PyMethodDef VariableList_methods[] = 
+{
+    PyMethodDef(VariableList, getVarCount),
+    PyMethodDef(VariableList, getVariable),
+    PyMethodDef(VariableList, isDirected),
     { nullptr }
 };
 
