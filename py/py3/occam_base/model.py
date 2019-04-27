@@ -47,5 +47,8 @@ class Model:
     def print_name(self) -> str:
         return self._ref.getPrintName()
 
+    def get_struct_matrix(self) -> list:
+        return self._ref.getStructMatrix()
+
     def get_ref(self):
         return self._ref
