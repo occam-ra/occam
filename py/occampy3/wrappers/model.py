@@ -11,7 +11,7 @@ class Model:
         :param: ref: the reference to the Model object returned from the CPP engine
         """
         # Create new reference if one not given
-        self._ref = ref
+        self._ref = ref or occam.Model()
         self._id = 0
 
     @property

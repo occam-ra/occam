@@ -1,8 +1,8 @@
 import occam
-from .variable_list import VariableList
+from manager import Manager
 
 
-class SBMManager:
+class SBMManager(Manager):
     """
     Wrapper class for SBMManager
     """
@@ -11,32 +11,6 @@ class SBMManager:
         """
         :param: ref: the reference to the SBMManager object returned from the CPP engine
         """
+        super(SBMManager).__init__()
         # Create new reference if one not given
         self._ref = ref or occam.SBMManager()
-        self._model = None
-
-    @property
-    def variable_list(self):
-        return VariableList(self._ref.getVariableList())
-
-    @property
-    def model(self, type_='default', make_project=1):
-        if type_ == 'top':
-            model = self._ref.getTopRefModel()
-        elif type_ == 'bottom':
-            model = self._ref.getBottomRefModel()
-        else:
-            model = self._ref.makeModel(type_, make_project)
-        self._model = model
-        return model
-
-    @property
-    def search_type(self):
-        pass
-
-    @search_type.setter
-    def search_type(self, search_type):
-        self._ref.setSearchType(search_type)
-
-    def set(self, **kwargs):
-        pass

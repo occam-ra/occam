@@ -66,7 +66,7 @@ CPP_FILES = \
 	cpp/VariableList.cpp \
 	cpp/VBMManager.cpp \
 
-CORE_FILES = \
+CORE_FILES_PY2 = \
 	cpp/occam.so \
 	py/py2/occammail.py \
 	py/py2/common.py \
@@ -85,7 +85,7 @@ CORE_FILES_PY3 = \
 SETUP_FILE = \
 		py/py3/setup.py
 
-CL_FILES = \
+CL_FILES_PY2 = \
 	cpp/occ \
 	py/py2/basic.py \
 	py/py2/fit.py \
@@ -138,13 +138,7 @@ CAPSTONE_FILES_PY2 = \
 	$(CAPSTONE_ROOT)2/manage_jobs.py \
 	$(CAPSTONE_ROOT)2/search.py \
 	$(CAPSTONE_ROOT)2/show_log.py \
-	$(CAPSTONE_ROOT)2/wrappers/__init__.py \
-	$(CAPSTONE_ROOT)2/wrappers/model.py \
-	$(CAPSTONE_ROOT)2/wrappers/report.py \
-	$(CAPSTONE_ROOT)2/wrappers/sbm_manager.py \
-	$(CAPSTONE_ROOT)2/wrappers/variable.py \
-	$(CAPSTONE_ROOT)2/wrappers/variable_list.py \
-	$(CAPSTONE_ROOT)2/wrappers/vbm_manager.py
+	$(CAPSTONE_ROOT)2/wrappers
 
 CAPSTONE_FILES_PY3 = \
 	$(CAPSTONE_ROOT)3/__init__.py \
@@ -153,36 +147,32 @@ CAPSTONE_FILES_PY3 = \
 	$(CAPSTONE_ROOT)3/manage_jobs.py \
 	$(CAPSTONE_ROOT)3/search.py \
 	$(CAPSTONE_ROOT)3/show_log.py \
-	$(CAPSTONE_ROOT)3/wrappers/__init__.py \
-	$(CAPSTONE_ROOT)3/wrappers/model.py \
-	$(CAPSTONE_ROOT)3/wrappers/report.py \
-	$(CAPSTONE_ROOT)3/wrappers/sbm_manager.py \
-	$(CAPSTONE_ROOT)3/wrappers/variable.py \
-	$(CAPSTONE_ROOT)3/wrappers/variable_list.py \
-	$(CAPSTONE_ROOT)3/wrappers/vbm_manager.py
+	$(CAPSTONE_ROOT)3/wrappers
 
-install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES) $(CAPSTONE_FILES_PY2) $(CAPSTONE_FILES_PY3) $(SETUP_FILE)
+install: lib $(WEB_FILES) $(CORE_FILES_PY2) $(CL_FILES_PY2) $(CAPSTONE_FILES_PY2) $(CAPSTONE_FILES_PY3) $(SETUP_FILE)
 	-rm -rf $(INSTALL_ROOT)
 	mkdir -p $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)
 	mkdir -p $(CL_ROOT)
 	mkdir -p $(PACKAGE_ROOT)2 $(PACKAGE_ROOT)3
-	cp $(CL_FILES) $(CL_ROOT)
-	cp $(WEB_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(CL_ROOT)
-	cp $(CORE_FILES) $(WEB_ROOT)
+	cp $(CL_FILES_PY2) $(CORE_FILES_PY2) $(CL_ROOT)
+	cp $(WEB_FILES) $(CORE_FILES_PY2) $(WEB_ROOT)
 	cp $(SETUP_FILE) $(INSTALL_ROOT)
+	cp -r $(CAPSTONE_FILES_PY2) $(PACKAGE_ROOT)2
+	cp cpp/occam.so $(PACKAGE_ROOT)2/wrappers/occam.so
+	cp -r $(CAPSTONE_FILES_PY3) $(PACKAGE_ROOT)3
+	cp cpp/occam3.so $(PACKAGE_ROOT)3/wrappers/occam.so
 	touch $(CL_ROOT)/__init__.py $(WEB_ROOT)/__init__.py cpp/__init__.py
 
 web:
-	cp $(WEB_FILES) $(CORE_FILES) $(WEB_ROOT)
+	cp $(WEB_FILES) $(CORE_FILES_PY2) $(WEB_ROOT)
 
 cli:
-	cp $(CL_FILES) $(CORE_FILES) $(CL_ROOT)
+	cp $(CL_FILES_PY2) $(CORE_FILES_PY2) $(CL_ROOT)
 
 occampy:
-	cp $(CORE_FILES_PY3) $(CAPSTONE_FILES_PY2) $(CAPSTONE_FILES_PY3) $(CL_FILES_PY3) $(PACKAGE_ROOT)2
-	cp $(CORE_FILES_PY3) $(CAPSTONE_FILES_PY2) $(CAPSTONE_FILES_PY3) $(CL_FILES_PY3) $(PACKAGE_ROOT)3
+	cp -r $(CAPSTONE_FILES_PY2) $(PACKAGE_ROOT)2
+	cp -r $(CAPSTONE_FILES_PY3) $(PACKAGE_ROOT)3
 
 
 lib: $(HEADERS) $(CPP_FILES)
