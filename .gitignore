@@ -4,5 +4,6 @@
 *.pyc
 occ
 install
+__pycache__
 .idea
 .DS_STORE

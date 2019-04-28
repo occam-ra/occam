@@ -2081,7 +2081,7 @@ static struct PyModuleDef occam =
     occam_methods
 };
 
-PyMODINIT_FUNC PyInit_occam3(void)
+PyMODINIT_FUNC PyInit_occam(void)
 {
     Py_Initialize();
     PyObject *m = PyModule_Create(&occam);
