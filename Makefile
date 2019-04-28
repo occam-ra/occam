@@ -132,47 +132,38 @@ WEB_FILES = \
 	html/occambatch
 
 CAPSTONE_FILES_PY2 = \
-	$(CAPSTONE_ROOT)2/__init__.py \
-	$(CAPSTONE_ROOT)2/compare.py \
-	$(CAPSTONE_ROOT)2/fit.py \
-	$(CAPSTONE_ROOT)2/manage_jobs.py \
-	$(CAPSTONE_ROOT)2/search.py \
-	$(CAPSTONE_ROOT)2/show_log.py \
+	$(CAPSTONE_ROOT)2/*.py \
 	$(CAPSTONE_ROOT)2/wrappers
 
 CAPSTONE_FILES_PY3 = \
-	$(CAPSTONE_ROOT)3/__init__.py \
-	$(CAPSTONE_ROOT)3/compare.py \
-	$(CAPSTONE_ROOT)3/fit.py \
-	$(CAPSTONE_ROOT)3/manage_jobs.py \
-	$(CAPSTONE_ROOT)3/search.py \
-	$(CAPSTONE_ROOT)3/show_log.py \
+	$(CAPSTONE_ROOT)3/*.py \
 	$(CAPSTONE_ROOT)3/wrappers
 
 install: lib $(WEB_FILES) $(CORE_FILES_PY2) $(CL_FILES_PY2) $(CAPSTONE_FILES_PY2) $(CAPSTONE_FILES_PY3) $(SETUP_FILE)
 	-rm -rf $(INSTALL_ROOT)
 	mkdir -p $(INSTALL_ROOT)
-	mkdir -p $(WEB_ROOT)
-	mkdir -p $(CL_ROOT)
-	mkdir -p $(PACKAGE_ROOT)2 $(PACKAGE_ROOT)3
-	cp $(CL_FILES_PY2) $(CORE_FILES_PY2) $(CL_ROOT)
-	cp $(WEB_FILES) $(CORE_FILES_PY2) $(WEB_ROOT)
+	make web
+	make cli
+	make occampy
 	cp $(SETUP_FILE) $(INSTALL_ROOT)
+	touch cpp/__init__.py
+
+web:
+	mkdir -p $(WEB_ROOT)
+	cp $(WEB_FILES) $(CORE_FILES_PY2) $(WEB_ROOT)
+	touch $(WEB_ROOT)/__init__.py
+
+cli:
+	mkdir -p $(CL_ROOT)
+	cp $(CL_FILES_PY2) $(CORE_FILES_PY2) $(CL_ROOT)
+	touch $(CL_ROOT)/__init__.py
+
+occampy:
+	mkdir -p $(PACKAGE_ROOT)2 $(PACKAGE_ROOT)3
 	cp -r $(CAPSTONE_FILES_PY2) $(PACKAGE_ROOT)2
 	cp cpp/occam.so $(PACKAGE_ROOT)2/wrappers/occam.so
 	cp -r $(CAPSTONE_FILES_PY3) $(PACKAGE_ROOT)3
 	cp cpp/occam3.so $(PACKAGE_ROOT)3/wrappers/occam.so
-	touch $(CL_ROOT)/__init__.py $(WEB_ROOT)/__init__.py cpp/__init__.py
-
-web:
-	cp $(WEB_FILES) $(CORE_FILES_PY2) $(WEB_ROOT)
-
-cli:
-	cp $(CL_FILES_PY2) $(CORE_FILES_PY2) $(CL_ROOT)
-
-occampy:
-	cp -r $(CAPSTONE_FILES_PY2) $(PACKAGE_ROOT)2
-	cp -r $(CAPSTONE_FILES_PY3) $(PACKAGE_ROOT)3
 
 
 lib: $(HEADERS) $(CPP_FILES)
