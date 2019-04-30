@@ -15,10 +15,20 @@ def zipwise_fold(base, fold, proj, ls):
     for (key0, value0) in list(d0.items()):
 
         if math.isnan(value0):
-            print("ERROR: (nan) value in fit table for file '" + ls[0]["filename"] + " with model " + ls[0]["name"])
+            print(
+                "ERROR: (nan) value in fit table for file '"
+                + ls[0]["filename"]
+                + " with model "
+                + ls[0]["name"]
+            )
             sys.exit(1)
         if math.isinf(value0):
-            print("ERROR: (inf) value in fit table for file '" + ls[0]["filename"] + " with model " + ls[0]["name"])
+            print(
+                "ERROR: (inf) value in fit table for file '"
+                + ls[0]["filename"]
+                + " with model "
+                + ls[0]["name"]
+            )
             sys.exit(1)
         if key0 in d1:
             res = fold(res, proj(value0, d1[key0]))
@@ -26,10 +36,20 @@ def zipwise_fold(base, fold, proj, ls):
             res = fold(res, proj(value0, 0.0))
     for (key1, value1) in list(d1.items()):
         if math.isnan(value1):
-            print("ERROR: (nan) value in fit table for file '" + ls[1]["filename"] + " with model " + ls[1]["name"])
+            print(
+                "ERROR: (nan) value in fit table for file '"
+                + ls[1]["filename"]
+                + " with model "
+                + ls[1]["name"]
+            )
             sys.exit(1)
         if math.isinf(value1):
-            print("ERROR: (inf) value in fit table for file '" + ls[1]["filename"] + " with model " + ls[1]["name"])
+            print(
+                "ERROR: (inf) value in fit table for file '"
+                + ls[1]["filename"]
+                + " with model "
+                + ls[1]["name"]
+            )
             sys.exit(1)
         if key1 not in d0:
             res = fold(res, proj(0.0, value1))
@@ -80,8 +100,8 @@ distanceMetrics = {
     "Euclidean dist": euclidean_dist,
     "Hellinger dist": hellinger_dist,
     "Kullback-Leibler dist": kl_dist,
-    "Maximum dist": max_dist
-    }
+    "Maximum dist": max_dist,
+}
 
 
 def compute_distance_metric(k, compare_order):

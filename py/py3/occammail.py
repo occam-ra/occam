@@ -62,4 +62,3 @@ filename = sys.argv[2]
 email_subject = sys.argv[3].decode("hex")
 msg = build_message(sys.stdin, filename, email_subject)
 send_message(to_addr, msg)
-

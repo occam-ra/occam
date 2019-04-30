@@ -7,6 +7,7 @@
 
 import resource
 import sys
+
 # sys.path.append("/www")
 import time
 
@@ -18,7 +19,9 @@ resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 # The width, levels and filter are determined here, to be used by the rest of the script below.
 if len(sys.argv) < 2:
     print('No data file specified.')
-    print('Usage: %s datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]' % sys.argv[0])
+    print(
+        f'Usage: {sys.argv[0]} datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]'
+    )
     sys.exit()
 
 if len(sys.argv) >= 4:
@@ -96,12 +99,14 @@ util.set_report_sort_name("information")
 # util.set_no_ipf(1)
 # For ref=bottom, use something like this:
 # util.set_report_variables("Level$i, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
-util.set_report_variables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, pct_correct_data")
+util.set_report_variables(
+    "level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, pct_correct_data"
+)
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
 util.do_action(1)
 t3 = time.time()
 
-print("start:  %8f" % (t2 - t1))
-print("search: %8f" % (t3 - t2))
+print(f"start:  {(t2 - t1):8f}")
+print(f"search: {(t3 - t2):8f}")
