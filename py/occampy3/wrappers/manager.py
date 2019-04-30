@@ -55,6 +55,30 @@ class Manager:
     def set(self, **kwargs):
         pass
 
+    def init_from_command_line(self, args: Sequence[str]) -> None:
+        self._ref.initFromCommandLine(args)
+
+    def get_option(self, option_name: str) -> str:
+        return self._ref.getOption(option_name)
+
+    def is_directed(self) -> bool:
+        return self._ref.isDirected()
+
+    def compute_bp_statistics(self, model: Model) -> None:
+        self._ref.computeBPStatistics(model.ref)
+
+    def compute_l2_statistics(self, model: Model) -> None:
+        self._ref.computeL2Statistics(model.ref)
+
+    def compute_dependent_statistics(self, model: Model) -> None:
+        self._ref.computeDependentStatistics(model.ref)
+
+    def get_top_ref_model(self) -> Model:
+        return Model(self._ref.getTopRefModel())
+
+    def get_bottom_ref_model(self) -> Model:
+        return Model(self._ref.getBottomRefModel())
+
     def set_search_direction(self, direction: SearchDirection) -> None:
         self._ref.setSearchDirection(direction.value)
 
@@ -63,9 +87,9 @@ class Manager:
 
     def get_model_by_search_dir(self, direction: SearchDirection) -> Model:
         if direction is SearchDirection.UP:
-            return Model(ref=self._ref.getTopRefModel())
+            return self.get_top_ref_model()
 
-        return Model(ref=self._ref.getBottomRefModel())
+        return self.get_bottom_ref_model()
 
     def has_test_data(self) -> bool:
         return self._ref.hasTestData()

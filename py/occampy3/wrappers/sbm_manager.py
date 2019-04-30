@@ -1,5 +1,6 @@
-import occam3
+import occam
 from manager import Manager
+from model import Model
 
 
 class SBMManager(Manager):
@@ -11,6 +12,7 @@ class SBMManager(Manager):
         """
         :param: ref: the reference to the SBMManager object returned from the CPP engine
         """
-        super()
-        # Create new reference if one not given
-        self._ref = ref or occam3.SBMManager()
+        Manager.__init__(self, ref=(ref or occam.SBMManager()))
+
+    def make_model(self, model_name: str, make_project: bool) -> Model:
+        return Model(self._ref.makeSbModel(model_name, make_project))
