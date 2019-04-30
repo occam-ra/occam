@@ -1,4 +1,4 @@
-import occam
+import occam3
 from manager import Manager
 
 
@@ -13,4 +13,4 @@ class SBMManager(Manager):
         """
         super()
         # Create new reference if one not given
-        self._ref = ref or occam.SBMManager()
+        self._ref = ref or occam3.SBMManager()

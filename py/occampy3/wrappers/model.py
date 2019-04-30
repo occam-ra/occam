@@ -1,6 +1,3 @@
-import occam
-
-
 class Model:
     """
     Wrapper class for Model
@@ -11,8 +8,12 @@ class Model:
         :param: ref: the reference to the Model object returned from the CPP engine
         """
         # Create new reference if one not given
-        self._ref = ref or occam.Model()
+        self._ref = ref
         self._id = 0
+
+    @property
+    def ref(self):
+        return self._ref
 
     @property
     def id_(self):
