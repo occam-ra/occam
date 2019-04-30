@@ -7,7 +7,7 @@
 # coding=utf8
 import heapq
 import ocGraph
-import occam3
+import occam
 import re
 import sys
 import time
@@ -26,9 +26,9 @@ class OCUtils:
 
     def __init__(self, man="VB"):
         if man == "VB":
-            self._manager = occam3.VBMManager()
+            self._manager = occam.VBMManager()
         else:
-            self._manager = occam3.SBMManager()
+            self._manager = occam.SBMManager()
         self._action = ""
         self._alpha_threshold = 0.05
         self._bp_statistics = 0
@@ -105,7 +105,7 @@ class OCUtils:
             self._incremental_alpha = 1
 
     def set_report_separator(self, format_):
-        occam3.setHTMLMode(format_ == OCUtils.HTML_FORMAT)
+        occam.setHTMLMode(format_ == OCUtils.HTML_FORMAT)
         self._report.setSeparator(format_)
         self._HTMLFormat = format_ == OCUtils.HTML_FORMAT
 
@@ -317,8 +317,11 @@ class OCUtils:
         mem_used = self._manager.getMemUsage()
         if not self._hide_intermediate_output:
             print(
-                f'{full_count} new models, {trunc_count} kept; {self._total_gen + 1} total models, {self._total_kept + 1} total kept; {mem_used / 1024} kb memory used; ',
-                end=' ',
+                f'{full_count} new models, {trunc_count} kept; '
+                '{self._total_gen + 1} total models, '
+                '{self._total_kept + 1} total kept; '
+                '{mem_used / 1024} kb memory used; ',
+                end=' '
             )
         sys.stdout.flush()
         if clear_cache_flag:
@@ -444,7 +447,7 @@ class OCUtils:
         try:
             self._manager.setSearchType(self.search_type())
         except Exception:
-            print("ERROR: UNDEFINED SEARCH TYPE " + self.search_type())
+            print(f"ERROR: UNDEFINED SEARCH TYPE {self.search_type()}")
             return
         # process each level, up to the number of levels indicated. Each of the best models
         # is added to the report generator for later output
@@ -489,7 +492,7 @@ class OCUtils:
         if self._HTMLFormat:
             print('</pre><br>')
         else:
-            print("")
+            print()
 
     def do_sb_search(self, print_options):
         if self._start_model == "":
@@ -533,7 +536,7 @@ class OCUtils:
         try:
             self._manager.setSearchType(self.sb_search_type())
         except Exception:
-            print("ERROR: UNDEFINED SEARCH TYPE " + self.sb_search_type())
+            print(f"ERROR: UNDEFINED SEARCH TYPE {self.sb_search_type()}")
             return
         if self._HTMLFormat:
             print('<pre>')
@@ -575,7 +578,7 @@ class OCUtils:
         if self._HTMLFormat:
             print('</pre><br>')
         else:
-            print("")
+            print()
 
     def print_search_report(self):
         # sort the report as requested, and print it.
@@ -665,34 +668,22 @@ class OCUtils:
                 if self._HTMLFormat:
                     print("<br>")
                 print(
-                    "\nERROR: Not all declared variables are present in the model, '"
-                    + model_name
-                    + "'."
+                    f"\nERROR: Not all declared variables are present in the model, '{model_name}'."
                 )
                 if self._HTMLFormat:
                     print("<br>")
                 if saw_maybe_wrong_iv:
                     print(
-                        "\n_did you mean '"
-                        + ("IV" if is_directed else "IVI")
-                        + "' instead of '"
-                        + ("IVI" if is_directed else "IV")
-                        + "'?"
+                        f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}"
                     )
                 else:
                     print(
-                        "\n Did you forget the "
-                        + ("IV" if is_directed else "IVI")
-                        + " component?"
+                        f"\n Did you forget the {'IV' if is_directed else 'IVI'} component?"
                     )
                 if self._HTMLFormat:
                     print("<br>")
                 print("\n Not in model: ")
-                print(
-                    ", ".join(
-                        ["'" + i + "'" for i in varset.difference(modset)]
-                    )
-                )
+                print(", ".join([f"'{i}'" for i in varset.difference(modset)]))
                 sys.exit(1)
 
         # all variables in model are in varlist
@@ -700,24 +691,18 @@ class OCUtils:
             if self._HTMLFormat:
                 print("<br>")
             print(
-                "\nERROR: Not all variables in the model '"
-                + model_name
-                + "' are declared in the variable list."
+                f"\nERROR: Not all variables in the model '{model_name}' are declared in the variable list."
             )
             if self._HTMLFormat:
                 print("<br>")
             diffset = modset.difference(varset)
             if saw_maybe_wrong_iv or diffset == {"I", "V"}:
                 print(
-                    "\n_did you mean '"
-                    + ("IV" if is_directed else "IVI")
-                    + "' instead of '"
-                    + ("IVI" if is_directed else "IV")
-                    + "'?"
+                    f"\n_did you mean '{"IV" if is_directed else "IVI"}' instead of '{"IVI" if is_directed else "IV"}'?"
                 )
             else:
                 print("\n Not declared: ")
-                print(", ".join(["'" + i + "'" for i in diffset]))
+                print(", ".join([f"'{i}'" for i in diffset]))
 
             sys.exit(1)
 
@@ -729,13 +714,7 @@ class OCUtils:
                     if self._HTMLFormat:
                         print("<br>")
                     print(
-                        "\nERROR: In the model '"
-                        + model_name
-                        + "', model component '"
-                        + "".join(rel)
-                        + "' is missing the DV, '"
-                        + dv
-                        + "'."
+                        f"\nERROR: In the model '{model_name}', model component '{''.join(rel)}' is missing the DV, '{dv}'."
                     )
                     sys.exit(1)
 
@@ -747,18 +726,14 @@ class OCUtils:
         ):
             msg = "Note: no "
             if self._generate_graph:
-                msg = msg + "hypergraph image "
+                msg += "hypergraph image "
             if self._generate_graph and self._generate_gephi:
-                msg = msg + "or "
+                msg += "or "
             if self._generate_gephi:
-                msg = msg + "Gephi input "
-
-            msg = msg + "was generated, since the model contains only "
-            msg = msg + model_name
-            msg = (
-                msg
-                + " components, which were requested to be hidden in the graph."
-            )
+                msg += "Gephi input "
+            msg += (" was generated, since the model contains only "
+                    f"{model_name} components, which were requested to be "
+                    "hidden in the graph")
 
             if self._HTMLFormat:
                 print("<br>")
@@ -769,8 +744,7 @@ class OCUtils:
         else:
             self.maybe_print_graph_svg(model_name, True)
             self.maybe_print_graph_gephi(model_name, True)
-        print()
-        print()
+        print("\n")
 
     def do_fit(self, print_options, only_gfx):
         # self._manager.setValuesAreFunctions(self._values_are_functions)
@@ -798,10 +772,7 @@ class OCUtils:
                         self._default_fit_model, 1
                     )
                 except Exception:
-                    print(
-                        "\nERROR: Unable to create model "
-                        + self._default_fit_model
-                    )
+                    print(f"\nERROR: Unable to create model {self._default_fit_model}")
                     sys.exit(0)
                 self._report.setDefaultFitModel(default_model)
             self._report.printConditional_DV(
@@ -817,11 +788,7 @@ class OCUtils:
             if self._HTMLFormat:
                 if header:
                     print(
-                        "Hypergraph model visualization for the Model "
-                        + model
-                        + " (using the "
-                        + self._layout_style
-                        + " layout algorithm)<br>"
+                        f"Hypergraph model visualization for the Model {model} (using the {self._layout_style} layout algorithm)<br>"
                     )
                 ocGraph.print_svg(
                     self.graphs[model],
@@ -841,9 +808,7 @@ class OCUtils:
             if self._HTMLFormat:
                 if header:
                     print(
-                        "Hypergraph model Gephi input for the Model "
-                        + model
-                        + "<br>"
+                        f"Hypergraph model Gephi input for the Model {model}<br>"
                     )
                 print(ocGraph.print_gephi(self.graphs[model]))
                 print("<hr>")
@@ -931,8 +896,7 @@ class OCUtils:
                 model, self._calc_expected_dv, self._fit_classifier_target
             )
 
-            print()
-            print()
+            print("\n")
 
     def occam2_settings(self):
         option = self._manager.getOption("action")
@@ -987,9 +951,9 @@ class OCUtils:
 
     def print_option(self, label, value):
         if self._HTMLFormat:
-            print("<tr><td>" + label + "</td><td>" + str(value) + "</td></tr>")
+            print(f"<tr><td>{label}</td><td>{value}</td></tr>")
         else:
-            print(label + "," + str(value))
+            print(f"{label},{value}")
 
     def print_options(self, r_type):
         if self._HTMLFormat:
@@ -1040,9 +1004,7 @@ class OCUtils:
 
         if self._generate_gephi or self._generate_graph:
             self.print_option(
-                "Hide "
-                + ("IV" if self.is_directed() else "IVI")
-                + " components in hypergraph",
+                f"Hide {'IV' if self.is_directed() else 'IVI'} components in hypergraph",
                 "Y" if self._hide_isolated else "N",
             )
 

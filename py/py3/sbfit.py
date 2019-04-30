@@ -13,8 +13,8 @@ import time
 from ocutils import OCUtils
 
 if len(sys.argv) < 3:
-    print('Incorrect parameters.')
-    print(f'Usage: {sys.argv[0]} datafile model')
+    print(f'Incorrect parameters.\nUsage: {sys.argv[0]} datafile model')
+    print(f'')
     sys.exit()
 
 

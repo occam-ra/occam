@@ -231,14 +231,12 @@ def print_plot(
             layout_choice = "sugiyama"
     except Exception:
         raise RuntimeError(
-            "The hypergraph layout library failed to apply the "
-            + layout
-            + " layout."
+            f"The hypergraph layout library failed to apply the {layout} layout."
         )
 
     # Generate a unique file for the graph;
     # using the layout (if any), generate a plot.
-    graph_file = get_unique_filename("data/" + filename + "." + extension)
+    graph_file = get_unique_filename(f"data/{filename}.{extension}")
     igraph.plot(graph, graph_file, layout=layout_choice, **visual_style)
     return graph_file
 
@@ -281,7 +279,7 @@ def gephi_nodes(graph):
         ty = "Hyper_edge" if n["type"] else "Variable"
         size = 4 if n["type"] else 10
         line = ",".join([n["abbrev"], n["name"], ty, str(size)])
-        content += line + "\n"
+        content += f"{line}\n"
     return header + content
 
 
@@ -291,6 +289,6 @@ def gephi_edges(graph):
     for n1, n2 in graph.get_edgelist():
         nn1 = graph.vs[n1]
         nn2 = graph.vs[n2]
-        content += nn1["abbrev"] + "," + nn2["abbrev"] + "\n"
+        content += f"{nn1['abbrev']},{nn2['abbrev']}\n"
 
     return header + content

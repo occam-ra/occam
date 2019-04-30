@@ -71,17 +71,14 @@ csvname = ""
 def print_headers(form_fields, text_format):
     if text_format:
         global csvname
-        origcsvname = get_data_file_name(form_fields, true) + ".csv"
-        csvname = get_unique_filename("data/" + origcsvname)
+        origcsvname = f"{get_data_file_name(form_fields, true)}.csv"
+        csvname = get_unique_filename(f"data/{origcsvname}")
         if use_gfx(form_fields):
             # REDIRECT OUTPUT FOR NOW (it will be printed in output_zipfile())
             print("Content-type: application/octet-stream")
             print(
-                "Content-disposition: attachment; filename="
-                + get_data_file_name(form_fields, true)
-                + ".zip"
+                f"Content-disposition: attachment; filename={get_data_file_name(form_fields, true)}.zip\n"
             )
-            print("")
             sys.stdout.flush()
 
             global stdout_save
@@ -92,11 +89,11 @@ def print_headers(form_fields, text_format):
 
         else:
             print("Content-type: application/octet-stream")
-            print("Content-disposition: attachment; filename=" + origcsvname)
+            print(f"Content-disposition: attachment; filename={origcsvname}")
 
     else:
         print("Content-type: text/html")
-    print("")
+    print()
 
 
 def print_top(template, text_format):
@@ -129,13 +126,7 @@ def attempt_parse_int(string, default, msg, verbose):
         if verbose:
             print(
                 (
-                    "WARNING: expected "
-                    + msg
-                    + " to be an integer value, but got: \""
-                    + string
-                    + "\"; using the default value, "
-                    + str(default)
-                    + "\n"
+                    f'WARNING: expected {msg} to be an integer value, but got: "{string}"; using the default value, "{default}"\n'
                 )
             )
             if not text_format:
@@ -187,7 +178,7 @@ def output_to_zip(oc):
     global csvname
 
     # Make an empty zip file
-    zipname = "data/" + get_data_file_name(form_fields, true) + ".zip"
+    zipname = f"data/{get_data_file_name(form_fields, true)}.zip"
     z = zipfile.ZipFile(zipname, "w")
 
     sys.stdout.flush()
@@ -196,8 +187,8 @@ def output_to_zip(oc):
         modelname = modelname.replace(":", "_")
 
         if "gfx" in form_fields:
-            filename = modelname + ".pdf"
-            print("Writing graph to " + filename)
+            filename = f"{modelname}.pdf"
+            print(f"Writing graph to {filename}")
             graph_file = ocGraph.print_pdf(
                 modelname,
                 graph,
@@ -211,18 +202,18 @@ def output_to_zip(oc):
             sys.stdout.flush()
 
         if "gephi" in form_fields:
-            nodename = modelname + ".nodes_table.csv"
-            print("Writing Gephi Node table file to " + nodename)
+            nodename = f"{modelname}.nodes_table.csv"
+            print(f"Writing Gephi Node table file to {nodename}")
             nodetext = ocGraph.gephi_nodes(graph)
-            nodefile = get_unique_filename("data/" + nodename)
+            nodefile = get_unique_filename(f"data/{nodename}")
             with open(nodefile, "w") as nf:
                 nf.write(nodetext)
             z.write(nodefile, nodename)
 
-            edgename = modelname + ".edges_table.csv"
-            print("Writing Gephi Edges table file to " + edgename)
+            edgename = f"{modelname}.edges_table.csv"
+            print(f"Writing Gephi Edges table file to {edgename}")
             edgetext = ocGraph.gephi_edges(graph)
-            edgefile = get_unique_filename("data/" + edgename)
+            edgefile = get_unique_filename(f"data/{edgename}")
             with open(edgefile, "w") as ef:
                 ef.write(edgetext)
             z.write(edgefile, edgename)
@@ -232,7 +223,7 @@ def output_to_zip(oc):
     sys.stdout = os.fdopen(stdout_save, 'w')
 
     # Write the CSV to the ZIP
-    z.write(csvname, get_data_file_name(form_fields, true) + ".csv")
+    z.write(csvname, f"{get_data_file_name(form_fields, true)}.csv")
     z.close()
 
     # print out the zipfile
@@ -277,16 +268,16 @@ def print_form(form_fields):
             template.set_template("data.template.html")
             template.out(form_fields)
 
-        template.set_template(action + ".template.html")
+        template.set_template(f"{action}.template.html")
         template.out(form_fields)
         template.set_template("output.template.html")
         template.out(form_fields)
 
-        template.set_template(action + ".footer.html")
+        template.set_template(f"{action}.footer.html")
         template.out(form_fields)
 
     elif action in ["compare", "log", "fitbatch"]:
-        template.set_template(action + "form.html")
+        template.set_template(f"{action}form.html")
         template.out(form_fields)
 
     if action == "jobcontrol":
@@ -390,9 +381,7 @@ def prepare_cached_data(form_fields):
         drn = os.path.join(datadir, data_refr_name)
         if not os.path.isfile(drn):
             print(
-                "ERROR: Data file corresponding to Cached Data Name, '"
-                + data_refr_name
-                + "', does not exist"
+                f"ERROR: Data file corresponding to Cached Data Name, '{data_refr_name}', does not exist"
             )
             sys.exit(1)
         data = open(drn).read()
@@ -406,9 +395,7 @@ def prepare_cached_data(form_fields):
         print(trn)
         if not os.path.isfile(trn):
             print(
-                "ERROR: Test file corresponding to Cached Test Name, '"
-                + test_refr_name
-                + "', does not exist"
+                f"ERROR: Test file corresponding to Cached Test Name, '{test_refr_name}', does not exist"
             )
             sys.exit(1)
         test = open(trn).read()
@@ -419,10 +406,9 @@ def prepare_cached_data(form_fields):
     data_refr_tag = os.path.split(data_refr_name)[1]
     test_refr_tag = os.path.split(test_refr_name)[1]
 
-    final_data_file = decls + "\n" + data + "\n" + test
+    final_data_file = f"{decls}\n{data}\n{test}"
 
-    final_data_file_name = decls_file_name + "." + data_refr_tag
-    final_data_file_name = final_data_file_name + ".txt"
+    final_data_file_name = f"{decls_file_name}.{data_refr_tag}.txt"
     final_data_file_name = os.path.join(datadir, final_data_file_name)
 
     with open(final_data_file_name, "w") as f:
@@ -864,7 +850,7 @@ def action_batch_compare(form_fields):
 
     # Validate the datafile as a zip file containing the proper named pairs.
     if not zipfile.is_zipfile(fn):
-        print("ERROR: " + fn + " is not a zipped archive.")
+        print(f"ERROR: {fn} is not a zipped archive.")
         sys.exit()
 
     def make_pairs(zip_data):
@@ -887,14 +873,10 @@ def action_batch_compare(form_fields):
             if not (a[:-1] == b[:-1]):
                 print("ERROR: Expected matching paired data, but got<br></br>")
                 print(
-                    "&emsp;&emsp;'"
-                    + sorted_data[2 * ix].filename
-                    + "',<br></br>"
+                    f"&emsp;&emsp;'{sorted_data[2 * ix].filename}',<br></br>"
                 )
                 print(
-                    "&emsp;&emsp;'"
-                    + sorted_data[2 * ix + 1].filename
-                    + "'.<br></br>"
+                    f"&emsp;&emsp;'{sorted_data[2 * ix + 1].filename}'.<br></br>"
                 )
                 print(
                     "For each pair in the zipfile, the 2 filenames must be the same"
@@ -945,10 +927,10 @@ def action_batch_compare(form_fields):
         ]
         for i in report_1 + report_2:
             if i in candidate:
-                headers.append(i[:-1] + "(A))")
-                headers.append(i[:-1] + "(B))")
+                headers.append(f"{i[:-1]}(A))")
+                headers.append(f"{i[:-1]}(B))")
             if i in report_fields_2:
-                headers.append(i + "(model(A) : model(B))")
+                headers.append(f"{i}(model(A) : model(B))")
         return headers
 
     global text_format, print_options
@@ -1036,8 +1018,8 @@ def action_batch_compare(form_fields):
     def run_analysis(pair_name, file_a, file_b):
         model_a = compute_best_model(file_a)
         model_b = compute_best_model(file_b)
-        model_a["filename"] = pair_name + "A.txt"
-        model_b["filename"] = pair_name + "B.txt"
+        model_a["filename"] = f"{pair_name}A.txt"
+        model_b["filename"] = f"{pair_name}B.txt"
 
         best, stats_1, stats_2 = compute_model_stats(model_a, model_b)
         return (
@@ -1056,7 +1038,7 @@ def action_batch_compare(form_fields):
     def pp_options():
         for (k, v) in list(search.items()):
             if v != '':
-                print(tab_row(tab_col(k + ": ") + tab_col(v)))
+                print(tab_row(tab_col(f"{k}: ") + tab_col(v)))
 
     def pp_column_list():
         print(
@@ -1119,8 +1101,7 @@ def action_batch_compare(form_fields):
         results.append([l, s1, s2])
         os.remove(file_a)
         os.remove(file_b)
-    print()
-    print("Searches completed. ")
+    print("\nSearches completed. ")
 
     if not text_format:
         print(table_start)
@@ -1319,7 +1300,7 @@ def get_timestamped_filename(file_name):
     prefix, suffix = os.path.splitext(filename)
     prefix = '_'.join(prefix.split())
     timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-    filename = os.path.join(dirname, prefix + "_" + timestamp + suffix)
+    filename = os.path.join(dirname, f"{prefix}_{timestamp}{suffix}")
     return filename
 
 
@@ -1405,7 +1386,7 @@ def print_batch_log(email):
 def start_normal(form_fields):
     # if any subject line was supplied, print it
     if "email_subject" in form_fields and form_fields["email_subject"]:
-        print("Subject line:," + form_fields["email_subject"])
+        print(f"Subject line:,{form_fields['email_subject']}")
 
     try:
         if form_fields["action"] == "fit":
@@ -1437,7 +1418,7 @@ def start_normal(form_fields):
         else:
             if not text_format:
                 print("<br><hr>")
-            print("FATAL ERROR: " + str(e))
+            print(f"FATAL ERROR: {str(e)}")
             if not text_format:
                 print("<br>")
             print("This error was not expected by the programmer. ")
@@ -1499,7 +1480,7 @@ if "batch_output" in form_fields and form_fields["batch_output"]:
 
 sys.stdout.flush()
 
-# print sys.executable + "<br>" + platform.python_version() + "<br>"
+# print(f"{sys.executable}<br>{platform.python_version()}<br>"
 
 # If this is not an output page, or reporting a batch job, then print the header form
 if "data" not in form_fields and "email" not in form_fields:

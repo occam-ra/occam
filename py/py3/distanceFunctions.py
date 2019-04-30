@@ -16,18 +16,12 @@ def zipwise_fold(base, fold, proj, ls):
 
         if math.isnan(value0):
             print(
-                "ERROR: (nan) value in fit table for file '"
-                + ls[0]["filename"]
-                + " with model "
-                + ls[0]["name"]
+                f"ERROR: (nan) value in fit table for file '{ls[0]['filename']}' with model {ls[0]['name']}"
             )
             sys.exit(1)
         if math.isinf(value0):
             print(
-                "ERROR: (inf) value in fit table for file '"
-                + ls[0]["filename"]
-                + " with model "
-                + ls[0]["name"]
+                f"ERROR: (inf) value in fit table for file '{ls[0]['filename']}' with model {ls[0]['name']}"
             )
             sys.exit(1)
         if key0 in d1:
@@ -37,18 +31,12 @@ def zipwise_fold(base, fold, proj, ls):
     for (key1, value1) in list(d1.items()):
         if math.isnan(value1):
             print(
-                "ERROR: (nan) value in fit table for file '"
-                + ls[1]["filename"]
-                + " with model "
-                + ls[1]["name"]
+                f"ERROR: (nan) value in fit table for file '{ls[1]['filename']}' with model {ls[1]['name']}"
             )
             sys.exit(1)
         if math.isinf(value1):
             print(
-                "ERROR: (inf) value in fit table for file '"
-                + ls[1]["filename"]
-                + " with model "
-                + ls[1]["name"]
+                f"ERROR: (inf) value in fit table for file '{ls[1]['filename']}' with model {ls[1]['name']}"
             )
             sys.exit(1)
         if key1 not in d0:
