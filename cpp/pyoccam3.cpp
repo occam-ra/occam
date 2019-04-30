@@ -1580,19 +1580,19 @@ DefinePyFunction(Model, getStructMatrix) {
   int statespace;
   int Total_const;
   Model *model = ObjRef(self, Model);
-  PyObject *retlist = PyList_New(0);
+  PyObject *output_list = PyList_New(0);
   int **structMatrix = model->getStructMatrix(&statespace, &Total_const);
   if (structMatrix != NULL) {
       for (int i = 0; i < Total_const; i++) {
           PyObject *temp = PyList_New(0);
           for (int j = 0; j < statespace; j++) {
-              PyObject *valint = Py_BuildValue("i", structMatrix[i][j]);
-              PyList_Append(temp, valint);
+              PyObject *val = Py_BuildValue("i", structMatrix[i][j]);
+              PyList_Append(temp, val);
           }
-          PyList_Append(retlist, temp);
+          PyList_Append(output_list, temp);
       }
   }
-  return retlist;
+  return output_list;
 }
 
 static struct PyMethodDef Model_methods[] = {
@@ -1606,7 +1606,7 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, setID),
     PyMethodDef(Model, setProgenitor),
     PyMethodDef(Model, getPrintName),
-    PyMethodDef(Model, geStructMatrix),
+    PyMethodDef(Model, getStructMatrix),
     { nullptr }
 };
 

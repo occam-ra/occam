@@ -34,5 +34,8 @@ class Model:
     def fit_table(self):
         self.ref.deleteFitTable()
 
+    def get_struct_matrix(self) -> list:
+        return self._ref.getStructMatrix()
+
     def set(self, **kwargs):
         pass
