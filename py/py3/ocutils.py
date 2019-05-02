@@ -698,7 +698,7 @@ class OCUtils:
             diffset = modset.difference(varset)
             if saw_maybe_wrong_iv or diffset == {"I", "V"}:
                 print(
-                    f"\n_did you mean '{"IV" if is_directed else "IVI"}' instead of '{"IVI" if is_directed else "IV"}'?"
+                    f"\n_did you mean '{'IV' if is_directed else 'IVI'}' instead of '{'IVI' if is_directed else 'IV'}'?"
                 )
             else:
                 print("\n Not declared: ")
