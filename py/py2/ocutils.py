@@ -56,7 +56,9 @@ class OCUtils:
         self._percent_correct = 0
         self._ref_model = "default"
         self._report = self._manager.Report()
-        self._report.setSeparator(OCUtils.SPACE_SEP)  # align columns using spaces
+        self._report.setSeparator(
+            OCUtils.SPACE_SEP
+        )  # align columns using spaces
         self._report_file = ""
         self._report_sort_name = ""
         self._search_filter = "loopless"
@@ -105,7 +107,7 @@ class OCUtils:
     def set_report_separator(self, format_):
         occam.setHTMLMode(format_ == OCUtils.HTML_FORMAT)
         self._report.setSeparator(format_)
-        self._HTMLFormat = (format_ == OCUtils.HTML_FORMAT)
+        self._HTMLFormat = format_ == OCUtils.HTML_FORMAT
 
     def set_fit_classifier_target(self, target):
         self._fit_classifier_target = target
@@ -237,11 +239,11 @@ class OCUtils:
     # on how search is sorting the models. We want to avoid any
     # extra expensive computations
     def compute_sort_statistic(self, model):
-        if self.sort_name == "h" or self.sort_name == "information" or self.sort_name == "unexplained" or self.sort_name == "alg_t":
+        if self.sort_name in ("h", "information", "unexplained", "alg_t"):
             self._manager.computeInformationsStatistics(model)
-        elif self.sort_name == "df" or self.sort_name == "ddf":
+        elif self.sort_name in ("df", "ddf"):
             self._manager.computeDFStatistics(model)
-        elif self.sort_name == "bp_t" or self.sort_name == "bp_information" or self.sort_name == "bp_alpha":
+        elif self.sort_name in ("bp_t", "bp_information", "bp_alpha"):
             self._manager.computeBPStatistics(model)
         elif self.sort_name == "pct_correct_data":
             self._manager.computePercentCorrect(model)
@@ -268,7 +270,9 @@ class OCUtils:
                 key = new_model.get(self.sort_name)
                 if self._search_sort_dir == "descending":
                     key = -key
-                heapq.heappush(new_models_heap, ([key, new_model.get("name")], new_model))  # appending the model name makes sort alphabet-consistent
+                heapq.heappush(
+                    new_models_heap, ([key, new_model.get("name")], new_model)
+                )  # appending the model name makes sort alphabet-consistent
                 add_count += 1
             else:
                 if self._incremental_alpha:
@@ -289,10 +293,12 @@ class OCUtils:
         while len(new_models_heap) > 0:
             # make sure that we're adding unique models to the list (mostly for state-based)
             key, candidate = heapq.heappop(new_models_heap)
-            if len(
-                    best_models) < self._search_width:  # or key[0] == last_key[0]:      # comparing keys allows us to select more than <width> models,
-                if True not in [n.isEquivalentTo(candidate) for n in
-                                best_models]:  # in the case of ties
+            if (
+                len(best_models) < self._search_width
+            ):  # or key[0] == last_key[0]:      # comparing keys allows us to select more than <width> models,
+                if not any(
+                    [n.isEquivalentTo(candidate) for n in best_models]
+                ):  # in the case of ties
                     best_models.append(candidate)
             else:
                 break
@@ -302,8 +308,12 @@ class OCUtils:
         mem_used = self._manager.getMemUsage()
         if not self._hide_intermediate_output:
             print '%d new models, %ld kept; %ld total models, %ld total kept; %ld kb memory used; ' % (
-                full_count, trunc_count, self._total_gen + 1, self._total_kept + 1,
-                mem_used / 1024),
+                full_count,
+                trunc_count,
+                self._total_gen + 1,
+                self._total_kept + 1,
+                mem_used / 1024,
+            ),
         sys.stdout.flush()
         if clear_cache_flag:
             for item in new_models_heap:
@@ -383,10 +393,12 @@ class OCUtils:
         # set start model. For chain search, ignore any specific starting model
         # otherwise, if not set, set the start model based on search direction
         if (
-                self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "down":
+            self._search_filter == "chain" or self._start_model == "default"
+        ) and self.search_dir == "down":
             self._start_model = "top"
         elif (
-                self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "up":
+            self._search_filter == "chain" or self._start_model == "default"
+        ) and self.search_dir == "up":
             self._start_model = "bottom"
         if self._start_model == "top":
             start = self._manager.getTopRefModel()
@@ -436,11 +448,14 @@ class OCUtils:
                 print "Memory limit exceeded: stopping search"
                 break
             print i, ':',  # progress indicator
-            new_models = self.process_level(i, old_models,
-                                            i != self._search_levels)
+            new_models = self.process_level(
+                i, old_models, i != self._search_levels
+            )
             current_time = time.time()
             print '%.1f seconds, %.1f total' % (
-                current_time - last_time, current_time - start_time)
+                current_time - last_time,
+                current_time - start_time,
+            )
             sys.stdout.flush()
             last_time = current_time
             for model in new_models:
@@ -472,9 +487,13 @@ class OCUtils:
             self._start_model = "default"
         if self.search_dir == "default":
             self.search_dir = "up"
-        if (self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "down":
+        if (
+            self._search_filter == "chain" or self._start_model == "default"
+        ) and self.search_dir == "down":
             self._start_model = "top"
-        elif (self._search_filter == "chain" or self._start_model == "default") and self.search_dir == "up":
+        elif (
+            self._search_filter == "chain" or self._start_model == "default"
+        ) and self.search_dir == "up":
             self._start_model = "bottom"
         if self._start_model == "top":
             start = self._manager.getTopRefModel()
@@ -517,11 +536,14 @@ class OCUtils:
                 print "Memory limit exceeded: stopping search"
                 break
             print i, ':',  # progress indicator
-            new_models = self.process_level(i, old_models,
-                                            i != self._search_levels)
+            new_models = self.process_level(
+                i, old_models, i != self._search_levels
+            )
             current_time = time.time()
             print '%.1f seconds, %.1f total' % (
-                current_time - last_time, current_time - start_time)
+                current_time - last_time,
+                current_time - start_time,
+            )
             last_time = current_time
             for model in new_models:
                 # Make sure all statistics are calculated. This won't do anything if we did it already.
@@ -568,7 +590,7 @@ class OCUtils:
 
         # in HTML mode, note that the graphs are being printed.
         if self._HTMLFormat:
-            print('<hr>')
+            print '<hr>'
 
         # Get the varlist (used for all graphs)
 
@@ -593,9 +615,12 @@ class OCUtils:
 
     def split_model(self, model_name):
         comps = model_name.split(":")
-        model = map(lambda s: [s] if (
-            s == "IV" if self.is_directed() else s == "IVI") else self.split_caps(
-            s), comps)
+        model = map(
+            lambda s: [s]
+            if (s == "IV" if self.is_directed() else s == "IVI")
+            else self.split_caps(s),
+            comps,
+        )
         return model
 
     def check_model_name(self, model_name):
@@ -636,16 +661,20 @@ class OCUtils:
                     print "<br>"
                 if saw_maybe_wrong_iv:
                     print "\n_did you mean '" + (
-                        "IV" if is_directed else "IVI") + "' instead of '" + (
-                              "IVI" if is_directed else "IV") + "'?"
+                        "IV" if is_directed else "IVI"
+                    ) + "' instead of '" + (
+                        "IVI" if is_directed else "IV"
+                    ) + "'?"
                 else:
                     print "\n Did you forget the " + (
-                        "IV" if is_directed else "IVI") + " component?"
+                        "IV" if is_directed else "IVI"
+                    ) + " component?"
                 if self._HTMLFormat:
                     print "<br>"
                 print "\n Not in model: "
                 print ", ".join(
-                    ["'" + i + "'" for i in varset.difference(modset)])
+                    ["'" + i + "'" for i in varset.difference(modset)]
+                )
                 sys.exit(1)
 
         # all variables in model are in varlist
@@ -658,8 +687,8 @@ class OCUtils:
             diffset = modset.difference(varset)
             if saw_maybe_wrong_iv or diffset == {"I", "V"}:
                 print "\n_did you mean '" + (
-                    "IV" if is_directed else "IVI") + "' instead of '" + (
-                          "IVI" if is_directed else "IV") + "'?"
+                    "IV" if is_directed else "IVI"
+                ) + "' instead of '" + ("IVI" if is_directed else "IV") + "'?"
             else:
                 print "\n Not declared: "
                 print ", ".join(["'" + i + "'" for i in diffset])
@@ -674,15 +703,16 @@ class OCUtils:
                     if self._HTMLFormat:
                         print "<br>"
                     print "\nERROR: In the model '" + model_name + "', model component '" + "".join(
-                        rel) + "' is missing the DV, '" + dv + "'."
+                        rel
+                    ) + "' is missing the DV, '" + dv + "'."
                     sys.exit(1)
 
     def print_graph(self, model_name, only):
         if only and not self._generate_gephi:
             self._generate_graph = True
         if (self._generate_graph or self._generate_gephi) and (
-                self._hide_isolated and (
-                model_name == "IVI" or model_name == "IV")):
+            self._hide_isolated and model_name in ("IV", "IVI")
+        ):
             msg = "Note: no "
             if self._generate_graph:
                 msg = msg + "hypergraph image "
@@ -693,7 +723,10 @@ class OCUtils:
 
             msg = msg + "was generated, since the model contains only "
             msg = msg + model_name
-            msg = msg + " components, which were requested to be hidden in the graph."
+            msg = (
+                "%s components, which were requested to be hidden in the graph."
+                % msg
+            )
 
             if self._HTMLFormat:
                 print "<br>"
@@ -730,13 +763,15 @@ class OCUtils:
             if self._default_fit_model != "":
                 try:
                     default_model = self._manager.makeModel(
-                        self._default_fit_model, 1)
+                        self._default_fit_model, 1
+                    )
                 except Exception:
                     print "\nERROR: Unable to create model " + self._default_fit_model
                     sys.exit(0)
                 self._report.setDefaultFitModel(default_model)
-            self._report.printConditional_DV(model, self._calc_expected_dv,
-                                             self._fit_classifier_target)
+            self._report.printConditional_DV(
+                model, self._calc_expected_dv, self._fit_classifier_target
+            )
 
             self.print_graph(model_name, only_gfx)
 
@@ -747,9 +782,14 @@ class OCUtils:
             if self._HTMLFormat:
                 if header:
                     print "Hypergraph model visualization for the Model " + model + " (using the " + self._layout_style + " layout algorithm)<br>"
-                ocGraph.print_svg(self.graphs[model], self._layout_style,
-                                  self._graph_width, self._graph_height,
-                                  self._graph_font_size, self._graph_node_size)
+                ocGraph.print_svg(
+                    self.graphs[model],
+                    self._layout_style,
+                    self._graph_width,
+                    self._graph_height,
+                    self._graph_font_size,
+                    self._graph_node_size,
+                )
                 print "<hr>"
 
     def maybe_print_graph_gephi(self, model, header):
@@ -769,21 +809,36 @@ class OCUtils:
         hide_dv = self._graph_hideDV
         full_var_names = self._full_var_names
         dv_name = ""
-        all_higher_order = (self._layout_style == "bipartite")
+        all_higher_order = self._layout_style == "bipartite"
         if self.is_directed():
             dv_name = self._report.dvName()
 
         if model in self.graphs:
             pass
         else:
-            self.graphs[model] = ocGraph.generate(model, varlist, hide_iv,
-                                                  hide_dv, dv_name,
-                                                  full_var_names,
-                                                  all_higher_order)
+            self.graphs[model] = ocGraph.generate(
+                model,
+                varlist,
+                hide_iv,
+                hide_dv,
+                dv_name,
+                full_var_names,
+                all_higher_order,
+            )
 
-    def set_gfx(self, use_gfx, layout=None, gephi=False, hide_iv=True,
-                hide_dv=True, full_var_names=False, width=640, height=480,
-                font_size=12, node_size=24):
+    def set_gfx(
+        self,
+        use_gfx,
+        layout=None,
+        gephi=False,
+        hide_iv=True,
+        hide_dv=True,
+        full_var_names=False,
+        width=640,
+        height=480,
+        font_size=12,
+        node_size=24,
+    ):
         self._generate_graph = use_gfx
         self._generate_gephi = gephi
         self._layout_style = layout
@@ -802,8 +857,9 @@ class OCUtils:
         self._report.addModel(model)
         self._manager.printFitReport(model)
         self._manager.makeFitTable(model)
-        self._report.printResiduals(model, self._skip_trained_model_table,
-                                    self._skip_ivi_tables)
+        self._report.printResiduals(
+            model, self._skip_trained_model_table, self._skip_ivi_tables
+        )
 
     def do_sb_fit(self, print_options):
         # self._manager.setValuesAreFunctions(self._values_are_functions)
@@ -817,13 +873,15 @@ class OCUtils:
             if self._default_fit_model != "":
                 try:
                     default_model = self._manager.makeSbModel(
-                        self._default_fit_model, 1)
+                        self._default_fit_model, 1
+                    )
                 except Exception:
                     print "\nERROR: Unable to create model " + self._default_fit_model
                     sys.exit(0)
                 self._report.setDefaultFitModel(default_model)
-            self._report.printConditional_DV(model, self._calc_expected_dv,
-                                             self._fit_classifier_target)
+            self._report.printConditional_DV(
+                model, self._calc_expected_dv, self._fit_classifier_target
+            )
 
             print
             print
@@ -894,7 +952,8 @@ class OCUtils:
         if self._fit_classifier_target != "":
             self.print_option(
                 "Default ('negative') state for confusion matrices",
-                self._fit_classifier_target)
+                self._fit_classifier_target,
+            )
         if r_type == 1:
             self.print_option("Starting model", self._start_model)
             self.print_option("Search direction", self.search_dir)
@@ -908,24 +967,36 @@ class OCUtils:
             self.print_option("Report preference", self._sort_dir)
 
         if r_type == 0:
-            self.print_option("Generate hypergraph images",
-                              "Y" if self._generate_graph else "N")
-            self.print_option("Generate Gephi files",
-                              "Y" if self._generate_gephi else "N")
+            self.print_option(
+                "Generate hypergraph images",
+                "Y" if self._generate_graph else "N",
+            )
+            self.print_option(
+                "Generate Gephi files", "Y" if self._generate_gephi else "N"
+            )
 
         if self._generate_graph:
-            self.print_option("Hypergraph layout style",
-                              str(self._layout_style))
+            self.print_option(
+                "Hypergraph layout style", str(self._layout_style)
+            )
             self.print_option("Hypergraph image width", str(self._graph_width))
-            self.print_option("Hypergraph image height",
-                              str(self._graph_height))
-            self.print_option("Hypergraph font size", str(self._graph_font_size))
-            self.print_option("Hypergraph node size", str(self._graph_node_size))
+            self.print_option(
+                "Hypergraph image height", str(self._graph_height)
+            )
+            self.print_option(
+                "Hypergraph font size", str(self._graph_font_size)
+            )
+            self.print_option(
+                "Hypergraph node size", str(self._graph_node_size)
+            )
 
         if self._generate_gephi or self._generate_graph:
-            self.print_option("Hide " + (
-                "IV" if self.is_directed() else "IVI") + " components in hypergraph",
-                              "Y" if self._hide_isolated else "N")
+            self.print_option(
+                "Hide "
+                + ("IV" if self.is_directed() else "IVI")
+                + " components in hypergraph",
+                "Y" if self._hide_isolated else "N",
+            )
 
         if self._HTMLFormat:
             print "</table>"
@@ -937,12 +1008,16 @@ class OCUtils:
         # Initialize a manager and the starting model
         self.set_ref_model(self._ref_model)
         self._manager.setSearchDirection(
-            1 if (self.search_dir == "down") else 0)
+            1 if (self.search_dir == "down") else 0
+        )
         self._manager.setSearchType(self.search_type())
 
         # Set up the starting model
-        start = self._manager.getTopRefModel() if (
-                self.search_dir == "down") else self._manager.getBottomRefModel()
+        start = (
+            self._manager.getTopRefModel()
+            if (self.search_dir == "down")
+            else self._manager.getBottomRefModel()
+        )
         start.level = 0
         self._manager.computeL2Statistics(start)
         self._manager.computeDependentStatistics(start)
@@ -955,8 +1030,9 @@ class OCUtils:
         old_models = [start]
         for i in xrange(1, self._search_levels + 1):
             sys.stdout.write('.')
-            new_models = self.process_level(i, old_models,
-                                            i != self._search_levels)
+            new_models = self.process_level(
+                i, old_models, i != self._search_levels
+            )
             for model in new_models:
                 self._manager.computeL2Statistics(model)
                 self._manager.computeDependentStatistics(model)
@@ -975,6 +1051,6 @@ class OCUtils:
 
     def compute_binary_statistic(self, compare_order, key):
         file_ref, model_ref, file_comp, model_comp = compare_order
-        return self._manager.computeBinaryStatistic(file_ref, model_ref,
-                                                    file_comp, model_comp,
-                                                    key)
+        return self._manager.computeBinaryStatistic(
+            file_ref, model_ref, file_comp, model_comp, key
+        )

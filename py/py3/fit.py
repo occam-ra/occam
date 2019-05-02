@@ -13,8 +13,7 @@ from ocutils import OCUtils
 # sys.path.append("/www")
 
 if len(sys.argv) < 3:
-    print('Incorrect parameters.')
-    print('Usage: %s datafile model' % sys.argv[0])
+    print(f'Incorrect parameters.\nUsage: {sys.argv[0]} datafile model')
     sys.exit()
 
 
@@ -34,6 +33,5 @@ t2 = time.time()
 oc.do_action(1)
 t3 = time.time()
 
-print("start:  %8f" % (t2 - t1))
-print("fit: %8f" % (t3 - t2))
-
+print(f"start:  {(t2 - t1):8f}")
+print(f"fit: {(t3 - t2):8f}")

@@ -68,7 +68,7 @@ class OpagCGI:
         self.template = template
         self.template_file = None
         if not os.path.exists(self.template):
-            raise OpagMissingPrecondition("%s does not exist" % self.template)
+            raise OpagMissingPrecondition(f"{self.template} does not exist")
 
     def parse(self, dict_, header=FALSE):
         """parse(dict) -> string

@@ -37,4 +37,3 @@ class VBMManager(Manager):
 
     def set_ddf_method(self, ddf_method: int) -> None:
         self._ref.setDDFMethod(ddf_method)
-

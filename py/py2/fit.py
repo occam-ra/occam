@@ -36,4 +36,3 @@ t3 = time.time()
 
 print "start:  %8f" % (t2 - t1)
 print "fit: %8f" % (t3 - t2)
-
