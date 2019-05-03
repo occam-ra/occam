@@ -49,3 +49,9 @@ class Model:
 
     def set(self, **kwargs):
         pass
+
+    def set_id(self, id_: int) -> None:
+        self._ref.setID(id_)
+
+    def set_progenitor(self, progenitor: 'Model') -> None:
+        self._ref.setProgenitor(progenitor.ref)
