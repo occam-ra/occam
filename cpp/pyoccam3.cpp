@@ -1596,17 +1596,17 @@ DefinePyFunction(Model, getStructMatrix) {
 }
 
 static struct PyMethodDef Model_methods[] = {
-    PyMethodDef(Model, deleteFitTable), //Done
-    PyMethodDef(Model, deleteRelationLinks), //TODO
-    PyMethodDef(Model, dump), //TODO
+    PyMethodDef(Model, deleteFitTable),
+    PyMethodDef(Model, deleteRelationLinks),
+    PyMethodDef(Model, dump),
     PyMethodDef(Model, get),
-    PyMethodDef(Model, getProgenitor), //TODO -Gabe
-    PyMethodDef(Model, getRelation), //TODO -Gabe
-    PyMethodDef(Model, isEquivalentTo), //TODO
-    PyMethodDef(Model, setID), //Done
-    PyMethodDef(Model, setProgenitor), //TODO -Gabe
-    PyMethodDef(Model, getPrintName), //Done
-    PyMethodDef(Model, getStructMatrix), //Done
+    PyMethodDef(Model, getProgenitor),
+    PyMethodDef(Model, getRelation),
+    PyMethodDef(Model, isEquivalentTo),
+    PyMethodDef(Model, setID),
+    PyMethodDef(Model, setProgenitor),
+    PyMethodDef(Model, getPrintName),
+    PyMethodDef(Model, getStructMatrix),
     { nullptr }
 };
 

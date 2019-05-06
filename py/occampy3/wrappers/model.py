@@ -63,11 +63,8 @@ class Model:
     def set_progenitor(self) -> None:
         self._progenitor = self._ref.setProgenitor()
 
-    def get_relation(self) -> Relation:
-        return self._ref.getRelation()
-
     def delete_relation_links(self):
         self._ref.deleteRelationLinks()
 
-    def dump(self, model) -> Model:
-        return self._ref.dump()
+    def dump(self) -> None:
+        self._ref.dump()
