@@ -16,10 +16,14 @@ class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
 
     @staticmethod
     def draw_path(ctx, center_x, center_y, width, height=20):
-        ctx.rectangle(center_x - width/2, center_y - height/2, width, height)
+        ctx.rectangle(
+            center_x - width / 2, center_y - height / 2, width, height
+        )
 
     @staticmethod
-    def intersection_point(center_x, center_y, source_x, source_y, width, height=20):
+    def intersection_point(
+        center_x, center_y, source_x, source_y, width, height=20
+    ):
         delta_x, delta_y = center_x - source_x, center_y - source_y
 
         if delta_x == 0 and delta_y == 0:
@@ -27,37 +31,37 @@ class StripDrawer(igraph.drawing.shapes.ShapeDrawer):
 
         if delta_y > 0 and delta_y >= delta_x >= -delta_y:
             # this is the top edge
-            ry = center_y - height/2
-            ratio = (height/2) / delta_y
-            return center_x-ratio*delta_x, ry
+            ry = center_y - height / 2
+            ratio = (height / 2) / delta_y
+            return center_x - ratio * delta_x, ry
 
         if delta_y < 0 and -delta_y >= delta_x >= delta_y:
             # this is the bottom edge
-            ry = center_y + height/2
-            ratio = (height/2) / -delta_y
-            return center_x-ratio*delta_x, ry
+            ry = center_y + height / 2
+            ratio = (height / 2) / -delta_y
+            return center_x - ratio * delta_x, ry
 
         if delta_x > 0 and delta_x >= delta_y >= -delta_x:
             # this is the left edge
-            rx = center_x - width/2
-            ratio = (width/2) / delta_x
-            return rx, center_y-ratio*delta_y
+            rx = center_x - width / 2
+            ratio = (width / 2) / delta_x
+            return rx, center_y - ratio * delta_y
 
         if delta_x < 0 and -delta_x >= delta_y >= delta_x:
             # this is the right edge
-            rx = center_x + width/2
-            ratio = (width/2) / -delta_x
-            return rx, center_y-ratio*delta_y
+            rx = center_x + width / 2
+            ratio = (width / 2) / -delta_x
+            return rx, center_y - ratio * delta_y
 
         if delta_x == 0:
             if delta_y > 0:
-                return center_x, center_y - height/2
-            return center_x, center_y + height/2
+                return center_x, center_y - height / 2
+            return center_x, center_y + height / 2
 
         if delta_y == 0:
             if delta_x > 0:
-                return center_x - width/2, center_y
-            return center_x + width/2, center_y
+                return center_x - width / 2, center_y
+            return center_x + width / 2, center_y
 
 
 igraph.drawing.shapes.ShapeDrawerDirectory.register(StripDrawer)
@@ -70,14 +74,26 @@ def textwidth(text, fontsize=14):
         return len(text) * fontsize
     surface = cairo.SVGSurface('data/undefined.svg', 600, 600)
     cr = cairo.Context(surface)
-    cr.select_font_face('sans-serif', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD)
+    cr.select_font_face(
+        'sans-serif', cairo.FONT_SLANT_NORMAL, cairo.FONT_WEIGHT_BOLD
+    )
     cr.set_font_size(fontsize)
-    x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(text)
+    x_bearing, y_bearing, width, height, x_advance, y_advance = cr.text_extents(
+        text
+    )
     return width
 
 
 # Graph generation based on Teresa Schmidt's R script (2016)
-def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all_higher_order):
+def generate(
+    model_name,
+    varlist,
+    hide_iv,
+    hide_dv,
+    dv_name,
+    full_var_names,
+    all_higher_order,
+):
 
     # TODO fix this... the split is not quite working out right.
 
@@ -151,7 +167,16 @@ def generate(model_name, varlist, hide_iv, hide_dv, dv_name, full_var_names, all
     return graph
 
 
-def print_plot(graph, layout, extension, filename, width, height, font_size, node_size_orig):
+def print_plot(
+    graph,
+    layout,
+    extension,
+    filename,
+    width,
+    height,
+    font_size,
+    node_size_orig,
+):
     # Setup the graph plotting aesthetics.
     tys = graph.vs["type"]
     tylabs = zip(graph.vs["type"], graph.vs["label"])
@@ -160,18 +185,32 @@ def print_plot(graph, layout, extension, filename, width, height, font_size, nod
     dotsize = 5
 
     # Calculate node sizes.
-    node_size = max([0 if ty else max(node_size_orig, lab_width(lab)) for (ty, lab) in tylabs])
-    size_fn = (lambda ty, lab: max(node_size, lab_width(lab))) if layout == "bipartite" else (lambda ty, lab: dotsize if ty else node_size)
+    node_size = max(
+        [
+            0 if ty else max(node_size_orig, lab_width(lab))
+            for (ty, lab) in tylabs
+        ]
+    )
+    size_fn = (
+        (lambda ty, lab: max(node_size, lab_width(lab)))
+        if layout == "bipartite"
+        else (lambda ty, lab: dotsize if ty else node_size)
+    )
 
     visual_style = {
         "vertex_size": [size_fn(ty, lab) for (ty, lab) in tylabs],
         "vertex_color": ["lightblue" if ty else "white" for ty in tys],
-        "vertex_shape": ["strip" if layout == "bipartite" and ty else "circle" for ty in tys],
-        "vertex_label_size": [0 if layout != "bipartite" and ty else fontsize for ty in tys],
-        "margin": max([size_fn(ty, lab) / 2 for (ty, lab) in tylabs] + [node_size]),
-
+        "vertex_shape": [
+            "strip" if layout == "bipartite" and ty else "circle" for ty in tys
+        ],
+        "vertex_label_size": [
+            0 if layout != "bipartite" and ty else fontsize for ty in tys
+        ],
+        "margin": max(
+            [size_fn(ty, lab) / 2 for (ty, lab) in tylabs] + [node_size]
+        ),
         "vertex_label_dist": 0,
-        "bbox": (width, height)
+        "bbox": (width, height),
     }
 
     # Set the layout. None is a valid choice.
@@ -191,7 +230,11 @@ def print_plot(graph, layout, extension, filename, width, height, font_size, nod
         elif layout == "Sugiyama":
             layout_choice = "sugiyama"
     except Exception:
-        raise RuntimeError("The hypergraph layout library failed to apply the " + layout + " layout.")
+        raise RuntimeError(
+            "The hypergraph layout library failed to apply the "
+            + layout
+            + " layout."
+        )
 
     # Generate a unique file for the graph;
     # using the layout (if any), generate a plot.
@@ -202,14 +245,18 @@ def print_plot(graph, layout, extension, filename, width, height, font_size, nod
 
 def print_svg(graph, layout, width, height, font_size, node_size):
     print "<br>"
-    graph_file = print_plot(graph, layout, "svg", "graph", width, height, font_size, node_size)
+    graph_file = print_plot(
+        graph, layout, "svg", "graph", width, height, font_size, node_size
+    )
     with open(graph_file) as gf:
         contents = gf.read()
         print contents
 
 
 def print_pdf(filename, graph, layout, width, height, font_size, node_size):
-    graph_file = print_plot(graph, layout, "pdf", filename, width, height, font_size, node_size)
+    graph_file = print_plot(
+        graph, layout, "pdf", filename, width, height, font_size, node_size
+    )
     return graph_file
 
 

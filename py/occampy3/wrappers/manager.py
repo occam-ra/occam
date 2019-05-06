@@ -124,4 +124,3 @@ class Manager:
     # TODO: remove and replace with the underlying functionality in the future
     def print_fit_report(self) -> None:
         self._ref.printFitReport()
-

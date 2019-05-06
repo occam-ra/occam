@@ -20,7 +20,9 @@ def main():
     # The width, levels and filter are determined here, to be used by the rest of the script below.
     if len(sys.argv) < 2:
         print 'No data file specified.'
-        print 'Usage: %s datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]' % sys.argv[0]
+        print 'Usage: %s datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]' % sys.argv[
+            0
+        ]
         sys.exit()
 
     if len(sys.argv) >= 4:
@@ -96,7 +98,9 @@ def main():
     # util.set_report_variables("Level$I, h, ddf, lr, alpha, information, pct_correct_data, aic, bic")
     # util.set_no_ipf(1)
     # For ref=bottom, use something like this:
-    util.set_report_variables("Level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id, pct_correct_data")
+    util.set_report_variables(
+        "Level$I, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id, pct_correct_data"
+    )
     # util.set_report_variables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, ipf_iterations, ipf_error")
 
     # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
