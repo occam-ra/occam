@@ -23,7 +23,7 @@ class VBMManager(Manager):
     def dv_name(self) -> str:
         return self._ref.getDvName()
 
-    def set_alpha_threshold(self, threshold: int) -> None:
+    def set_alpha_threshold(self, threshold: float) -> None:
         self._ref.setAlphaThreshold(threshold)
 
     def values_are_functions(self, truth_value: bool) -> None:
