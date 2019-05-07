@@ -10,7 +10,10 @@ import sys
 # sys.path.append("/www")
 import time
 
-from ocutils import OCUtils
+sys.path.insert(0, "./wrappers")
+
+from ocutils import OCUtils, Action
+from wrappers.report import SeparatorType
 
 if len(sys.argv) < 3:
     print(f'Incorrect parameters.\nUsage: {sys.argv[0]} datafile model')
@@ -24,8 +27,8 @@ t1 = time.time()
 oc.init_from_command_line(sys.argv[0:2])  # initialize with the data file
 
 oc.set_fit_model(sys.argv[2])
-oc.set_action("SBfit")
-oc.set_report_separator(3)
+oc.set_action(Action.SBFIT)
+oc.set_report_separator(SeparatorType.SPACE)
 # oc.set_ddf_method(1)
 
 t2 = time.time()

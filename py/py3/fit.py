@@ -8,9 +8,11 @@
 import sys
 import time
 
+sys.path.insert(0, "./wrappers")
+
 from ocutils import OCUtils
-from ocutils import ActionType
-from report import SeparatorType
+from ocutils import Action
+from wrappers.report import SeparatorType
 
 # sys.path.append("/www")
 
@@ -25,7 +27,7 @@ t1 = time.time()
 oc.init_from_command_line(sys.argv[0:2])  # initialize with the data file
 
 oc.set_fit_model(sys.argv[2])
-oc.set_action(ActionType.FIT)
+oc.set_action(Action.FIT)
 oc.set_report_separator(SeparatorType.SPACE)
 oc.set_skip_nominal(True)
 oc.set_ddf_method(1)

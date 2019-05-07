@@ -12,21 +12,21 @@ import sys
 import time
 
 from enum import Enum
-from vbm_manager import VBMManager
-from sbm_manager import SBMManager
-from report import SeparatorType
-from manager import SearchDirection, SearchType
+from wrappers.vbm_manager import VBMManager
+from wrappers.sbm_manager import SBMManager
+from wrappers.report import SeparatorType, SortDirection
+from wrappers.manager import SearchDirection, SearchType, SBSearchType
 
 totalgen = 0
 totalkept = 0
 max_memory_to_use = 8 * 2 ** 30
 
 
-class ActionType(Enum):
+class Action(Enum):
     FIT = 'fit'
     SEARCH = 'search'
-    SBSEARCH = 'sbsearch'
-    SBFIT = 'sbfit'
+    SBSEARCH = 'SBsearch'
+    SBFIT = 'SBfit'
 
 
 class OCUtils:
@@ -78,7 +78,7 @@ class OCUtils:
         self._skip_ivi_tables = True
         self._skip_nominal = False
         self._skip_trained_model_table = True
-        self._sort_dir = "ascending"
+        self._sort_dir = SortDirection.ASCENDING
         self._start_model = "default"
         self._total_gen = 0
         self._total_kept = 0
@@ -98,7 +98,7 @@ class OCUtils:
     # -- Set up report variables
     def set_report_variables(self, report_attributes):
         # if the data uses function values, we want to skip the attributes that require a sample size
-        option = self._manager.getOption("function-values")
+        option = self._manager.get_option("function-values")
         if option != "" or self._values_are_functions != 0:
             report_attributes = re.sub(r",\salpha", '', report_attributes)
             report_attributes = re.sub(r",\sincr_alpha", '', report_attributes)
@@ -106,7 +106,7 @@ class OCUtils:
             report_attributes = re.sub(r",\saic", '', report_attributes)
             report_attributes = re.sub(r",\sbic", '', report_attributes)
             pass
-        self._report.setAttributes(report_attributes)
+        self._report.set_attributes(report_attributes)
         if re.search('bp_t', report_attributes):
             self._bp_statistics = 1
         if re.search('pct_correct', report_attributes):
@@ -114,7 +114,7 @@ class OCUtils:
         if re.search('incr_alpha', report_attributes):
             self._incremental_alpha = 1
 
-    def set_report_separator(self, format_):
+    def set_report_separator(self, format_: SeparatorType):
         #occam.setHTMLMode(format_ == OCUtils.HTML_FORMAT)
         self._report.set_separator(format_)
         #self._HTMLFormat = format_ == OCUtils.HTML_FORMAT
@@ -150,11 +150,7 @@ class OCUtils:
             method = 0
         self._ddf_method = method
 
-    def set_sort_dir(self, sort_dir):
-        if sort_dir == "":
-            sort_dir = "descending"
-        if sort_dir != "ascending" and sort_dir != "descending":
-            raise AttributeError("set_sort_dir")
+    def set_sort_dir(self, sort_dir: SortDirection):
         self._sort_dir = sort_dir
 
     def set_search_sort_dir(self, sort_dir):
@@ -202,7 +198,7 @@ class OCUtils:
     def set_report_file(self, report_file):
         self._report_file = report_file
 
-    def set_action(self, action):
+    def set_action(self, action: Action):
         self._action = action
 
     def set_data_file(self, data_file):
@@ -254,19 +250,19 @@ class OCUtils:
         ):
             self._manager.computeInformationsStatistics(model)
         elif self.sort_name == "df" or self.sort_name == "ddf":
-            self._manager.computeDFStatistics(model)
+            self._manager.compute_dfs_statistics(model)
         elif (
             self.sort_name == "bp_t"
             or self.sort_name == "bp_information"
             or self.sort_name == "bp_alpha"
         ):
-            self._manager.computeBPStatistics(model)
+            self._manager.compute_bp_statistics(model)
         elif self.sort_name == "pct_correct_data":
-            self._manager.computePercentCorrect(model)
+            self._manager.compute_percent_correct(model)
         # anything else, just compute everything we might need
         else:
-            self._manager.computeL2Statistics(model)
-            self._manager.computeDependentStatistics(model)
+            self._manager.compute_l2_statistics(model)
+            self._manager.compute_dependent_statistics(model)
 
     # this function generates the parents/children of the given model, and for
     # any which haven't been seen before puts them into the new_model list
@@ -274,27 +270,27 @@ class OCUtils:
     # as the dependent statistics (dH, %dH, etc.)
     def process_model(self, level, new_models_heap, model):
         add_count = 0
-        generated_models = self._manager.searchOneLevel(model)
+        generated_models = self._manager.search_one_level(model)
         for new_model in generated_models:
-            if new_model.get("processed") <= 0.0:
+            if new_model.get_attribute_value("processed") <= 0.0:
                 new_model.processed = 1.0
                 new_model.level = level
-                new_model.setProgenitor(model)
+                new_model.set_progenitor(model)
                 self.compute_sort_statistic(new_model)
                 # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
                 # decorate model with a key for sorting, & push onto heap
-                key = new_model.get(self.sort_name)
+                key = new_model.get_attribute_value(self.sort_name)
                 if self._search_sort_dir == "descending":
                     key = -key
                 heapq.heappush(
-                    new_models_heap, ([key, new_model.get("name")], new_model)
+                    new_models_heap, ([key, new_model.get_attribute_value("name")], new_model)
                 )  # appending the model name makes sort alphabet-consistent
                 add_count += 1
             else:
                 if self._incremental_alpha:
                     # this model has been made already, but this progenitor might lead to a better Incr.Alpha
                     # so we ask the manager to check on that, and save the best progenitor
-                    self._manager.compareProgenitors(new_model, model)
+                    self._manager.compare_progenitors(new_model, model)
         return add_count
 
     # This function processes models from one level, and return models for the next level.
@@ -313,7 +309,7 @@ class OCUtils:
                 len(best_models) < self._search_width
             ):  # or key[0] == last_key[0]:      # comparing keys allows us to select more than <width> models,
                 if True not in [
-                    n.isEquivalentTo(candidate) for n in best_models
+                    n.is_is_equivalent_to(candidate) for n in best_models
                 ]:  # in the case of ties
                     best_models.append(candidate)
             else:
@@ -321,7 +317,7 @@ class OCUtils:
         trunc_count = len(best_models)
         self._total_gen = full_count + self._total_gen
         self._total_kept = trunc_count + self._total_kept
-        mem_used = self._manager.getMemUsage()
+        mem_used = self._manager.get_mem_usage()
         if not self._hide_intermediate_output:
             print(
                 f'{full_count} new models, {trunc_count} kept; '
@@ -333,7 +329,7 @@ class OCUtils:
         sys.stdout.flush()
         if clear_cache_flag:
             for item in new_models_heap:
-                self._manager.deleteModelFromCache(item[1])
+                self._manager.delete_model_from_cache(item[1])
         return best_models
 
     # This function returns the name of the search strategy to use based on
@@ -363,25 +359,24 @@ class OCUtils:
     def sb_search_type(self):
         if self.search_dir == "up":
             if self._search_filter == "loopless":
-                search_mode = "sb-loopless-up"
+                return SBSearchType.LOOPLESS_UP
             elif self._search_filter == "disjoint":
-                search_mode = "sb-disjoint-up"
+                return SBSearchType.DISJOINT_UP
             elif self._search_filter == "chain":
-                search_mode = "sb-chain-up"
+                return SBSearchType.CHAIN_UP
             else:
-                search_mode = "sb-full-up"
+                return SBSearchType.FULL_UP
         else:
             if self._search_filter == "loopless":
-                search_mode = "sb-loopless-down"
+                return SBSearchType.LOOPLESS_DOWN
             elif self._search_filter == "disjoint":
                 # This mode is not implemented
-                search_mode = "sb-disjoint-down"
+                return SBSearchType.DISJOINT_DOWN
             elif self._search_filter == "chain":
                 # This mode is not implemented
-                search_mode = "sb-chain-down"
+                return SBSearchType.CHAIN_DOWN
             else:
-                search_mode = "sb-full-down"
-        return search_mode
+                return SBSearchType.FULL_DOWN
 
     def do_search(self, print_options):
         if self._manager.is_directed():
@@ -488,7 +483,7 @@ class OCUtils:
                 if self._incremental_alpha:
                     self._manager.compute_incremental_alpha(model)
                 self._next_id += 1
-                model.setID(self._next_id)
+                model.set_id(self._next_id)
                 # model.deleteFitTable()  #recover fit table memory
                 self._report.add_model(model)
             old_models = new_models
@@ -514,33 +509,33 @@ class OCUtils:
         ) and self.search_dir == "up":
             self._start_model = "bottom"
         if self._start_model == "top":
-            start = self._manager.getTopRefModel()
+            start = self._manager.get_top_ref_model()
         elif self._start_model == "bottom":
-            start = self._manager.getBottomRefModel()
+            start = self._manager.get_bottom_ref_model()
         else:
-            start = self._manager.makeSbModel(self._start_model, 1)
+            start = self._manager.make_model(self._start_model, True)
         self.set_ref_model(self._ref_model)
         if self.search_dir == "down":
-            self._manager.setSearchDirection(1)
+            self._manager.set_search_direction(SearchDirection.DOWN)
         else:
-            self._manager.setSearchDirection(0)
+            self._manager.set_search_direction(SearchDirection.UP)
         if print_options:
             self.print_options(1)
-        self._manager.printBasicStatistics()
-        self._manager.computeL2Statistics(start)
-        self._manager.computeDependentStatistics(start)
-        if self._percent_correct and self._manager.isDirected():
-            self._manager.computePercentCorrect(start)
+        self._manager.print_basic_statistics()
+        self._manager.compute_l2_statistics(start)
+        self._manager.compute_dependent_statistics(start)
+        if self._percent_correct and self._manager.is_directed():
+            self._manager.compute_percent_correct(start)
         if self._incremental_alpha:
-            self._manager.computeIncrementalAlpha(start)
+            self._manager.compute_incremental_alpha(start)
         start.level = 0
-        self._report.addModel(start)
+        self._report.add_model(start)
         self._next_id = 1
-        start.setID(self._next_id)
-        start.setProgenitor(start)
+        start.set_id(self._next_id)
+        start.set_progenitor(start)
         old_models = [start]
         try:
-            self._manager.setSearchType(self.sb_search_type())
+            self._manager.set_search_type(self.sb_search_type())
         except Exception:
             print(f"ERROR: UNDEFINED SEARCH TYPE {self.sb_search_type()}")
             return
@@ -550,7 +545,7 @@ class OCUtils:
         start_time = time.time()
         last_time = start_time
         for i in range(1, self._search_levels + 1):
-            if self._manager.getMemUsage() > max_memory_to_use:
+            if self._manager.get_mem_usage() > max_memory_to_use:
                 print("Memory limit exceeded: stopping search")
                 break
             print(i, ':', end=' ')  # progress indicator
@@ -565,18 +560,18 @@ class OCUtils:
             for model in new_models:
                 # Make sure all statistics are calculated. This won't do anything if we did it already.
                 if not self._no_ipf:
-                    self._manager.computeL2Statistics(model)
-                    self._manager.computeDependentStatistics(model)
+                    self._manager.compute_l2_statistics(model)
+                    self._manager.compute_dependent_statistics(model)
                 if self._bp_statistics:
-                    self._manager.computeBPStatistics(model)
+                    self._manager.compute_bp_statistics(model)
                 if self._percent_correct:
-                    self._manager.computePercentCorrect(model)
+                    self._manager.compute_percent_correct(model)
                 if self._incremental_alpha:
-                    self._manager.computeIncrementalAlpha(model)
+                    self._manager.compute_incremental_alpha(model)
                 self._next_id += 1
-                model.setID(self._next_id)
-                model.deleteFitTable()  # recover fit table memory
-                self._report.addModel(model)
+                model.set_id(self._next_id)
+                model.delete_fit_table()  # recover fit table memory
+                self._report.add_model(model)
             old_models = new_models
             # if the list is empty, stop. Also, only do one step for chain search
             if self._search_filter == "chain" or len(old_models) == 0:
@@ -594,9 +589,9 @@ class OCUtils:
             sort_name = self.sort_name
         self._report.sort(sort_name, self._sort_dir)
         if self._report_file != "":
-            self._report.writeReport(self._report_file)
+            self._report.write_report(self._report_file)
         else:
-            self._report.printReport()
+            self._report.print_report()
 
         # -- self._manager.dumpRelations()
 
@@ -821,14 +816,14 @@ class OCUtils:
                 print("<hr>")
 
     def generate_graph(self, model):
-        varlist = self._report.variableList()
+        varlist = self._report.variable_list
         hide_iv = self._hide_isolated
         hide_dv = self._graph_hideDV
         full_var_names = self._full_var_names
         dv_name = ""
         all_higher_order = self._layout_style == "bipartite"
         if self.is_directed():
-            dv_name = self._report.dvName()
+            dv_name = self._report.dv_name
 
         if model in self.graphs:
             pass
@@ -883,15 +878,15 @@ class OCUtils:
         # self._manager.setValuesAreFunctions(self._values_are_functions)
         if print_options:
             self.print_options(0)
-        self._manager.printBasicStatistics()
+        self._manager.print_basic_statistics()
         for model_name in self._fit_models:
             self.set_ref_model(self._ref_model)
-            model = self._manager.makeSbModel(model_name, 1)
+            model = self._manager.make_model(model_name, True)
             self.do_all_computations(model)
             if self._default_fit_model != "":
                 try:
-                    default_model = self._manager.makeSbModel(
-                        self._default_fit_model, 1
+                    default_model = self._manager.make_model(
+                        self._default_fit_model, True
                     )
                 except Exception:
                     print(
@@ -899,8 +894,8 @@ class OCUtils:
                         + self._default_fit_model
                     )
                     sys.exit(0)
-                self._report.setDefaultFitModel(default_model)
-            self._report.printConditional_DV(
+                self._report.set_default_fit_model(default_model)
+            self._report.print_conditional_dv(
                 model, self._calc_expected_dv, self._fit_classifier_target
             )
 
@@ -909,7 +904,7 @@ class OCUtils:
     def occam2_settings(self):
         option = self._manager.get_option("action")
         if option != "":
-            self._action = option
+            self._action = Action(option)
         option = self._manager.get_option("search-levels")
         if option != "":
             self._search_levels = int(float(option))
@@ -941,18 +936,18 @@ class OCUtils:
             else:
                 self._ref_model = "bottom"
 
-        if self._action is ActionType.SEARCH:
+        if self._action is Action.SEARCH:
             self._manager.set_ddf_method(self._ddf_method)
             self.do_search(print_options)
             self.print_search_report()
-        elif self._action is ActionType.FIT:
+        elif self._action is Action.FIT:
             self._manager.set_ddf_method(self._ddf_method)
             self.do_fit(print_options, only_gfx)
-        elif self._action is ActionType.SBSEARCH:
+        elif self._action is Action.SBSEARCH:
             # self._manager.setDDFMethod(self._DDFMethod)
             self.do_sb_search(print_options)
             self.print_search_report()
-        elif self._action is ActionType.SBFIT:
+        elif self._action is Action.SBFIT:
             self.do_sb_fit(print_options)
         else:
             print("Error: unknown operation", self._action)
@@ -984,7 +979,7 @@ class OCUtils:
             self.print_option("Search sort by", self.sort_name)
             self.print_option("Search preference", self._search_sort_dir)
             self.print_option("Report sort by", self._report_sort_name)
-            self.print_option("Report preference", self._sort_dir)
+            self.print_option("Report preference", self._sort_dir.value)
 
         if r_type == 0:
             self.print_option(
@@ -1025,24 +1020,22 @@ class OCUtils:
 
         # Initialize a manager and the starting model
         self.set_ref_model(self._ref_model)
-        self._manager.setSearchDirection(
-            1 if (self.search_dir == "down") else 0
-        )
-        self._manager.setSearchType(self.search_type())
+        self._manager.set_search_direction(SearchDirection(self.search_dir))
+        self._manager.set_search_type(self.search_type())
 
         # Set up the starting model
         start = (
-            self._manager.getTopRefModel()
+            self._manager.get_top_ref_model()
             if (self.search_dir == "down")
-            else self._manager.getBottomRefModel()
+            else self._manager.get_bottom_ref_model()
         )
         start.level = 0
-        self._manager.computeL2Statistics(start)
-        self._manager.computeDependentStatistics(start)
-        self._report.addModel(start)
+        self._manager.compute_l2_statistics(start)
+        self._manager.compute_dependent_statistics(start)
+        self._report.add_model(start)
         self._next_id = 1
-        start.setID(self._next_id)
-        start.setProgenitor(start)
+        start.set_id(self._next_id)
+        start.set_progenitor(start)
 
         # Perform the search to find the best model
         old_models = [start]
@@ -1052,11 +1045,11 @@ class OCUtils:
                 i, old_models, i != self._search_levels
             )
             for model in new_models:
-                self._manager.computeL2Statistics(model)
-                self._manager.computeDependentStatistics(model)
+                self._manager.compute_l2_statistics(model)
+                self._manager.compute_dependent_statistics(model)
                 self._next_id += 1
-                model.setID(self._next_id)
-                self._report.addModel(model)
+                model.set_id(self._next_id)
+                self._report.add_model(model)
             old_models = new_models
 
         self._report.sort(self.sort_name, self._sort_dir)
@@ -1064,9 +1057,11 @@ class OCUtils:
         self._hide_intermediate_output = False
         return best
 
+    # Not used?
     def compute_unary_statistic(self, model, key, modname):
         return self._manager.computeUnaryStatistic(model, key, modname)
 
+    # Not used?
     def compute_binary_statistic(self, compare_order, key):
         file_ref, model_ref, file_comp, model_comp = compare_order
         return self._manager.computeBinaryStatistic(

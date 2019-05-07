@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 
 class ModelType(Enum):
@@ -19,9 +20,16 @@ class Model:
         self._ref = ref
         self._id = 0
 
+    def __lt__(self, other: 'Model') -> bool:
+        return self.name < other.name
+
     @property
     def ref(self):
         return self._ref
+
+    @property
+    def name(self) -> str:
+        return self.get_attribute_value("name")
 
     @property
     def print_name(self) -> str:
@@ -55,3 +63,12 @@ class Model:
 
     def set_progenitor(self, progenitor: 'Model') -> None:
         self._ref.setProgenitor(progenitor.ref)
+
+    def get_attribute_value(self, attribute: str) -> Union[str, float]:
+        return self._ref.get(attribute)
+
+    def is_is_equivalent_to(self, model: 'Model') -> bool:
+        return self._ref.isEquivalentTo(model.ref)
+
+    def delete_fit_table(self) -> None:
+        self._ref.deleteFitTable()

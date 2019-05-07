@@ -1789,22 +1789,21 @@ DefinePyFunction(Report, dvName) {
 
 DefinePyFunction(Report, variableList) {
     Report* report = ObjRef(self, Report);
-    VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
-    VariableList* varlist = mgr->getVariableList();
-    long var_count = varlist->getVarCount();
+    VBMManager* manager = dynamic_cast<VBMManager*>(report->manager);
+    VariableList *variable_list = manager->getVariableList();
 
-    PyObject* ret = PyList_New(var_count);
-    for (long i = 0; i < var_count; ++i) {
-
-        const char* printName = varlist->getVariable(i)->name;
-        const char* abbrevName = varlist->getVariable(i)->abbrev;
-        PyObject* name = PyUnicode_FromString(printName);
-        PyObject* abbrev = PyUnicode_FromString(abbrevName);
-        PyObject* names = PyTuple_Pack(2,name,abbrev);
-        PyList_SetItem(ret, i, names);
+    //Variable list is NULL
+    if(!variable_list)
+    {
+       Py_INCREF(Py_None);
+       return Py_None;
     }
 
-    return ret;
+    PVariableList *py_variable_list = ObjNew(VariableList);
+    py_variable_list->obj = variable_list;
+    Py_INCREF(py_variable_list);
+
+    return (PyObject*) py_variable_list;
 }
 
 DefinePyFunction(Report, bestModelData) {

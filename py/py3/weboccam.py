@@ -17,11 +17,15 @@ import time
 import traceback
 import zipfile
 
+sys.path.insert(0, "./wrappers")
+
 from ocutils import OCUtils
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 from common import *
 import ocGraph
+
+from wrappers.report import SortDirection
 
 cgitb.enable(display=1)
 VERSION = "3.4.0"
@@ -679,7 +683,7 @@ def action_search(form_fields):
     else:
         oc.set_report_separator(OCUtils.HTML_FORMAT)
 
-    oc.set_sort_dir(form_fields.get("sortdir", ""))
+    oc.set_sort_dir(SortDirection(form_fields.get("sortdir", "")))
     levels = form_fields.get("searchlevels")
     if levels and levels > 0:
         oc.set_search_levels(levels)
@@ -958,7 +962,7 @@ def action_batch_compare(form_fields):
         oc.set_action("search")
 
         # Hardcoded settings (for now):
-        oc.set_sort_dir("descending")
+        oc.set_sort_dir(SortDirection.DESCENDING)
         oc.set_search_sort_dir("descending")  # try to maximize dBIC or dAIC.
         oc.set_ref_model("bottom")  # Always uses bottom as reference.
 
@@ -1145,7 +1149,7 @@ def action_sb_search(form_fields):
         oc.set_report_separator(OCUtils.COMMA_SEP)
     else:
         oc.set_report_separator(OCUtils.HTML_FORMAT)
-    oc.set_sort_dir(form_fields.get("sortdir", ""))
+    oc.set_sort_dir(SortDirection(form_fields.get("sortdir", "")))
     levels = form_fields.get("searchlevels")
     if levels and levels > 0:
         oc.set_search_levels(levels)
