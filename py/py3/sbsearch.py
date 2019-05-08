@@ -8,10 +8,13 @@
 import resource
 import sys
 
+sys.path.insert(0, "./wrappers")
+
 # sys.path.append("/www")
 import time
 
-from ocutils import OCUtils
+from ocutils import OCUtils, Action
+from wrappers.report import SortDirection, SeparatorType
 
 resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 
@@ -54,10 +57,10 @@ util.init_from_command_line(sys.argv[0:2])  # initialize with the data file
 # To force a particular attribute to be printed as an integer, append "$I" to the name (e.g., Level$I)
 
 # Set separator between report fields.  [1=tab, 2=comma, 3=space fill, 4=HTML]
-util.set_report_separator(3)
+util.set_report_separator(SeparatorType.SPACE)
 
 # Set the sorting direction for reporting.
-util.set_sort_dir("descending")
+util.set_sort_dir(SortDirection.DESCENDING)
 
 # Set the search width & number of levels.
 util.set_search_width(swidth)
@@ -80,7 +83,7 @@ util.set_search_sort_dir("descending")
 util.set_search_filter(filter_)
 
 # Set the action [fit, search].  Skip this to set it from the data file.
-util.set_action("SBsearch")
+util.set_action(Action.SBSEARCH)
 
 # Set the model attribute for sorting the report, if it is different from the attribute used during search.
 # Generally this isn't needed.

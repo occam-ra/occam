@@ -9,7 +9,10 @@ import resource
 import sys
 import time
 
+sys.path.insert(0, "./wrappers")
+
 from ocutils import OCUtils
+from wrappers.report import SortDirection
 
 resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 # sys.path.append("/www")
@@ -58,7 +61,7 @@ def main():
     util.set_skip_nominal(1)
 
     # Set the sorting direction for reporting.
-    util.set_sort_dir("descending")
+    util.set_sort_dir(SortDirection.DESCENDING)
 
     # Set the search width & number of levels.
     util.set_search_width(swidth)

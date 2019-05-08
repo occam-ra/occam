@@ -1,7 +1,7 @@
 from enum import Enum
 from model import Model
 from report import Report
-from typing import Sequence
+from typing import Sequence, Union
 
 
 class SearchDirection(Enum):
@@ -19,6 +19,18 @@ class SearchType(Enum):
     DISJOINT_DOWN = 'disjoint-down'
     CHAIN_DOWN = 'chain-down'
     FULL_DOWN = 'full-down'
+
+
+class SBSearchType(Enum):
+    LOOPLESS_UP = 'sb-loopless-up'
+    DISJOINT_UP = 'sb-disjoint-up'
+    CHAIN_UP = 'sb-chain-up'
+    FULL_UP = 'sb-full-up'
+
+    LOOPLESS_DOWN = 'sb-loopless-down'
+    DISJOINT_DOWN = 'sb-disjoint-down'
+    CHAIN_DOWN = 'sb-chain-down'
+    FULL_DOWN = 'sb-full-down'
 
 
 class Manager:
@@ -92,7 +104,7 @@ class Manager:
     def set_search_direction(self, direction: SearchDirection) -> None:
         self._ref.setSearchDirection(direction.value)
 
-    def set_search_type(self, type_: SearchType) -> None:
+    def set_search_type(self, type_: Union[SearchType, SBSearchType]) -> None:
         self._ref.setSearchType(type_.value)
 
     def get_model_by_search_dir(self, direction: SearchDirection) -> Model:
@@ -104,8 +116,8 @@ class Manager:
     def has_test_data(self) -> bool:
         return self._ref.hasTestData()
 
-    def search_one_level(self) -> Sequence[Model]:
-        model_ref_list = self._ref.searchOneLevel()
+    def search_one_level(self, model: Model) -> Sequence[Model]:
+        model_ref_list = self._ref.searchOneLevel(model.ref)
 
         return tuple(Model(model_ref) for model_ref in model_ref_list)
 

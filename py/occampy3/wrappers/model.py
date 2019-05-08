@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Union
 
 
 class ModelType(Enum):
@@ -19,6 +20,24 @@ class Model:
         # Create new reference if one not given
         self._ref = ref
         self._id = 0
+
+    def __lt__(self, other: 'Model') -> bool:
+        return self.name < other.name
+
+    def __eq__(self, other: 'Model') -> bool:
+        return self._ref.isEquivalentTo(other.ref)
+
+    @property
+    def ref(self):
+        return self._ref
+
+    @property
+    def name(self) -> str:
+        return self.get_attribute_value("name")
+
+    @property
+    def print_name(self) -> str:
+        return self._ref.getPrintName()
 
     @property
     def id_(self) -> int:
@@ -59,6 +78,12 @@ class Model:
 
     def set_progenitor(self, progenitor: 'Model') -> None:
         self._ref.setProgenitor(progenitor.ref)
+
+    def get_attribute_value(self, attribute: str) -> Union[str, float]:
+        return self._ref.get(attribute)
+
+    def delete_fit_table(self) -> None:
+        self._ref.deleteFitTable()
 
     def delete_relation_links(self):
         self._ref.deleteRelationLinks()
