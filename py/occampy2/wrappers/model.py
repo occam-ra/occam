@@ -60,7 +60,7 @@ class Model:
     def get_progenitor(self):
         return self._ref.getProgenitor()
 
-    def set_progenitor(self, progenitor: 'Model'):
+    def set_progenitor(self, progenitor):
         self._ref.setProgenitor(progenitor.ref)
 
     def delete_relation_links(self):
