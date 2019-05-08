@@ -12,7 +12,7 @@ class Model:
     Wrapper class for Model
     """
 
-    def __init__(self, ref=None) -> None:
+    def __init__(self, ref=None):
         """
         :param: ref: the reference to the Model object returned from the CPP engine
         """
@@ -21,19 +21,19 @@ class Model:
         self._id = 0
 
     @property
-    def id_(self) -> int:
+    def id_(self):
         return self._id
 
     @id_.setter
-    def id_(self, id_: int) -> None:
+    def id_(self, id_):
         self._id = id_
 
     @property
-    def fit_table(self) -> None:
+    def fit_table(self):
         pass
 
     @fit_table.setter
-    def fit_table(self, model) -> None:
+    def fit_table(self, model):
         self._ref.makeFitTable(model)
 
     @fit_table.deleter
@@ -44,27 +44,27 @@ class Model:
         pass
 
     @property
-    def print_name(self) -> str:
+    def print_name(self):
         return self._ref.getPrintName()
 
-    def get_struct_matrix(self) -> list:
+    def get_struct_matrix(self):
         return self._ref.getStructMatrix()
 
     @property
     def ref(self):
         return self._ref
 
-    def is_equivalent_to(self) -> bool:
+    def is_equivalent_to(self):
         return self._ref.isEquivalentTo()
 
-    def get_progenitor(self) -> Model:
+    def get_progenitor(self):
         return self._ref.getProgenitor()
 
-    def set_progenitor(self, progenitor: 'Model') -> None:
+    def set_progenitor(self, progenitor: 'Model'):
         self._ref.setProgenitor(progenitor.ref)
 
     def delete_relation_links(self):
         self._ref.deleteRelationLinks()
 
-    def dump(self) -> None:
+    def dump(self):
         self._ref.dump()
