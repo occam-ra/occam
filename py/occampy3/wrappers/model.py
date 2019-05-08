@@ -19,7 +19,6 @@ class Model:
         # Create new reference if one not given
         self._ref = ref
         self._id = 0
-        self._progenitor = 0
 
     @property
     def id_(self) -> int:
@@ -52,17 +51,17 @@ class Model:
         return self._ref.getStructMatrix()
 
     @property
-    def ref(self):
+    def get_ref(self):
         return self._ref
 
     def is_equivalent_to(self) -> bool:
-        return bool(self._ref.isEquivalentTo())
+        return self._ref.isEquivalentTo()
 
     def get_progenitor(self) -> Model:
         return self._ref.getProgenitor()
 
-    def set_progenitor(self) -> None:
-        self._progenitor = self._ref.setProgenitor()
+    def set_progenitor(self, progenitor: 'Model') -> None:
+        self._ref.setProgenitor(progenitor.ref)
 
     def delete_relation_links(self):
         self._ref.deleteRelationLinks()
