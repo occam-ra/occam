@@ -1,5 +1,6 @@
 from enum import Enum
 from model import Model
+from report import Report
 from typing import Sequence
 
 
@@ -55,11 +56,17 @@ class Manager:
     def set(self, **kwargs):
         pass
 
+    def get_report(self) -> Report:
+        return Report(self._ref.Report())
+
     def init_from_command_line(self, args: Sequence[str]) -> None:
         self._ref.initFromCommandLine(args)
 
     def get_option(self, option_name: str) -> str:
         return self._ref.getOption(option_name)
+
+    def get_option_list(self, option_name: str) -> Sequence[str]:
+        return self._ref.getOptionList(option_name)
 
     def is_directed(self) -> bool:
         return self._ref.isDirected()
@@ -69,6 +76,9 @@ class Manager:
 
     def compute_l2_statistics(self, model: Model) -> None:
         self._ref.computeL2Statistics(model.ref)
+
+    def compute_dfs_statistics(self, model: Model) -> None:
+        self._ref.computeDFStatistics(model.ref)
 
     def compute_dependent_statistics(self, model: Model) -> None:
         self._ref.computeDependentStatistics(model.ref)
@@ -114,6 +124,9 @@ class Manager:
     def compute_incremental_alpha(self, model: Model) -> None:
         self._ref.computeIncrementalAlpha(model.ref)
 
+    def make_fit_table(self, model: Model) -> None:
+        self._ref.makeFitTable(model.ref)
+
     def print_options(self, print_html: bool, skip_nominal: bool) -> None:
         self._ref.printOptions(print_html, skip_nominal)
 
@@ -122,5 +135,5 @@ class Manager:
         self._ref.printBasicStatistics()
 
     # TODO: remove and replace with the underlying functionality in the future
-    def print_fit_report(self) -> None:
-        self._ref.printFitReport()
+    def print_fit_report(self, model: Model) -> None:
+        self._ref.printFitReport(model.ref)
