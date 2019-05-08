@@ -51,14 +51,11 @@ class Model:
         return self._ref.getStructMatrix()
 
     @property
-    def get_ref(self):
+    def ref(self):
         return self._ref
 
     def is_equivalent_to(self) -> bool:
         return self._ref.isEquivalentTo()
-
-    def get_progenitor(self) -> Model:
-        return self._ref.getProgenitor()
 
     def set_progenitor(self, progenitor: 'Model') -> None:
         self._ref.setProgenitor(progenitor.ref)
