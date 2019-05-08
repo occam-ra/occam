@@ -51,7 +51,8 @@ class Model:
     def get_struct_matrix(self) -> list:
         return self._ref.getStructMatrix()
 
-    def get_ref(self):
+    @property
+    def ref(self):
         return self._ref
 
     def is_equivalent_to(self) -> bool:
