@@ -16,31 +16,24 @@ class Model:
         """
         :param: ref: the reference to the Model object returned from the CPP engine
         """
+        # Create new reference if one not given
         self._ref = ref
         self._id = 0
-
-    @property
-    def ref(self):
-        return self._ref
-
-    @property
-    def print_name(self) -> str:
-        return self._ref.getPrintName()
 
     @property
     def id_(self) -> int:
         return self._id
 
     @id_.setter
-    def id_(self, id_):
+    def id_(self, id_: int) -> None:
         self._id = id_
 
     @property
-    def fit_table(self):
+    def fit_table(self) -> None:
         pass
 
     @fit_table.setter
-    def fit_table(self, model):
+    def fit_table(self, model) -> None:
         self._ref.makeFitTable(model)
 
     @fit_table.deleter
@@ -50,8 +43,25 @@ class Model:
     def set(self, **kwargs):
         pass
 
-    def set_id(self, id_: int) -> None:
-        self._ref.setID(id_)
+    @property
+    def print_name(self) -> str:
+        return self._ref.getPrintName()
+
+    def get_struct_matrix(self) -> list:
+        return self._ref.getStructMatrix()
+
+    @property
+    def ref(self):
+        return self._ref
+
+    def is_equivalent_to(self) -> bool:
+        return self._ref.isEquivalentTo()
 
     def set_progenitor(self, progenitor: 'Model') -> None:
         self._ref.setProgenitor(progenitor.ref)
+
+    def delete_relation_links(self):
+        self._ref.deleteRelationLinks()
+
+    def dump(self) -> None:
+        self._ref.dump()
