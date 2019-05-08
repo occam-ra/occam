@@ -309,7 +309,7 @@ class OCUtils:
                 len(best_models) < self._search_width
             ):  # or key[0] == last_key[0]:      # comparing keys allows us to select more than <width> models,
                 if True not in [
-                    n.is_is_equivalent_to(candidate) for n in best_models
+                    n == candidate for n in best_models
                 ]:  # in the case of ties
                     best_models.append(candidate)
             else:

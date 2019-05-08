@@ -1583,6 +1583,25 @@ DefinePyFunction(Model, getPrintName)
     return PyUnicode_FromString(model->getPrintName());
 }
 
+DefinePyFunction(Model, getStructMatrix) {
+  int statespace;
+  int Total_const;
+  Model *model = ObjRef(self, Model);
+  PyObject *output_list = PyList_New(0);
+  int **structMatrix = model->getStructMatrix(&statespace, &Total_const);
+  if (structMatrix != NULL) {
+      for (int i = 0; i < Total_const; i++) {
+          PyObject *temp = PyList_New(0);
+          for (int j = 0; j < statespace; j++) {
+              PyObject *val = Py_BuildValue("i", structMatrix[i][j]);
+              PyList_Append(temp, val);
+          }
+          PyList_Append(output_list, temp);
+      }
+  }
+  return output_list;
+}
+
 static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, deleteFitTable),
     PyMethodDef(Model, deleteRelationLinks),
@@ -1594,6 +1613,7 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, setID),
     PyMethodDef(Model, setProgenitor),
     PyMethodDef(Model, getPrintName),
+    PyMethodDef(Model, getStructMatrix),
     { nullptr }
 };
 
@@ -2022,7 +2042,7 @@ DefinePyFunction(VariableList, isDirected)
     return Py_False;
 }
 
-static struct PyMethodDef VariableList_methods[] = 
+static struct PyMethodDef VariableList_methods[] =
 {
     PyMethodDef(VariableList, getVarCount),
     PyMethodDef(VariableList, getVariable),
