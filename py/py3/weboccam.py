@@ -19,13 +19,13 @@ import zipfile
 
 sys.path.insert(0, "./wrappers")
 
-from ocutils import OCUtils
+from ocutils import OCUtils, Action
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 from common import *
 import ocGraph
 
-from wrappers.report import SortDirection
+from wrappers.report import ReportSortName, SortDirection
 
 cgitb.enable(display=1)
 VERSION = "3.4.0"
@@ -724,8 +724,8 @@ def action_search(form_fields):
     if form_fields["evalmode"] == "bp":
         reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
         oc.set_noIPF(true)
-        if report_sort == "information": report_sort = "bp_information"
-        elif report_sort == "alpha": report_sort = "bp_alpha"
+        if report_sort == ReportSortName.INFORMATION: report_sort = ReportSortName.BP_INFORMATION
+        elif report_sort == ReportSortName.ALPHA: report_sort = ReportSortName.BP_ALPHA
         if search_sort == "information": search_sort = "bp_information"
         elif search_sort == "alpha": search_sort = "bp_alpha"
         if oc.is_directed():
@@ -741,7 +741,7 @@ def action_search(form_fields):
     if (
         form_fields.get("show_alpha", "")
         or search_sort == "alpha"
-        or report_sort == "alpha"
+        or report_sort == ReportSortName.ALPHA
     ):
         reportvars += ", alpha"
     reportvars += ", information"
@@ -751,13 +751,13 @@ def action_search(form_fields):
     if (
         form_fields.get("show_aic", "")
         or search_sort == "aic"
-        or report_sort == "aic"
+        or report_sort == ReportSortName.AIC
     ):
         reportvars += ", aic"
     if (
         form_fields.get("show_bic", "")
         or search_sort == "bic"
-        or report_sort == "bic"
+        or report_sort == ReportSortName.BIC
     ):
         reportvars += ", bic"
 
@@ -778,7 +778,7 @@ def action_search(form_fields):
             form_fields.get("show_pct", "")
             or form_fields.get("show_pct_cover", "")
             or search_sort == "pct_correct_data"
-            or report_sort == "pct_correct_data"
+            or report_sort == ReportSortName.PCT_CORRECT_DATA
         ):
             reportvars += ", pct_correct_data"
             if form_fields.get("show_pct_cover", ""):
@@ -1189,8 +1189,8 @@ def action_sb_search(form_fields):
     if form_fields["evalmode"] == "bp":
         reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
         oc.set_noIPF(true)
-        if report_sort == "information": report_sort = "bp_information"
-        elif report_sort == "alpha": report_sort = "bp_alpha"
+        if report_sort == "information": report_sort = ReportSortName.BP_INFORMATION
+        elif report_sort == ReportSortName.ALPHA: report_sort = ReportSortName.BP_ALPHA
         if search_sort == "information": search_sort = "bp_information"
         elif search_sort == "alpha": search_sort = "bp_alpha"
         if oc.is_directed():
@@ -1206,7 +1206,7 @@ def action_sb_search(form_fields):
     if (
         form_fields.get("show_alpha", "")
         or search_sort == "alpha"
-        or report_sort == "alpha"
+        or report_sort == ReportSortName.ALPHA
     ):
         reportvars += ", alpha"
     reportvars += ", information"
@@ -1216,13 +1216,13 @@ def action_sb_search(form_fields):
     if (
         form_fields.get("show_aic", "")
         or search_sort == "aic"
-        or report_sort == "aic"
+        or report_sort == ReportSortName.AIC
     ):
         reportvars += ", aic"
     if (
         form_fields.get("show_bic", "")
         or search_sort == "bic"
-        or report_sort == "bic"
+        or report_sort == ReportSortName.BIC
     ):
         reportvars += ", bic"
 
@@ -1243,7 +1243,7 @@ def action_sb_search(form_fields):
             form_fields.get("show_pct", "")
             or form_fields.get("show_pct_cover", "")
             or search_sort == "pct_correct_data"
-            or report_sort == "pct_correct_data"
+            or report_sort == ReportSortName.PCT_CORRECT_DATA
         ):
             reportvars += ", pct_correct_data"
             if form_fields.get("show_pct_cover", ""):

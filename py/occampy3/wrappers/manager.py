@@ -7,6 +7,7 @@ from typing import Sequence, Union
 class SearchDirection(Enum):
     UP = 0
     DOWN = 1
+    DEFAULT = 2
 
 
 class SearchType(Enum):
@@ -33,6 +34,13 @@ class SBSearchType(Enum):
     FULL_DOWN = 'sb-full-down'
 
 
+class SearchFilter(Enum):
+    LOOPLESS = 'loopless'
+    DISJOINT = 'disjoint'
+    CHAIN = 'chain'
+    ALL = 'all'
+
+
 class Manager:
     """
     Wrapper class for Manager
@@ -46,27 +54,10 @@ class Manager:
         self._ref = ref
         self._model = None
 
-    @property
-    def model(self, type_='default', make_project=1):
-        if type_ == 'top':
-            model_ref = self._ref.getTopRefModel()
-        elif type_ == 'bottom':
-            model_ref = self._ref.getBottomRefModel()
-        else:
-            model_ref = self._ref.makeModel(type_, make_project)
-        self._model = Model(model_ref)
-        return self._model
-
-    @property
-    def search_type(self):
-        pass
-
-    @search_type.setter
     def search_type(self, search_type):
         self._ref.setSearchType(search_type)
 
-    def set(self, **kwargs):
-        pass
+    search_type = property(None, search_type)  # Can set but not get
 
     def get_report(self) -> Report:
         return Report(self._ref.Report())
@@ -95,23 +86,34 @@ class Manager:
     def compute_dependent_statistics(self, model: Model) -> None:
         self._ref.computeDependentStatistics(model.ref)
 
-    def get_top_ref_model(self) -> Model:
+    @property
+    def top_ref_model(self) -> Model:
         return Model(self._ref.getTopRefModel())
 
-    def get_bottom_ref_model(self) -> Model:
+    @property
+    def bottom_ref_model(self) -> Model:
         return Model(self._ref.getBottomRefModel())
 
-    def set_search_direction(self, direction: SearchDirection) -> None:
+    def search_direction(self, direction: SearchDirection) -> None:
         self._ref.setSearchDirection(direction.value)
 
-    def set_search_type(self, type_: Union[SearchType, SBSearchType]) -> None:
+    search_direction = property(None, search_direction)
+
+    def search_type(self, type_: Union[SearchType, SBSearchType]) -> None:
         self._ref.setSearchType(type_.value)
 
-    def get_model_by_search_dir(self, direction: SearchDirection) -> Model:
-        if direction is SearchDirection.UP:
-            return self.get_top_ref_model()
+    search_type = property(None, search_type)
 
-        return self.get_bottom_ref_model()
+    def ref_model(model) -> None:
+        self._ref.setRefModel(model)
+
+    ref_model = property(None, ref_model)
+
+    def get_model_by_search_dir(self, direction: SearchDirection) -> Model:
+        if direction == SearchDirection.UP:
+            return self.top_ref_model
+
+        return self.bottom_ref_model
 
     def has_test_data(self) -> bool:
         return self._ref.hasTestData()

@@ -15,6 +15,17 @@ class SortDirection(Enum):
     DESCENDING = "descending"
 
 
+class ReportSortName(Enum):
+    INFORMATION = "information"
+    BPT = "bp_t"
+    PCT_CORRECT_DATA = "pct_correct_data"
+    AIC = "aic"
+    BIC = "bic"
+    ALPHA = "alpha"
+    BP_ALPHA = "bp_alpha"
+    BP_INFORMATION = "bp_information"
+
+
 class Report:
     """
     Wrapper class for Report
@@ -22,7 +33,7 @@ class Report:
 
     def __init__(self, ref):
         """
-        :param: ref: the reference to the Report object returned from the CPP engine
+        :param ref: Reference to the Report object returned from the CPP engine
         """
         self._ref = ref  # type Report_cpp
 

@@ -11,8 +11,10 @@ import time
 
 sys.path.insert(0, "./wrappers")
 
-from ocutils import OCUtils
-from wrappers.report import SortDirection
+from ocutils import OCUtils, Action
+from wrappers.manager import SearchFilter
+from wrappers.model import ModelType
+from wrappers.report import SortDirection, ReportSortName
 
 resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 # sys.path.append("/www")
@@ -36,9 +38,9 @@ def main():
         slevels = 7
 
     if len(sys.argv) >= 5:
-        filter_ = sys.argv[4]
+        filter_ = SearchFilter(sys.argv[4])
     else:
-        filter_ = "loopless"
+        filter_ = SearchFilter.LOOPLESS
 
     util = OCUtils("VB")  # create a variable-based manager
     t1 = time.time()
@@ -71,27 +73,27 @@ def main():
 
     # Set the start model for search [top, bottom, default, a specific model].
     # Skip this to use the model set in the data file.
-    util.set_start_model("default")
+    util.set_start_model(ModelType.DEFAULT)
     # util.set_start_model("IV:A38Z")
 
     # Set the ref model [top, bottom, default, a specific model].
-    util.set_ref_model("default")
+    util.set_ref_model(ModelType.DEFAULT)
 
     # Set the sorting direction for the search. ["ascending" prefers lower values, "descending" prefers higher]
-    util.set_search_sort_dir("descending")
+    util.set_search_sort_dir(SortDirection.DESCENDING)
     # Set the search filter [all, loopless, disjoint, chain] and search direction [up, down].
     util.set_search_filter(filter_)
 
     # Set the action [fit, search].  Skip this to set it from the data file.
-    util.set_action("search")
+    util.set_action(Action.SEARCH)
 
     # Set the model attribute for sorting the report, if it is different from the attribute used during search.
     # Generally this isn't needed.
-    util.set_report_sort_name("information")
+    util.set_report_sort_name(ReportSortName.INFORMATION)
 
     # Set the model attribute on which sorting is done is done.  This controls the selection
     # of "best models" during search. It can also control reporting (see set_report_sort_name(), below).
-    util.set_report_sort_name("information")
+    util.set_report_sort_name(ReportSortName.INFORMATION)
 
     # util.set_ddf_method(0)
 

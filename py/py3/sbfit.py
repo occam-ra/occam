@@ -16,8 +16,7 @@ from ocutils import OCUtils, Action
 from wrappers.report import SeparatorType
 
 if len(sys.argv) < 3:
-    print(f'Incorrect parameters.\nUsage: {sys.argv[0]} datafile model')
-    print(f'')
+    print(f'Incorrect parameters.\nUsage: {sys.argv[0]} datafile model\n')
     sys.exit()
 
 

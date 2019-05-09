@@ -12,10 +12,11 @@ import sys
 import time
 
 from enum import Enum
-from wrappers.vbm_manager import VBMManager
-from wrappers.sbm_manager import SBMManager
+from wrappers.manager import SBSearchType, SearchDirection, SearchFilter, SearchType
+from wrappers.model import ModelType
 from wrappers.report import SeparatorType, SortDirection
-from wrappers.manager import SearchDirection, SearchType, SBSearchType
+from wrappers.sbm_manager import SBMManager
+from wrappers.vbm_manager import VBMManager
 
 totalgen = 0
 totalkept = 0
@@ -30,11 +31,6 @@ class Action(Enum):
 
 
 class OCUtils:
-    # Separator styles for reporting
-    TAB_SEP = 1
-    COMMA_SEP = 2
-    SPACE_SEP = 3
-    HTML_FORMAT = 4
 
     def __init__(self, man="VB"):
         if man == "VB":
@@ -66,26 +62,26 @@ class OCUtils:
         self._next_id = 0
         self._no_ipf = 0
         self._percent_correct = 0
-        self._ref_model = "default"
+        self._ref_model = ModelType.DEFAULT
         self._report = self._manager.get_report()
         self._report.set_separator(SeparatorType.SPACE)  # align columns using spaces
         self._report_file = ""
         self._report_sort_name = ""
-        self._search_filter = "loopless"
+        self._search_filter = SearchFilter.LOOPLESS
         self._search_levels = 7
-        self._search_sort_dir = "ascending"
+        self._search_sort_dir = SortDirection.ASCENDING
         self._search_width = 3
         self._skip_ivi_tables = True
         self._skip_nominal = False
         self._skip_trained_model_table = True
         self._sort_dir = SortDirection.ASCENDING
-        self._start_model = "default"
+        self._start_model = ModelType.DEFAULT
         self._total_gen = 0
         self._total_kept = 0
         self._use_inverse_notation = False
         self._values_are_functions = False
         self.graphs = {}
-        self.search_dir = "default"
+        self.search_dir = SearchDirection.DEFAULT
         self.sort_name = "ddf"
         # self._show_edge_weights = True
         # self._weight_fn = "Mutual Information"
@@ -100,12 +96,7 @@ class OCUtils:
         # if the data uses function values, we want to skip the attributes that require a sample size
         option = self._manager.get_option("function-values")
         if option != "" or self._values_are_functions != 0:
-            report_attributes = re.sub(r",\salpha", '', report_attributes)
-            report_attributes = re.sub(r",\sincr_alpha", '', report_attributes)
-            report_attributes = re.sub(r",\slr", '', report_attributes)
-            report_attributes = re.sub(r",\saic", '', report_attributes)
-            report_attributes = re.sub(r",\sbic", '', report_attributes)
-            pass
+            report_attributes = re.sub(r",\s(?:incr_)?alpha|lr|[ab]ic", '', report_attributes)
         self._report.set_attributes(report_attributes)
         if re.search('bp_t', report_attributes):
             self._bp_statistics = 1
@@ -155,8 +146,8 @@ class OCUtils:
 
     def set_search_sort_dir(self, sort_dir):
         if sort_dir == "":
-            sort_dir = "descending"
-        if sort_dir != "ascending" and sort_dir != "descending":
+            sort_dir = SortDirection.DESCENDING
+        if sort_dir != SortDirection.ASCENDING and sort_dir != SortDirection.DESCENDING:
             raise AttributeError("set_search_sort_dir")
         self._search_sort_dir = sort_dir
 
@@ -181,11 +172,8 @@ class OCUtils:
     def set_alpha_threshold(self, alpha_threshold):
         self._alpha_threshold = float(alpha_threshold)
 
-    def set_ref_model(self, ref_model):
-        self._ref_model = ref_model
-
     def set_start_model(self, start_model):
-        if not (start_model in ["top", "bottom", "default", ""]):
+        if start_model not in [*ModelType, ""]:
             self.check_model_name(start_model)
         self._start_model = start_model
 
@@ -226,7 +214,7 @@ class OCUtils:
         result = 0
         a1 = m1.get(self.sort_name)
         a2 = m2.get(self.sort_name)
-        if self._search_sort_dir == "ascending":
+        if self._search_sort_dir == SortDirection.ASCENDING:
             if a1 > a2:
                 result = 1
             if a1 < a2:
@@ -242,20 +230,11 @@ class OCUtils:
     # on how search is sorting the models. We want to avoid any
     # extra expensive computations
     def compute_sort_statistic(self, model):
-        if (
-            self.sort_name == "h"
-            or self.sort_name == "information"
-            or self.sort_name == "unexplained"
-            or self.sort_name == "alg_t"
-        ):
+        if self.sort_name in {"h", "information", "unexplained", "alg_t"}:
             self._manager.computeInformationsStatistics(model)
         elif self.sort_name == "df" or self.sort_name == "ddf":
             self._manager.compute_dfs_statistics(model)
-        elif (
-            self.sort_name == "bp_t"
-            or self.sort_name == "bp_information"
-            or self.sort_name == "bp_alpha"
-        ):
+        elif self.sort_name in {"bp_t", "bp_information", "bp_alpha"}:
             self._manager.compute_bp_statistics(model)
         elif self.sort_name == "pct_correct_data":
             self._manager.compute_percent_correct(model)
@@ -280,7 +259,7 @@ class OCUtils:
                 # need a fix here (or somewhere) to check for (and remove) models that have the same DF as the progenitor
                 # decorate model with a key for sorting, & push onto heap
                 key = new_model.get_attribute_value(self.sort_name)
-                if self._search_sort_dir == "descending":
+                if self._search_sort_dir == SortDirection.DESCENDING:
                     key = -key
                 heapq.heappush(
                     new_models_heap, ([key, new_model.get_attribute_value("name")], new_model)
@@ -305,13 +284,9 @@ class OCUtils:
         while len(new_models_heap) > 0:
             # make sure that we're adding unique models to the list (mostly for state-based)
             key, candidate = heapq.heappop(new_models_heap)
-            if (
-                len(best_models) < self._search_width
-            ):  # or key[0] == last_key[0]:      # comparing keys allows us to select more than <width> models,
-                if True not in [
-                    n == candidate for n in best_models
-                ]:  # in the case of ties
-                    best_models.append(candidate)
+            # if len(best_models) < self._search_width:  # or key[0] == last_key[0]:      # comparing keys allows us to select more than <width> models,
+            if len(best_models) < self._search_width and not any({n == candidate for n in best_models}):  # in the case of ties
+                best_models.append(candidate)
             else:
                 break
         trunc_count = len(best_models)
@@ -321,9 +296,9 @@ class OCUtils:
         if not self._hide_intermediate_output:
             print(
                 f'{full_count} new models, {trunc_count} kept; '
-                '{self._total_gen + 1} total models, '
-                '{self._total_kept + 1} total kept; '
-                '{mem_used / 1024} kb memory used; ',
+                f'{self._total_gen + 1} total models, '
+                f'{self._total_kept + 1} total kept; '
+                f'{mem_used / 1024} kb memory used; ',
                 end=' '
             )
         sys.stdout.flush()
@@ -335,96 +310,72 @@ class OCUtils:
     # This function returns the name of the search strategy to use based on
     # the search_mode and loopless settings above
     def search_type(self):
-        if self.search_dir == "up":
-            if self._search_filter == "loopless":
-                return SearchType.LOOPLESS_UP
-            elif self._search_filter == "disjoint":
-                return SearchType.DISJOINT_UP
-            elif self._search_filter == "chain":
-                return SearchType.CHAIN_UP
-            else:
-                return SearchType.FULL_UP
+        if self.search_dir == SearchDirection.UP:
+            return {
+                SearchFilter.LOOPLESS: SearchType.LOOPLESS_UP,
+                SearchFilter.DISJOINT: SearchType.DISJOINT_UP,
+                SearchFilter.CHAIN: SearchType.CHAIN_UP
+            }.get(self._search_filter, SearchType.FULL_UP)
         else:
-            if self._search_filter == "loopless":
-                return SearchType.LOOPLESS_DOWN
-            elif self._search_filter == "disjoint":
-                # This mode is not implemented
-                return SearchType.DISJOINT_DOWN
-            elif self._search_filter == "chain":
-                # This mode is not implemented
-                return SearchType.CHAIN_DOWN
-            else:
-                return SearchType.FULL_DOWN
+            return {
+                SearchFilter.LOOPLESS: SearchType.LOOPLESS_DOWN,
+                SearchFilter.DISJOINT: SearchType.DISJOINT_DOWN,
+                SearchFilter.CHAIN: SearchType.CHAIN_DOWN
+            }.get(self._search_filter, SearchType.FULL_DOWN)
 
     def sb_search_type(self):
-        if self.search_dir == "up":
-            if self._search_filter == "loopless":
-                return SBSearchType.LOOPLESS_UP
-            elif self._search_filter == "disjoint":
-                return SBSearchType.DISJOINT_UP
-            elif self._search_filter == "chain":
-                return SBSearchType.CHAIN_UP
-            else:
-                return SBSearchType.FULL_UP
+        if self.search_dir == SearchDirection.UP:
+            return {
+                SearchFilter.LOOPLESS: SBSearchType.LOOPLESS_UP,
+                SearchFilter.DISJOINT: SBSearchType.DISJOINT_UP,
+                SearchFilter.CHAIN: SBSearchType.CHAIN_UP
+            }.get(self._search_filter, SBSearchType.FULL_UP) if self.search_dir == SearchDirection.UP else
         else:
-            if self._search_filter == "loopless":
-                return SBSearchType.LOOPLESS_DOWN
-            elif self._search_filter == "disjoint":
-                # This mode is not implemented
-                return SBSearchType.DISJOINT_DOWN
-            elif self._search_filter == "chain":
-                # This mode is not implemented
-                return SBSearchType.CHAIN_DOWN
-            else:
-                return SBSearchType.FULL_DOWN
+            return {
+                SearchFilter.LOOPLESS: SBSearchType.LOOPLESS_DOWN,
+                SearchFilter.DISJOINT: SBSearchType.DISJOINT_DOWN,
+                SearchFilter.CHAIN: SBSearchType.CHAIN_DOWN
+            }.get(self._search_filter, SBSearchType.FULL_DOWN)
 
     def do_search(self, print_options):
         if self._manager.is_directed():
-            if self.search_dir == "down":
-                if self._search_filter == "disjoint":
-                    pass
-                elif self._search_filter == "chain":
-                    print(
-                        'ERROR: Directed Down Chain Search not yet implemented.'
-                    )
-                    raise sys.exit()
+            if self.search_dir == SearchDirection.DOWN and self._search_filter == SearchFilter.CHAIN:
+                print(
+                    'ERROR: Directed Down Chain Search not yet implemented.'
+                )
+                raise sys.exit()
         else:
-            if self.search_dir == "up":
-                pass
-            else:
-                if self._search_filter == "disjoint":
-                    pass
-                elif self._search_filter == "chain":
-                    print(
-                        'ERROR: Neutral Down Chain Search not yet implemented.'
-                    )
-                    raise sys.exit()
+            if self.search_dir == SearchDirection.UP and self._search_filter == SearchFilter.CHAIN:
+                print(
+                    'ERROR: Neutral Down Chain Search not yet implemented.'
+                )
+                raise sys.exit()
 
         if self._start_model == "":
-            self._start_model = "default"
-        if self.search_dir == "default":
-            self.search_dir = "up"
+            self._start_model = ModelType.DEFAULT
+        if self.search_dir == SearchDirection.DEFAULT:
+            self.search_dir = SearchDirection.UP
         # set start model. For chain search, ignore any specific starting model
         # otherwise, if not set, set the start model based on search direction
         if (
-            self._search_filter == "chain" or self._start_model == "default"
-        ) and self.search_dir == "down":
-            self._start_model = "top"
+            self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
+        ) and self.search_dir == SearchDirection.DOWN:
+            self._start_model = ModelType.TOP
         elif (
-            self._search_filter == "chain" or self._start_model == "default"
-        ) and self.search_dir == "up":
-            self._start_model = "bottom"
-        if self._start_model == "top":
-            start = self._manager.get_top_ref_model()
-        elif self._start_model == "bottom":
-            start = self._manager.get_bottom_ref_model()
+            self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
+        ) and self.search_dir == SearchDirection.UP:
+            self._start_model = ModelType.BOTTOM
+        if self._start_model == ModelType.UP:
+            start = self._manager.top_ref_model
+        elif self._start_model == ModelType.BOTTOM:
+            start = self._manager.bottom_ref_model
         else:
             start = self._manager.make_model(self._start_model, True)
-        self.set_ref_model(self._ref_model)
+        self._manager.set_ref_model(self._ref_model)
         self._manager.use_inverse_notation(self._use_inverse_notation)
         self._manager.values_are_functions(self._values_are_functions)
         self._manager.set_alpha_threshold(self._alpha_threshold)
-        if self.search_dir == "down":
+        if self.search_dir == SearchDirection.DOWN:
             self._manager.set_search_direction(SearchDirection.DOWN)
         else:
             self._manager.set_search_direction(SearchDirection.UP)
@@ -488,7 +439,7 @@ class OCUtils:
                 self._report.add_model(model)
             old_models = new_models
             # if the list is empty, stop. Also, only do one step for chain search
-            if self._search_filter == "chain" or len(old_models) == 0:
+            if self._search_filter == SearchFilter.CHAIN or len(old_models) == 0:
                 break
         if self._HTMLFormat:
             print('</pre><br>')
@@ -497,25 +448,25 @@ class OCUtils:
 
     def do_sb_search(self, print_options):
         if self._start_model == "":
-            self._start_model = "default"
-        if self.search_dir == "default":
-            self.search_dir = "up"
+            self._start_model = ModelType.DEFAULT
+        if self.search_dir == SearchDirection.DEFAULT:
+            self.search_dir = SearchDirection.UP
         if (
-            self._search_filter == "chain" or self._start_model == "default"
-        ) and self.search_dir == "down":
-            self._start_model = "top"
+            self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
+        ) and self.search_dir == SearchDirection.DOWN:
+            self._start_model = ModelType.TOP
         elif (
-            self._search_filter == "chain" or self._start_model == "default"
-        ) and self.search_dir == "up":
-            self._start_model = "bottom"
-        if self._start_model == "top":
-            start = self._manager.get_top_ref_model()
-        elif self._start_model == "bottom":
-            start = self._manager.get_bottom_ref_model()
+            self._search_filter == SearchFilter.CHAIN or self._start_model == ModelType.DEFAULT
+        ) and self.search_dir == SearchDirection.UP:
+            self._start_model = ModelType.BOTTOM
+        if self._start_model == ModelType.UP:
+            start = self._manager.top_ref_model
+        elif self._start_model == ModelType.BOTTOM:
+            start = self._manager.bottom_ref_model
         else:
             start = self._manager.make_model(self._start_model, True)
-        self.set_ref_model(self._ref_model)
-        if self.search_dir == "down":
+        self._manager.set_ref_model(self._ref_model)
+        if self.search_dir == SearchDirection.DOWN:
             self._manager.set_search_direction(SearchDirection.DOWN)
         else:
             self._manager.set_search_direction(SearchDirection.UP)
@@ -574,7 +525,7 @@ class OCUtils:
                 self._report.add_model(model)
             old_models = new_models
             # if the list is empty, stop. Also, only do one step for chain search
-            if self._search_filter == "chain" or len(old_models) == 0:
+            if self._search_filter == SearchFilter.CHAIN or len(old_models) == 0:
                 break
         if self._HTMLFormat:
             print('</pre><br>')
@@ -584,7 +535,7 @@ class OCUtils:
     def print_search_report(self):
         # sort the report as requested, and print it.
         if self._report_sort_name != "":
-            sort_name = self._report_sort_name
+            sort_name = self._report_sort_name.value
         else:
             sort_name = self.sort_name
         self._report.sort(sort_name, self._sort_dir)
@@ -758,7 +709,7 @@ class OCUtils:
 
         for model_name in self._fit_models:
             self.check_model_name(model_name)
-            self.set_ref_model(self._ref_model)
+            self._manager.set_ref_model(self._ref_model)
             model = self._manager.make_model(model_name=model_name, make_project=True)
 
             if only_gfx:
@@ -769,17 +720,19 @@ class OCUtils:
 
             if self._default_fit_model != "":
                 try:
-                    default_model = self._manager.make_model(model_name=self._default_fit_model,
-                                                             make_project=True
-                                                             )
+                    default_model = self._manager.make_model(
+                        model_name=self._default_fit_model,
+                        make_project=True
+                    )
                 except Exception:
                     print(f"\nERROR: Unable to create model {self._default_fit_model}")
                     sys.exit(0)
                 self._report.set_default_fit_model(default_model)
-            self._report.print_conditional_dv(model=model,
-                                              calc_expected_dv=self._calc_expected_dv,
-                                              classifier_target=self._fit_classifier_target
-                                              )
+            self._report.print_conditional_dv(
+                model=model,
+                calc_expected_dv=self._calc_expected_dv,
+                classifier_target=self._fit_classifier_target
+            )
 
             self.print_graph(model_name, only_gfx)
 
@@ -825,9 +778,7 @@ class OCUtils:
         if self.is_directed():
             dv_name = self._report.dv_name
 
-        if model in self.graphs:
-            pass
-        else:
+        if model not in self.graphs:
             self.graphs[model] = ocGraph.generate(
                 model,
                 varlist,
@@ -880,7 +831,7 @@ class OCUtils:
             self.print_options(0)
         self._manager.print_basic_statistics()
         for model_name in self._fit_models:
-            self.set_ref_model(self._ref_model)
+            self._manager.set_ref_model(self._ref_model)
             model = self._manager.make_model(model_name, True)
             self.do_all_computations(model)
             if self._default_fit_model != "":
@@ -925,29 +876,29 @@ class OCUtils:
 
     def do_action(self, print_options, only_gfx=False):
         # set reporting variables based on ref model
-        if self._manager.is_directed() and self._ref_model == "default":
-            if self.search_dir == "down":
-                self._ref_model = "top"
+        if self._manager.is_directed() and self._ref_model == ModelType.DEFAULT:
+            if self.search_dir == SearchDirection.DOWN:
+                self._ref_model = ModelType.TOP
             else:
-                self._ref_model = "bottom"
-        if not self._manager.is_directed() and self._ref_model == "default":
-            if self.search_dir == "down":
-                self._ref_model = "top"
+                self._ref_model = ModelType.BOTTOM
+        if not self._manager.is_directed() and self._ref_model == ModelType.DEFAULT:
+            if self.search_dir == SearchDirection.DOWN:
+                self._ref_model = ModelType.TOP
             else:
-                self._ref_model = "bottom"
+                self._ref_model = ModelType.BOTTOM
 
-        if self._action is Action.SEARCH:
+        if self._action == Action.SEARCH:
             self._manager.set_ddf_method(self._ddf_method)
             self.do_search(print_options)
             self.print_search_report()
-        elif self._action is Action.FIT:
+        elif self._action == Action.FIT:
             self._manager.set_ddf_method(self._ddf_method)
             self.do_fit(print_options, only_gfx)
-        elif self._action is Action.SBSEARCH:
-            # self._manager.setDDFMethod(self._DDFMethod)
+        elif self._action == Action.SBSEARCH:
+            # self._manager.set_ddf_method(self._ddf_method)
             self.do_sb_search(print_options)
             self.print_search_report()
-        elif self._action is Action.SBFIT:
+        elif self._action == Action.SBFIT:
             self.do_sb_fit(print_options)
         else:
             print("Error: unknown operation", self._action)
@@ -1019,15 +970,15 @@ class OCUtils:
         self._hide_intermediate_output = True
 
         # Initialize a manager and the starting model
-        self.set_ref_model(self._ref_model)
+        self._manager.set_ref_model(self._ref_model)
         self._manager.set_search_direction(SearchDirection(self.search_dir))
         self._manager.set_search_type(self.search_type())
 
         # Set up the starting model
         start = (
-            self._manager.get_top_ref_model()
-            if (self.search_dir == "down")
-            else self._manager.get_bottom_ref_model()
+            self._manager.top_ref_model
+            if self.search_dir == SearchDirection.DOWN
+            else self._manager.bottom_ref_model
         )
         start.level = 0
         self._manager.compute_l2_statistics(start)

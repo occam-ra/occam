@@ -39,28 +39,16 @@ class Model:
     def print_name(self) -> str:
         return self._ref.getPrintName()
 
-    @property
-    def id_(self) -> int:
-        return self._id
-
-    @id_.setter
     def id_(self, id_: int) -> None:
         self._id = id_
 
-    @property
-    def fit_table(self) -> None:
-        pass
+    id_ = property(None, id_)
 
-    @fit_table.setter
-    def fit_table(self, model) -> None:
+    def make_fit_table(self, model) -> None:
         self._ref.makeFitTable(model)
 
-    @fit_table.deleter
-    def fit_table(self):
+    def delete_fit_table(self):
         self._ref.deleteFitTable()
-
-    def set(self, **kwargs):
-        pass
 
     @property
     def print_name(self) -> str:
