@@ -69,7 +69,9 @@ class OCUtils:
         self._percent_correct = 0
         self._ref_model = ModelType.DEFAULT
         self._report = self._manager.report
-        self._report.separator = SeparatorType.SPACE  # align columns using spaces
+        self._report.separator = (
+            SeparatorType.SPACE
+        )  # align columns using spaces
         self._report_file = ""
         self._report_sort_name = ""
         self._search_filter = SearchFilter.LOOPLESS
@@ -173,12 +175,13 @@ class OCUtils:
         levels = max(0, levels)  # zero is OK here
         self._search_levels = levels
 
-    def set_report_sort_name(self, sort_name: Union[ReportSortName, str]) -> None:
+    def set_report_sort_name(
+        self, sort_name: Union[ReportSortName, str]
+    ) -> None:
         self._report_sort_name = ReportSortName(sort_name)
 
     def set_search_filter(
-        self,
-        search_filter: Union[SearchFilter, str]
+        self, search_filter: Union[SearchFilter, str]
     ) -> None:
         self._search_filter = SearchFilter(search_filter)
 
@@ -281,7 +284,9 @@ class OCUtils:
         return add_count
 
     # This function processes models from one level, and return models for the next level.
-    def process_level(self, level, old_models, clear_cache_flag) -> List[Model]:
+    def process_level(
+        self, level, old_models, clear_cache_flag
+    ) -> List[Model]:
         # start a new heap
         new_models_heap = []
         full_count = 0
@@ -881,18 +886,7 @@ class OCUtils:
 
     def do_action(self, print_options, only_gfx=False) -> None:
         # set reporting variables based on ref model
-        if (
-            self._manager.is_directed
-            and self._ref_model == ModelType.DEFAULT
-        ):
-            if self.search_dir == SearchDirection.DOWN:
-                self._ref_model = ModelType.TOP
-            else:
-                self._ref_model = ModelType.BOTTOM
-        if (
-            not self._manager.is_directed
-            and self._ref_model == ModelType.DEFAULT
-        ):
+        if self._ref_model == ModelType.DEFAULT:
             if self.search_dir == SearchDirection.DOWN:
                 self._ref_model = ModelType.TOP
             else:
