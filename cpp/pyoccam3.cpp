@@ -1306,7 +1306,6 @@ DefinePyFunction(SBMManager, getVariableList) {
     varlist->obj = mgr->getVariableList();
 
     Py_INCREF(varlist);
-
     return (PyObject*) varlist;
 }
 
@@ -1356,11 +1355,11 @@ static struct PyMethodDef SBMManager_methods[] = {
         PyMethodDef(SBMManager, setRefModel),
         PyMethodDef(SBMManager, setSearchDirection),
         PyMethodDef(SBMManager, setSearchType),
-        PyMethodDef(SBMManager, getTestSampleSz), // Capstone Team A
-        PyMethodDef(SBMManager, isValuesAreFunctions), // Capstone Team A
-        PyMethodDef(SBMManager, getVarCount), // Capstone Team A
-        PyMethodDef(SBMManager, getVariableList), // Capstone Team A
-        PyMethodDef(SBMManager, getDV), // Capstone Team A
+        PyMethodDef(SBMManager, getTestSampleSz),
+        PyMethodDef(SBMManager, isValuesAreFunctions),
+        PyMethodDef(SBMManager, getVarCount),
+        PyMethodDef(SBMManager, getVariableList),
+        PyMethodDef(SBMManager, getDV),
         { nullptr }
 };
 
@@ -1463,7 +1462,6 @@ DefinePyFunction(Relation, getVariable) {
     int index;
     PyArg_ParseTuple(args, "i", &index);
     Relation* rel = ObjRef(self, Relation);
-
     return Py_BuildValue("i", (rel->getVariable(index)!=NULL));
 }
 
@@ -1681,7 +1679,7 @@ DefinePyFunction(Model, getRelationCount) {
     return Py_BuildValue("i", (mdl->getRelationCount()!= NULL));
 }
 
-DefinePyFunction(Model, getAttribute) {
+DefinePyFunction(Model, getAttributeFromConst) {
     char* name;
     PyArg_ParseTuple(args, "s", &name);
     Model* mdl = ObjRef(self, Model);
@@ -1712,7 +1710,9 @@ DefinePyFunction(Model, getAttribute) {
 DefinePyFunction(Model, resetAttributeList) {
     Model* mdl = ObjRef(self, Model);
     AttributeList* alist = mdl->getAttributeList();
+
     alist->reset();
+
     Py_INCREF(Py_None);
     return Py_None;
 }
@@ -1731,7 +1731,7 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, setProgenitor),
     PyMethodDef(Model, getPrintName),
     PyMethodDef(Model, getRelationCount),
-    PyMethodDef(Model, getAttribute),
+    PyMethodDef(Model, getAttributeFromConst),
     PyMethodDef(Model, resetAttributeList),
     { nullptr }
 };
