@@ -34,5 +34,6 @@ class VariableList:
     def get_variable(self, index: int):
         return self._ref.getVariable(index)
 
+    @property
     def is_directed(self) -> bool:
         return self._ref.isDirected()

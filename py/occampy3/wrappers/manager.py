@@ -1,7 +1,8 @@
 from enum import Enum
-from model import Model
+from typing import List, Sequence, Tuple, Union
+
+from model import Model, ModelType
 from report import Report
-from typing import Sequence, Union
 
 
 class SearchDirection(Enum):
@@ -48,18 +49,14 @@ class Manager:
 
     def __init__(self, ref) -> None:
         """
-        :param: ref: the reference to the (VBM,SBM)Manager object returned from the CPP engine
+        :param: ref: Reference to the (VBM,SBM)Manager object returned from the CPP engine
         """
         # Create new reference if one not given
         self._ref = ref
         self._model = None
 
-    def search_type(self, search_type):
-        self._ref.setSearchType(search_type)
-
-    search_type = property(None, search_type)  # Can set but not get
-
-    def get_report(self) -> Report:
+    @property
+    def report(self) -> Report:
         return Report(self._ref.Report())
 
     def init_from_command_line(self, args: Sequence[str]) -> None:
@@ -68,9 +65,10 @@ class Manager:
     def get_option(self, option_name: str) -> str:
         return self._ref.getOption(option_name)
 
-    def get_option_list(self, option_name: str) -> Sequence[str]:
+    def get_option_list(self, option_name: str) -> List[str]:
         return self._ref.getOptionList(option_name)
 
+    @property
     def is_directed(self) -> bool:
         return self._ref.isDirected()
 
@@ -94,39 +92,42 @@ class Manager:
     def bottom_ref_model(self) -> Model:
         return Model(self._ref.getBottomRefModel())
 
-    def search_direction(self, direction: SearchDirection) -> None:
+    def set_search_direction(self, direction: SearchDirection) -> None:
         self._ref.setSearchDirection(direction.value)
 
-    search_direction = property(None, search_direction)
+    search_direction = property(None, set_search_direction)
 
-    def search_type(self, type_: Union[SearchType, SBSearchType]) -> None:
-        self._ref.setSearchType(type_.value)
+    def set_search_type(
+        self, search_type: Union[SearchType, SBSearchType]
+    ) -> None:
+        self._ref.setSearchType(search_type.value)
 
-    search_type = property(None, search_type)
+    search_type = property(None, set_search_type)
 
-    def ref_model(model) -> None:
+    def set_ref_model(self, model) -> None:
         self._ref.setRefModel(model)
 
-    ref_model = property(None, ref_model)
+    ref_model = property(None, set_ref_model)
 
     def get_model_by_search_dir(self, direction: SearchDirection) -> Model:
-        if direction == SearchDirection.UP:
-            return self.top_ref_model
-
-        return self.bottom_ref_model
+        return (
+            self.top_ref_model
+            if direction == SearchDirection.UP
+            else self.bottom_ref_model
+        )
 
     def has_test_data(self) -> bool:
         return self._ref.hasTestData()
 
-    def search_one_level(self, model: Model) -> Sequence[Model]:
+    def search_one_level(self, model: Model) -> Tuple[Model]:
         model_ref_list = self._ref.searchOneLevel(model.ref)
-
         return tuple(Model(model_ref) for model_ref in model_ref_list)
 
     def compare_progenitors(self, model: Model, progen: Model) -> None:
         self._ref.compareProgenitors(model.ref, progen.ref)
 
-    def get_mem_usage(self) -> int:
+    @property
+    def mem_usage(self) -> int:
         return self._ref.getMemUsage()
 
     def delete_model_from_cache(self, model: Model) -> bool:
@@ -151,3 +152,12 @@ class Manager:
     # TODO: remove and replace with the underlying functionality in the future
     def print_fit_report(self, model: Model) -> None:
         self._ref.printFitReport(model.ref)
+
+    def get_model(self, model_type: ModelType, make_project: bool) -> Model:
+        if model_type == ModelType.UP:
+            model = self.top_ref_model
+        elif model_type == ModelType.BOTTOM:
+            model = self.bottom_ref_model
+        else:
+            model = self.make_model(model_type.value, make_project)
+        return model

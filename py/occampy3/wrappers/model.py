@@ -1,5 +1,5 @@
 from enum import Enum
-from typing import Union
+from typing import List, Union
 
 
 class ModelType(Enum):
@@ -15,21 +15,17 @@ class Model:
 
     def __init__(self, ref=None) -> None:
         """
-        :param: ref: the reference to the Model object returned from the CPP engine
+        :param: ref: Reference to the Model object returned from the CPP engine
         """
         # Create new reference if one not given
-        self._ref = ref
+        self.ref = ref
         self._id = 0
 
     def __lt__(self, other: 'Model') -> bool:
         return self.name < other.name
 
     def __eq__(self, other: 'Model') -> bool:
-        return self._ref.isEquivalentTo(other.ref)
-
-    @property
-    def ref(self):
-        return self._ref
+        return self.ref.isEquivalentTo(other.ref)
 
     @property
     def name(self) -> str:
@@ -37,44 +33,40 @@ class Model:
 
     @property
     def print_name(self) -> str:
-        return self._ref.getPrintName()
+        return self.ref.getPrintName()
 
-    def id_(self, id_: int) -> None:
+    def set_id(self, id_: int) -> None:
         self._id = id_
 
-    id_ = property(None, id_)
+    id_ = property(None, set_id)
 
     def make_fit_table(self, model) -> None:
-        self._ref.makeFitTable(model)
+        self.ref.makeFitTable(model)
 
-    def delete_fit_table(self):
-        self._ref.deleteFitTable()
+    def delete_fit_table(self) -> None:
+        self.ref.deleteFitTable()
 
     @property
     def print_name(self) -> str:
-        return self._ref.getPrintName()
-
-    def get_struct_matrix(self) -> list:
-        return self._ref.getStructMatrix()
+        return self.ref.getPrintName()
 
     @property
-    def ref(self):
-        return self._ref
+    def struct_matrix(self) -> List[int]:
+        return self.ref.getStructMatrix()
 
-    def is_equivalent_to(self) -> bool:
-        return self._ref.isEquivalentTo()
+    def is_equivalent_to(self, other: 'Model') -> bool:
+        return self == other
 
     def set_progenitor(self, progenitor: 'Model') -> None:
-        self._ref.setProgenitor(progenitor.ref)
+        self.ref.setProgenitor(progenitor.ref)
+
+    progenitor = property(None, set_progenitor)
 
     def get_attribute_value(self, attribute: str) -> Union[str, float]:
-        return self._ref.get(attribute)
+        return self.ref.get(attribute)
 
-    def delete_fit_table(self) -> None:
-        self._ref.deleteFitTable()
-
-    def delete_relation_links(self):
-        self._ref.deleteRelationLinks()
+    def delete_relation_links(self) -> None:
+        self.ref.deleteRelationLinks()
 
     def dump(self) -> None:
-        self._ref.dump()
+        self.ref.dump()

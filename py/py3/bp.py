@@ -11,6 +11,7 @@ sys.path.insert(0, "./wrappers")
 
 
 from ocutils import OCUtils
+from wrappers.manager import SearchFilter
 from wrappers.model import ModelType
 from wrappers.report import SortDirection, ReportSortName
 
@@ -88,7 +89,7 @@ util.set_report_sort_name(ReportSortName.BPT)
 # util.set_search_dir("up")
 
 # set the search filter (all, loopless, disjoint)
-util.set_search_filter('all')
+util.set_search_filter(SearchFilter.ALL)
 
 # set the ref model (bottom, top, default, or a specific model)
 util.set_ref_model(ModelType.BOTTOM)

@@ -3,7 +3,7 @@ class Variable:
     Wrapper class for Variable
     """
 
-    def __init__(self, ref):
+    def __init__(self, ref) -> None:
         """
         :param: ref: the reference to the Variable object returned from the CPP engine
         """
