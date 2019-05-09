@@ -17,17 +17,18 @@ class SBMManager(Manager):
     def make_model(self, model_name: str, make_project: bool) -> Model:
         return Model(self._ref.makeSbModel(model_name, make_project))
 
-    def getTestSampleSz(self) -> double:
+    def get_test_sample_size(self) -> double:
         return self._ref.getTestSampleSize()
 
-    def isValuesAreFunctions(self) -> bool:
-        return self._ref.isValuesAreFunctions()
+    @property
+    def values_are_functions(self) -> bool:
+        return self._ref.ValuesAreFunctions
 
-    def getVarCount(self) -> int:
+    def get_var_count(self) -> int:
         return self._ref.getVarCount()
 
-    def getVariableList(self) -> VariableList:
+    def get_variable_list(self) -> VariableList:
         return VariableList(self._ref.getVariableList())
 
-    def getDV(self) -> int:
+    def get_dv(self) -> int:
         return self._ref.getDV()
