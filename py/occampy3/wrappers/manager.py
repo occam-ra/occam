@@ -84,6 +84,9 @@ class Manager:
     def compute_dependent_statistics(self, model: Model) -> None:
         self._ref.computeDependentStatistics(model.ref)
 
+    def compute_information_statistics(self, model: Model) -> None:
+        self._ref.computeInformationStatistics(model.ref)
+
     @property
     def top_ref_model(self) -> Model:
         return Model(self._ref.getTopRefModel())

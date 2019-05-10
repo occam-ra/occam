@@ -1,4 +1,5 @@
 from enum import Enum
+from typing import Dict
 
 from model import Model
 from variable_list import VariableList
@@ -87,3 +88,6 @@ class Report:
 
     def print_report(self) -> None:
         self._ref.printReport()
+
+    def best_model_data(self) -> Dict:
+        return self._ref.bestModelData()

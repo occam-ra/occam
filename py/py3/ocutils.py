@@ -10,7 +10,7 @@ import ocGraph
 import re
 import sys
 import time
-from typing import List, Union
+from typing import Dict, List, Sequence, Union
 
 from enum import Enum
 from wrappers.manager import (
@@ -37,7 +37,7 @@ class Action(Enum):
 
 
 class OCUtils:
-    def __init__(self, man="VB"):
+    def __init__(self, man: str = "VB") -> None:
         if man == "VB":
             self._manager = VBMManager()
         else:
@@ -94,12 +94,12 @@ class OCUtils:
         # self._weight_fn = "Mutual Information"
 
     # -- Read command line args and process input file
-    def init_from_command_line(self, argv):
+    def init_from_command_line(self, argv: Sequence[str]) -> None:
         self._manager.init_from_command_line(args=argv)
         self.occam2_settings()
 
     # -- Set up report variables
-    def set_report_variables(self, report_attributes) -> None:
+    def set_report_variables(self, report_attributes: str) -> None:
         # if the data uses function values, we want to skip the attributes that require a sample size
         option = self._manager.get_option("function-values")
         if option != "" or self._values_are_functions != 0:
@@ -119,36 +119,33 @@ class OCUtils:
         self._report.separator = format_
         # self._HTMLFormat = format_ == OCUtils.HTML_FORMAT
 
-    def set_fit_classifier_target(self, target) -> None:
+    def set_fit_classifier_target(self, target: str) -> None:
         self._fit_classifier_target = target
 
-    def set_skip_trained_model_table(self, b) -> None:
+    def set_skip_trained_model_table(self, b: int) -> None:
         self._skip_trained_model_table = b
 
     def set_skip_ivi_tables(self, b) -> None:
         self._skip_ivi_tables = b
 
-    def set_skip_nominal(self, use_flag) -> None:
+    def set_skip_nominal(self, use_flag: int) -> None:
         self._skip_nominal = use_flag
 
-    def set_use_inverse_notation(self, use_flag) -> None:
-        flag = int(use_flag)
-        if flag != 1:
-            flag = 0
-        self._use_inverse_notation = flag
+    def set_use_inverse_notation(self, use_flag: int) -> None:
+        if use_flag != 1:
+            use_flag = 0
+        self._use_inverse_notation = use_flag
 
-    def set_values_are_functions(self, use_flag) -> None:
-        flag = int(use_flag)
-        if flag != 1:
-            flag = 0
-        self._values_are_functions = flag
+    def set_values_are_functions(self, use_flag: int) -> None:
+        if use_flag != 1:
+            use_flag = 0
+        self._values_are_functions = use_flag
 
     # -- Set control attributes
-    def set_ddf_method(self, ddf_method) -> None:
-        method = int(ddf_method)
-        if method != 1:
-            method = 0
-        self._ddf_method = method
+    def set_ddf_method(self, ddf_method: int) -> None:
+        if ddf_method != 1:
+            ddf_method = 0
+        self._ddf_method = ddf_method
 
     def set_sort_dir(self, sort_dir: Union[SortDirection, str]) -> None:
         self._sort_dir = SortDirection(sort_dir)
@@ -185,7 +182,7 @@ class OCUtils:
     ) -> None:
         self._search_filter = SearchFilter(search_filter)
 
-    def set_alpha_threshold(self, alpha_threshold) -> None:
+    def set_alpha_threshold(self, alpha_threshold: str) -> None:
         self._alpha_threshold = float(alpha_threshold)
 
     def set_start_model(self, start_model: Union[ModelType, str]) -> None:
@@ -193,7 +190,7 @@ class OCUtils:
             self.check_model_name(start_model)
         self.start_model = start_model
 
-    def set_fit_model(self, fit_model) -> None:
+    def set_fit_model(self, fit_model: str) -> None:
         self._fit_models = [fit_model]
 
     def set_report_file(self, report_file) -> None:
@@ -202,16 +199,16 @@ class OCUtils:
     def set_action(self, action: Union[Action, str]) -> None:
         self._action = Action(action)
 
-    def set_data_file(self, data_file) -> None:
+    def set_data_file(self, data_file: str) -> None:
         self._data_file = data_file
 
-    def set_calc_expected_dv(self, calc_expected_dv) -> None:
+    def set_calc_expected_dv(self, calc_expected_dv: int) -> None:
         self._calc_expected_dv = calc_expected_dv
 
-    def set_default_fit_model(self, model) -> None:
+    def set_default_fit_model(self, model: int) -> None:
         self._default_fit_model = model
 
-    def set_no_ipf(self, state) -> None:
+    def set_no_ipf(self, state: int) -> None:
         self._no_ipf = state
 
     @property
@@ -239,9 +236,9 @@ class OCUtils:
     # this function decides which statistic to computed, based
     # on how search is sorting the models. We want to avoid any
     # extra expensive computations
-    def compute_sort_statistic(self, model) -> None:
+    def compute_sort_statistic(self, model: Model) -> None:
         if self.sort_name in {"h", "information", "unexplained", "alg_t"}:
-            self._manager.computeInformationsStatistics(model)
+            self._manager.compute_information_statistics(model)
         elif self.sort_name == "df" or self.sort_name == "ddf":
             self._manager.compute_dfs_statistics(model)
         elif self.sort_name in {"bp_t", "bp_information", "bp_alpha"}:
@@ -257,7 +254,7 @@ class OCUtils:
     # any which haven't been seen before puts them into the new_model list
     # this function also computes the LR statistics (H, LR, DF, etc.) as well
     # as the dependent statistics (dH, %dH, etc.)
-    def process_model(self, level, new_models_heap, model) -> int:
+    def process_model(self, level: int, new_models_heap, model: Model) -> int:
         add_count = 0
         generated_models = self._manager.search_one_level(model)
         for new_model in generated_models:
@@ -285,7 +282,7 @@ class OCUtils:
 
     # This function processes models from one level, and return models for the next level.
     def process_level(
-        self, level, old_models, clear_cache_flag
+        self, level: int, old_models: List[Model], clear_cache_flag: bool
     ) -> List[Model]:
         # start a new heap
         new_models_heap = []
@@ -324,7 +321,7 @@ class OCUtils:
 
     # This function returns the name of the search strategy to use based on
     # the search_mode and loopless settings above
-    def search_type(self):
+    def search_type(self) -> SearchType:
         if self.search_dir == SearchDirection.UP:
             return {
                 SearchFilter.LOOPLESS: SearchType.LOOPLESS_UP,
@@ -338,7 +335,7 @@ class OCUtils:
                 SearchFilter.CHAIN: SearchType.CHAIN_DOWN,
             }.get(self._search_filter, SearchType.FULL_DOWN)
 
-    def sb_search_type(self):
+    def sb_search_type(self) -> SBSearchType:
         if self.search_dir == SearchDirection.UP:
             return {
                 SearchFilter.LOOPLESS: SBSearchType.LOOPLESS_UP,
@@ -352,7 +349,7 @@ class OCUtils:
                 SearchFilter.CHAIN: SBSearchType.CHAIN_DOWN,
             }.get(self._search_filter, SBSearchType.FULL_DOWN)
 
-    def do_search(self, print_options):
+    def do_search(self, print_options: int) -> None:
         if self._manager.is_directed:
             if (
                 self.search_dir == SearchDirection.DOWN
@@ -461,7 +458,7 @@ class OCUtils:
         if not self._HTMLFormat:
             print()
 
-    def do_sb_search(self, print_options):
+    def do_sb_search(self, print_options: int) -> None:
         if self.start_model == "":
             self.start_model = ModelType.DEFAULT
         if self.search_dir == SearchDirection.DEFAULT:
@@ -545,7 +542,7 @@ class OCUtils:
         if not self._HTMLFormat:
             print()
 
-    def print_search_report(self):
+    def print_search_report(self) -> None:
         # sort the report as requested, and print it.
         if self._report_sort_name != "":
             sort_name = self._report_sort_name.value
@@ -559,7 +556,7 @@ class OCUtils:
 
         # -- self._manager.dumpRelations()
 
-    def print_search_graphs(self):
+    def print_search_graphs(self) -> None:
 
         if not (self._generate_graph or self._generate_gephi):
             return
@@ -580,15 +577,15 @@ class OCUtils:
         # For each of the graphs (and headers) above,
         # if HTML mode, print out a brief note and graph/gephi (if enabled)
 
-    def newl(self, html="<br>"):
+    def newl(self, html: str = "<br>") -> None:
         if self._HTMLFormat:
             print(html)
 
     @staticmethod
-    def split_caps(s):
+    def split_caps(s) -> List[str]:
         return re.findall('[A-Z][^A-Z]*', s)
 
-    def split_model(self, model_name):
+    def split_model(self, model_name: str) -> List[List[str]]:
         comps = model_name.split(":")
         model = [
             [s]
@@ -598,7 +595,7 @@ class OCUtils:
         ]
         return model
 
-    def check_model_name(self, model_name):
+    def check_model_name(self, model_name: str) -> None:
         varlist = [v.abbrev for v in self._manager.variable_list]
         model = self.split_model(model_name)
         is_directed = self.is_directed
@@ -676,8 +673,8 @@ class OCUtils:
                     )
                     sys.exit(1)
 
-    def print_graph(self, model_name, only):
-        if only and not self._generate_gephi:
+    def print_graph(self, model_name: str, only_gfx: bool) -> None:
+        if only_gfx and not self._generate_gephi:
             self._generate_graph = True
         if (self._generate_graph or self._generate_gephi) and (
             self._hide_isolated and (model_name == "IVI" or model_name == "IV")
@@ -704,7 +701,7 @@ class OCUtils:
             self.maybe_print_graph_gephi(model_name, True)
         print("\n")
 
-    def do_fit(self, print_options, only_gfx):
+    def do_fit(self, print_options: int, only_gfx: bool) -> None:
         # self._manager.values_are_functions = self._values_are_functions
 
         if print_options and not only_gfx:
@@ -745,7 +742,7 @@ class OCUtils:
 
             self.print_graph(model_name, only_gfx)
 
-    def maybe_print_graph_svg(self, model, header):
+    def maybe_print_graph_svg(self, model, header) -> None:
 
         if self._generate_graph:
             self.generate_graph(model)
@@ -764,7 +761,7 @@ class OCUtils:
                 )
                 print("<hr>")
 
-    def maybe_print_graph_gephi(self, model, header):
+    def maybe_print_graph_gephi(self, model, header) -> None:
 
         if self._generate_gephi:
             self.generate_graph(model)
@@ -777,7 +774,7 @@ class OCUtils:
                 print(ocGraph.print_gephi(self.graphs[model]))
                 print("<hr>")
 
-    def generate_graph(self, model):
+    def generate_graph(self, model) -> None:
         varlist = self._report.variable_list
         hide_iv = self._hide_isolated
         hide_dv = self._graph_hideDV
@@ -835,7 +832,7 @@ class OCUtils:
             skip_ivi_tables=self._skip_ivi_tables,
         )
 
-    def do_sb_fit(self, print_options) -> None:
+    def do_sb_fit(self, print_options: int) -> None:
         # self._manager.values_are_functions = self._values_are_functions
         if print_options:
             self.print_options(0)
@@ -884,7 +881,7 @@ class OCUtils:
             self.start_model = ModelType(models[0])
             self._fit_models = [ModelType(model) for model in models]
 
-    def do_action(self, print_options, only_gfx=False) -> None:
+    def do_action(self, print_options: int, only_gfx: bool = False) -> None:
         # set reporting variables based on ref model
         if self._ref_model == ModelType.DEFAULT:
             if self.search_dir == SearchDirection.DOWN:
@@ -908,13 +905,13 @@ class OCUtils:
         else:
             print("Error: unknown operation", self._action)
 
-    def print_option(self, label, value) -> None:
+    def print_option(self, label: str, value: str) -> None:
         if self._HTMLFormat:
             print(f"<tr><td>{label}</td><td>{value}</td></tr>")
         else:
             print(f"{label},{value}")
 
-    def print_options(self, r_type) -> None:
+    def print_options(self, r_type: int) -> None:
         if self._HTMLFormat:
             print("<br><table border=0 cellpadding=0 cellspacing=0>")
         self._manager.print_options(self._HTMLFormat, self._skip_nominal)
@@ -970,7 +967,7 @@ class OCUtils:
         self.newl('</table>')
         sys.stdout.flush()
 
-    def find_best_model(self):
+    def find_best_model(self) -> Dict:
         self._hide_intermediate_output = True
 
         # Initialize a manager and the starting model
@@ -1008,17 +1005,17 @@ class OCUtils:
             old_models = new_models
 
         self._report.sort(self.sort_name, self._sort_dir)
-        best = self._report.bestModelData()
+        best = self._report.best_model_data()
         self._hide_intermediate_output = False
         return best
 
     # Not used?
-    def compute_unary_statistic(self, model, key, modname):
-        return self._manager.computeUnaryStatistic(model, key, modname)
+    # def compute_unary_statistic(self, model, key, modname):
+    #     return self._manager.computeUnaryStatistic(model, key, modname)
 
-    # Not used?
-    def compute_binary_statistic(self, compare_order, key):
-        file_ref, model_ref, file_comp, model_comp = compare_order
-        return self._manager.computeBinaryStatistic(
-            file_ref, model_ref, file_comp, model_comp, key
-        )
+    # # Not used?
+    # def compute_binary_statistic(self, compare_order, key):
+    #     file_ref, model_ref, file_comp, model_comp = compare_order
+    #     return self._manager.computeBinaryStatistic(
+    #         file_ref, model_ref, file_comp, model_comp, key
+    #     )
