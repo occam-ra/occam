@@ -19,7 +19,7 @@ class SBMManager(Manager):
 
     @property
     def test_sample_size(self) -> double:
-        return self._ref.getTestSampleSize()
+        return self._ref.getTestSampleSz()
 
     @property
     def values_are_functions(self) -> bool:
