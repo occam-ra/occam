@@ -11,7 +11,7 @@ class VariableList:
         :param: ref: the reference to the VariableList object returned from the CPP engine
         """
         self._ref = ref  # type VariableList_cpp
-    
+
     def __iter__(self) -> 'VariableList':
         self._iter_index = 0
         return self

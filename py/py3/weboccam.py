@@ -7,20 +7,25 @@
 
 
 import cgi
+import cgitb
+import datetime
+import distanceFunctions
+import os
+import pickle
 import sys
 import time
-import pickle
-import zipfile
-import datetime
-import cgitb
 import traceback
-import distanceFunctions
+import zipfile
+
+sys.path.insert(0, "./wrappers")
 
 from ocutils import OCUtils
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 from common import *
 import ocGraph
+
+from wrappers.report import SortDirection
 
 cgitb.enable(display=1)
 VERSION = "3.4.0"
@@ -47,12 +52,21 @@ def get_data_file_name(form_fields, trim=false, key='datafilename'):
     * form_fields:   the form data from the user
     * trim:         trim the extension from the filename.
     """
-    return '_'.join(apply_if(trim, lambda d: os.path.splitext(d)[0],
-                             os.path.split(form_fields[key])[1]).split())
+    return '_'.join(
+        apply_if(
+            trim,
+            lambda d: os.path.splitext(d)[0],
+            os.path.split(form_fields[key])[1],
+        ).split()
+    )
 
 
 def use_gfx(form_fields):
-    return "only_gfx" in form_fields or "gfx" in form_fields or "gephi" in form_fields
+    return (
+        "only_gfx" in form_fields
+        or "gfx" in form_fields
+        or "gephi" in form_fields
+    )
 
 
 csvname = ""
@@ -61,14 +75,14 @@ csvname = ""
 def print_headers(form_fields, text_format):
     if text_format:
         global csvname
-        origcsvname = get_data_file_name(form_fields, true) + ".csv"
-        csvname = get_unique_filename("data/" + origcsvname)
+        origcsvname = f"{get_data_file_name(form_fields, true)}.csv"
+        csvname = get_unique_filename(f"data/{origcsvname}")
         if use_gfx(form_fields):
             # REDIRECT OUTPUT FOR NOW (it will be printed in output_zipfile())
             print("Content-type: application/octet-stream")
-            print("Content-disposition: attachment; filename=" + get_data_file_name(
-                form_fields, true) + ".zip")
-            print("")
+            print(
+                f"Content-disposition: attachment; filename={get_data_file_name(form_fields, true)}.zip\n"
+            )
             sys.stdout.flush()
 
             global stdout_save
@@ -79,11 +93,11 @@ def print_headers(form_fields, text_format):
 
         else:
             print("Content-type: application/octet-stream")
-            print("Content-disposition: attachment; filename=" + origcsvname)
+            print(f"Content-disposition: attachment; filename={origcsvname}")
 
     else:
         print("Content-type: text/html")
-    print("")
+    print()
 
 
 def print_top(template, text_format):
@@ -100,9 +114,9 @@ def print_time(text_format):
     elapsed_t = now - startt
     if elapsed_t > 0:
         if text_format:
-            print("Run time: %f seconds\n" % elapsed_t)
+            print(f"Run time: {elapsed_t} seconds\n")
         else:
-            print("<br>Run time: %f seconds</br>" % elapsed_t)
+            print(f"<br>Run time: {elapsed_t} seconds</br>")
 
 
 def attempt_parse_int(string, default, msg, verbose):
@@ -114,8 +128,11 @@ def attempt_parse_int(string, default, msg, verbose):
 
     except ValueError:
         if verbose:
-            print(("WARNING: expected " + msg + " to be an integer value, but got: \"" + string + "\"; using the default value, " + str(
-                   default) + "\n"))
+            print(
+                (
+                    f'WARNING: expected {msg} to be an integer value, but got: "{string}"; using the default value, "{default}"\n'
+                )
+            )
             if not text_format:
                 print("<br>")
 
@@ -123,27 +140,39 @@ def attempt_parse_int(string, default, msg, verbose):
 
 
 def graph_width():
-    return attempt_parse_int(form_fields.get("graph_width", ""), 640,
-                             "hypergraph image width",
-                             "gfx" in form_fields)
+    return attempt_parse_int(
+        form_fields.get("graph_width", ""),
+        640,
+        "hypergraph image width",
+        "gfx" in form_fields,
+    )
 
 
 def graph_height():
-    return attempt_parse_int(form_fields.get("graph_height", ""), 480,
-                             "hypergraph image height",
-                             "gfx" in form_fields)
+    return attempt_parse_int(
+        form_fields.get("graph_height", ""),
+        480,
+        "hypergraph image height",
+        "gfx" in form_fields,
+    )
 
 
 def graph_font_size():
-    return attempt_parse_int(form_fields.get("graph_font_size", ""), 12,
-                             "hypergraph font size",
-                             "gfx" in form_fields)
+    return attempt_parse_int(
+        form_fields.get("graph_font_size", ""),
+        12,
+        "hypergraph font size",
+        "gfx" in form_fields,
+    )
 
 
 def graph_node_size():
-    return attempt_parse_int(form_fields.get("graph_node_size", ""), 24,
-                             "hypergraph node size",
-                             "gfx" in form_fields)
+    return attempt_parse_int(
+        form_fields.get("graph_node_size", ""),
+        24,
+        "hypergraph node size",
+        "gfx" in form_fields,
+    )
 
 
 # Take the captured standard output,
@@ -153,7 +182,7 @@ def output_to_zip(oc):
     global csvname
 
     # Make an empty zip file
-    zipname = "data/" + get_data_file_name(form_fields, true) + ".zip"
+    zipname = f"data/{get_data_file_name(form_fields, true)}.zip"
     z = zipfile.ZipFile(zipname, "w")
 
     sys.stdout.flush()
@@ -162,29 +191,33 @@ def output_to_zip(oc):
         modelname = modelname.replace(":", "_")
 
         if "gfx" in form_fields:
-            filename = modelname + ".pdf"
-            print("Writing graph to " + filename)
-            graph_file = ocGraph.print_pdf(modelname, graph,
-                                           form_fields["layout"],
-                                           graph_width(), graph_height(),
-                                           graph_font_size(),
-                                           graph_node_size())
+            filename = f"{modelname}.pdf"
+            print(f"Writing graph to {filename}")
+            graph_file = ocGraph.print_pdf(
+                modelname,
+                graph,
+                form_fields["layout"],
+                graph_width(),
+                graph_height(),
+                graph_font_size(),
+                graph_node_size(),
+            )
             z.write(graph_file, filename)
             sys.stdout.flush()
 
         if "gephi" in form_fields:
-            nodename = modelname + ".nodes_table.csv"
-            print("Writing Gephi Node table file to " + nodename)
+            nodename = f"{modelname}.nodes_table.csv"
+            print(f"Writing Gephi Node table file to {nodename}")
             nodetext = ocGraph.gephi_nodes(graph)
-            nodefile = get_unique_filename("data/" + nodename)
+            nodefile = get_unique_filename(f"data/{nodename}")
             with open(nodefile, "w") as nf:
                 nf.write(nodetext)
             z.write(nodefile, nodename)
 
-            edgename = modelname + ".edges_table.csv"
-            print("Writing Gephi Edges table file to " + edgename)
+            edgename = f"{modelname}.edges_table.csv"
+            print(f"Writing Gephi Edges table file to {edgename}")
             edgetext = ocGraph.gephi_edges(graph)
-            edgefile = get_unique_filename("data/" + edgename)
+            edgefile = get_unique_filename(f"data/{edgename}")
             with open(edgefile, "w") as ef:
                 ef.write(edgetext)
             z.write(edgefile, edgename)
@@ -194,7 +227,7 @@ def output_to_zip(oc):
     sys.stdout = os.fdopen(stdout_save, 'w')
 
     # Write the CSV to the ZIP
-    z.write(csvname, get_data_file_name(form_fields, true) + ".csv")
+    z.write(csvname, f"{get_data_file_name(form_fields, true)}.csv")
     z.close()
 
     # print out the zipfile
@@ -239,16 +272,16 @@ def print_form(form_fields):
             template.set_template("data.template.html")
             template.out(form_fields)
 
-        template.set_template(action + ".template.html")
+        template.set_template(f"{action}.template.html")
         template.out(form_fields)
         template.set_template("output.template.html")
         template.out(form_fields)
 
-        template.set_template(action + ".footer.html")
+        template.set_template(f"{action}.footer.html")
         template.out(form_fields)
 
     elif action in ["compare", "log", "fitbatch"]:
-        template.set_template(action + "form.html")
+        template.set_template(f"{action}form.html")
         template.out(form_fields)
 
     if action == "jobcontrol":
@@ -260,7 +293,7 @@ def print_form(form_fields):
 #
 def action_form(form, error_text):
     if error_text:
-        print("<H2>Error: %s</H2><BR>" % error_text)
+        print(f"<H2>Error: {error_text}</H2><BR>")
     print_form(form)
 
 
@@ -272,7 +305,8 @@ def get_data_file_alloc(form_fields, key='datafilename'):
         print("ERROR: No data file specified.")
         sys.exit()
     datafile = get_unique_filename(
-        os.path.join(datadir, get_data_file_name(form_fields)))
+        os.path.join(datadir, get_data_file_name(form_fields))
+    )
     try:
         outf = open(datafile, "w", 0o660)
         data = form_fields["data"]
@@ -282,7 +316,7 @@ def get_data_file_alloc(form_fields, key='datafilename'):
         if get_data_file_name(form_fields) == "":
             print("ERROR: No data file specified.")
         else:
-            print("ERROR: Problems reading data file %s." % datafile)
+            print(f"ERROR: Problems reading data file {datafile}.")
         sys.exit()
     return datafile
 
@@ -297,7 +331,7 @@ def get_data_file_alloc_by_name(fn, data):
         outf.write(data)
         outf.close()
     except Exception:
-        print("ERROR: Problems reading data file %s." % datafile)
+        print(f"ERROR: Problems reading data file {datafile}.")
         sys.exit()
     return datafile
 
@@ -327,13 +361,18 @@ def prepare_cached_data(form_fields):
 
     # Check that exactly 1 of datafile, refr were chosen
     if (data_file_name == "" and data_refr_name == "") or (
-            data_file_name != "" and data_refr_name != ""):
-        print("NOTE: Exactly 1 of 'Data File' and 'Cached Data Name' must be filled out.")
+        data_file_name != "" and data_refr_name != ""
+    ):
+        print(
+            "NOTE: Exactly 1 of 'Data File' and 'Cached Data Name' must be filled out."
+        )
         sys.exit(1)
 
     # Check that at most 1 of testfile, testrefr were chosen
     if test_file_name != "" and test_refr_name != "":
-        print("ERROR: At most 1 of 'Test File' and 'Cached Test Name' must be filled out.")
+        print(
+            "ERROR: At most 1 of 'Test File' and 'Cached Test Name' must be filled out."
+        )
         sys.exit(1)
 
     def unpack_to_string(fn, data):
@@ -345,7 +384,9 @@ def prepare_cached_data(form_fields):
     if data_file_name == "":  # search for the Cached Data Name and combine.
         drn = os.path.join(datadir, data_refr_name)
         if not os.path.isfile(drn):
-            print("ERROR: Data file corresponding to Cached Data Name, '" + data_refr_name + "', does not exist")
+            print(
+                f"ERROR: Data file corresponding to Cached Data Name, '{data_refr_name}', does not exist"
+            )
             sys.exit(1)
         data = open(drn).read()
 
@@ -357,7 +398,9 @@ def prepare_cached_data(form_fields):
         trn = os.path.join(datadir, test_refr_name)
         print(trn)
         if not os.path.isfile(trn):
-            print("ERROR: Test file corresponding to Cached Test Name, '" + test_refr_name + "', does not exist")
+            print(
+                f"ERROR: Test file corresponding to Cached Test Name, '{test_refr_name}', does not exist"
+            )
             sys.exit(1)
         test = open(trn).read()
 
@@ -367,10 +410,9 @@ def prepare_cached_data(form_fields):
     data_refr_tag = os.path.split(data_refr_name)[1]
     test_refr_tag = os.path.split(test_refr_name)[1]
 
-    final_data_file = decls + "\n" + data + "\n" + test
+    final_data_file = f"{decls}\n{data}\n{test}"
 
-    final_data_file_name = decls_file_name + "." + data_refr_tag
-    final_data_file_name = final_data_file_name + ".txt"
+    final_data_file_name = f"{decls_file_name}.{data_refr_tag}.txt"
     final_data_file_name = os.path.join(datadir, final_data_file_name)
 
     with open(final_data_file_name, "w") as f:
@@ -412,17 +454,22 @@ def unzip_data_file(datafile):
         oldfile = datafile
         zipdata = zipfile.ZipFile(datafile)
         # ignore any directories, or files in them, such as those OSX likes to make
-        ilist = [item for item in zipdata.infolist() if
-                 item.filename.find("/") == -1]
+        ilist = [
+            item
+            for item in zipdata.infolist()
+            if item.filename.find("/") == -1
+        ]
         # make sure there is only one file left
         if len(ilist) != 1:
-            print("ERROR: Zip file can only contain one data file. (It appears to contain %d.)" % len(
-                ilist))
+            print(
+                f"ERROR: Zip file can only contain one data file. (It appears to contain {len(ilist)}.)"
+            )
             sys.exit()
         # try to extract the file
         try:
-            datafile = os.path.join(datadir, ilist[0].filename)
-            datafile = get_timestamped_filename(datafile)
+            datafile = get_timestamped_filename(
+                os.path.join(datadir, ilist[0].filename)
+            )
             outf = open(datafile, "w")
             outf.write(zipdata.read(ilist[0].filename))
             outf.close()
@@ -494,16 +541,18 @@ def maybe_skip_ivis(form_fields, oc):
 def handle_graph_options(oc, form_fields):
     if use_gfx(form_fields):
         lo = form_fields["layout"]
-        oc.set_gfx("gfx" in form_fields,
-                   layout=lo,
-                   gephi="gephi" in form_fields,
-                   hideIV="hide_isolated" in form_fields,
-                   hideDV="hideDV" in form_fields,
-                   full_var_names="full_var_names" in form_fields,
-                   width=graph_width(),
-                   height=graph_height(),
-                   font_size=graph_font_size(),
-                   node_size=graph_node_size())
+        oc.set_gfx(
+            "gfx" in form_fields,
+            layout=lo,
+            gephi="gephi" in form_fields,
+            hideIV="hide_isolated" in form_fields,
+            hideDV="hideDV" in form_fields,
+            full_var_names="full_var_names" in form_fields,
+            width=graph_width(),
+            height=graph_height(),
+            font_size=graph_font_size(),
+            node_size=graph_node_size(),
+        )
 
 
 def action_fit(form_fields):
@@ -534,7 +583,11 @@ def action_fit(form_fields):
     # if function_flag:
     # oc.set_values_are_functions(1)
 
-    target = form_fields["negativeDVfor_confusion"] if "negativeDVfor_confusion" in form_fields else ""
+    target = (
+        form_fields["negativeDVfor_confusion"]
+        if "negativeDVfor_confusion" in form_fields
+        else ""
+    )
 
     maybe_skip_residuals(form_fields, oc)
     maybe_skip_ivis(form_fields, oc)
@@ -592,7 +645,11 @@ def action_sb_fit(form_fields):
     maybe_skip_residuals(form_fields, oc)
     maybe_skip_ivis(form_fields, oc)
 
-    target = form_fields["negativeDVfor_confusion"] if "negativeDVfor_confusion" in form_fields else ""
+    target = (
+        form_fields["negativeDVfor_confusion"]
+        if "negativeDVfor_confusion" in form_fields
+        else ""
+    )
 
     only_gfx = "only_gfx" in form_fields
     process_sb_fit(fn, form_fields["model"], target, oc, only_gfx)
@@ -626,7 +683,7 @@ def action_search(form_fields):
     else:
         oc.set_report_separator(OCUtils.HTML_FORMAT)
 
-    oc.set_sort_dir(form_fields.get("sortdir", ""))
+    oc.set_sort_dir(SortDirection(form_fields.get("sortdir", "")))
     levels = form_fields.get("searchlevels")
     if levels and levels > 0:
         oc.set_search_levels(levels)
@@ -681,18 +738,27 @@ def action_search(form_fields):
     reportvars += ", ddf"
     if form_fields.get("show_dlr", ""):
         reportvars += ", lr"
-    if form_fields.get("show_alpha",
-                       "") or search_sort == "alpha" or report_sort == "alpha":
+    if (
+        form_fields.get("show_alpha", "")
+        or search_sort == "alpha"
+        or report_sort == "alpha"
+    ):
         reportvars += ", alpha"
     reportvars += ", information"
     if oc.is_directed():
         if form_fields.get("show_pct_dh", ""):
             reportvars += ", cond_pct_dh"
-    if form_fields.get("show_aic",
-                       "") or search_sort == "aic" or report_sort == "aic":
+    if (
+        form_fields.get("show_aic", "")
+        or search_sort == "aic"
+        or report_sort == "aic"
+    ):
         reportvars += ", aic"
-    if form_fields.get("show_bic",
-                       "") or search_sort == "bic" or report_sort == "bic":
+    if (
+        form_fields.get("show_bic", "")
+        or search_sort == "bic"
+        or report_sort == "bic"
+    ):
         reportvars += ", bic"
 
     if form_fields.get("show_incr_a", ""):
@@ -708,8 +774,12 @@ def action_search(form_fields):
         """
 
     if oc.is_directed():
-        if form_fields.get("show_pct", "") or form_fields.get("show_pct_cover",
-                                                              "") or search_sort == "pct_correct_data" or report_sort == "pct_correct_data":
+        if (
+            form_fields.get("show_pct", "")
+            or form_fields.get("show_pct_cover", "")
+            or search_sort == "pct_correct_data"
+            or report_sort == "pct_correct_data"
+        ):
             reportvars += ", pct_correct_data"
             if form_fields.get("show_pct_cover", ""):
                 reportvars += ", pct_coverage"
@@ -734,25 +804,49 @@ def action_batch_compare(form_fields):
     # Get data from the form
 
     # Get Occam search parameters
-    search_fields = ["type", "direction", "levels", "width", "sort by",
-                     "selection function"]
+    search_fields = [
+        "type",
+        "direction",
+        "levels",
+        "width",
+        "sort by",
+        "selection function",
+    ]
     search = {key: form_fields.get(key) for key in search_fields}
 
     # Get Occam report parameters
     report_1 = []
     report_2 = []
-    report_fields_1 = ["DF(data)", "H(data)", "dBIC(model)", "dAIC(model)",
-                       "DF(model)", "H(model)"]
-    report_fields_2 = ["Absolute dist", "Information dist",
-                       "Kullback-Leibler dist", "Euclidean dist",
-                       "Maximum dist", "Hellinger dist"]
+    report_fields_1 = [
+        "DF(data)",
+        "H(data)",
+        "dBIC(model)",
+        "dAIC(model)",
+        "DF(model)",
+        "H(model)",
+    ]
+    report_fields_2 = [
+        "Absolute dist",
+        "Information dist",
+        "Kullback-Leibler dist",
+        "Euclidean dist",
+        "Maximum dist",
+        "Hellinger dist",
+    ]
 
-    d = {"max(DF)": "DF(model)", "min(H)": "H(model)",
-         "min(dAIC)": "dAIC(model)", "min(dBIC)": "dBIC(model)"}
+    d = {
+        "max(DF)": "DF(model)",
+        "min(H)": "H(model)",
+        "min(dAIC)": "dAIC(model)",
+        "min(dBIC)": "dBIC(model)",
+    }
 
     for r, rf in [(report_1, report_fields_1), (report_2, report_fields_2)]:
         for key in sorted(rf):
-            if form_fields.get(key, "") == "yes" or d[search["selection function"]] == key:
+            if (
+                form_fields.get(key, "") == "yes"
+                or d[search["selection function"]] == key
+            ):
                 r.append(key)
 
     # Check if the datafile field has a file in it.
@@ -760,7 +854,7 @@ def action_batch_compare(form_fields):
 
     # Validate the datafile as a zip file containing the proper named pairs.
     if not zipfile.is_zipfile(fn):
-        print("ERROR: " + fn + " is not a zipped archive.")
+        print(f"ERROR: {fn} is not a zipped archive.")
         sys.exit()
 
     def make_pairs(zip_data):
@@ -772,7 +866,9 @@ def action_batch_compare(form_fields):
             sys.exit()
 
         if len(sorted_data) % 2 != 0:
-            print("ERROR: Expected an even number of datafiles inside the zip archive.")
+            print(
+                "ERROR: Expected an even number of datafiles inside the zip archive."
+            )
             sys.exit()
         for ix in range(len(sorted_data) / 2):
             g = lambda i: os.path.splitext(sorted_data[i].filename)[0]
@@ -780,21 +876,29 @@ def action_batch_compare(form_fields):
             b = g(2 * ix + 1)
             if not (a[:-1] == b[:-1]):
                 print("ERROR: Expected matching paired data, but got<br></br>")
-                print("&emsp;&emsp;'" + sorted_data[
-                    2 * ix].filename + "',<br></br>")
-                print("&emsp;&emsp;'" + sorted_data[
-                    2 * ix + 1].filename + "'.<br></br>")
-                print("For each pair in the zipfile, the 2 filenames must be the same")
-                print("except for exactly 1 character immediately before the extension which differs<br></br>")
+                print(
+                    f"&emsp;&emsp;'{sorted_data[2 * ix].filename}',<br></br>"
+                )
+                print(
+                    f"&emsp;&emsp;'{sorted_data[2 * ix + 1].filename}'.<br></br>"
+                )
+                print(
+                    "For each pair in the zipfile, the 2 filenames must be the same"
+                )
+                print(
+                    "except for exactly 1 character immediately before the extension which differs<br></br>"
+                )
                 print("&emsp;&emsp;(e.g. 'fileA.txt', 'fileB.txt').")
                 sys.exit()
             pairs.append(
-                (a[:-1], sorted_data[2 * ix], sorted_data[2 * ix + 1]))
+                (a[:-1], sorted_data[2 * ix], sorted_data[2 * ix + 1])
+            )
         return pairs
 
     zip_data = zipfile.ZipFile(fn)
     pairs = make_pairs(
-        [i for i in zip_data.infolist() if i.filename.find("/") == -1])
+        [i for i in zip_data.infolist() if i.filename.find("/") == -1]
+    )
 
     # Define the analysis.
     # Steps:
@@ -817,14 +921,20 @@ def action_batch_compare(form_fields):
     # Figure out what statistics to include (and in what reporting order)
     def get_stat_headers():
         headers = []
-        candidate = ["H(data)", "H(model)", "DF(data)", "DF(model)",
-                     "dAIC(model)", "dBIC(model)"]
+        candidate = [
+            "H(data)",
+            "H(model)",
+            "DF(data)",
+            "DF(model)",
+            "dAIC(model)",
+            "dBIC(model)",
+        ]
         for i in report_1 + report_2:
             if i in candidate:
-                headers.append(i[:-1] + "(A))")
-                headers.append(i[:-1] + "(B))")
+                headers.append(f"{i[:-1]}(A))")
+                headers.append(f"{i[:-1]}(B))")
             if i in report_fields_2:
-                headers.append(i + "(model(A) : model(B))")
+                headers.append(f"{i}(model(A) : model(B))")
         return headers
 
     global text_format, print_options
@@ -852,7 +962,7 @@ def action_batch_compare(form_fields):
         oc.set_action("search")
 
         # Hardcoded settings (for now):
-        oc.set_sort_dir("descending")
+        oc.set_sort_dir(SortDirection.DESCENDING)
         oc.set_search_sort_dir("descending")  # try to maximize dBIC or dAIC.
         oc.set_ref_model("bottom")  # Always uses bottom as reference.
 
@@ -887,8 +997,10 @@ def action_batch_compare(form_fields):
         return d, s
 
     def compute_binary_statistics(report_items, comp_order):
-        stats = {k: distanceFunctions.compute_distance_metric(k, comp_order)
-                 for k in report_items}
+        stats = {
+            k: distanceFunctions.compute_distance_metric(k, comp_order)
+            for k in report_items
+        }
         return stats
 
     def compute_model_stats(model_a, model_b):
@@ -910,12 +1022,15 @@ def action_batch_compare(form_fields):
     def run_analysis(pair_name, file_a, file_b):
         model_a = compute_best_model(file_a)
         model_b = compute_best_model(file_b)
-        model_a["filename"] = pair_name + "A.txt"
-        model_b["filename"] = pair_name + "B.txt"
+        model_a["filename"] = f"{pair_name}A.txt"
+        model_b["filename"] = f"{pair_name}B.txt"
 
         best, stats_1, stats_2 = compute_model_stats(model_a, model_b)
-        return [pair_name, model_a["name"], model_b["name"],
-                best], stats_1, stats_2
+        return (
+            [pair_name, model_a["name"], model_b["name"], best],
+            stats_1,
+            stats_2,
+        )
 
     # Print out the report
     # * Print out options if requested
@@ -927,31 +1042,38 @@ def action_batch_compare(form_fields):
     def pp_options():
         for (k, v) in list(search.items()):
             if v != '':
-                print(tab_row(tab_col(k + ": ") + tab_col(v)))
+                print(tab_row(tab_col(f"{k}: ") + tab_col(v)))
 
     def pp_column_list():
-        print(tab_row(tab_col("columns in report: ") + tab_col(
-            ", ".join(report_1 + report_2))))
+        print(
+            tab_row(
+                tab_col("columns in report: ")
+                + tab_col(", ".join(report_1 + report_2))
+            )
+        )
 
     def pp_analysis(row):
         return "".join(map(tab_col, row))
 
     def pp_stats(stats_1, stats_2):
         s = ""
-        fmt = "%.6g"
         for (k, v) in sorted(stats_1.items()):
             for i in [0, 1]:
                 if k[:2] == "DF":
-                    s += tab_col("%.0f" % v[i])
+                    s += tab_col(f"{v[i]:.0f}")
                 else:
-                    s += tab_col(fmt % v[i])
+                    s += tab_col(f"{v[i]:.6g}")
         for (k, v) in sorted(stats_2.items()):
-            s += tab_col(fmt % v)
+            s += tab_col(f"{v:.6g}")
         return s
 
     def pp_header():
-        col_headers = ["pair name", "model(A)", "model(B)",
-                       search["selection function"]] + get_stat_headers()
+        col_headers = [
+            "pair name",
+            "model(A)",
+            "model(B)",
+            search["selection function"],
+        ] + get_stat_headers()
         return "".join(map(tab_head, col_headers))
 
     # Layout the document
@@ -960,8 +1082,12 @@ def action_batch_compare(form_fields):
         print('<div class="data">')
     if not text_format:
         print(table_start)
-    print(tab_row(
-        tab_head("Input archive: ") + tab_col(get_data_file_name(form_fields))))
+    print(
+        tab_row(
+            tab_head("Input archive: ")
+            + tab_col(get_data_file_name(form_fields))
+        )
+    )
     if print_options:
         print(tab_row(tab_head("Options:")))
         pp_options()
@@ -979,8 +1105,7 @@ def action_batch_compare(form_fields):
         results.append([l, s1, s2])
         os.remove(file_a)
         os.remove(file_b)
-    print()
-    print("Searches completed. ")
+    print("\nSearches completed. ")
 
     if not text_format:
         print(table_start)
@@ -1024,7 +1149,7 @@ def action_sb_search(form_fields):
         oc.set_report_separator(OCUtils.COMMA_SEP)
     else:
         oc.set_report_separator(OCUtils.HTML_FORMAT)
-    oc.set_sort_dir(form_fields.get("sortdir", ""))
+    oc.set_sort_dir(SortDirection(form_fields.get("sortdir", "")))
     levels = form_fields.get("searchlevels")
     if levels and levels > 0:
         oc.set_search_levels(levels)
@@ -1078,18 +1203,27 @@ def action_sb_search(form_fields):
     reportvars += ", ddf"
     if form_fields.get("show_dlr", ""):
         reportvars += ", lr"
-    if form_fields.get("show_alpha",
-                       "") or search_sort == "alpha" or report_sort == "alpha":
+    if (
+        form_fields.get("show_alpha", "")
+        or search_sort == "alpha"
+        or report_sort == "alpha"
+    ):
         reportvars += ", alpha"
     reportvars += ", information"
     if oc.is_directed():
         if form_fields.get("show_pct_dh", ""):
             reportvars += ", cond_pct_dh"
-    if form_fields.get("show_aic",
-                       "") or search_sort == "aic" or report_sort == "aic":
+    if (
+        form_fields.get("show_aic", "")
+        or search_sort == "aic"
+        or report_sort == "aic"
+    ):
         reportvars += ", aic"
-    if form_fields.get("show_bic",
-                       "") or search_sort == "bic" or report_sort == "bic":
+    if (
+        form_fields.get("show_bic", "")
+        or search_sort == "bic"
+        or report_sort == "bic"
+    ):
         reportvars += ", bic"
 
     if form_fields.get("show_incr_a", ""):
@@ -1105,8 +1239,12 @@ def action_sb_search(form_fields):
         """
 
     if oc.is_directed():
-        if form_fields.get("show_pct", "") or form_fields.get("show_pct_cover",
-                                                              "") or search_sort == "pct_correct_data" or report_sort == "pct_correct_data":
+        if (
+            form_fields.get("show_pct", "")
+            or form_fields.get("show_pct_cover", "")
+            or search_sort == "pct_correct_data"
+            or report_sort == "pct_correct_data"
+        ):
             reportvars += ", pct_correct_data"
             if form_fields.get("show_pct_cover", ""):
                 reportvars += ", pct_coverage"
@@ -1166,7 +1304,7 @@ def get_timestamped_filename(file_name):
     prefix, suffix = os.path.splitext(filename)
     prefix = '_'.join(prefix.split())
     timestamp = datetime.datetime.now().strftime("%Y_%m_%d-%H_%M_%S")
-    filename = os.path.join(dirname, prefix + "_" + timestamp + suffix)
+    filename = os.path.join(dirname, f"{prefix}_{timestamp}{suffix}")
     return filename
 
 
@@ -1180,8 +1318,9 @@ def start_batch(form_fields):
     if get_data_file_name(form_fields) == "":
         print("ERROR: No data file specified.")
         sys.exit()
-    ctlfilename = os.path.join(datadir,
-                               get_data_file_name(form_fields, true) + '.ctl')
+    ctlfilename = os.path.join(
+        datadir, get_data_file_name(form_fields, true) + '.ctl'
+    )
     ctlfilename = get_unique_filename(ctlfilename)
     csvname = get_data_file_name(form_fields, true) + '.csv'
     datafilename = get_data_file_name(form_fields)
@@ -1197,16 +1336,15 @@ def start_batch(form_fields):
 
     print("Process ID:", os.getpid(), "<p>")
 
-    cmd = 'nohup "%s" "%s" "%s" "%s" "%s" "%s" &' % (
-        appname, sys.argv[0], ctlfilename, toaddress, csvname,
-        email_subject.encode("hex"))
+    cmd = f'nohup {appname} {sys.argv[0]} {ctlfilename} {toaddress} {csvname} {email_subject.encode("hex")}'
     os.system(cmd)
 
-    print("<hr>Batch job started for data file '%s'.<br>Results will be sent to '%s'" % (
-        datafilename, toaddress))
+    print(
+        f"<hr>Batch job started for data file '{datafilename}'.<br>Results will be sent to '{toaddress}'"
+    )
 
     if len(email_subject) > 0:
-        print(" with email subject line including '%s'." % email_subject)
+        print(f" with email subject line including '{email_subject}'.")
 
 
 #
@@ -1246,13 +1384,13 @@ def print_batch_log(email):
         f.close()
         print(the_log)
     except Exception:
-        print("no log file found for %s<br>" % email)
+        print(f"no log file found for {email}<br>")
 
 
 def start_normal(form_fields):
     # if any subject line was supplied, print it
     if "email_subject" in form_fields and form_fields["email_subject"]:
-        print("Subject line:," + form_fields["email_subject"])
+        print(f"Subject line:,{form_fields['email_subject']}")
 
     try:
         if form_fields["action"] == "fit":
@@ -1263,7 +1401,10 @@ def start_normal(form_fields):
             action_sb_fit(form_fields)
         elif form_fields["action"] == "fitbatch":
             action_fit_batch(form_fields)
-        elif form_fields["action"] == "search" or form_fields["action"] == "advanced":
+        elif (
+            form_fields["action"] == "search"
+            or form_fields["action"] == "advanced"
+        ):
             action_search(form_fields)
         elif form_fields["action"] == "log":
             action_show_log(form_fields)
@@ -1281,11 +1422,13 @@ def start_normal(form_fields):
         else:
             if not text_format:
                 print("<br><hr>")
-            print("FATAL ERROR: " + str(e))
+            print(f"FATAL ERROR: {str(e)}")
             if not text_format:
                 print("<br>")
             print("This error was not expected by the programmer. ")
-            print("For help, please contact h.forrest.alexander@gmail.com, and include the output so far ")
+            print(
+                "For help, please contact h.forrest.alexander@gmail.com, and include the output so far "
+            )
             ex_type, ex, tb = sys.exc_info()
             traceback.print_tb(tb)
             print("(end error message).")
@@ -1335,11 +1478,13 @@ if "batch_output" in form_fields and form_fields["batch_output"]:
     r2 = form_fields.pop('gephi', None)
     t = (r1 is not None) or (r2 is not None)
     if t:
-        print("Note: Occam's email server interacts with graph output in a way that currently results in an error; graph functionality is temporarily disabled. The programmer is working on a fix...<br><hr>")
+        print(
+            "Note: Occam's email server interacts with graph output in a way that currently results in an error; graph functionality is temporarily disabled. The programmer is working on a fix...<br><hr>"
+        )
 
 sys.stdout.flush()
 
-# print sys.executable + "<br>" + platform.python_version() + "<br>"
+# print(f"{sys.executable}<br>{platform.python_version()}<br>"
 
 # If this is not an output page, or reporting a batch job, then print the header form
 if "data" not in form_fields and "email" not in form_fields:

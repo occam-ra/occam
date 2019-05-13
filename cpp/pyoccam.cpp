@@ -2044,7 +2044,7 @@ PyObject* variable_list_iternext(PyObject *self)
     return (PyObject *)py_variable;
 }
 
-static struct PyMethodDef VariableList_methods[] = 
+static struct PyMethodDef VariableList_methods[] =
 {
         { NULL, NULL, 0 }
 };
@@ -2173,4 +2173,3 @@ void initoccam() {
     if (PyErr_Occurred())
         Py_FatalError("cannot initialize module occam");
 }
-

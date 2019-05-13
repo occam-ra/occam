@@ -7,7 +7,11 @@
 
 import sys
 
+sys.path.insert(0, "./wrappers")
+
+
 from ocutils import OCUtils
+from wrappers.report import SortDirection
 
 # ------------- Main script ---------------
 # This script sets various options on a OCUtils object, and then
@@ -95,7 +99,7 @@ util.set_ref_model("bottom")
 # set the sorting direction for pruning and reporting
 # ascending means lower values are better
 # descending means higher values are better
-util.set_sort_dir("descending")
+util.set_sort_dir(SortDirection.DESCENDING)
 
 # set the search width
 util.set_search_width(5)
@@ -116,4 +120,3 @@ util.set_no_ipf(1)
 
 # perform the search or fit, and print report
 util.do_action(1)
-

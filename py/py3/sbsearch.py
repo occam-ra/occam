@@ -7,10 +7,14 @@
 
 import resource
 import sys
+
+sys.path.insert(0, "./wrappers")
+
 # sys.path.append("/www")
 import time
 
-from ocutils import OCUtils
+from ocutils import OCUtils, Action
+from wrappers.report import SortDirection, SeparatorType
 
 resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 
@@ -18,7 +22,9 @@ resource.setrlimit(resource.RLIMIT_CORE, [360000, 360000])
 # The width, levels and filter are determined here, to be used by the rest of the script below.
 if len(sys.argv) < 2:
     print('No data file specified.')
-    print('Usage: %s datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]' % sys.argv[0])
+    print(
+        f'Usage: {sys.argv[0]} datafile [width levels] ["all"|"loopless"|"disjoint"|"chain"]'
+    )
     sys.exit()
 
 if len(sys.argv) >= 4:
@@ -51,10 +57,10 @@ util.init_from_command_line(sys.argv[0:2])  # initialize with the data file
 # To force a particular attribute to be printed as an integer, append "$I" to the name (e.g., Level$I)
 
 # Set separator between report fields.  [1=tab, 2=comma, 3=space fill, 4=HTML]
-util.set_report_separator(3)
+util.set_report_separator(SeparatorType.SPACE)
 
 # Set the sorting direction for reporting.
-util.set_sort_dir("descending")
+util.set_sort_dir(SortDirection.DESCENDING)
 
 # Set the search width & number of levels.
 util.set_search_width(swidth)
@@ -77,7 +83,7 @@ util.set_search_sort_dir("descending")
 util.set_search_filter(filter_)
 
 # Set the action [fit, search].  Skip this to set it from the data file.
-util.set_action("SBsearch")
+util.set_action(Action.SBSEARCH)
 
 # Set the model attribute for sorting the report, if it is different from the attribute used during search.
 # Generally this isn't needed.
@@ -96,12 +102,14 @@ util.set_report_sort_name("information")
 # util.set_no_ipf(1)
 # For ref=bottom, use something like this:
 # util.set_report_variables("Level$i, h, ddf, lr, alpha, information, cond_pct_dh, aic, bic, incr_alpha, prog_id")
-util.set_report_variables("level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, pct_correct_data")
+util.set_report_variables(
+    "level$I, h, ddf, lr, alpha, information, aic, bic, incr_alpha, prog_id, pct_correct_data"
+)
 
 # Perform the search or fit. Pass 1 as argument to print options, 0 not to.
 t2 = time.time()
 util.do_action(1)
 t3 = time.time()
 
-print("start:  %8f" % (t2 - t1))
-print("search: %8f" % (t3 - t2))
+print(f"start:  {(t2 - t1):8f}")
+print(f"search: {(t3 - t2):8f}")

@@ -1719,6 +1719,25 @@ DefinePyFunction(Model, resetAttributeList) {
 
 // Capstone Team A
 
+DefinePyFunction(Model, getStructMatrix) {
+  int statespace;
+  int Total_const;
+  Model *model = ObjRef(self, Model);
+  PyObject *output_list = PyList_New(0);
+  int **structMatrix = model->getStructMatrix(&statespace, &Total_const);
+  if (structMatrix != NULL) {
+      for (int i = 0; i < Total_const; i++) {
+          PyObject *temp = PyList_New(0);
+          for (int j = 0; j < statespace; j++) {
+              PyObject *val = Py_BuildValue("i", structMatrix[i][j]);
+              PyList_Append(temp, val);
+          }
+          PyList_Append(output_list, temp);
+      }
+  }
+  return output_list;
+}
+
 static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, deleteFitTable),
     PyMethodDef(Model, deleteRelationLinks),
@@ -1733,6 +1752,7 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, getRelationCount),
     PyMethodDef(Model, getAttributeFromConst),
     PyMethodDef(Model, resetAttributeList),
+    PyMethodDef(Model, getStructMatrix),
     { nullptr }
 };
 
@@ -1928,22 +1948,21 @@ DefinePyFunction(Report, dvName) {
 
 DefinePyFunction(Report, variableList) {
     Report* report = ObjRef(self, Report);
-    VBMManager* mgr = dynamic_cast<VBMManager*>(report->manager);
-    VariableList* varlist = mgr->getVariableList();
-    long var_count = varlist->getVarCount();
+    VBMManager* manager = dynamic_cast<VBMManager*>(report->manager);
+    VariableList *variable_list = manager->getVariableList();
 
-    PyObject* ret = PyList_New(var_count);
-    for (long i = 0; i < var_count; ++i) {
-
-        const char* printName = varlist->getVariable(i)->name;
-        const char* abbrevName = varlist->getVariable(i)->abbrev;
-        PyObject* name = PyUnicode_FromString(printName);
-        PyObject* abbrev = PyUnicode_FromString(abbrevName);
-        PyObject* names = PyTuple_Pack(2,name,abbrev);
-        PyList_SetItem(ret, i, names);
+    //Variable list is NULL
+    if(!variable_list)
+    {
+       Py_INCREF(Py_None);
+       return Py_None;
     }
 
-    return ret;
+    PVariableList *py_variable_list = ObjNew(VariableList);
+    py_variable_list->obj = variable_list;
+    Py_INCREF(py_variable_list);
+
+    return (PyObject*) py_variable_list;
 }
 
 DefinePyFunction(Report, bestModelData) {

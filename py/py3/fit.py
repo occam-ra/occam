@@ -8,13 +8,16 @@
 import sys
 import time
 
+sys.path.insert(0, "./wrappers")
+
 from ocutils import OCUtils
+from ocutils import Action
+from wrappers.report import SeparatorType
 
 # sys.path.append("/www")
 
 if len(sys.argv) < 3:
-    print('Incorrect parameters.')
-    print('Usage: %s datafile model' % sys.argv[0])
+    print(f'Incorrect parameters.\nUsage: {sys.argv[0]} datafile model')
     sys.exit()
 
 
@@ -24,9 +27,9 @@ t1 = time.time()
 oc.init_from_command_line(sys.argv[0:2])  # initialize with the data file
 
 oc.set_fit_model(sys.argv[2])
-oc.set_action("fit")
-oc.set_report_separator(3)
-oc.set_skip_nominal(1)
+oc.set_action(Action.FIT)
+oc.set_report_separator(SeparatorType.SPACE)
+oc.set_skip_nominal(True)
 oc.set_ddf_method(1)
 # oc.set_default_fit_model("IV:CD")
 
@@ -34,6 +37,5 @@ t2 = time.time()
 oc.do_action(1)
 t3 = time.time()
 
-print("start:  %8f" % (t2 - t1))
-print("fit: %8f" % (t3 - t2))
-
+print(f"start:  {(t2 - t1):8f}")
+print(f"fit: {(t3 - t2):8f}")

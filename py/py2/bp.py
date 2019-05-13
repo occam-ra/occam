@@ -116,4 +116,3 @@ util.set_no_ipf(1)
 
 # perform the search or fit, and print report
 util.do_action(1)
-

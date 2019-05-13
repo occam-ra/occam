@@ -2,6 +2,7 @@ class ManageJobs:
     """
     WIP
     """
+
     def __init__(self):
         pass
 
