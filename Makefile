@@ -146,6 +146,7 @@ install: lib $(WEB_FILES) $(CORE_FILES_PY2) $(CL_FILES_PY2) $(CAPSTONE_FILES_PY2
 	make cli
 	make occampy
 	cp $(SETUP_FILE) $(INSTALL_ROOT)
+	mkdir -p $(WEB_ROOT)/data
 	touch cpp/__init__.py
 
 web:
