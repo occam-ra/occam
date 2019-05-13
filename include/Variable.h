@@ -30,6 +30,16 @@ class Variable { // internal use only - see VariableList
         const char* getAbbrev()
         {
             return abbrev;
+        }
+
+        bool getDV()
+        {
+            return dv;
+        }
+
+        const char* getName()
+        {
+            return name;
         };
 };
 

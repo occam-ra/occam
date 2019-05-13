@@ -1270,6 +1270,55 @@ DefinePyFunction(SBMManager, hasTestData) {
     return Py_BuildValue("i", result);
 }
 
+// Capstone Team A
+
+// double
+DefinePyFunction(SBMManager, getTestSampleSz) {
+    PyArg_ParseTuple(args, "");
+    double ss = ObjRef(self, SBMManager)->getTestSampleSize();
+    return Py_BuildValue("d", ss);
+}
+
+// bool
+DefinePyFunction(SBMManager, isValuesAreFunctions) {
+    PyArg_ParseTuple(args, "");
+    bool valuesAreFunctions = ObjRef(self,SBMManager)->getValuesAreFunctions();
+    return Py_BuildValue("i", valuesAreFunctions ? 1 : 0);
+}
+
+// int
+DefinePyFunction(SBMManager, getVarCount) {
+    SBMManager* mgr = ObjRef(self, SBMManager);
+    VariableList* varlist = mgr->getVariableList();
+    return Py_BuildValue("i", (varlist->getVarCount()!= NULL));
+}
+
+// VariableList
+DefinePyFunction(SBMManager, getVariableList) {
+    SBMManager* mgr = ObjRef(self, SBMManager);
+
+    if(!mgr->getVariableList()) {
+      Py_INCREF(Py_None);
+      return Py_None;
+    }
+
+    PVariableList* varlist = ObjNew(VariableList);
+    varlist->obj = mgr->getVariableList();
+
+    Py_INCREF(varlist);
+    return (PyObject*) varlist;
+}
+
+// int
+DefinePyFunction(SBMManager, getDV) {
+    SBMManager* mgr = ObjRef(self, SBMManager);
+    VariableList* varlist = mgr->getVariableList();
+    return Py_BuildValue("i", (varlist->getDV()!=NULL));
+}
+
+// Capstone Team A
+
+
 static struct PyMethodDef SBMManager_methods[] = {
         PyMethodDef(SBMManager, compareProgenitors),
         PyMethodDef(SBMManager, computeBPStatistics),
@@ -1306,6 +1355,11 @@ static struct PyMethodDef SBMManager_methods[] = {
         PyMethodDef(SBMManager, setRefModel),
         PyMethodDef(SBMManager, setSearchDirection),
         PyMethodDef(SBMManager, setSearchType),
+        PyMethodDef(SBMManager, getTestSampleSz),
+        PyMethodDef(SBMManager, isValuesAreFunctions),
+        PyMethodDef(SBMManager, getVarCount),
+        PyMethodDef(SBMManager, getVariableList),
+        PyMethodDef(SBMManager, getDV),
         { nullptr }
 };
 
@@ -1382,8 +1436,43 @@ DefinePyFunction(Relation, get) {
     return PyFloat_FromDouble(value);
 }
 
+// Capstone Team A
+DefinePyFunction(Relation, isIndependentOnly) {
+    PyArg_ParseTuple(args, "");
+    bool isIndependent = ObjRef(self,Relation)->isIndependentOnly();
+    return Py_BuildValue("i", isIndependent ? 1 : 0);
+}
+
+DefinePyFunction(Relation, getVariableCount) {
+    Relation* rel = ObjRef(self, Relation);
+    return Py_BuildValue("i", (rel->getVariableCount()!= NULL));
+}
+
+DefinePyFunction(Relation, getPrintName) {
+    int useInverse;
+    PyArg_ParseTuple(args, "i", &useInverse);
+    Relation* rel = ObjRef(self, Relation);
+
+    const char* printname = rel->getPrintName(useInverse);
+    PyObject* name = PyUnicode_FromString(printname);
+    return name;
+}
+
+DefinePyFunction(Relation, getVariable) {
+    int index;
+    PyArg_ParseTuple(args, "i", &index);
+    Relation* rel = ObjRef(self, Relation);
+    return Py_BuildValue("i", (rel->getVariable(index)!=NULL));
+}
+
+// Capstone Team A
+
 static struct PyMethodDef Relation_methods[] = {
         PyMethodDef(Relation, get),
+        PyMethodDef(Relation, isIndependentOnly),
+        PyMethodDef(Relation, getVariableCount),
+        PyMethodDef(Relation, getPrintName),
+        PyMethodDef(Relation, getVariable),
         { nullptr }
 };
 
@@ -1583,6 +1672,53 @@ DefinePyFunction(Model, getPrintName)
     return PyUnicode_FromString(model->getPrintName());
 }
 
+// Capstone Team A
+
+DefinePyFunction(Model, getRelationCount) {
+    Model* mdl = ObjRef(self, Model);
+    return Py_BuildValue("i", (mdl->getRelationCount()!= NULL));
+}
+
+DefinePyFunction(Model, getAttributeFromConst) {
+    char* name;
+    PyArg_ParseTuple(args, "s", &name);
+    Model* mdl = ObjRef(self, Model);
+
+    if(strcmp(name, "ATTRIBUTE_DEP_H") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_DEP_H)!=NULL));
+    else if(strcmp(name, "ATTRIBUTE_IND_H") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_IND_H)!=NULL));
+    else if(strcmp(name, "ATTRIBUTE_LR") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_LR)!=NULL));
+    else if(strcmp(name, "ATTRIBUTE_ALPHA") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_ALPHA)!=NULL));
+    else if(strcmp(name, "ATTRIBUTE_P2") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_P2)!=NULL));
+    else if(strcmp(name, "ATTRIBUTE_P2_ALPHA") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_P2_ALPHA)!=NULL));
+    else if(strcmp(name, "ATTRIBUTE_DDF") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_DDF)!=NULL));
+    else if(strcmp(name, "ATTRIBUTE_ALG_H") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_ALG_H)!=NULL));
+    else if(strcmp(name, "ATTRIBUTE_H") == 0)
+      return Py_BuildValue("d", (mdl->getAttribute(ATTRIBUTE_H)!=NULL));
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+DefinePyFunction(Model, resetAttributeList) {
+    Model* mdl = ObjRef(self, Model);
+    AttributeList* alist = mdl->getAttributeList();
+
+    alist->reset();
+
+    Py_INCREF(Py_None);
+    return Py_None;
+}
+
+// Capstone Team A
+
 DefinePyFunction(Model, getStructMatrix) {
   int statespace;
   int Total_const;
@@ -1613,6 +1749,9 @@ static struct PyMethodDef Model_methods[] = {
     PyMethodDef(Model, setID),
     PyMethodDef(Model, setProgenitor),
     PyMethodDef(Model, getPrintName),
+    PyMethodDef(Model, getRelationCount),
+    PyMethodDef(Model, getAttributeFromConst),
+    PyMethodDef(Model, resetAttributeList),
     PyMethodDef(Model, getStructMatrix),
     { nullptr }
 };
@@ -2042,11 +2181,19 @@ DefinePyFunction(VariableList, isDirected)
     return Py_False;
 }
 
+// Capstone Team A
+DefinePyFunction(VariableList, getDV) {
+    VariableList* variable_list = ObjRef(self, VariableList);
+    return Py_BuildValue("i", (variable_list->getDV()!= NULL));
+}
+// Capstone Team A
+
 static struct PyMethodDef VariableList_methods[] =
 {
     PyMethodDef(VariableList, getVarCount),
     PyMethodDef(VariableList, getVariable),
     PyMethodDef(VariableList, isDirected),
+    PyMethodDef(VariableList, getDV),
     { nullptr }
 };
 
@@ -2093,9 +2240,23 @@ DefinePyFunction(Variable, getAbbrev)
     return PyUnicode_FromString(variable->getAbbrev());
 }
 
+// Capstone Team A
+DefinePyFunction(Variable, getDV) {
+    Variable* variable = ObjRef(self, Variable);
+    return Py_BuildValue("i", (variable->getDV()!=NULL));
+}
+
+DefinePyFunction(Variable, getName) {
+    Variable* variable = ObjRef(self, Variable);
+    return PyUnicode_FromString(variable->getName());
+}
+// Capstone Team A
+
 static struct PyMethodDef Variable_methods[] =
 {
     PyMethodDef(Variable, getAbbrev),
+    PyMethodDef(Variable, getDV),
+    PyMethodDef(Variable, getName),
     { nullptr }
 };
 
