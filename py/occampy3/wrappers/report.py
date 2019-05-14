@@ -60,19 +60,12 @@ class Report:
 
     default_fit_model = property(None, set_default_fit_model)
 
-    def print_conditional_dv(
-        self, model: Model, calc_expected_dv: bool, classifier_target: str
-    ) -> None:
+    def print_conditional_dv(self, model: Model, calc_expected_dv: bool, classifier_target: str) -> None:
         self._ref.printConditional_DV(
             model.ref, calc_expected_dv, classifier_target
         )
 
-    def print_residuals(
-        self,
-        model: Model,
-        skip_trained_model_table: bool,
-        skip_ivi_tables: bool,
-    ) -> None:
+    def print_residuals(self,model: Model,skip_trained_model_table: bool,skip_ivi_tables: bool) -> None:
         self._ref.printResiduals(
             model.ref, skip_trained_model_table, skip_ivi_tables
         )

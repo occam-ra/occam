@@ -100,9 +100,7 @@ class Manager:
 
     search_direction = property(None, set_search_direction)
 
-    def set_search_type(
-        self, search_type: Union[SearchType, SBSearchType]
-    ) -> None:
+    def set_search_type(self, search_type: Union[SearchType, SBSearchType]) -> None:
         self._ref.setSearchType(search_type.value)
 
     search_type = property(None, set_search_type)
