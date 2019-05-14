@@ -1,6 +1,6 @@
-import occam
 from manager import Manager
 from model import Model
+from occam import SBMManager as SBMManager_cpp
 
 
 class SBMManager(Manager):
@@ -8,14 +8,14 @@ class SBMManager(Manager):
     Wrapper class for SBMManager
     """
 
-    def __init__(self, ref=None):
+    def __init__(self, ref=None) -> None:
         """
-        :param: ref: the reference to the SBMManager object returned from the CPP engine
+        :param: ref: Reference to the SBMManager object returned from the CPP engine
         """
-        Manager.__init__(self, ref=(ref or occam.SBMManager()))
+        Manager.__init__(self, ref=(ref or SBMManager_cpp()))
 
-    def make_model(self, model_name: str, make_project: bool) -> Model:
-        return Model(self._ref.makeSbModel(model_name, make_project))
+    def make_model(self, model_type: str, make_project: bool) -> Model:
+        return Model(self._ref.makeSbModel(model_type, make_project))
 
     @property
     def test_sample_size(self) -> double:

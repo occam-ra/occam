@@ -19,13 +19,14 @@ import zipfile
 
 sys.path.insert(0, "./wrappers")
 
-from ocutils import OCUtils
+from ocutils import OCUtils, Action
 from OpagCGI import OpagCGI
 from jobcontrol import JobControl
 from common import *
 import ocGraph
 
-from wrappers.report import SortDirection
+from wrappers.manager import SearchFilter
+from wrappers.report import ReportSortName, SortDirection
 
 cgitb.enable(display=1)
 VERSION = "3.4.0"
@@ -683,7 +684,7 @@ def action_search(form_fields):
     else:
         oc.set_report_separator(OCUtils.HTML_FORMAT)
 
-    oc.set_sort_dir(SortDirection(form_fields.get("sortdir", "")))
+    oc.set_sort_dir(form_fields.get("sortdir", ""))
     levels = form_fields.get("searchlevels")
     if levels and levels > 0:
         oc.set_search_levels(levels)
@@ -708,7 +709,7 @@ def action_search(form_fields):
     #    ref_model = form_fields["specificrefmodel"]
     # specific_ref_model = ref_model
     if ref_model == "starting":
-        ref_model = oc.get_start_model()
+        ref_model = oc.start_model
     oc.set_ref_model(ref_model)
     oc.search_dir = form_fields.get("searchdir", "default")
     oc.set_search_sort_dir(form_fields.get("searchsortdir", ""))
@@ -724,11 +725,11 @@ def action_search(form_fields):
     if form_fields["evalmode"] == "bp":
         reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
         oc.set_noIPF(true)
-        if report_sort == "information": report_sort = "bp_information"
-        elif report_sort == "alpha": report_sort = "bp_alpha"
+        if report_sort == ReportSortName.INFORMATION: report_sort = ReportSortName.BP_INFORMATION
+        elif report_sort == ReportSortName.ALPHA: report_sort = ReportSortName.BP_ALPHA
         if search_sort == "information": search_sort = "bp_information"
         elif search_sort == "alpha": search_sort = "bp_alpha"
-        if oc.is_directed():
+        if oc.is_directed:
             reportvars += ", bp_cond_pct_dh"
         reportvars += ", bp_aic, bp_bic"
     """
@@ -741,23 +742,23 @@ def action_search(form_fields):
     if (
         form_fields.get("show_alpha", "")
         or search_sort == "alpha"
-        or report_sort == "alpha"
+        or report_sort == ReportSortName.ALPHA
     ):
         reportvars += ", alpha"
     reportvars += ", information"
-    if oc.is_directed():
+    if oc.is_directed:
         if form_fields.get("show_pct_dh", ""):
             reportvars += ", cond_pct_dh"
     if (
         form_fields.get("show_aic", "")
         or search_sort == "aic"
-        or report_sort == "aic"
+        or report_sort == ReportSortName.AIC
     ):
         reportvars += ", aic"
     if (
         form_fields.get("show_bic", "")
         or search_sort == "bic"
-        or report_sort == "bic"
+        or report_sort == ReportSortName.BIC
     ):
         reportvars += ", bic"
 
@@ -773,12 +774,12 @@ def action_search(form_fields):
             reportvars += ", bp_t"
         """
 
-    if oc.is_directed():
+    if oc.is_directed:
         if (
             form_fields.get("show_pct", "")
             or form_fields.get("show_pct_cover", "")
             or search_sort == "pct_correct_data"
-            or report_sort == "pct_correct_data"
+            or report_sort == ReportSortName.PCT_CORRECT_DATA
         ):
             reportvars += ", pct_correct_data"
             if form_fields.get("show_pct_cover", ""):
@@ -1149,7 +1150,7 @@ def action_sb_search(form_fields):
         oc.set_report_separator(OCUtils.COMMA_SEP)
     else:
         oc.set_report_separator(OCUtils.HTML_FORMAT)
-    oc.set_sort_dir(SortDirection(form_fields.get("sortdir", "")))
+    oc.set_sort_dir(form_fields.get("sortdir", ""))
     levels = form_fields.get("searchlevels")
     if levels and levels > 0:
         oc.set_search_levels(levels)
@@ -1174,7 +1175,7 @@ def action_sb_search(form_fields):
         ref_model = form_fields["specificrefmodel"]
         # specific_ref_model = ref_model
     elif ref_model == "starting":
-        ref_model = oc.get_start_model()
+        ref_model = oc.start_model
     oc.set_ref_model(ref_model)
     oc.search_dir = form_fields.get("searchdir", "default")
     oc.set_search_sort_dir(form_fields.get("searchsortdir", ""))
@@ -1189,11 +1190,11 @@ def action_sb_search(form_fields):
     if form_fields["evalmode"] == "bp":
         reportvars = "Level$I, bp_t, bp_h, ddf, bp_lr, bp_alpha, bp_information"
         oc.set_noIPF(true)
-        if report_sort == "information": report_sort = "bp_information"
-        elif report_sort == "alpha": report_sort = "bp_alpha"
+        if report_sort == "information": report_sort = ReportSortName.BP_INFORMATION
+        elif report_sort == ReportSortName.ALPHA: report_sort = ReportSortName.BP_ALPHA
         if search_sort == "information": search_sort = "bp_information"
         elif search_sort == "alpha": search_sort = "bp_alpha"
-        if oc.is_directed():
+        if oc.is_directed:
             reportvars += ", bp_cond_pct_dh"
         reportvars += ", bp_aic, bp_bic"
     """
@@ -1206,23 +1207,23 @@ def action_sb_search(form_fields):
     if (
         form_fields.get("show_alpha", "")
         or search_sort == "alpha"
-        or report_sort == "alpha"
+        or report_sort == ReportSortName.ALPHA
     ):
         reportvars += ", alpha"
     reportvars += ", information"
-    if oc.is_directed():
+    if oc.is_directed:
         if form_fields.get("show_pct_dh", ""):
             reportvars += ", cond_pct_dh"
     if (
         form_fields.get("show_aic", "")
         or search_sort == "aic"
-        or report_sort == "aic"
+        or report_sort == ReportSortName.AIC
     ):
         reportvars += ", aic"
     if (
         form_fields.get("show_bic", "")
         or search_sort == "bic"
-        or report_sort == "bic"
+        or report_sort == ReportSortName.BIC
     ):
         reportvars += ", bic"
 
@@ -1238,12 +1239,12 @@ def action_sb_search(form_fields):
             reportvars += ", bp_t"
         """
 
-    if oc.is_directed():
+    if oc.is_directed:
         if (
             form_fields.get("show_pct", "")
             or form_fields.get("show_pct_cover", "")
             or search_sort == "pct_correct_data"
-            or report_sort == "pct_correct_data"
+            or report_sort == ReportSortName.PCT_CORRECT_DATA
         ):
             reportvars += ", pct_correct_data"
             if form_fields.get("show_pct_cover", ""):

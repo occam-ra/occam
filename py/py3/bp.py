@@ -11,7 +11,9 @@ sys.path.insert(0, "./wrappers")
 
 
 from ocutils import OCUtils
-from wrappers.report import SortDirection
+from wrappers.manager import SearchFilter
+from wrappers.model import ModelType
+from wrappers.report import SortDirection, ReportSortName
 
 # ------------- Main script ---------------
 # This script sets various options on a OCUtils object, and then
@@ -77,20 +79,20 @@ util.set_report_variables("Level$I, bp_t, ddf, h")
 # set the model attribute on which sorting is done is done. This
 # controls the selection of "best models" during search. It can
 # also control reporting (see set_report_sort_name, below)
-util.set_report_sort_name("bp_t")
+util.set_report_sort_name(ReportSortName.BPT)
 
 # set the model attribute for sorting the report, if it is different
 # from the attribute used during search. Generally this isn't needed.
-util.set_report_sort_name("bp_t")
+util.set_report_sort_name(ReportSortName.BPT)
 
 # set the search direction (up, down)
 # util.set_search_dir("up")
 
 # set the search filter (all, loopless, disjoint)
-util.set_search_filter("all")
+util.set_search_filter(SearchFilter.ALL)
 
 # set the ref model (bottom, top, default, or a specific model)
-util.set_ref_model("bottom")
+util.set_ref_model(ModelType.BOTTOM)
 
 # set the start model for search (top, bottom, default, or a model name)
 # skip this to use the model set in the data file

@@ -1,12 +1,14 @@
 from enum import Enum
-from model import Model
+from typing import List, Sequence, Tuple, Union
+
+from model import Model, ModelType
 from report import Report
-from typing import Sequence, Union
 
 
 class SearchDirection(Enum):
     UP = 0
     DOWN = 1
+    DEFAULT = 2
 
 
 class SearchType(Enum):
@@ -33,6 +35,13 @@ class SBSearchType(Enum):
     FULL_DOWN = 'sb-full-down'
 
 
+class SearchFilter(Enum):
+    LOOPLESS = 'loopless'
+    DISJOINT = 'disjoint'
+    CHAIN = 'chain'
+    ALL = 'all'
+
+
 class Manager:
     """
     Wrapper class for Manager
@@ -40,35 +49,14 @@ class Manager:
 
     def __init__(self, ref) -> None:
         """
-        :param: ref: the reference to the (VBM,SBM)Manager object returned from the CPP engine
+        :param: ref: Reference to the (VBM,SBM)Manager object returned from the CPP engine
         """
         # Create new reference if one not given
         self._ref = ref
         self._model = None
 
     @property
-    def model(self, type_='default', make_project=1):
-        if type_ == 'top':
-            model_ref = self._ref.getTopRefModel()
-        elif type_ == 'bottom':
-            model_ref = self._ref.getBottomRefModel()
-        else:
-            model_ref = self._ref.makeModel(type_, make_project)
-        self._model = Model(model_ref)
-        return self._model
-
-    @property
-    def search_type(self):
-        pass
-
-    @search_type.setter
-    def search_type(self, search_type):
-        self._ref.setSearchType(search_type)
-
-    def set(self, **kwargs):
-        pass
-
-    def get_report(self) -> Report:
+    def report(self) -> Report:
         return Report(self._ref.Report())
 
     def init_from_command_line(self, args: Sequence[str]) -> None:
@@ -77,9 +65,10 @@ class Manager:
     def get_option(self, option_name: str) -> str:
         return self._ref.getOption(option_name)
 
-    def get_option_list(self, option_name: str) -> Sequence[str]:
+    def get_option_list(self, option_name: str) -> List[str]:
         return self._ref.getOptionList(option_name)
 
+    @property
     def is_directed(self) -> bool:
         return self._ref.isDirected()
 
@@ -95,36 +84,51 @@ class Manager:
     def compute_dependent_statistics(self, model: Model) -> None:
         self._ref.computeDependentStatistics(model.ref)
 
-    def get_top_ref_model(self) -> Model:
+    def compute_information_statistics(self, model: Model) -> None:
+        self._ref.computeInformationStatistics(model.ref)
+
+    @property
+    def top_ref_model(self) -> Model:
         return Model(self._ref.getTopRefModel())
 
-    def get_bottom_ref_model(self) -> Model:
+    @property
+    def bottom_ref_model(self) -> Model:
         return Model(self._ref.getBottomRefModel())
 
     def set_search_direction(self, direction: SearchDirection) -> None:
         self._ref.setSearchDirection(direction.value)
 
-    def set_search_type(self, type_: Union[SearchType, SBSearchType]) -> None:
-        self._ref.setSearchType(type_.value)
+    search_direction = property(None, set_search_direction)
+
+    def set_search_type(self, search_type: Union[SearchType, SBSearchType]) -> None:
+        self._ref.setSearchType(search_type.value)
+
+    search_type = property(None, set_search_type)
+
+    def set_ref_model(self, model) -> None:
+        self._ref.setRefModel(model)
+
+    ref_model = property(None, set_ref_model)
 
     def get_model_by_search_dir(self, direction: SearchDirection) -> Model:
-        if direction is SearchDirection.UP:
-            return self.get_top_ref_model()
-
-        return self.get_bottom_ref_model()
+        return (
+            self.top_ref_model
+            if direction == SearchDirection.UP
+            else self.bottom_ref_model
+        )
 
     def has_test_data(self) -> bool:
         return self._ref.hasTestData()
 
-    def search_one_level(self, model: Model) -> Sequence[Model]:
+    def search_one_level(self, model: Model) -> Tuple[Model]:
         model_ref_list = self._ref.searchOneLevel(model.ref)
-
         return tuple(Model(model_ref) for model_ref in model_ref_list)
 
     def compare_progenitors(self, model: Model, progen: Model) -> None:
         self._ref.compareProgenitors(model.ref, progen.ref)
 
-    def get_mem_usage(self) -> int:
+    @property
+    def mem_usage(self) -> int:
         return self._ref.getMemUsage()
 
     def delete_model_from_cache(self, model: Model) -> bool:
@@ -149,3 +153,12 @@ class Manager:
     # TODO: remove and replace with the underlying functionality in the future
     def print_fit_report(self, model: Model) -> None:
         self._ref.printFitReport(model.ref)
+
+    def get_model(self, model_type: ModelType, make_project: bool) -> Model:
+        if model_type == ModelType.UP:
+            model = self.top_ref_model
+        elif model_type == ModelType.BOTTOM:
+            model = self.bottom_ref_model
+        else:
+            model = self.make_model(model_type.value, make_project)
+        return model

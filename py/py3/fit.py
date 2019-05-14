@@ -29,7 +29,7 @@ oc.init_from_command_line(sys.argv[0:2])  # initialize with the data file
 oc.set_fit_model(sys.argv[2])
 oc.set_action(Action.FIT)
 oc.set_report_separator(SeparatorType.SPACE)
-oc.set_skip_nominal(True)
+oc.set_skip_nominal(1)
 oc.set_ddf_method(1)
 # oc.set_default_fit_model("IV:CD")
 
