@@ -19,7 +19,6 @@ class Model:
         """
         # Create new reference if one not given
         self.ref = ref
-        self._id = 0
 
     def __lt__(self, other: 'Model') -> bool:
         return self.name < other.name
@@ -36,7 +35,7 @@ class Model:
         return self.ref.getPrintName()
 
     def set_id(self, id_: int) -> None:
-        self._id = id_
+        self.ref.setID(id_)
 
     id_ = property(None, set_id)
 
