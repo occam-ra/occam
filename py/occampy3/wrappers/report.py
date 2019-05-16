@@ -18,14 +18,14 @@ class SortDirection(Enum):
 
 
 class ReportSortName(Enum):
-    INFORMATION = "information"
-    BPT = "bp_t"
-    PCT_CORRECT_DATA = "pct_correct_data"
     AIC = "aic"
-    BIC = "bic"
     ALPHA = "alpha"
+    BIC = "bic"
     BP_ALPHA = "bp_alpha"
     BP_INFORMATION = "bp_information"
+    BPT = "bp_t"
+    INFORMATION = "information"
+    PCT_CORRECT_DATA = "pct_correct_data"
 
 
 class Report:
@@ -50,7 +50,7 @@ class Report:
     def set_separator(self, separator: SeparatorType) -> None:
         self._ref.setSeparator(separator.value)
 
-    separator = property(None, set_separator)
+    separator = property(fset=set_separator)
 
     def add_model(self, model: Model) -> None:
         self._ref.addModel(model.ref)
@@ -58,14 +58,14 @@ class Report:
     def set_default_fit_model(self, model: Model) -> None:
         self._ref.setDefaultFitModel(model.ref)
 
-    default_fit_model = property(None, set_default_fit_model)
+    default_fit_model = property(fset=set_default_fit_model)
 
     def print_conditional_dv(self, model: Model, calc_expected_dv: bool, classifier_target: str) -> None:
         self._ref.printConditional_DV(
             model.ref, calc_expected_dv, classifier_target
         )
 
-    def print_residuals(self,model: Model,skip_trained_model_table: bool,skip_ivi_tables: bool) -> None:
+    def print_residuals(self, model: Model, skip_trained_model_table: bool, skip_ivi_tables: bool) -> None:
         self._ref.printResiduals(
             model.ref, skip_trained_model_table, skip_ivi_tables
         )

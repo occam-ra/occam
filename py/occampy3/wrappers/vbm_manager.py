@@ -26,12 +26,12 @@ class VBMManager(Manager):
     def set_alpha_threshold(self, threshold: float) -> None:
         self._ref.setAlphaThreshold(threshold)
 
-    alpha_threshold = property(None, set_alpha_threshold)
+    alpha_threshold = property(fset=set_alpha_threshold)
 
     def set_values_are_functions(self, truth_value: bool) -> None:
         self._ref.setValuesAreFunctions(truth_value)
 
-    values_are_functions = property(None, set_values_are_functions)
+    values_are_functions = property(fset=set_values_are_functions)
 
     def use_inverse_notation(self, truth_value: bool) -> None:
         self._ref.setUseInverseNotation(truth_value)
@@ -42,4 +42,4 @@ class VBMManager(Manager):
     def set_ddf_method(self, ddf_method: int) -> None:
         self._ref.setDDFMethod(ddf_method)
 
-    ddf_method = property(None, set_ddf_method)
+    ddf_method = property(fset=set_ddf_method)

@@ -39,7 +39,7 @@ else:
 if len(sys.argv) >= 5:
     filter_ = SearchFilter(sys.argv[4])
 else:
-    filter_ = SearchFilter("LOOPLESS")
+    filter_ = SearchFilter.LOOPLESS
 
 
 util = OCUtils("SB")  # create a variable-based manager

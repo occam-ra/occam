@@ -59,7 +59,7 @@ def get_data_file_name(form_fields, trim=false, key='datafilename'):
 
 def use_gfx(form_fields):
     return (
-        "only_gfx" in form_fields
+        "onlyGfx" in form_fields
         or "gfx" in form_fields
         or "gephi" in form_fields
     )
@@ -254,8 +254,8 @@ def print_form(form_fields):
     template = OpagCGI()
     action = form_fields.get("action", "")
 
-    if "format_text" in form_fields:
-        form_fields['format_text'] = "checked"
+    if "formatText" in form_fields:
+        form_fields['formatText'] = "checked"
     template.set_template('switchform.html')
     template.out(form_fields)
 
@@ -588,7 +588,7 @@ def action_fit(form_fields):
     if "data" not in form_fields or "model" not in form_fields:
         action_none(form_fields, "Missing form fields")
         return
-    only_gfx = "only_gfx" in form_fields
+    only_gfx = "onlyGfx" in form_fields
     process_fit(fn, form_fields["model"], target, oc, only_gfx)
     os.remove(fn)
 
@@ -644,7 +644,7 @@ def action_sb_fit(form_fields):
         else ""
     )
 
-    only_gfx = "only_gfx" in form_fields
+    only_gfx = "onlyGfx" in form_fields
     process_sb_fit(fn, form_fields["model"], target, oc, only_gfx)
     os.remove(fn)
 

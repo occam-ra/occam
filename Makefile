@@ -99,7 +99,7 @@ CL_FILES_PY3 = \
 	py/py3/sbfit.py \
 	py/py3/sbsearch.py
 
-WEB_FILES = \
+WEB_FILES_PY2 = \
 	html/.htaccess \
 	html/occam_logo.jpg \
 	html/base.css \
@@ -131,6 +131,38 @@ WEB_FILES = \
 	html/compare.footer.html \
 	html/occambatch
 
+WEB_FILES_PY3 = \
+	html/.htaccess \
+	html/occam_logo.jpg \
+	html/base.css \
+	html/footer.html \
+	html/header.html \
+	html/index.html \
+	py/py3/OpagCGI.py \
+	py/py3/jobcontrol.py \
+	py/py3/weboccam.py \
+	html/switchform.html \
+	html/header.txt \
+	html/formheader.html \
+	html/fitbatchform.html \
+	html/compareform.html \
+	html/logform.html \
+	html/weboccam.cgi \
+	html/output.template.html \
+	html/cached_data.template.html \
+	html/data.template.html \
+	html/fit.template.html \
+	html/fit.footer.html \
+	html/search.template.html \
+	html/search.footer.html \
+	html/SBfit.template.html \
+	html/SBfit.footer.html \
+	html/SBsearch.template.html \
+	html/SBsearch.footer.html \
+	html/compare.template.html \
+	html/compare.footer.html \
+	html/occambatch
+
 CAPSTONE_FILES_PY2 = \
 	$(CAPSTONE_ROOT)2/*.py \
 	$(CAPSTONE_ROOT)2/wrappers
@@ -139,7 +171,7 @@ CAPSTONE_FILES_PY3 = \
 	$(CAPSTONE_ROOT)3/*.py \
 	$(CAPSTONE_ROOT)3/wrappers
 
-install: lib $(WEB_FILES) $(CORE_FILES_PY2) $(CL_FILES_PY2) $(CAPSTONE_FILES_PY2) $(CAPSTONE_FILES_PY3) $(SETUP_FILE)
+install: lib $(WEB_FILES_PY3) $(CORE_FILES_PY3) $(CL_FILES_PY3) $(CAPSTONE_FILES_PY3) $(CAPSTONE_FILES_PY3) $(SETUP_FILE)
 	-rm -rf $(INSTALL_ROOT)
 	mkdir -p $(INSTALL_ROOT)
 	make web
@@ -151,17 +183,17 @@ install: lib $(WEB_FILES) $(CORE_FILES_PY2) $(CL_FILES_PY2) $(CAPSTONE_FILES_PY2
 
 web:
 	mkdir -p $(WEB_ROOT)
-	cp $(WEB_FILES) $(CORE_FILES_PY2) $(WEB_ROOT)
+	cp $(WEB_FILES_PY3) $(CORE_FILES_PY3) $(WEB_ROOT)
 	touch $(WEB_ROOT)/__init__.py
 
 cli:
 	mkdir -p $(CL_ROOT)
-	cp $(CL_FILES_PY2) $(CORE_FILES_PY2) $(CL_ROOT)
+	cp $(CL_FILES_PY3) $(CORE_FILES_PY3) $(CL_ROOT)
 	touch $(CL_ROOT)/__init__.py
 
 occampy:
 	mkdir -p $(PACKAGE_ROOT)2 $(PACKAGE_ROOT)3
-	cp -r $(CAPSTONE_FILES_PY2) $(PACKAGE_ROOT)2
+	cp -r $(CAPSTONE_FILES_PY3) $(PACKAGE_ROOT)2
 	cp cpp/occam.so $(PACKAGE_ROOT)2/wrappers/occam.so
 	cp -r $(CAPSTONE_FILES_PY3) $(PACKAGE_ROOT)3
 	cp cpp/occam3.so $(PACKAGE_ROOT)3/wrappers/occam.so

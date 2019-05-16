@@ -83,7 +83,7 @@ def max_dist(compare_order):
     return zipwise_max(lambda x, y: abs(x - y), compare_order)
 
 
-distanceMetrics = {
+distance_metrics = {
     "Absolute dist": absolute_dist,
     "Euclidean dist": euclidean_dist,
     "Hellinger dist": hellinger_dist,
@@ -93,4 +93,4 @@ distanceMetrics = {
 
 
 def compute_distance_metric(k, compare_order):
-    return distanceMetrics[k](compare_order)
+    return distance_metrics[k](compare_order)

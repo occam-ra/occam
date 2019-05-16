@@ -98,17 +98,17 @@ class Manager:
     def set_search_direction(self, direction: SearchDirection) -> None:
         self._ref.setSearchDirection(direction.value)
 
-    search_direction = property(None, set_search_direction)
+    search_direction = property(fset=set_search_direction)
 
     def set_search_type(self, search_type: Union[SearchType, SBSearchType]) -> None:
         self._ref.setSearchType(search_type.value)
 
-    search_type = property(None, set_search_type)
+    search_type = property(fset=set_search_type)
 
     def set_ref_model(self, model) -> None:
         self._ref.setRefModel(model)
 
-    ref_model = property(None, set_ref_model)
+    ref_model = property(fset=set_ref_model)
 
     def get_model_by_search_dir(self, direction: SearchDirection) -> Model:
         return (

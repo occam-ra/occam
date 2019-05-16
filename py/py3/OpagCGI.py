@@ -11,9 +11,7 @@
 
 import os
 import re
-
-TRUE = 1
-FALSE = 0
+from typing import Dict, Match, Union
 
 # The replacement dictionary for parsing the template.
 replacement_dict = {}
@@ -23,12 +21,12 @@ class Replacer:
     """This class is a utility class used to provide a bound method to the
     re.sub() function."""
 
-    def __init__(self, dict_):
+    def __init__(self, dict_: Dict) -> None:
         """The constructor. It's only duty is to populate itself with the
         replacement dictionary passed."""
         self.dict = dict_
 
-    def replace(self, matchobj):
+    def replace(self, matchobj: Match) -> str:
         """The replacement method. This is passed a match object by re.sub(),
         which it uses to index the replacement dictionary and find the
         replacement string."""
@@ -57,43 +55,46 @@ class OpagCGI:
     maintaining the site's look and feel. It does this via template parsing of
     a standard template, permitting parsing of other templates as well."""
 
-    def __init__(self, template=''):
+    def __init__(self, template: str = '') -> None:
         """OpagCGI(template) -> OpagCGI object
         The class constructor, taking the path to the template to use
         """
         if template:
             self.set_template(template)
 
-    def set_template(self, template):
-        self.template = template
-        self.template_file = None
-        if not os.path.exists(self.template):
-            raise OpagMissingPrecondition(f"{self.template} does not exist")
+    def set_template(self, template_file: str) -> None:
+        self.template_file = template_file
+        if not os.path.exists(self.template_file):
+            raise OpagMissingPrecondition(f"{self.template_file} does not exist")
 
-    def parse(self, dict_, header=FALSE):
-        """parse(dict) -> string
-        This method parses the open file object passed, replacing any keys
-        found using the replacement dictionary passed."""
+    template = property(fset=set_template)
+
+    def parse(self, dict_: Dict, header: bool = False) -> str:
+        """
+        Parse the open file object passed, replacing any keys found using the
+        replacement dictionary passed.
+        """
         if not isinstance(dict_, dict):
             raise TypeError("Second argument must be a dictionary")
-        if not self.template:
-            raise OpagMissingPrecondition("template path is not set")
+        if not self.template_file:
+            raise OpagMissingPrecondition("Template path is not set")
         # Open the file if its not already open. If it is, seek to the
         # beginning of the file.
-        self.template_file = open(self.template, "r")
-        # Instantiate a new bound method to do the replacement.
-        replacer = Replacer(dict_).replace
-        # Read in the entire template into memory. I guess we'd better keep
-        # the templates a reasonable size if we're going to keep doing this.
-        buffer_ = self.template_file.read()
-        replaced = ""
-        if header:
-            replaced = "Content-Type: text/html\n\n"
-        replaced = replaced + re.sub("{(.+)}", replacer, buffer_)
-        self.template_file.close()
+        with open(self.template_file) as f:
+            # Instantiate a new bound method to do the replacement.
+            replacer = Replacer(dict_).replace
+            # Read in the entire template into memory. I guess we'd better keep
+            # the templates a reasonable size if we're going to keep doing this.
+            buffer = f.read()
+            replaced = ""
+            if header:
+                replaced = "Content-Type: text/html\n\n"
+            replaced = replaced + re.sub("{(.+)}", replacer, buffer)
         return replaced
 
-    def out(self, dict_, header=FALSE):
+    def out(self, dict_: Dict, template_file: Union[str, None] = None, header: bool = False) -> None:
+        if template_file:
+            self.set_template(template_file)
         print(self.parse(dict_, header))
 
 

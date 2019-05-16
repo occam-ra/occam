@@ -1,2 +1,2 @@
 #! /bin/sh
-python weboccam.py 2>&1 | tee mostRecentRun.txt
+python3 weboccam.py 2>&1 | tee mostRecentRun.txt
