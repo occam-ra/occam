@@ -15,8 +15,7 @@ make install
 
 # Setup Apache
 sudo a2enmod cgi
-#cat <<EOT >> /etc/apache2/sites-enabled/000-default.conf
-sudo tee -a /etc/apache2/sites-enabled/000-default.conf > /dev/null <<EOT
+sudo tee /etc/apache2/sites-enabled/000-default.conf > /dev/null <<EOT
 <VirtualHost *:80>
 	# The ServerName directive sets the request scheme, hostname and port that
 	# the server uses to identify itself. This is used when creating
@@ -58,8 +57,7 @@ sudo tee -a /etc/apache2/sites-enabled/000-default.conf > /dev/null <<EOT
 EOT
 
 # TODO Change /etc/apache2/envvars
-#cat <<EOT >> /etc/apache2/envvars
-sudo tee -a /etc/apache2/envvars > /dev/null <<EOT
+sudo tee /etc/apache2/envvars > /dev/null <<EOT
 # envvars - default environment variables for apache2ctl
 
 # this won't be correct after changing uid
@@ -117,3 +115,4 @@ chmod g+s install/web/
 chmod g+w install/web/data/
 
 sudo systemctl restart apache2
+
