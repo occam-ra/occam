@@ -188,7 +188,25 @@ def printBottom():
 #
 def printForm(formFields):
     template = OpagCGI()
-    action = formFields.get("action", "")
+
+    # define sets of legitimate actions
+    common_actions = {"fit", "search", "SBsearch", "SBfit"}
+    form_actions = {"compare", "log", "fitbatch"}
+    jobcontrol_action = {"jobcontrol"}  # excessive but consistent
+
+    # the union of these sets is the allowable list of actions
+    valid_actions = common_actions | form_actions | jobcontrol_action
+
+    # the user provided action is untrustable
+    untrusted_action = formFields.get("action", "")
+
+    # validate the action by checking for it's presence in the allowlist
+    if untrusted_action not in valid_actions:
+        action = untrusted_action
+    else:
+        # exit if the action is invalid
+        actionError()
+        return
 
     formatText = ""
     if formFields.has_key("formatText"): formFields['formatText'] = "checked"
@@ -196,7 +214,7 @@ def printForm(formFields):
     template.out(formFields)
 
     
-    if action in ["fit", "search", "SBsearch", "SBfit"]:
+    if action in common_actions:
 
         template.set_template("formheader.html")
         template.out(formFields)
@@ -218,7 +236,7 @@ def printForm(formFields):
         template.set_template(action+".footer.html")
         template.out(formFields)
 
-    elif action in ["compare", "log", "fitbatch"]:
+    elif action in form_actions:
         template.set_template(action+"form.html")
         template.out(formFields)
 
