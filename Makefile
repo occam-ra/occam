@@ -131,8 +131,8 @@ cli:
 	cp $(CL_FILES) $(CL_ROOT)
 
 lib: $(HEADERS) $(CPP_FILES)
-	cd cpp && make $(MFLAGS) $(CFLAGS)
+	cd cpp && make $(MFLAGS)
 
 clean:
-	cd cpp && make $(MFLAGS) $(CFLAGS) clean
+	cd cpp && make $(MFLAGS) clean
 	-rm -rf $(INSTALL_ROOT)

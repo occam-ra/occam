@@ -5,7 +5,7 @@
 
 SHELL = /bin/sh
 CC = gcc
-CFLAGS = -w -Wall -O3 -fPIC -std=c++11 -I ../include -frounding-math -fsignaling-nans -fsigned-zeros -fno-finite-math-only -msse2 -mfpmath=sse
+CFLAGS = -w -Wall -Wextra -O3 -fPIC -std=c++11 -I ../include -frounding-math -fsignaling-nans -fsigned-zeros -fno-finite-math-only -msse2 -mfpmath=sse
 LFLAGS = -shared
 AR = ar
 COMPILE = $(CC) $(CFLAGS)
