@@ -8,7 +8,6 @@ SHELL = /bin/sh
 INSTALL_ROOT = install
 WEB_ROOT = $(INSTALL_ROOT)/web
 CL_ROOT = $(INSTALL_ROOT)/cl
-PY_INCLUDE = /usr/include/python2.7
 
 HEADERS = \
 	include/attrDescs.h			\
