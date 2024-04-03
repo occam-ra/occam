@@ -24,8 +24,7 @@ int Report::maxNameLength;
 
 Report::Report(class ManagerBase *mgr) {
     manager = mgr;
-    extern int searchDir;
-    searchDir = -1;
+    mgr->setSearchDirection(Direction::Ascending);
     maxModelCount = 10;
     models = new Model*[maxModelCount];
     memset(models, 0, maxModelCount * sizeof(Model*));
@@ -532,7 +531,7 @@ void Report::printConfusionMatrix(Model* model, Relation* rel,
                                   double trtn, double trfn,
                                   bool test, double tetp,  double tefp, 
                                   double tetn, double tefn) {
-    if (dv_target < 0) { return; }
+    if (dv_target == 0) { return; }
   
 
     if (htmlMode) printf("<br><br>"); else printf("\n\n");
