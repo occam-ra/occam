@@ -116,10 +116,10 @@ class SBMManager: public ManagerBase {
         const char *getSortAttr() {
             return sortAttr;
         }
-        void setDirectionection(int dir) {
+        void setSortDirection(int dir) {
             sortDirection = dir;
         }
-        int getDirectionection() {
+        int getSortDirection() {
             return sortDirection;
         }
 
