@@ -8,7 +8,6 @@ SHELL = /bin/sh
 INSTALL_ROOT = install
 WEB_ROOT = $(INSTALL_ROOT)/web
 CL_ROOT = $(INSTALL_ROOT)/cl
-PY_INCLUDE = /usr/include/python2.7
 
 HEADERS = \
 	include/attrDescs.h			\
@@ -111,7 +110,7 @@ WEB_FILES = \
 	html/compare.footer.html \
 	html/occambatch
 
-install: lib $(WEB_FILES) $(CORE_FILES) $(CL_FILES)
+install: $(WEB_FILES) $(CORE_FILES) $(CL_FILES)
 	-rm -rf $(INSTALL_ROOT)
 	mkdir -p $(INSTALL_ROOT)
 	mkdir -p $(WEB_ROOT)
@@ -130,9 +129,9 @@ cli:
 	cp $(CORE_FILES) $(CL_ROOT)
 	cp $(CL_FILES) $(CL_ROOT)
 
-lib: $(HEADERS) $(CPP_FILES)
-	cd cpp && make
+cpp/occam.so: $(HEADERS) $(CPP_FILES)
+	cd cpp && $(MAKE)
 
 clean:
-	cd cpp && make clean
+	cd cpp && $(MAKE) clean
 	-rm -rf $(INSTALL_ROOT)
