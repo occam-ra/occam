@@ -3,4 +3,4 @@
 *.so
 *.pyc
 occ
-install
+./install

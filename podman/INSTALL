@@ -1,0 +1,10 @@
+#Build like this
+#podman build -t occam_local:20240521 .
+./build.sh
+
+#Start container like this
+#podman run -d -p 8080:80 --name try_occam occam_local:20240521
+podman run -d -p 8080:80 --name try_occam occam_local
+
+#Join container if needed like this
+podman exec -it try_occam bash
