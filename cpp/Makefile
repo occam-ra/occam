@@ -6,7 +6,7 @@
 SHELL = /bin/sh
 CC = gcc
 PY_INCLUDE = /usr/include/python2.7
-CFLAGS = -w -Wall -Wextra -O3 -fPIC -std=c++11 -I ../include -I $(PY_INCLUDE) -frounding-math -fsignaling-nans -fsigned-zeros -fno-finite-math-only -msse2 -mfpmath=sse
+CFLAGS = -w -Wall -Wextra -O3 -fPIC -std=c++11 -I ../include -I $(PY_INCLUDE) -frounding-math -fsignaling-nans -fsigned-zeros -fno-finite-math-only
 LFLAGS = -shared
 AR = ar
 COMPILE = $(CC) $(CFLAGS)
@@ -42,6 +42,11 @@ LIBOBJECTS = \
 	VBMManager.o \
 	VariableList.o \
 	_Core.o
+
+uname_p := $(shell uname -p)
+ifeq ($(uname_p),i386)
+	CFLAGS=$(CFLAGS) -msse2 -mfpmath=sse
+endif
 
 all: $(LIB) $(DYLIB) $(CL)
 
