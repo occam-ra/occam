@@ -46,7 +46,7 @@ RUN if [ -n "$GITHUB_PRIVATE_KEY" ]; then \
 
 WORKDIR /var/www
 # Maybe checkout something better than HEAD?
-RUN git clone -b baseline https://github.com/occam-ra/occam
+RUN git clone git@github.com:occam-ra/occam.git .
 
 WORKDIR occam
 # This no longer seems to work. It looks like the version of igraph-core is now invalid.
