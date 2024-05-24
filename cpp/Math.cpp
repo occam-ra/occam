@@ -17,6 +17,8 @@
 #include <float.h>
 #include "Constants.h"
 
+#include <boost/math/distributions/chi_squared.hpp>
+
 double ocEntropy(Table *p) {
     double h = 0.0;
     long long count = p->getTupleCount();
@@ -614,6 +616,25 @@ double chin2(double x, double df, double theta, int *ifault) {
     }
     return 0;
 }
+
+
+double csa_boost(double x, double df) {
+    if (x == 0.0 || df == 0.0) {
+        return 1.0;
+    } else if (x < 0.0 || df < 0.0) {
+        return -1.0;
+    }
+
+    boost::math::chi_squared_distribution<double> dist(df);
+    double p = boost::math::cdf(boost::math::complement(dist, x));
+
+    if (p <= 0.0001) {
+        return 0.0;
+    }
+
+    return p;
+}
+
 
 /*
  A quick approximation to upper-tail probabilities of

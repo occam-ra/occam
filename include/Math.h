@@ -86,6 +86,7 @@ double ocLR(double sample, double df, double h);
 double chic (double x2, double df);
 double chin2 (double x, double df, double theta, int *ifault);
 double csa (double x, double df);
+double csa_boost (double x, double df);
 //static double ppnorm (double prob, int *ifault);
 double gammds (double y, double p, int *ifault);
 double ppchi (double p, double df, int *ifault);
