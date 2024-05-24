@@ -34,7 +34,6 @@ ARG GITHUB_PRIVATE_KEY=""
 RUN git clone https://github.com/occam-ra/occam.git
 
 # Configure git with the build arguments if provided
-#Need to change origin
 RUN if [ -n "$GITHUB_USERNAME" ] && [ -n "$GITHUB_EMAIL" ]; then \
       git config --global user.name "$GITHUB_USERNAME" && \
       git config --global user.email "$GITHUB_EMAIL"; \
