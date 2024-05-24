@@ -136,7 +136,11 @@ GTEST_DIR = tests/googletest/googletest
 GTEST_INCLUDE_DIR = $(GTEST_DIR)/include
 GTEST_LIB_DIR = $(GTEST_DIR)/lib
 
-$(GTEST_LIB_DIR)/libgtest.a:
+$(GTEST_DIR):
+	git submodule init
+	git submodule update
+
+$(GTEST_LIB_DIR)/libgtest.a: $(GTEST_DIR)
 	g++ -std=c++14 -isystem $(GTEST_INCLUDE_DIR) -I$(GTEST_DIR) -pthread -c $(GTEST_DIR)/src/gtest-all.cc && \
 	mkdir -p $(GTEST_LIB_DIR)
 	ar -rv $(GTEST_LIB_DIR)/libgtest.a gtest-all.o

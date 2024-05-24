@@ -30,10 +30,15 @@ ARG GITHUB_USERNAME=""
 ARG GITHUB_EMAIL=""
 ARG GITHUB_PRIVATE_KEY=""
 
+# Maybe checkout something better than HEAD?
+RUN git clone https://github.com/occam-ra/occam.git
+
 # Configure git with the build arguments if provided
+#Need to change origin
 RUN if [ -n "$GITHUB_USERNAME" ] && [ -n "$GITHUB_EMAIL" ]; then \
       git config --global user.name "$GITHUB_USERNAME" && \
       git config --global user.email "$GITHUB_EMAIL"; \
+      git remote set-url origin git@github.com:occam-ra/occam.git;\
     fi
 
 # Create the .ssh directory and copy the private key if provided
@@ -44,33 +49,8 @@ RUN if [ -n "$GITHUB_PRIVATE_KEY" ]; then \
       echo "Host github.com\n  IdentityFile /root/.ssh/id_rsa" > /root/.ssh/config; \
     fi
 
-WORKDIR /var/www
-# Maybe checkout something better than HEAD?
-RUN git clone git@github.com:occam-ra/occam.git .
 
 WORKDIR occam
-# This no longer seems to work. It looks like the version of igraph-core is now invalid.
-#RUN pip install python-igraph==0.7.1.post6
-# Moving to igraph-0.8.0 requires some new build tools
-# This command now fails -- perhaps they've been EOL'd?
-#RUN apt-get update && apt-get install -y wget dpkg-dev
-#RUN wget http://ports.ubuntu.com/pool/main/libs/libsigsegv/libsigsegv2_2.10-4_arm64.deb
-#RUN dpkg -i libsigsegv2_2.10-4_arm64.deb
-#RUN rm libsigsegv2_2.10-4_arm64.deb
-#RUN wget http://ports.ubuntu.com/pool/main/m/m4/m4_1.4.17-5_arm64.deb
-#RUN dpkg -i m4_1.4.17-5_arm64.deb
-#RUN rm m4_1.4.17-5_arm64.deb
-#RUN wget http://ports.ubuntu.com/pool/main/a/autotools-dev/autotools-dev_20150820.1_all.deb \
-#    http://ports.ubuntu.com/pool/main/b/bison/libbison-dev_3.0.4.dfsg-1_arm64.deb \
-#    http://ports.ubuntu.com/pool/main/f/flex/libfl-dev_2.6.0-11_arm64.deb
-#RUN dpkg -i *.deb
-#RUN rm *.deb
-#RUN wget http://ports.ubuntu.com/pool/main/a/autoconf/autoconf_2.69-9_all.deb \
-#    http://ports.ubuntu.com/pool/main/libt/libtool/libtool_2.4.6-0.1_all.deb \
-#    http://ports.ubuntu.com/pool/main/b/bison/bison_3.0.4.dfsg-1_arm64.deb \
-#    http://ports.ubuntu.com/pool/main/f/flex/flex_2.6.0-11_arm64.deb
-#RUN dpkg -i *.deb
-
 # Install igraph
 RUN pip install python-igraph==0.8.0
 
