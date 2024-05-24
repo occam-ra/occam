@@ -148,8 +148,12 @@ $(GTEST_LIB_DIR)/libgtest.a: $(GTEST_DIR)
 tests/test_ocReadFile: cpp/occam.so tests/test_ocReadFile.cpp $(GTEST_LIB_DIR)/libgtest.a
 	g++ -std=c++14 -isystem $(GTEST_INCLUDE_DIR) -pthread tests/test_ocReadFile.cpp -L./cpp -loccam3 $(GTEST_LIB_DIR)/libgtest.a -o tests/test_ocReadFile
 
-tests: tests/test_ocReadFile 
+tests/test_csa: cpp/occam.so tests/test_csa.cpp $(GTEST_LIB_DIR)/libgtest.a
+	g++ -std=c++14 -isystem $(GTEST_INCLUDE_DIR) -pthread tests/test_csa.cpp -L./cpp -loccam3 $(GTEST_LIB_DIR)/libgtest.a -o tests/test_csa
+
+tests: tests/test_ocReadFile tests/test_csa
 	./tests/test_ocReadFile
+	./tests/test_csa
 
 clean:
 	cd cpp && $(MAKE) clean
