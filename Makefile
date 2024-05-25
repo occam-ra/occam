@@ -111,22 +111,23 @@ WEB_FILES = \
 	html/occambatch
 
 install: $(WEB_FILES) $(CORE_FILES) $(CL_FILES)
-	-rm -rf $(INSTALL_ROOT)
-	mkdir -p $(INSTALL_ROOT)
-	mkdir -p $(WEB_ROOT)
-	mkdir -p $(CL_ROOT)
-	cp $(WEB_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(WEB_ROOT)
-	cp $(CORE_FILES) $(CL_ROOT)
-	cp $(CL_FILES) $(CL_ROOT)
+	-@ [ -d $(WEB_ROOT) ] && echo "warning: existing web installation"
+	-@ [ -d $(CL_ROOT) ] && echo "warning: existing cli installation"
+	mkdir -p $(INSTALL_ROOT) && \
+	mkdir -p $(WEB_ROOT) && \
+	mkdir -p $(CL_ROOT) && \
+	cp $(WEB_FILES) $(WEB_ROOT) && \
+	cp $(CORE_FILES) $(WEB_ROOT) && \
+	cp $(CORE_FILES) $(CL_ROOT) && \
+	cp $(CL_FILES) $(CL_ROOT) && \
 	mkdir -p $(WEB_ROOT)/data
 
 web:
-	cp $(WEB_FILES) $(WEB_ROOT)
+	cp $(WEB_FILES) $(WEB_ROOT) && \
 	cp $(CORE_FILES) $(WEB_ROOT)
 
 cli:
-	cp $(CORE_FILES) $(CL_ROOT)
+	cp $(CORE_FILES) $(CL_ROOT) && \
 	cp $(CL_FILES) $(CL_ROOT)
 
 cpp/occam.so: $(HEADERS) $(CPP_FILES)
