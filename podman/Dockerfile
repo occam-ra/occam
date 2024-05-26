@@ -18,9 +18,9 @@ RUN apt install -y libtool autoconf bison flex
 RUN apt install -y git vim openssh-client
 RUN apt install -y libboost-math-dev
 # Set up build arguments with default values
-ARG GITHUB_USERNAME=""
-ARG GITHUB_EMAIL=""
-ARG GITHUB_PRIVATE_KEY=""
+ARG GITHUB_USERNAME
+ARG GITHUB_EMAIL
+ARG GITHUB_PRIVATE_KEY
 
 WORKDIR /var/www
 
@@ -32,18 +32,17 @@ WORKDIR occam
 # Configure git with the build arguments if provided
 RUN if [ -n "$GITHUB_USERNAME" ] && [ -n "$GITHUB_EMAIL" ]; then \
       git config --global user.name "$GITHUB_USERNAME" && \
-      git config --global user.email "$GITHUB_EMAIL"; \
-      git remote set-url origin git@github.com:occam-ra/occam.git;\
+      git config --global user.email "$GITHUB_EMAIL" && \
+      git remote set-url origin git@github.com:occam-ra/occam.git; \
     fi
 
 # Create the .ssh directory and copy the private key if provided
 RUN if [ -n "$GITHUB_PRIVATE_KEY" ]; then \
       mkdir -p /root/.ssh && \
-      echo "$GITHUB_PRIVATE_KEY" > /root/.ssh/id_rsa && \
-      chmod 600 /root/.ssh/id_rsa && \
-      echo "Host github.com\n  IdentityFile /root/.ssh/id_rsa" > /root/.ssh/config; \
+      echo "$GITHUB_PRIVATE_KEY" > /root/.ssh/id_github && \
+      chmod 600 /root/.ssh/id_github && \
+      echo "Host github.com\n  IdentityFile /root/.ssh/id_github" > /root/.ssh/config; \
     fi
-
 
 # Install igraph
 RUN pip install python-igraph==0.8.0
