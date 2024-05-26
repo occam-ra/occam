@@ -16,7 +16,7 @@ RUN apt install -y apache2
 RUN apt install -y git gcc build-essential libgmp3-dev python-dev libxml2 libxml2-dev zlib1g-dev python-pip
 RUN apt install -y libtool autoconf bison flex
 RUN apt install -y git vim openssh-client
-RUN apt install -y libboost-all-dev
+RUN apt install -y libboost-math-dev
 # Set up build arguments with default values
 ARG GITHUB_USERNAME=""
 ARG GITHUB_EMAIL=""
