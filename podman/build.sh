@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Prompt the user if they want to enter GitHub details
-read -p "Do you want to enter your GitHub details? (y/n): " ENTER_GITHUB
+read -p "Do you want to enter your GitHub details? (y/[N]): " ENTER_GITHUB
 
 if [[ $ENTER_GITHUB =~ ^[Yy]$ ]]; then
   # Prompt the user for input
