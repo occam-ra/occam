@@ -190,7 +190,7 @@ def printForm(formFields):
     template = OpagCGI()
 
     # define sets of legitimate actions
-    common_actions = {"fit", "search", "SBsearch", "SBfit"}
+    common_actions = {"fit", "search", "SBsearch", "SBfit", ""} # ui depends on "" working
     form_actions = {"compare", "log", "fitbatch"}
     jobcontrol_action = {"jobcontrol"}  # excessive but consistent
 
