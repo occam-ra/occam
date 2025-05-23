@@ -24,6 +24,9 @@ ARG GITHUB_PRIVATE_KEY
 
 WORKDIR /var/www
 
+# Prevent caching outdated repo
+ADD https://api.github.com/repos/occam-ra/occam /tmp/repo-info.json
+
 # Maybe checkout something better than HEAD?
 RUN git clone https://github.com/occam-ra/occam.git
 
