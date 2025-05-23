@@ -201,7 +201,8 @@ def printForm(formFields):
     untrusted_action = formFields.get("action", "")
 
     # validate the action by checking for it's presence in the allowlist
-    if untrusted_action in valid_actions:
+    # if action string is empty, we load the set of actions
+    if untrusted_action in valid_actions or not untrusted_action:
         action = untrusted_action
     else:
         # exit if the action is invalid
