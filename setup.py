@@ -56,6 +56,9 @@ ext_modules = [
             pybind11_path,
             os.path.join(sys.prefix, "include"),
         ],
+        libraries=["python39"],
+        library_dirs=[r"C:\Users\bjpd\AppData\Local\anaconda3\envs\pyoccam-build"],
+        extra_link_args=[],
         language="c++",
         extra_compile_args=["-std=c++14", "-O2", "-w", "-DMS_WIN64"],
     )

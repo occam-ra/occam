@@ -1,0 +1,10 @@
+OCCAM Model Fit Report
+Model: IV:PZ
+Selection Criteria: BIC
+Generated: 2025-07-28 03:41:41
+============================================================
+
+Detailed Fit Analysis:
+======================
+Model: IV:PZ
+Enhanced fit report generated successfully.
