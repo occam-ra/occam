@@ -7,7 +7,7 @@ on:
       - 'pyoccam/**'
       - 'cpp/**'
       - 'include/**'
-      - '.github/workflows/build-pyoccam.yml'
+      - '.github/workflows/build-wheels.yml'
   pull_request:
     branches: [pyoccam-port]
   workflow_dispatch:  # Allows manual triggering
