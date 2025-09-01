@@ -3,6 +3,7 @@ build/
 dist/
 *.egg-info/
 __pycache__/
+*.py
 *.pyd
 *.pyo
 *.pyc
@@ -25,6 +26,7 @@ __pycache__/
 *.csv
 *.dat
 *.json
+*.tsv
 
 # Python files (if you want to ignore test outputs)
 test_*.py
@@ -33,6 +35,7 @@ temp_*.py
 
 # Notebooks checkpoints
 .ipynb_checkpoints/
+*.ipynb
 
 # OS files
 .DS_Store
@@ -52,7 +55,8 @@ libwinpthread-1.dll
 # IMPORTANT EXCEPTIONS - Files to KEEP
 !.gitignore
 !README.md
-!setup.py
+!MANIFEST.in
+!pyoccam/setup.py
 !pyoccam/setup.py
 !pyoccam/pyoccam_pybind11.cpp
 !pyoccam/dementia05.txt
