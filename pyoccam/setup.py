@@ -25,19 +25,4 @@ ext_modules = [
             os.path.join(cpp_dir, file) for file in [
                 'AttributeList.cpp', 'Input.cpp', 'Key.cpp', 'ManagerBase.cpp',
                 'ManagerInitFromCommandLine.cpp', 'Model.cpp', 'ModelCache.cpp',
-                'OccamMath.cpp', 'Options.cpp', 'RelCache.cpp', 'Relation.cpp',
-                'Report.cpp', 'ReportCommon.cpp', 'ReportPrintConditionalDV.cpp',
-                'ReportPrintResiduals.cpp', 'ReportQsort.cpp', 'SBMManager.cpp',
-                'Search.cpp', 'SearchBase.cpp', 'StateConstraint.cpp', 'Table.cpp',
-                'VBMManager.cpp', 'VariableList.cpp', '_Core.cpp'
-            ]
-        ] + [os.path.join(here, 'pyoccam_pybind11.cpp')],
-        include_dirs=[
-            pybind11.get_include(),
-            include_dir,
-            cpp_dir
-        ],
-        language='c++',
-        extra_compile_args=extra_compile_args,
-        extra_link_args=extra_link_args,
-    ),
+                'OccamMath.cpp', 'Options.c
