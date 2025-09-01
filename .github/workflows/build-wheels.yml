@@ -1,4 +1,4 @@
-name: Build pyoccam wheels
+name: Build pyoccam wheels on GitHub
 
 on:
   push:
