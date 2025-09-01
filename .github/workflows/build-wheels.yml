@@ -3,7 +3,7 @@ name: Build and Upload Wheels
 on:
   push:
     branches:
-      - python-port
+      - pyoccam-port
   workflow_dispatch:
 
 jobs:
