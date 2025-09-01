@@ -25,6 +25,14 @@ jobs:
         python-version: ${{ matrix.python-version }}
     
     # Windows-specific: Install MinGW
+    - name: Setup MinGW for Python 3.9 (Windows)
+      if: runner.os == 'Windows' && matrix.python-version == '3.9'
+      run: |
+        echo "CC=gcc" >> $env:GITHUB_ENV
+        echo "CXX=g++" >> $env:GITHUB_ENV
+        # Patch distutils
+        python -c "import distutils.cygwinccompiler; distutils.cygwinccompiler.get_msvcr = lambda: []"
+      shell: pwsh
     - name: Set up MSYS2 (Windows)
       if: runner.os == 'Windows'
       uses: msys2/setup-msys2@v2
