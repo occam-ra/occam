@@ -1,19 +1,29 @@
+﻿#define _CRT_SECURE_NO_WARNINGS
+#define _USE_MATH_DEFINES
+#define _CRT_NONSTDC_NO_WARNINGS
+#define _CRT_NONSTDC_NO_DEPRECATE
+#pragma warning(disable: 4996)
+#pragma warning(disable: 4244)
 /*
- * Copyright © 1990 The Portland State University OCCAM Project Team
+ * Copyright Â© 1990 The Portland State University OCCAM Project Team
  * [This program is licensed under the GPL version 3 or later.]
  * Please see the file LICENSE in the source
  * distribution of this software for license terms.
  */
 
-#define _GNU_SOURCE
+/*
+ * Copyright Â© 1990 The Portland State University OCCAM Project Team
+ * [This program is licensed under the GPL version 3 or later.]
+ * Please see the file LICENSE in the source
+ * distribution of this software for license terms.
+ */
+#include <cmath>
 #include <utility>
-#include <gmp.h>
-#include <fenv.h>
-#include <math.h>
+// #include <gmp.h> // Disabled for Windows
 #include "Input.h"
 #include "Key.h"
 #include "ManagerBase.h"
-#include "Math.h"
+#include "OccamMath.h"
 #include "Model.h"
 #include "ModelCache.h"
 #include "Options.h"
@@ -24,63 +34,36 @@
 #include "_Core.h"
 
 #include <assert.h>
-#include <cxxabi.h>
-#include <execinfo.h>
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h>
 #include <algorithm>
+
+// Windows compatibility
+#ifdef _WIN32
+    #include <io.h>
+    #include <process.h>
+    #define strcasecmp _stricmp
+    #define strncasecmp _strnicmp
+    #pragma warning(disable: 4996)
+    #ifndef M_LN2
+    #define M_LN2 0.693147180559945309417
+    #endif
+    // Windows stub for backtrace_symbols_fd (no execinfo available)
+    #define backtrace_symbols_fd(trace, size, fd) do { \
+        fprintf(stderr, "[Windows] Stack trace not available\n"); \
+    } while(0)
+#else
+    #include <unistd.h>    // for STDERR_FILENO
+    #include <cxxabi.h>
+    #include <execinfo.h>
+#endif
+
+
 using std::min;
 using std::make_pair;
 using std::pair;
-// Based on helpful answers at
-// http://stackoverflow.com/questions/77005/how-to-generate-a-stacktrace-when-my-gcc-c-app-crashes
-void backtrace_symbols_err(void** trace, size_t size) {
-    char** messages = backtrace_symbols(trace, size);
-    for (size_t i = 0; i < size && messages != nullptr; ++i) {
-        char* mangled_name = nullptr;
-        char* offset_begin = nullptr;
-        char* offset_end = nullptr;
-
-        for (char* p = messages[i]; *p; ++p) {
-            if (*p == '(') {
-                mangled_name = p;
-            } else if (*p == '+') {
-                offset_begin = p;
-            } else if (*p == ')') {
-                offset_end = p;
-                break;
-            }
-        }
-
-        if (mangled_name && offset_begin && offset_end && mangled_name < offset_begin) {
-            *mangled_name++ = '\0';
-            *offset_begin++ = '\0';
-            *offset_end++ = '\0';
-            
-            int status;
-            char* real_name = abi::__cxa_demangle(mangled_name, 0, 0, &status);
-
-
-
-            const char* name = status == 0 \
-                             ? (*real_name != '\0'    ? real_name 
-                                                      : messages[i]) 
-                             : (*mangled_name != '\0' ? mangled_name 
-                                                      : messages[i]);
-            
-            fprintf(stderr, "[frame %d]: %s<br/>\n", i, name);
-        
-            const char* py_prefix = "Py";
-            if (!strncmp(py_prefix, name, strlen(py_prefix))) {
-                fprintf(stderr, "[frames %d - %d]: (%d more frames...)<br/>\n", i + 1, size, size - i - 1);
-                break;
-            }
-        }
-    }
-}
 
 constexpr char* errorReportingTip = 
 "For help resolving this error,"
@@ -89,32 +72,47 @@ constexpr char* errorReportingTip =
 
 
 void segfault_handler(int sig) {
-    size_t trace_n = 256;
-    void* trace[trace_n];
-    size_t size = backtrace(trace, trace_n);
+#ifdef _WIN32
+    fflush(stdout);
+    fflush(stderr);
+    fprintf(stderr, "Error: segmentation fault (Windows).\n");
+    fprintf(stderr, "%s\n", errorReportingTip); 
+    exit(1);
+#else
+	static const size_t trace_n = 256;
+	void* trace[256];
+    size_t size = backtrace(trace, 256);
     fflush(stdout);
     fflush(stderr);
     fprintf(stderr, "Error: segmentation fault.\n"
             "Partial stack trace follows.<br/>\n\n");
-    backtrace_symbols_err(trace, min<size_t>(20, size));
+    backtrace_symbols_fd(trace, std::min<size_t>(20, size), STDERR_FILENO);
     fprintf(stderr, "\n<br/>End stack trace.<br/>\n\n");
     fprintf(stderr, "%s\n", errorReportingTip); 
     exit(1);
+#endif
 }
 
 void fpe_handler(int sig) {
-    size_t trace_n = 256;
-    void* trace[trace_n];
-    size_t size = backtrace(trace, trace_n);
+#ifdef _WIN32
+    fflush(stdout);
+    fflush(stderr);
+    fprintf(stderr, "ERROR: floating point exception (Windows).\n");
+    fprintf(stderr, "%s\n", errorReportingTip);  
+    exit(1);
+#else
+	static const size_t trace_n = 256;
+	void* trace[256];
+    size_t size = backtrace(trace, 256);
     fflush(stdout);
     fflush(stderr);
     fprintf(stderr, "ERROR: floating point exception (likely due to a numerical inaccuracy).\n"
             "Partial stack trace follows.\n\n<br/>");
-    backtrace_symbols_err(trace, min<size_t>(20, size));
+    backtrace_symbols_fd(trace, std::min<size_t>(20, size), STDERR_FILENO);
     fprintf(stderr, "<br/>\nEnd stack trace.\n\n<br/>");
     fprintf(stderr, "%s\n", errorReportingTip);  
-    exit(1); 
-
+    exit(1);
+#endif
 }
 
 const int defaultRelSize = 10;
@@ -457,7 +455,7 @@ bool ManagerBase::makeMaxProjection(Table *qt, Table *maxpt, Table *inputData, R
         if (maxqindex >= 0 && maxpindex >= 0) {
             //-- we already saw this IV state; see if the q value is greater
             maxqvalue = maxqt->getValue(maxqindex);
-            if (fabs(maxqvalue - qvalue) < DBL_EPSILON) {
+            if (std::fabs(maxqvalue - qvalue) < DBL_EPSILON) {
                 // Break any ties by checking the order of the DV values
                 maxdv = (int) dvt->getValue(dvindex);
                 if (getDvOrder(qdv) < getDvOrder(maxdv)) {
@@ -545,7 +543,7 @@ int sortDV(const void *d1, const void *d2) {
     int b = *(int*) d2;
     // Would prefer to use DBL_EPSILON here, but the frequencies we get for DV values (from the bottom reference)
     // are not precise enough for some reason.
-    if (fabs(sort_freq[a] - sort_freq[b]) < 1e-10) {
+    if (std::fabs(sort_freq[a] - sort_freq[b]) < 1e-10) {
         return strcmp(sort_dv_var->valmap[a], sort_dv_var->valmap[b]);
     }
     if (sort_freq[a] > sort_freq[b]) {
@@ -731,7 +729,7 @@ void ManagerBase::expandTuple(double tupleValue, KeySegment *key, int *missingVa
         int var = missingVars[currentMissingVar++];
         //-- make a copy of the key, with the current variable replaced
         //-- by each legal value in turn.
-        KeySegment newKey[keysize];
+        KeySegment *newKey = new KeySegment[keysize];
         int varvalue;
         int cardinality = getVariableList()->getVariable(var)->cardinality;
         for (varvalue = 0; varvalue < cardinality; varvalue++) {
@@ -744,43 +742,45 @@ void ManagerBase::expandTuple(double tupleValue, KeySegment *key, int *missingVa
                 expandTuple(tupleValue, newKey, missingVars, missingCount, outTable, currentMissingVar);
             }
         }
+        delete[] newKey;
     }
 }
 
 void ManagerBase::makeOrthoExpansion(Relation *rel, Table *outTable) {
     //-- get an array of the variable indices which don't occur in the relation.
     int varCount = rel->getVariableList()->getVarCount();
-    int missingVars[varCount];
+    int *missingVars = new int[varCount];
     int missingCount = rel->copyMissingVariables(missingVars, varCount);
     Table *relTable = rel->getTable();
 
     long long tupleCount = relTable->getTupleCount();
     outTable->reset(keysize);
     for (long long i = 0; i < tupleCount; i++) {
-        KeySegment key[keysize];
+        KeySegment *key = new KeySegment[keysize];
         relTable->copyKey(i, key);
         double value = relTable->getValue(i);
         expandTuple(value, key, missingVars, missingCount, outTable, 0);
+		delete[] key;
     }
+    delete[] missingVars;
     outTable->sort();
     outTable->normalize();
 }
-
 void ManagerBase::makeSbExpansion(Relation *rel, Table *table) {
     int varCount = rel->getVariableCount();
-    int vars[varCount];
+    int *vars = new int[varCount];
     varCount = rel->copyVariables(vars, varCount);
 
     KeySegment *dont_care_key = new KeySegment[keysize];
     for (int k = 0; k < keysize; k++) {
         dont_care_key[k] = DONT_CARE;
     }
-    expandTuple(0, dont_care_key, vars, varCount, table, 0);
-    delete dont_care_key;
+	expandTuple(0, dont_care_key, vars, varCount, table, 0);
+    delete[] dont_care_key;
+    delete[] vars;
     //table->sort();
     //table->normalize();
 }
-
 bool ManagerBase::hasLoops(Model *model) {
     bool loops;
     double dloops = model->getAttribute(ATTRIBUTE_LOOPS);
@@ -1099,7 +1099,7 @@ void ManagerBase::computeRelWidth(Model *model) {
 double ManagerBase::computeLR(Model *model) {
     double lr = model->getAttribute(ATTRIBUTE_LR);
     if (lr < 0) {
-        lr = fabs(2.0 * M_LN2 * sampleSize * (computeTransmission(model) - computeTransmission(refModel)));
+        lr = std::fabs(2.0 * M_LN2 * sampleSize * (computeTransmission(model) - computeTransmission(refModel)));
         model->setAttribute(ATTRIBUTE_LR, lr);
     }
     return lr;
@@ -1137,7 +1137,7 @@ void ManagerBase::computeIncrementalAlpha(Model *model) {
             prog_id = (double) progen->getID();
             double prog_ddf = computeDDF(progen);
             double prog_lr = computeLR(progen);
-            incr_alpha = csa(fabs(prog_lr - refL2), fabs(prog_ddf - refDDF));
+            incr_alpha = csa(std::fabs(prog_lr - refL2), std::fabs(prog_ddf - refDDF));
             if ((incr_alpha < alpha_threshold) && (progen->getAttribute(ATTRIBUTE_INCR_ALPHA_REACHABLE) == 1)) {
                 ia_reachable = 1;
             } else {
@@ -1428,12 +1428,12 @@ void ManagerBase::fitTestAlgebraic(Model* model, Table* algTable, double missing
 
                 // if value is ever zero:
                 // set outValue to zero and end for-loop
-                if (fabs(value) < DBL_EPSILON) {
+                if (std::fabs(value) < DBL_EPSILON) {
                     outValue = 0;
                     break;
                 }
 
-                double vp = pow(value, it->second);
+                double vp = std::pow(value, it->second);
                 // mult/div value into outValue
                 outValue *= vp;
             }
@@ -1469,7 +1469,7 @@ bool ManagerBase::makeFitTableAlgebraic(Model* model) {
                 outValue = 0;
                 break;
             }
-            double vp = pow(v, it->second); 
+            double vp = std::pow(v, it->second); 
             outValue *= vp;
         } 
     
@@ -1513,28 +1513,27 @@ bool ManagerBase::makeFitTableIPF(Model* model) {
 
     makeProjections(model);
     int relCount = model->getRelationCount();
-    Relation *relList[relCount];
-    Table *tableList[relCount];
-    KeySegment *maskList[relCount];
-    for (int r = 0; r < relCount; r++) {
-        relList[r] = model->getRelation(r);
-        tableList[r] = model->getRelation(r)->getTable();
-        maskList[r] = model->getRelation(r)->getMask();
+	Relation **rels = new Relation*[relCount];
+	Table **tables = new Table*[relCount];
+	KeySegment **segments = new KeySegment*[relCount];    for (int r = 0; r < relCount; r++) {
+        rels[r] = model->getRelation(r);
+        tables[r] = model->getRelation(r)->getTable();
+        segments[r] = model->getRelation(r)->getMask();
     }
 
     // compute the number of nonzero tuples in the expansion of each relation, and start
     // with the one where this is smallest (to minimize memory usage)
     int startRel = 0;
-    double expsize = relList[0]->getExpansionSize();
+    double expsize = rels[0]->getExpansionSize();
     double newexpsize;
     for (int r = 1; r < relCount; r++) {
-        newexpsize = relList[r]->getExpansionSize();
+        newexpsize = rels[r]->getExpansionSize();
         if (newexpsize < expsize) {
             startRel = r;
             expsize = newexpsize;
         }
     }
-    makeOrthoExpansion(relList[startRel], fitTable1);
+    makeOrthoExpansion(rels[startRel], fitTable1);
 
     // configurable fitting parameters:  convergence error. This is approximately in units of samples.
     // if initial data was probabilities, an artificial scale of 1000 is used.
@@ -1560,9 +1559,9 @@ bool ManagerBase::makeFitTableIPF(Model* model) {
     for (iter = 0; iter < maxiter; iter++) {
         error = 0.0; // absolute difference between original projection and computed values
         for (r = 0; r < relCount; r++) {
-            rel = relList[r];
-            table = tableList[r];
-            mask = maskList[r];
+            rel = rels[r];
+            table = tables[r];
+            mask = segments[r];
             // create a projection of the computed data, based on the variables in the relation
             projTable->reset(keysize);
             makeProjection(fitTable1, projTable, rel);
@@ -1589,7 +1588,7 @@ bool ManagerBase::makeFitTableIPF(Model* model) {
                             if (projValue > DBL_EPSILON) {
                                 newValue = value * relValue / projValue;
                             }
-                            error = fmax(error, fabs(relValue - projValue));
+                            error = fmax(error, std::fabs(relValue - projValue));
                         } else {
                             error = fmax(error, relValue);
                         }
@@ -1611,6 +1610,9 @@ bool ManagerBase::makeFitTableIPF(Model* model) {
     model->setAttribute(ATTRIBUTE_IPF_ITERATIONS, (double) iter);
     model->setAttribute(ATTRIBUTE_IPF_ERROR, error);
     delete[] key;
+	delete[] rels;
+	delete[] tables;
+	delete[] segments;
     return true;
 }
 
@@ -1767,3 +1769,5 @@ Model* ManagerBase::projectedModel(Relation* projectTo, Model* model) {
 
     return model;
 }
+
+

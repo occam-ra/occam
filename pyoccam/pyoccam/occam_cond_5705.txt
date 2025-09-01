@@ -1,0 +1,2 @@
+Conditional DV (D) (%) for each IV composite state for the Model IV:ApZ.
+IV order: Ap (APOE).

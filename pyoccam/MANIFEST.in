@@ -1,0 +1,4 @@
+include pyoccam_demo.py
+include pyoccam_demo.ipynb
+include dementia05.txt
+include landslides.txt

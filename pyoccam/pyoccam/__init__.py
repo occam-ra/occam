@@ -1,0 +1,2 @@
+class OccamManager:
+    pass

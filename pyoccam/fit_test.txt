@@ -1,0 +1,16 @@
+  ID   MODEL  
+   1   IV:BPZ 
+  ID   MODEL  
+
+
+Best Model(s) by dBIC:
+   1   IV:BPZ 
+Best Model(s) by dAIC:
+   1   IV:BPZ 
+Best Model(s) by Information, with all Inc. Alpha < 0.05:
+
+
+
+Confusion Matrix:
+  TP: 0, TN: 0, FP: 0, FN: 0
+  Accuracy: 0

@@ -1,0 +1,59 @@
+OCCAM version 3.4.0
+================================================================================
+
+Option settings:
+nominal           ID ,0,0,ID
+nominal           APOE ,2,1,AP
+nominal           Gender ,2,1,SX
+nominal           Education ,3,1,ED
+nominal           AgeLastExam ,3,1,AG
+nominal           CaseControl ,2,2,Z
+Input data file   dementia05.txt
+Default ('negative') state for confusion matrices  0
+
+State Space Size      1.451188e+09
+Sample Size           424.000000
+
+Model:                IV:Z (Directed System)
+
+    Model,IV:Z (Directed System)
+    IV Component:,APOE; Gender; Education; AgeLastExam; rs1801133; rs3818361; rs7561528; rs744373; rs6943822; rs4298437; rs7012010; rs11136000; rs10786998; rs11193130; rs610932; rs3851179; rs3764650; rs3865444,ApSxEdAgABCDEFGHJKLMNP
+    Model Component: ,CaseControl,Z
+    Degrees of Freedom (DF):,7.25594e+08
+    Loops:,NO
+    Entropy(H):,9.72662
+    Information captured (%):,0
+    Transmission (T):,0.9987
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),587.024,1
+    Pearson X2,212.382,1
+    Delta DF (dDF),7.25594e+08,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),0,1
+    Pearson X2,212.382,1
+    Delta DF (dDF),0,
+
+-------------------------------------------------------------------------
+
+Confusion Matrix for the Model IV:Z with default ('negative') state (after rebinning) Z=0.
+
+Confusion Matrix for Fit Rule (Training)
+Actual            | Rule
+                  | Z=0            Z!=0
+Z=0               | TN=221.000    FP=0.000    AN=221.000
+Z!=0              | FN=203.000    TP=0.000    AP=203.000
+                  | RN=424.000    RP=0.000   #correct=221.000
+
+Additional Statistics (Training)
+Statistic                          Definition                                        Value
+--------                           ----------                                        -----
+
+Run time: 0.000000 seconds

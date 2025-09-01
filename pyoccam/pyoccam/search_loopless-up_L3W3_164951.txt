@@ -1,0 +1,33 @@
+  ID   MODEL                ID          Model          Level              H            dDF            dLR          Alpha            Inf        %dH(DV)           dAIC           dBIC
+   8   IV:BNPZ                                             3         9.6574             63                        0.9870                                      84.3213       339.4545
+   8   IV:BNPZ                                             3         9.6574             63                        0.9870                                      84.3213       339.4545
+   8   IV:BNPZ                                             3         9.6574             63                        0.9870                                      84.3213       339.4545
+   7   IV:NPZ                                              2         9.7020             15                        0.4917                                      14.5458        75.2918
+   5   IV:BPZ                                              2         9.7029             15                        0.5309                                      15.0644        75.8104
+   5   IV:BPZ                                              2         9.7029             15                        0.5309                                      15.0644        75.8104
+   4   IV:BZ                                               1         9.7169              3                        0.1235                                      -0.7348        11.4144
+   3   IV:NZ                                               1         9.7180              3                        0.1632                                      -0.0945        12.0547
+   2   IV:PZ                                               1         9.7244              3                        0.7269                                       3.6740        15.8232
+   1   IV:Z                                                          9.7266                                                                                                         
+  ID   MODEL                ID          Model          Level              H            dDF            dLR          Alpha            Inf        %dH(DV)           dAIC           dBIC
+
+
+Best Model(s) by dBIC:
+   1   IV:Z                                                          9.7266                                                                                                         
+Best Model(s) by dAIC:
+   4   IV:BZ                                               1         9.7169              3                        0.1235                                      -0.7348        11.4144
+
+
+
+
+========== BEST MODELS ==========
+
+Best Model by dBIC:
+  IV:BNPZ (dBIC = 339.454475)
+
+Best Model by dAIC:
+  IV:BNPZ (dAIC = 84.321267)
+
+Best Model by Information:
+  IV:ApBPZ (Info = 0.123029)
+

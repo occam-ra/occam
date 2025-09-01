@@ -6,7 +6,7 @@
  */
 
 #include "AttributeList.h"
-#include "Math.h"
+#include "OccamMath.h"
 #include "Report.h"
 #include "SBMManager.h"
 #include "SearchBase.h"

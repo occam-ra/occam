@@ -1,0 +1,48 @@
+OCCAM version 3.4.0
+================================================================================
+
+Option settings:
+nominal           ELevation_reclass ,2,1,El
+nominal           Fault_Dns_reclass ,6,1,Fd
+nominal           Geol_Lith       ,2,1,Gl
+nominal           nlcd_2021_Land_Cover ,3,1,Lc
+nominal           GeomDesc        ,3,1,Gd
+nominal           TaxClname       ,58,1,Tc
+nominal           LS              ,2,2,Z
+Input data file   dementia05.txt
+Default ('negative') state for confusion matrices  0
+
+State Space Size      2.505600e+04
+Sample Size           1345.000000
+
+Model:                IV:Z (Directed System)
+
+    Model,IV:Z (Directed System)
+    IV Component:,ELevation_reclass; Fault_Dns_reclass; Geol_Lith; nlcd_2021_Land_Cover; GeomDesc; TaxClname,ElFdGlLcGdTc
+    Model Component: ,LS,Z
+    Degrees of Freedom (DF):,1.252800e+04
+    Loops:,NO
+    Entropy(H):,8.61802
+    Information captured (%):,0.000
+    Transmission (T):,-1.0000
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),0.000,1.000
+    Pearson X2,-1.000,1.000
+    Delta DF (dDF),1.253e+04,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),0,1
+    Pearson X2,-1.000,1
+    Delta DF (dDF),0,
+
+-------------------------------------------------------------------------
+
+
+Run time: 0.000000 seconds

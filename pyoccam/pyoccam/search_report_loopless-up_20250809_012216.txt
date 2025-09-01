@@ -1,0 +1,58 @@
+OCCAM version 3.4.0
+================================================================================
+
+Option settings:
+Search direction up
+Search width     3
+Search levels    7
+Search type      loopless-up
+Report sort by   information
+Report preference descending
+
+State Space Size      1.451188e+09
+Sample Size           424.000000
+DV                    Z
+
+Searching level:
+1 : ... models evaluated ...
+2 : ... models evaluated ...
+3 : ... models evaluated ...
+4 : ... models evaluated ...
+5 : ... models evaluated ...
+6 : ... models evaluated ...
+7 : ... models evaluated ...
+
+  ID   MODEL                     ID          Model          Level              H            dDF            dLR          Alpha            Inf        %dH(DV)           dAIC           dBIC
+  20   IV:EdBGJKNPZ                                                       9.3538           9215                        1.0000                                                            
+  20   IV:EdBGJKNPZ                                                       9.3538           9215                        1.0000                                                            
+  20   IV:EdBGJKNPZ                                                       9.3538           9215                        1.0000                                                            
+  17   IV:BGJKNPZ                                                         9.4726           3071                        1.0000                                                            
+  17   IV:BGJKNPZ                                                         9.4726           3071                        1.0000                                                            
+  17   IV:BGJKNPZ                                                         9.4726           3071                        1.0000                                                            
+  14   IV:BJKNPZ                                                          9.5568           1023                        1.0000                                                            
+  14   IV:BJKNPZ                                                          9.5568           1023                        1.0000                                                            
+  14   IV:BJKNPZ                                                          9.5568           1023                        1.0000                                                            
+  11   IV:BJNPZ                                                           9.5877            255                        1.0000                                                            
+  11   IV:BJNPZ                                                           9.5877            255                        1.0000                                                            
+  11   IV:BJNPZ                                                           9.5877            255                        1.0000                                                            
+   8   IV:BNPZ                                                            9.6574             63                        0.9870                                                            
+   8   IV:BNPZ                                                            9.6574             63                        0.9870                                                            
+   8   IV:BNPZ                                                            9.6574             63                        0.9870                                                            
+   7   IV:NPZ                                                             9.7020             15                        0.4917                                                            
+   5   IV:BPZ                                                             9.7029             15                        0.5309                                                            
+   5   IV:BPZ                                                             9.7029             15                        0.5309                                                            
+   4   IV:BZ                                                              9.7169              3                        0.1235                                                            
+   3   IV:NZ                                                              9.7180              3                        0.1632                                                            
+   2   IV:PZ                                                              9.7244              3                        0.7269                                                            
+   1   IV:Z                                                               9.7266              0                        1.0000                                                            
+  ID   MODEL                     ID          Model          Level              H            dDF            dLR          Alpha            Inf        %dH(DV)           dAIC           dBIC
+
+
+Best Model(s) by dBIC:
+   1   IV:Z                                                               9.7266              0                        1.0000                                                            
+Best Model(s) by dAIC:
+   1   IV:Z                                                               9.7266              0                        1.0000                                                            
+
+
+
+Run time: 0.000000 seconds

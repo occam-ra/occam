@@ -1,0 +1,33 @@
+  ID   MODEL                   ID          Model          Level              H            dDF            dLR          Alpha            Inf        %dH(DV)           dAIC           dBIC
+   8   IV:FdGdTcZ                                             3         8.3447           1043                        1.0000                                    1575.4449      7003.3726
+   8   IV:FdGdTcZ                                             3         8.3447           1043                        1.0000                                    1575.4449      7003.3726
+   8   IV:FdGdTcZ                                             3         8.3447           1043                        1.0000                                    1575.4449      7003.3726
+   6   IV:FdTcZ                                               2         8.3477            347                        0.0000                                     188.9901      1994.8299
+   6   IV:FdTcZ                                               2         8.3477            347                        0.0000                                     188.9901      1994.8299
+   5   IV:GdTcZ                                               2         8.4412            173                        0.0000                                      15.2466       915.5645
+   4   IV:TcZ                                                 1         8.4456             57                        0.0000                                    -208.5521        88.0844
+   3   IV:FdZ                                                 1         8.5816              5                        0.0000                                     -58.9271       -32.9064
+   2   IV:GdZ                                                 1         8.5827              2                        0.0000                                     -62.7766       -52.3683
+   1   IV:Z                                                             8.6180                                                                                                         
+  ID   MODEL                   ID          Model          Level              H            dDF            dLR          Alpha            Inf        %dH(DV)           dAIC           dBIC
+
+
+Best Model(s) by dBIC:
+   2   IV:GdZ                                                 1         8.5827              2                        0.0000                                     -62.7766       -52.3683
+Best Model(s) by dAIC:
+   4   IV:TcZ                                                 1         8.4456             57                        0.0000                                    -208.5521        88.0844
+
+
+
+
+========== BEST MODELS ==========
+
+Best Model by dBIC:
+  IV:FdGdTcZ (dBIC = 7003.372616)
+
+Best Model by dAIC:
+  IV:FdGdTcZ (dAIC = 1575.444905)
+
+Best Model by Information:
+  IV:FdLcTcZ (Info = 0.778793)
+

@@ -1,0 +1,666 @@
+#include <pybind11/pybind11.h>
+#include <pybind11/stl.h>
+#include <string>
+#include <vector>
+#include <map>
+#include <set>
+#include <algorithm>
+#include <sstream>
+#include <iomanip>
+#include <cstdio>
+#include <cstring>
+#include <cmath>
+#include <chrono>
+
+// Include OCCAM headers
+#include "VBMManager.h"
+#include "Model.h"
+#include "VariableList.h"
+#include "Variable.h"
+#include "SearchBase.h"
+#include "Report.h"
+#include "Types.h"
+
+namespace py = pybind11;
+
+// ========== MODEL WRAPPER ==========
+struct PyModel {
+    std::string name;
+    double h;
+    double information;
+    double aic;
+    double bic;
+    double daic;
+    double dbic;
+    double alpha;
+    double df;
+    double lr;
+    double pct_correct_data;
+    double incr_alpha;
+    int level;
+};
+
+// ========== MAIN WRAPPER CLASS ==========
+class PyVBMManager {
+private:
+    VBMManager manager;
+    Report* report;  // ADDED: Report object as member variable
+    
+    // Track models from search
+    std::vector<Model*> kept_models;  // Models kept from beam search
+    std::map<std::string, Model*> best_models;  // Best models by criterion
+    std::set<std::string> seen_models;  // For deduplication
+    
+    // Configuration
+    int report_separator;
+    std::string report_variables;
+    std::string ref_model;
+    bool debug_mode;
+    
+    // ========== HELPER FUNCTIONS ==========
+    
+    std::pair<int, char**> python_list_to_argv(const std::vector<std::string>& args) {
+        int argc = args.size();
+        char** argv = new char*[argc];
+        for (int i = 0; i < argc; i++) {
+            argv[i] = new char[args[i].length() + 1];
+            strcpy(argv[i], args[i].c_str());
+        }
+        return std::make_pair(argc, argv);
+    }
+    
+    void cleanup_argv(int argc, char** argv) {
+        for (int i = 0; i < argc; i++) {
+            delete[] argv[i];
+        }
+        delete[] argv;
+    }
+    
+    void computeModelStatistics(Model* model, Model* refModel) {
+        // Compute fit table first
+        manager.makeFitTable(model);
+        
+        // Let OCCAM compute all statistics
+        manager.computeL2Statistics(model);
+        manager.computeDependentStatistics(model);
+        manager.computeInformationStatistics(model);
+        manager.computePercentCorrect(model);
+        
+        // Compute incremental alpha (requires progenitor to be set)
+        manager.computeIncrementalAlpha(model);
+        
+        // OCCAM's computeL2Statistics should have set AIC and BIC correctly
+        // These are dAIC and dBIC (relative to reference model)
+        
+        // For reference model, ensure everything is zero/correct
+        if (model == refModel) {
+            model->setAttribute("aic", 0.0);
+            model->setAttribute("bic", 0.0);
+            model->setAttribute("daic", 0.0);
+            model->setAttribute("dbic", 0.0);
+            model->setAttribute("lr", 0.0);
+            model->setAttribute("information", 0.0);
+            model->setAttribute("%dH(DV)", 0.0);  // Set %dH(DV) for reference
+            // Reference model has inc_alpha = 0 (or 1 for display) and is reachable
+            // computeIncrementalAlpha should have set these, but ensure they're correct
+            if (model->getAttribute("incr_alpha") < 0) {
+                model->setAttribute("incr_alpha", 1.0);  // Display as 1.0 for reference
+            }
+            model->setAttribute("incr_alpha_reachable", 1.0);
+        } else {
+            // For bottom-up search, OCCAM computes dAIC and dBIC directly
+            // Store them also as daic/dbic for clarity
+            double aic_val = model->getAttribute("aic");
+            double bic_val = model->getAttribute("bic");
+            model->setAttribute("daic", aic_val);
+            model->setAttribute("dbic", bic_val);
+            
+            // CRITICAL: Manually set %dH(DV) - Report class doesn't compute it automatically
+            double info = model->getAttribute("information");
+            model->setAttribute("%dH(DV)", info * 100.0);
+        }
+        
+        // Debug output if enabled
+        if (debug_mode) {
+            double lr = model->getAttribute("lr");
+            double ddf = model->getAttribute("ddf");
+            double dbic = model->getAttribute("dbic");
+            double incr_alpha = model->getAttribute("incr_alpha");
+            double pct_dh = model->getAttribute("%dH(DV)");
+            double reachable = model->getAttribute("incr_alpha_reachable");
+            printf("Model %s: LR=%.2f, dDF=%.0f, dBIC=%.2f, IncAlpha=%.4f, %%dH(DV)=%.2f, Reachable=%.0f\n",
+                   model->getPrintName(), lr, ddf, dbic, incr_alpha, pct_dh, reachable);
+        }
+    }
+    
+    std::string captureManagerOutput(Model* model) {
+        char tempname[L_tmpnam];
+        tmpnam(tempname);
+        FILE* temp = fopen(tempname, "w+");
+        if (!temp) return "Error: Could not create temp file";
+        
+        manager.printFitReport(model, temp);
+        
+        rewind(temp);
+        std::string output;
+        char buffer[4096];
+        while (fgets(buffer, sizeof(buffer), temp)) {
+            output += buffer;
+        }
+        
+        fclose(temp);
+        remove(tempname);
+        return output;
+    }
+    
+    // ADDED: Function to capture Report output
+    std::string captureReportOutput(Report* rep) {
+        if (!rep) return "Error: No report object";
+        
+        char tempname[L_tmpnam];
+        tmpnam(tempname);
+        FILE* temp = fopen(tempname, "w+");
+        if (!temp) return "Error: Could not create temp file";
+        
+        // Use Report's print method
+        rep->print(temp);
+        
+        rewind(temp);
+        std::string output;
+        char buffer[4096];
+        while (fgets(buffer, sizeof(buffer), temp)) {
+            output += buffer;
+        }
+        
+        fclose(temp);
+        remove(tempname);
+        return output;
+    }
+    
+    PyModel modelToPyModel(Model* model, int level = -1) {
+        PyModel pm;
+        pm.name = std::string(model->getPrintName());  // Convert const char* to std::string
+        pm.h = model->getAttribute("h");
+        
+        // Information is often displayed as percentage
+        double info = model->getAttribute("information");
+        pm.information = info;  // Keep raw value (0-1)
+        
+        // Get the AIC and BIC values (these are dAIC and dBIC for non-reference models)
+        pm.aic = model->getAttribute("aic");
+        pm.bic = model->getAttribute("bic");
+        pm.daic = model->getAttribute("daic");
+        pm.dbic = model->getAttribute("dbic");
+        
+        pm.alpha = model->getAttribute("alpha");
+        pm.df = model->getAttribute("ddf");  // Delta degrees of freedom
+        pm.lr = model->getAttribute("lr");
+        pm.pct_correct_data = model->getAttribute("pct_correct_data");
+        pm.incr_alpha = model->getAttribute("incr_alpha");
+        pm.level = (level >= 0) ? level : (int)model->getAttribute("level");
+        return pm;
+    }
+    
+public:
+    PyVBMManager() : report(nullptr), debug_mode(false), 
+                     report_separator(3), ref_model("bottom") {
+        // Match server output format - we manually set %dH(DV) so don't include information
+        report_variables = "level$I, h, ddf$I, lr, alpha, %dH(DV), daic, dbic, incr_alpha, pct_correct_data";
+    }
+    
+    ~PyVBMManager() {
+        if (report) {
+            delete report;
+        }
+    }
+    
+    // ========== INITIALIZATION ==========
+    
+    bool init_from_command_line(const std::vector<std::string>& args) {
+        auto [argc, argv] = python_list_to_argv(args);
+        
+        try {
+            bool success = manager.initFromCommandLine(argc, argv);
+            cleanup_argv(argc, argv);
+            
+            if (success) {
+                // Debug: Print variables to verify abbreviations
+                VariableList* varList = manager.getVariableList();
+                if (varList && debug_mode) {
+                    std::ostringstream debug;
+                    debug << "Variables loaded:\n";
+                    int count = varList->getVarCount();
+                    for (int i = 0; i < count; i++) {
+                        Variable* var = varList->getVariable(i);
+                        if (var) {
+                            debug << "  " << i << ": " << var->name 
+                                  << " (abbrev: " << var->abbrev << ")\n";
+                        }
+                    }
+                    printf("%s", debug.str().c_str());
+                }
+            }
+            
+            return success;
+        } catch (...) {
+            cleanup_argv(argc, argv);
+            return false;
+        }
+    }
+    
+    // ========== CONFIGURATION ==========
+    
+    void set_report_separator(int sep) {
+        report_separator = sep;
+    }
+    
+    void set_report_variables(const std::string& variables) {
+        report_variables = variables;
+    }
+    
+    void set_ref_model(const std::string& model) {
+        ref_model = model;
+        manager.setRefModel(const_cast<char*>(model.c_str()));
+    }
+    
+    void set_search_type(const std::string& search_type) {
+        manager.setSearch(search_type.c_str());
+    }
+    
+    void set_debug_mode(bool debug) {
+        debug_mode = debug;
+    }
+    
+    // ========== BEAM SEARCH IMPLEMENTATION ==========
+    
+    std::string generate_search_report(const std::string& search_type, int levels, int width, 
+                                      bool include_test_data = false) {
+        
+        // Clear previous search state
+        kept_models.clear();
+        best_models.clear();
+        seen_models.clear();
+        
+        // Initialize search
+        manager.setSearch(search_type.c_str());
+        SearchBase* search = manager.getSearch();
+        if (!search) {
+            return "Error: Invalid search type";
+        }
+        
+        // Get reference model (bottom for bottom-up search)
+        Model* refModel = manager.getBottomRefModel();
+        if (!refModel) {
+            return "Error: No reference model";
+        }
+        
+        // Set reference model as its own progenitor (or nullptr for root)
+        refModel->setProgenitor(nullptr);
+        refModel->setAttribute("level", 0.0);
+        
+        // Compute statistics for reference model
+        computeModelStatistics(refModel, refModel);
+        refModel->setAttribute("daic", 0.0);
+        refModel->setAttribute("dbic", 0.0);
+        // Reference model gets special inc.alpha handling - computeIncrementalAlpha handles this
+        
+        // Add reference model to kept models
+        kept_models.push_back(refModel);
+        seen_models.insert(std::string(refModel->getPrintName()));  // Convert to string
+        
+        // Current beam (models to expand)
+        std::vector<Model*> current_beam = {refModel};
+        
+        // Search statistics
+        std::ostringstream search_progress;
+        search_progress << "Searching levels:\n";
+        
+        // Beam search: only expand models in current beam
+        for (int level = 1; level <= levels; level++) {
+            std::vector<Model*> candidates;  // All children generated this level
+            
+            // Generate children ONLY from current beam
+            for (Model* parent : current_beam) {
+                Model** children = search->search(parent);
+                if (!children) continue;
+                
+                for (int i = 0; children[i] != nullptr; i++) {
+                    Model* child = children[i];
+                    std::string model_name = std::string(child->getPrintName());  // Convert to string
+                    
+                    // Skip duplicates
+                    if (seen_models.find(model_name) != seen_models.end()) {
+                        continue;
+                    }
+                    seen_models.insert(model_name);
+                    
+                    // CRITICAL: Set progenitor for incremental alpha calculation
+                    child->setProgenitor(parent);
+                    child->setAttribute("level", (double)level);
+                    
+                    // Compute statistics (computeIncrementalAlpha needs progenitor set)
+                    computeModelStatistics(child, refModel);
+                    
+                    // Add to candidates for this level
+                    candidates.push_back(child);
+                }
+            }
+            
+            // Sort candidates by dBIC for SEARCH selection
+            // For bottom-up search: HIGHER (more positive) dBIC is better!
+            // This determines which models to KEEP for next level
+            std::sort(candidates.begin(), candidates.end(),
+                     [](Model* a, Model* b) {
+                         return a->getAttribute("dbic") > b->getAttribute("dbic");
+                     });
+            
+            // Keep only top 'width' models - these become the new beam
+            current_beam.clear();
+            int kept_count = std::min(width, (int)candidates.size());
+            
+            for (int i = 0; i < kept_count; i++) {
+                Model* kept_model = candidates[i];
+                current_beam.push_back(kept_model);  // Add to beam for next level
+                kept_models.push_back(kept_model);   // Add to overall kept list
+            }
+            
+            // Track progress
+            search_progress << level << " : " << candidates.size() 
+                          << " new models, " << kept_count << " kept; "
+                          << kept_models.size() << " total kept\n";
+            
+            // Stop if no models to expand
+            if (current_beam.empty()) break;
+        }
+        
+        // Find best models from KEPT models only
+        if (!kept_models.empty()) {
+            Model* best_bic = nullptr;
+            Model* best_aic = nullptr;
+            Model* best_info = nullptr;
+            Model* best_info_alpha = nullptr;  // Best with incr_alpha < 0.05
+            
+            // For finding best: HIGHER dBIC/dAIC is better, higher information is better
+            for (Model* model : kept_models) {
+                // Skip reference model for best model selection
+                if (model == refModel && model->getAttribute("level") == 0) continue;
+                
+                if (!best_bic || model->getAttribute("dbic") > best_bic->getAttribute("dbic")) {
+                    best_bic = model;
+                }
+                if (!best_aic || model->getAttribute("daic") > best_aic->getAttribute("daic")) {
+                    best_aic = model;
+                }
+                if (!best_info || model->getAttribute("information") > best_info->getAttribute("information")) {
+                    best_info = model;
+                }
+                // Track best model with incremental alpha < 0.05
+                if (model->getAttribute("incr_alpha") < 0.05) {
+                    if (!best_info_alpha || 
+                        model->getAttribute("information") > best_info_alpha->getAttribute("information")) {
+                        best_info_alpha = model;
+                    }
+                }
+            }
+            
+            if (best_bic) best_models["bic"] = best_bic;
+            if (best_aic) best_models["aic"] = best_aic;
+            if (best_info) best_models["information"] = best_info;
+            if (best_info_alpha) best_models["info_alpha"] = best_info_alpha;
+        }
+        
+        // Create fresh report for this search (delete old one if exists)
+        if (report) {
+            delete report;
+        }
+        report = new Report(&manager);
+        report->setSeparator(report_separator);
+        report->setAttributes(const_cast<char*>(report_variables.c_str()));
+        
+        // Add all kept models to report
+        for (Model* model : kept_models) {
+            report->addModel(model);
+        }
+        
+        // Sort report by information (descending) for DISPLAY
+        // This is different from search selection which uses BIC
+        // This matches server behavior: search by BIC, display by information
+        report->sort("information", Direction::Descending);
+        
+        // Generate report output - Report class handles everything including Best Model sections
+        std::string report_output = captureReportOutput(report);
+        
+        // Add search progress at the beginning
+        return search_progress.str() + "\n" + report_output;
+    }
+    
+    // ========== FIT REPORT ==========
+    
+    std::string generate_fit_report(const std::string& model_name, const std::string& target_state = "") {
+        Model* model = manager.makeModel(model_name.c_str(), true);
+        if (!model) {
+            return "Error: Could not create model " + model_name;
+        }
+        
+        // Compute statistics
+        Model* refModel = manager.getBottomRefModel();
+        computeModelStatistics(model, refModel);
+        
+        // Generate fit report
+        return captureManagerOutput(model);
+    }
+    
+    // ========== BEST MODEL GETTERS ==========
+    
+    std::string get_best_model_by_bic() {
+        auto it = best_models.find("bic");
+        if (it != best_models.end() && it->second) {
+            return std::string(it->second->getPrintName());  // Convert to string
+        }
+        return "";
+    }
+    
+    std::string get_best_model_by_aic() {
+        auto it = best_models.find("aic");
+        if (it != best_models.end() && it->second) {
+            return std::string(it->second->getPrintName());  // Convert to string
+        }
+        return "";
+    }
+    
+    std::string get_best_model_by_information() {
+        auto it = best_models.find("information");
+        if (it != best_models.end() && it->second) {
+            return std::string(it->second->getPrintName());  // Convert to string
+        }
+        return "";
+    }
+    
+    std::string get_best_model_by_info_alpha() {
+        auto it = best_models.find("info_alpha");
+        if (it != best_models.end() && it->second) {
+            return std::string(it->second->getPrintName());  // Convert to string
+        }
+        return "";
+    }
+    
+    // ========== MODEL OPERATIONS ==========
+    
+    PyModel make_model(const std::string& model_name, bool make_fit_table = false) {
+        Model* model = manager.makeModel(model_name.c_str(), make_fit_table);
+        if (!model) {
+            PyModel empty;
+            empty.name = "ERROR";
+            return empty;
+        }
+        
+        if (make_fit_table) {
+            Model* refModel = manager.getBottomRefModel();
+            computeModelStatistics(model, refModel);
+        }
+        
+        return modelToPyModel(model);
+    }
+    
+    PyModel get_model_statistics(const std::string& model_name) {
+        return make_model(model_name, true);
+    }
+    
+    // ========== INFORMATION GETTERS ==========
+    
+    std::vector<std::string> get_variable_list() {
+        std::vector<std::string> result;
+        VariableList* varList = manager.getVariableList();
+        if (varList) {
+            int count = varList->getVarCount();
+            for (int i = 0; i < count; i++) {
+                Variable* var = varList->getVariable(i);
+                if (var) {
+                    result.push_back(std::string(var->name));
+                }
+            }
+        }
+        return result;
+    }
+    
+    std::string get_basic_statistics() {
+        std::ostringstream stats;
+        stats << "Sample size: " << manager.getSampleSz() << "\n";
+        
+        VariableList* varList = manager.getVariableList();
+        if (varList) {
+            stats << "Variables: " << varList->getVarCount() << "\n";
+        }
+        
+        Model* bottom = manager.getBottomRefModel();
+        if (bottom) {
+            double h_data = manager.computeH(bottom);
+            stats << "H(data): " << h_data << "\n";
+        }
+        
+        return stats.str();
+    }
+    
+    int get_sample_size() {
+        return manager.getSampleSz();
+    }
+    
+    bool has_test_data() {
+        // Check if test data file was specified
+        return false; // Would need to track from command line args
+    }
+    
+    std::vector<std::string> get_available_search_types() {
+        return {"loopless-up", "loopless-down", "full-up", "full-down", 
+                "disjoint-up", "disjoint-down", "chain-up", "chain-down"};
+    }
+    
+    // ========== REPORT ACCESS ==========
+    
+    std::vector<PyModel> get_kept_models() {
+        std::vector<PyModel> result;
+        for (Model* model : kept_models) {
+            result.push_back(modelToPyModel(model));
+        }
+        return result;
+    }
+    
+    int get_search_model_count() {
+        return kept_models.size();
+    }
+};
+
+// ========== PYBIND11 MODULE DEFINITION ==========
+
+PYBIND11_MODULE(pyoccam2, m) {
+    m.doc() = "OCCAM Python bindings - Version 38 with Report class";
+    
+    // PyModel class
+    py::class_<PyModel>(m, "Model")
+        .def(py::init<>())
+        .def_readwrite("name", &PyModel::name)
+        .def_readwrite("h", &PyModel::h)
+        .def_readwrite("information", &PyModel::information)
+        .def_readwrite("aic", &PyModel::aic)
+        .def_readwrite("bic", &PyModel::bic)
+        .def_readwrite("daic", &PyModel::daic)
+        .def_readwrite("dbic", &PyModel::dbic)
+        .def_readwrite("alpha", &PyModel::alpha)
+        .def_readwrite("df", &PyModel::df)
+        .def_readwrite("lr", &PyModel::lr)
+        .def_readwrite("pct_correct_data", &PyModel::pct_correct_data)
+        .def_readwrite("incr_alpha", &PyModel::incr_alpha)
+        .def_readwrite("level", &PyModel::level);
+    
+    // PyVBMManager class
+    py::class_<PyVBMManager>(m, "VBMManager")
+        .def(py::init<>())
+        
+        // Initialization
+        .def("init_from_command_line", &PyVBMManager::init_from_command_line,
+             "Initialize OCCAM from command line arguments")
+        
+        // Configuration
+        .def("set_report_separator", &PyVBMManager::set_report_separator,
+             "Set report separator (1=tab, 2=comma, 3=space, 4=HTML)")
+        .def("set_report_variables", &PyVBMManager::set_report_variables,
+             "Set variables to display in reports")
+        .def("set_ref_model", &PyVBMManager::set_ref_model,
+             "Set reference model for statistics")
+        .def("set_search_type", &PyVBMManager::set_search_type,
+             "Set search algorithm type")
+        .def("set_debug_mode", &PyVBMManager::set_debug_mode,
+             "Enable/disable debug mode")
+        
+        // Main operations
+        .def("generate_search_report", &PyVBMManager::generate_search_report,
+             "Generate search report with beam search",
+             py::arg("search_type"), py::arg("levels"), py::arg("width"), 
+             py::arg("include_test_data") = false)
+        .def("generate_fit_report", &PyVBMManager::generate_fit_report,
+             "Generate fit report for a model",
+             py::arg("model_name"), py::arg("target_state") = "")
+        
+        // Best model getters
+        .def("get_best_model_by_bic", &PyVBMManager::get_best_model_by_bic,
+             "Get best model by BIC from kept models")
+        .def("get_best_model_by_aic", &PyVBMManager::get_best_model_by_aic,
+             "Get best model by AIC from kept models")
+        .def("get_best_model_by_information", &PyVBMManager::get_best_model_by_information,
+             "Get best model by information from kept models")
+        .def("get_best_model_by_info_alpha", &PyVBMManager::get_best_model_by_info_alpha,
+             "Get best model by information with incremental alpha < 0.05")
+        
+        // Model operations
+        .def("make_model", &PyVBMManager::make_model,
+             "Create and optionally fit a model",
+             py::arg("model_name"), py::arg("make_fit_table") = false)
+        .def("get_model_statistics", &PyVBMManager::get_model_statistics,
+             "Get statistics for a specific model")
+        
+        // Information getters
+        .def("get_variable_list", &PyVBMManager::get_variable_list,
+             "Get list of variable names")
+        .def("get_basic_statistics", &PyVBMManager::get_basic_statistics,
+             "Get basic statistics as string")
+        .def("get_sample_size", &PyVBMManager::get_sample_size,
+             "Get sample size")
+        .def("has_test_data", &PyVBMManager::has_test_data,
+             "Check if test data is available")
+        .def("get_available_search_types", &PyVBMManager::get_available_search_types,
+             "Get list of available search types")
+        
+        // Report access
+        .def("get_kept_models", &PyVBMManager::get_kept_models,
+             "Get list of kept models from beam search")
+        .def("get_search_model_count", &PyVBMManager::get_search_model_count,
+             "Get count of kept models");
+    
+    // Constants
+    m.attr("TABSEP") = 1;
+    m.attr("COMMASEP") = 2;
+    m.attr("SPACESEP") = 3;
+    m.attr("HTMLFORMAT") = 4;
+    
+    m.attr("__version__") = "3.8.0";
+}

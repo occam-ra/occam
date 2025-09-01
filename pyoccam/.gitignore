@@ -1,0 +1,34 @@
+# Build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyd
+*.o
+*.obj
+*.dll
+*.def
+*.lib
+
+# VS Code / PyCharm / IDEs
+*.vscode/
+*.idea/
+
+# Auto-generated reports
+*_report.txt
+*_report.csv
+*_fit_*.txt
+*_search_*.txt
+*_output/
+*_results/
+
+# Cache and temp
+*.ipynb_checkpoints/
+*.json
+*.bak*
+
+# Carveouts – keep these in Git!
+!minimal-occam-notebook.ipynb
+!test_exact_server.py
+!dementia05.txt
+!SY_sample_pts_to_occam3_shuffle_split42_hdr.txt

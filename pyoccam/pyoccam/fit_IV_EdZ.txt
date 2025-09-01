@@ -1,0 +1,45 @@
+OCCAM Fit Report
+================
+Model: IV:EdZ
+
+Model Statistics:
+-----------------
+H (Entropy):          9.7009
+DF:                   725594114
+dDF:                  2
+LR:                   15.1356
+dLR:                  -1.0000
+AIC:                  11.1356
+BIC:                  3.0361
+Information:          0.0258
+%C(Data):            -1.00
+%Coverage:           -1.00
+Alpha:                0.0005
+Beta:                 0.5517
+
+    Model,IV:EdZ (Directed System)
+    IV Component:,APOE; Gender; Education; AgeLastExam; rs1801133; rs3818361; rs7561528; rs744373; rs6943822; rs4298437; rs7012010; rs11136000; rs10786998; rs11193130; rs610932; rs3851179; rs3764650; rs3865444,ApSxEdAgABCDEFGHJKLMNP
+    Model Component: ,Education; CaseControl,EdZ
+    Degrees of Freedom (DF):,7.25594e+08
+    Loops:,NO
+    Entropy(H):,9.70087
+    Information captured (%):,2.57836
+    Transmission (T):,0.97295
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),571.889,1
+    Pearson X2,219.463,
+    Delta DF (dDF),7.25594e+08,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),15.1356,0.000516828
+    Pearson X2,219.463,
+    Delta DF (dDF),2,
+
+-------------------------------------------------------------------------
