@@ -1,6 +1,62 @@
-*.a
-*.o
-*.so
+# Build artifacts
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyd
+*.pyo
 *.pyc
-occ
-./install
+*.o
+*.obj
+*.dll
+*.def
+*.lib
+*.so
+*.dylib
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files (ignore all, then add exceptions)
+*.txt
+*.csv
+*.dat
+*.json
+
+# Python files (if you want to ignore test outputs)
+test_*.py
+*_test.py
+temp_*.py
+
+# Notebooks checkpoints
+.ipynb_checkpoints/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# MinGW DLLs (if you don't want to track them)
+libgcc_s_seh-1.dll
+libstdc++-6.dll
+libwinpthread-1.dll
+
+# Backup files
+*.bak
+*.backup
+*~
+*.orig
+
+# IMPORTANT EXCEPTIONS - Files to KEEP
+!.gitignore
+!README.md
+!setup.py
+!pyoccam/setup.py
+!pyoccam/pyoccam_pybind11.cpp
+!pyoccam/dementia05.txt
+!pyoccam/landslides.txt
+!pyoccam/test_exact_server.py
+!minimal-occam-notebook.ipynb
+!build_pyoccam.bat
