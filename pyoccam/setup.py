@@ -9,6 +9,15 @@ here = os.path.abspath(os.path.dirname(__file__))
 cpp_dir = os.path.join(here, '..', 'cpp')
 include_dir = os.path.join(here, '..', 'include')
 
+# Platform-specific settings
+if sys.platform == 'win32':
+    extra_link_args = ['-static']
+    extra_compile_args = ['-std=c++14', '-O2', '-w', '-DMS_WIN64']
+else:
+    # Linux/Mac don't use -static for shared libraries
+    extra_link_args = []
+    extra_compile_args = ['-std=c++14', '-O2', '-w', '-fPIC']
+
 ext_modules = [
     Extension(
         'pyoccam',
@@ -29,23 +38,6 @@ ext_modules = [
             cpp_dir
         ],
         language='c++',
-        extra_compile_args=['-std=c++14', '-O2', '-w', '-DMS_WIN64'],
-        extra_link_args=['-static']
+        extra_compile_args=extra_compile_args,
+        extra_link_args=extra_link_args,
     ),
-]
-
-setup(
-    name='pyoccam',
-    version='0.1.0',
-    author='David Percy',
-    author_email='your.email@example.com',
-    description='OCCAM Reconstructability Analysis Tools - Python binding',
-    ext_modules=ext_modules,
-    cmdclass={'build_ext': build_ext},
-    zip_safe=False,
-        package_data={
-            "": ["*.txt", "*.ipynb", "*.py"],
-        },
-        include_package_data=True,
-
-)
