@@ -17,20 +17,22 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Python ${{ matrix.python-version }}
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Install build tools
+      - name: Install cibuildwheel
         run: |
           python -m pip install --upgrade pip
           python -m pip install cibuildwheel
 
+      - name: Skip 32-bit builds on Windows
+        if: matrix.os == 'windows-latest'
+        run: echo "CIBW_ARCHS=AMD64" >> $env:GITHUB_ENV
+
       - name: Build wheels with cibuildwheel
-        env:
-          CIBW_SKIP: pp*  # Skip PyPy
-        run: cibuildwheel --output-dir dist
+        run: python -m cibuildwheel --output-dir dist
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v4
