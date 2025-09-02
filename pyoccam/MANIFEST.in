@@ -1,4 +1,25 @@
-include pyoccam_demo.py
-include pyoccam_demo.ipynb
-include dementia05.txt
-include landslides.txt
+# Include all C++ source files
+recursive-include cpp *.cpp
+recursive-include include *.h
+
+# Include pybind11 binding files
+recursive-include pyoccam/bindings *.cpp
+
+# Include DLLs for Windows
+include pyoccam/*.dll
+include pyoccam/*.pyd
+
+# Include shared objects for Linux/Mac
+include pyoccam/*.so
+
+# Include documentation
+include README.md
+include LICENSE
+
+# Include data files
+recursive-include data *.txt *.csv
+
+# Exclude build artifacts
+global-exclude __pycache__
+global-exclude *.py[co]
+global-exclude .git*

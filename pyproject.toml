@@ -1,3 +1,30 @@
 [build-system]
-requires = ["setuptools", "wheel", "pybind11"]
+requires = ["setuptools>=42", "wheel", "pybind11>=2.6"]
 build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+# Build for Python 3.9-3.11
+build = "cp39-* cp310-* cp311-*"
+
+# Skip 32-bit builds
+skip = "*-win32 *-manylinux_i686"
+
+# Windows-specific settings
+[tool.cibuildwheel.windows]
+before-build = """
+    pip install pybind11
+"""
+
+# Environment variables for Windows builds
+[tool.cibuildwheel.windows.environment]
+DISTUTILS_USE_SDK = "1"
+MSSdk = "1"
+
+# Linux settings (use manylinux)
+[tool.cibuildwheel.linux]
+manylinux-x86_64-image = "manylinux2014"
+manylinux-i686-image = "manylinux2014"
+
+# macOS settings
+[tool.cibuildwheel.macos]
+archs = ["x86_64", "arm64", "universal2"]
