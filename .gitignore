@@ -56,7 +56,7 @@ libwinpthread-1.dll
 !.gitignore
 !README.md
 !MANIFEST.in
-!pyoccam/setup.py
+!setup.py
 !pyoccam/setup.py
 !pyoccam/pyoccam_pybind11.cpp
 !pyoccam/dementia05.txt
