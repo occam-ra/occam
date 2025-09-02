@@ -61,6 +61,8 @@ libwinpthread-1.dll
 !pyoccam/pyoccam_pybind11.cpp
 !pyoccam/dementia05.txt
 !pyoccam/landslides.txt
+!pyoccam_dem.py
+!pyoccam_demo.ipynb
 !pyoccam/test_exact_server.py
 !minimal-occam-notebook.ipynb
 !build_pyoccam.bat
