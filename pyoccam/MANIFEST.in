@@ -1,25 +1,22 @@
-# Include all C++ source files
+# Include C++ sources/headers for sdists
 recursive-include cpp *.cpp
 recursive-include include *.h
 
-# Include pybind11 binding files
-recursive-include pyoccam/bindings *.cpp
+# Include the pybind11 binding for sdists
+include pyoccam/pyoccam_pybind11.cpp
 
-# Include DLLs for Windows
-include pyoccam/*.dll
-include pyoccam/*.pyd
-
-# Include shared objects for Linux/Mac
-include pyoccam/*.so
-
-# Include documentation
+# Package artifacts
 include README.md
 include LICENSE
 
-# Include data files
-recursive-include data *.txt *.csv
+# Include packaged flat demo/data files
+include pyoccam/*.txt
+include pyoccam/*.ipynb
+
+# Include platform libs if present
+include pyoccam/*.dll
+include pyoccam/*.pyd
+include pyoccam/*.so
 
 # Exclude build artifacts
-global-exclude __pycache__
-global-exclude *.py[co]
-global-exclude .git*
+global-exclude __pycache__ *.py[co] .git*

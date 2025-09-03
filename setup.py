@@ -96,7 +96,11 @@ if not os.path.exists(init_file):
 
 # NEW: Package configuration to include DLLs in wheel
 package_data = {
-    'pyoccam': ['*.dll', '*.pyd', '*.so'],  # Include all DLLs and extensions
+    'pyoccam': [
+        '*.dll', '*.pyd', '*.so',
+        '*.txt',               # ← add text datasets (dementia05.txt, landslides.txt)
+        '*.ipynb',             # ← add the demo notebook
+    ],
 }
 
 # YOUR WORKING SETUP CONFIGURATION + PACKAGE ADDITIONS
@@ -104,7 +108,7 @@ setup(
     name='pyoccam',
     version='0.1.0',
     author='David Percy',
-    author_email='your.email@example.com',
+    author_email='percyd@pdx.edu',
     description='OCCAM Reconstructability Analysis Tools - Python bindings for model search and fit',
     long_description=open('README.md').read() if os.path.exists('README.md') else '',  # RELATIVE path
     long_description_content_type='text/markdown',
