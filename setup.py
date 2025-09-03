@@ -3,7 +3,6 @@ from setuptools.command.build_ext import build_ext
 import sys
 import os
 import shutil
-import glob
 import pybind11
 
 # Compiler flags - EXACTLY FROM YOUR WORKING VERSION
@@ -43,7 +42,7 @@ ext_modules = [
     ),
 ]
 
-# NEW: Custom build_ext to copy DLLs after building
+# Custom build_ext to copy DLLs after building
 class build_ext_with_dlls(build_ext):
     def run(self):
         super().run()
@@ -86,20 +85,59 @@ class build_ext_with_dlls(build_ext):
                 else:
                     print(f"  WARNING: Could not find {dll_name}")
 
-# NEW: Create __init__.py for the package
+# Create __init__.py for the package
 pyoccam_dir = 'pyoccam'  # RELATIVE path
 init_file = os.path.join(pyoccam_dir, '__init__.py')
-if not os.path.exists(init_file):
+if not os.path.exists(init_file) or os.path.getsize(init_file) < 50:
     os.makedirs(pyoccam_dir, exist_ok=True)
     with open(init_file, 'w') as f:
-        f.write("# pyoccam package\nfrom .pyoccam import *\n__version__ = '0.1.0'\n")
+        f.write("""# pyoccam package
+from .pyoccam import *
+import os
+from pathlib import Path
 
-# NEW: Package configuration to include DLLs in wheel
+__version__ = '0.1.0'
+
+# Get the package directory
+PACKAGE_DIR = Path(__file__).parent
+
+# Helper functions for accessing packaged data
+def get_data_file(filename):
+    \"\"\"Get the full path to a packaged data file\"\"\"
+    path = PACKAGE_DIR / filename
+    if path.exists():
+        return str(path)
+    else:
+        raise FileNotFoundError(f"Data file '{filename}' not found in package")
+
+def list_data_files():
+    \"\"\"List all available data files\"\"\"
+    return [f.name for f in PACKAGE_DIR.glob("*.txt") if f.is_file()]
+
+# Convenience paths for common data files (if they exist)
+try:
+    DEMENTIA_DATA = get_data_file("dementia05.txt")
+except FileNotFoundError:
+    DEMENTIA_DATA = None
+
+try:
+    LANDSLIDES_DATA = get_data_file("landslides.txt")  
+except FileNotFoundError:
+    LANDSLIDES_DATA = None
+""")
+    print(f"Created {init_file}")
+
+# Package configuration to include DLLs and data files in wheel
 package_data = {
     'pyoccam': [
-        '*.dll', '*.pyd', '*.so',
-        '*.txt',               # ← add text datasets (dementia05.txt, landslides.txt)
-        '*.ipynb',             # ← add the demo notebook
+        '*.dll',               # Windows DLLs
+        '*.pyd',               # Compiled extension
+        '*.so',                # Linux/Mac extension
+        '*.txt',               # Data files (dementia05.txt, etc.)
+        '*.csv',               # CSV data files  
+        'pyoccam_demo.py',     # Demo script
+        'pyoccam_demo.ipynb',  # Demo notebook
+        '*.ipynb',             # Any notebooks
     ],
 }
 
@@ -110,7 +148,7 @@ setup(
     author='David Percy',
     author_email='percyd@pdx.edu',
     description='OCCAM Reconstructability Analysis Tools - Python bindings for model search and fit',
-    long_description=open('README.md').read() if os.path.exists('README.md') else '',  # RELATIVE path
+    long_description=open('README.md').read() if os.path.exists('README.md') else '',
     long_description_content_type='text/markdown',
     url='https://github.com/occam-ra/occam',
     classifiers=[
@@ -118,16 +156,20 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: 3.11',
+        'Programming Language :: Python :: 3.12',
         'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
         'Operating System :: OS Independent',
     ],
-    packages=['pyoccam'],  # NEW: Define package
-    package_data=package_data,  # NEW: Include DLLs in package
-    include_package_data=True,  # NEW: Include all package data
+    packages=['pyoccam'],  # Define package
+    package_data=package_data,  # Include DLLs and data in package
+    include_package_data=True,  # Include all package data
     ext_modules=ext_modules,
-    cmdclass={'build_ext': build_ext_with_dlls},  # NEW: Use custom build to copy DLLs
+    cmdclass={'build_ext': build_ext_with_dlls},  # Use custom build to copy DLLs
     zip_safe=False,
     python_requires='>=3.9',
+    install_requires=[
+        'numpy',  # If needed by demos
+    ],
 )
 
 print("\n" + "=" * 50)
@@ -135,5 +177,7 @@ print("OCCAM Python Package Setup")
 print("=" * 50)
 print("Extension will be built as: pyoccam/pyoccam.pyd")
 print("DLLs will be copied to: pyoccam/*.dll")
+print("Data files should be in: pyoccam/*.txt")
+print("Demos should be in: pyoccam/pyoccam_demo.*")
 print("Wheel will include everything in pyoccam/")
 print("=" * 50 + "\n")
