@@ -1,0 +1,39 @@
+# Include all data files in pyoccam directory
+include pyoccam/*.txt
+include pyoccam/*.csv
+
+# Include demo files
+include pyoccam/pyoccam_demo.py
+include pyoccam/pyoccam_demo.ipynb
+include pyoccam/*.ipynb
+
+# Include DLLs if present (for Windows wheels)
+include pyoccam/*.dll
+include pyoccam/*.pyd
+include pyoccam/*.so
+
+# Include documentation
+include README.md
+include LICENSE
+
+# Include C++ source for building from source
+recursive-include cpp *.cpp *.h
+recursive-include include *.h
+
+# Include the pybind11 source file
+include pyoccam/pyoccam_pybind11.cpp
+
+# Include build configuration
+include setup.py
+include pyproject.toml
+include build_all_pythons.bat
+
+# Exclude build artifacts
+recursive-exclude build *
+recursive-exclude dist *
+recursive-exclude *.egg-info *
+recursive-exclude __pycache__ *
+global-exclude *.pyc
+global-exclude *.pyo
+global-exclude *~
+global-exclude .git*
