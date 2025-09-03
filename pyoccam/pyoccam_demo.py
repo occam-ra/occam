@@ -23,7 +23,7 @@ from datetime import datetime
 # ============================================================================
 
 # Data Configuration
-DATA_FILE = "SY_sample_pts_to_occam3_shuffle_split42_hdr.txt"  # Input data file
+DATA_FILE = "stratified_300k_with_dupes_binary_dv_hdr.txt"  # Input data file
 # DATA_FILE = "dementia05.txt"  # Alternative example dataset
 
 # Search Configuration
