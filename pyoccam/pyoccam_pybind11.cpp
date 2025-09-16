@@ -763,7 +763,7 @@ public:
 
 // ========== PYBIND11 MODULE DEFINITION ==========
 
-PYBIND11_MODULE(pyoccam, m) {
+PYBIND11_MODULE(_pyoccam, m) {
     m.doc() = "OCCAM Python bindings - Version 44 with Test Data Support";
     
     // PyModel class
@@ -868,5 +868,5 @@ PYBIND11_MODULE(pyoccam, m) {
     m.attr("SPACESEP") = 3;
     m.attr("HTMLFORMAT") = 4;
     
-    m.attr("__version__") = "4.4.0";
+    m.attr("__version__") = "0.1.2";
 }

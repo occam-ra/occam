@@ -1,0 +1,104 @@
+from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
+import sys
+import os
+
+from pathlib import Path
+
+class BuildExt(build_ext):
+    def build_extensions(self):
+        # Windows-specific monkey patch for missing libpythonX.a
+        if sys.platform == "win32":
+            print("="*60)
+            print("APPLYING ULTIMATE MONKEY PATCH FOR -lpython")
+            print("="*60)
+            from distutils import sysconfig
+            python_version = f"{sys.version_info.major}{sys.version_info.minor}"
+            dll_name = f"python{python_version}.dll"
+            lib_name = f"libpython{python_version}.a"
+
+            anaconda_root = os.environ.get("CONDA_PREFIX", "")
+            dll_path = os.path.join(anaconda_root, dll_name)
+            def_path = os.path.join(anaconda_root, f"python{python_version}.def")
+            lib_path = os.path.join(anaconda_root, lib_name)
+
+            if os.path.exists(dll_path) and not os.path.exists(lib_path):
+                print(f"Generating {lib_name} from {dll_name}")
+                os.system(f"gendef {dll_path}")
+                os.system(f"dlltool -d python{python_version}.def -l {lib_name}")
+                print("Static link library generated.")
+            print("="*60)
+            print("MONKEY PATCH APPLIED - Building extensions...")
+            print("="*60)
+
+        build_ext.build_extensions(self)
+
+here = Path(__file__).parent.resolve()
+
+setup(
+    name="pyoccam",
+    version="0.1.0",
+    author="Your Name",
+    author_email="your.email@example.com",
+    description="Python bindings for OCCAM Reconstructability Analysis",
+    long_description=(here / "README.md").read_text(encoding="utf-8") if (here / "README.md").exists() else "",
+    long_description_content_type="text/markdown",
+    url="https://github.com/occam-ra/occam",
+    ext_modules=[
+        Extension(
+            "pyoccam",
+            sources=[
+                "pyoccam/pyoccam_pybind11.cpp",
+                "cpp/AttributeList.cpp",
+                "cpp/Input.cpp",
+                "cpp/Key.cpp",
+                "cpp/ManagerBase.cpp",
+                "cpp/ManagerInitFromCommandLine.cpp",
+                "cpp/Model.cpp",
+                "cpp/ModelCache.cpp",
+                "cpp/OccamMath.cpp",
+                "cpp/Options.cpp",
+                "cpp/RelCache.cpp",
+                "cpp/Relation.cpp",
+                "cpp/Report.cpp",
+                "cpp/ReportCommon.cpp",
+                "cpp/ReportPrintConditionalDV.cpp",
+                "cpp/ReportPrintResiduals.cpp",
+                "cpp/ReportQSort.cpp",
+                "cpp/SBMManager.cpp",
+                "cpp/Search.cpp",
+                "cpp/SearchBase.cpp",
+                "cpp/StateConstraint.cpp",
+                "cpp/Table.cpp",
+                "cpp/VBMManager.cpp",
+                "cpp/VariableList.cpp",
+                "cpp/_core.cpp",
+            ],
+            include_dirs=[
+                "include",
+                "cpp",
+                ".",
+                # pybind11 include will be added dynamically during build
+            ],
+            language="c++",
+            extra_compile_args=["-std=c++14", "-O2", "-w", "-DMS_WIN64"],
+        ),
+    ],
+    cmdclass={"build_ext": BuildExt},
+    zip_safe=False,
+    include_package_data=True,
+    package_data={
+        "": [
+            "dementia05.txt",
+            "landslides.txt",
+            "pyoccam_demo.py",
+            "pyoccam_demo.ipynb",
+        ]
+    },
+    classifiers=[
+        "Programming Language :: Python :: 3",
+        "License :: OSI Approved :: MIT License",
+        "Operating System :: OS Independent",
+    ],
+    python_requires=">=3.9",
+)

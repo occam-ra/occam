@@ -1,39 +1,34 @@
-# Include all data files in pyoccam directory
-include pyoccam/*.txt
-include pyoccam/*.csv
+# MANIFEST.in - Aggressively exclude all .py files except __init__.py
 
-# Include demo files
-include pyoccam/pyoccam_demo.py
-include pyoccam/pyoccam_demo.ipynb
-include pyoccam/*.ipynb
-
-# Include DLLs if present (for Windows wheels)
-include pyoccam/*.dll
-include pyoccam/*.pyd
-include pyoccam/*.so
-
-# Include documentation
+# Include ONLY the essential files
 include README.md
 include LICENSE
+include setup.py
 
-# Include C++ source for building from source
-recursive-include cpp *.cpp *.h
+# Include package essentials
+include pyoccam/__init__.py
+include pyoccam/dementia05.txt
+include pyoccam/landslides.txt
+include pyoccam/*.dll
+include pyoccam/*.pyd
+
+# Source for building
+include pyoccam/pyoccam_pybind11.cpp
+recursive-include cpp *.cpp
 recursive-include include *.h
 
-# Include the pybind11 source file
-include pyoccam/pyoccam_pybind11.cpp
+# AGGRESSIVE EXCLUSION - exclude ALL other Python files
+global-exclude pyoccam/[!_]*.py
+global-exclude pyoccam/_[!_]*.py
+exclude pyoccam/test*.py
+exclude pyoccam/debug*.py
+exclude pyoccam/*.py
+include pyoccam/__init__.py
 
-# Include build configuration
-include setup.py
-include pyproject.toml
-include build_all_pythons.bat
-
-# Exclude build artifacts
-recursive-exclude build *
-recursive-exclude dist *
-recursive-exclude *.egg-info *
-recursive-exclude __pycache__ *
+# Exclude everything else
+global-exclude *.csv
 global-exclude *.pyc
-global-exclude *.pyo
-global-exclude *~
-global-exclude .git*
+global-exclude __pycache__
+prune .git
+prune build
+prune dist

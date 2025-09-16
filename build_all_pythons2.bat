@@ -1,4 +1,41 @@
 @echo off
+REM build-all-pythons-fixed.bat - Build wheels for all Python versions
+
+echo ================================================
+echo Building PyOccam for All Python Versions
+echo ================================================
+echo.
+
+REM Clean previous builds
+echo Cleaning previous builds...
+rmdir /s /q build 2>nul
+rmdir /s /q dist 2>nul
+rmdir /s /q pyoccam.egg-info 2>nul
+del /q pyoccam\*.pyd 2>nul
+
+REM Create fresh dist directory
+mkdir dist
+
+REM Move extra files temporarily to avoid inclusion
+echo Creating temporary storage for extra files...
+mkdir temp_excluded 2>nul
+
+REM Move debug/test scripts out
+move pyoccam\debug_*.py temp_excluded\ 2>nul
+move pyoccam\diagnose_*.py temp_excluded\ 2>nul
+move pyoccam\check_*.py temp_excluded\ 2>nul
+move pyoccam\examine_*.py temp_excluded\ 2>nul
+move pyoccam\find_*.py temp_excluded\ 2>nul
+move pyoccam\test_*.py temp_excluded\ 2>nul
+move pyoccam\final_*.py temp_excluded\ 2>nul
+move pyoccam\*_test.py temp_excluded\ 2>nul
+
+REM Move output files out
+move pyoccam\*fit*.csv temp_excluded\ 2>nul
+move pyoccam\*search*.csv temp_excluded\ 2>nul
+move pyoccam\SY_*.csv temp_excluded\ 2>nul
+move pyoccam\dementia05_*.csv temp_excluded\ 2>nul
+
 REM Build wheels for Python 3.9, 3.10, 3.11, 3.12
 
 echo ==========================================
@@ -36,7 +73,7 @@ if errorlevel 1 (
 python --version
 REM Only clean build folder, NOT dist
 if exist build rmdir /s /q build
-python setup.py build_ext --compiler=mingw32 bdist_wheel
+python setup.py build_ext --compiler=mingw32 --inplace bdist_wheel
 echo Wheels in dist after Python 3.9:
 dir dist\*.whl /b
 call conda deactivate
@@ -54,7 +91,7 @@ if errorlevel 1 (
 python --version
 REM Only clean build folder, NOT dist
 if exist build rmdir /s /q build
-python setup.py build_ext --compiler=mingw32 bdist_wheel
+python setup.py build_ext --compiler=mingw32 --inplace bdist_wheel
 echo Wheels in dist after Python 3.10:
 dir dist\*.whl /b
 call conda deactivate
@@ -72,7 +109,7 @@ if errorlevel 1 (
 python --version
 REM Only clean build folder, NOT dist
 if exist build rmdir /s /q build
-python setup.py build_ext --compiler=mingw32 bdist_wheel
+python setup.py build_ext --compiler=mingw32 --inplace bdist_wheel
 echo Wheels in dist after Python 3.11:
 dir dist\*.whl /b
 call conda deactivate
@@ -90,7 +127,7 @@ if errorlevel 1 (
 python --version
 REM Only clean build folder, NOT dist
 if exist build rmdir /s /q build
-python setup.py build_ext --compiler=mingw32 bdist_wheel
+python setup.py build_ext --compiler=mingw32 --inplace bdist_wheel
 echo Wheels in dist after Python 3.12:
 dir dist\*.whl /b
 call conda deactivate
@@ -113,5 +150,26 @@ echo ==========================================
 echo.
 echo Wheels in windows-wheels:
 dir windows-wheels\*.whl /b
+echo.
+pause
+
+echo.
+echo ================================================
+echo Restoring excluded files...
+echo ================================================
+move temp_excluded\*.* pyoccam\ 2>nul
+rmdir temp_excluded
+
+echo.
+echo ================================================
+echo Build Complete!
+echo ================================================
+echo.
+echo Wheels created in dist\:
+dir /B dist\*.whl
+
+echo.
+echo To install for testing:
+echo   pip install dist\pyoccam-0.1.2-cp39-cp39-win_amd64.whl
 echo.
 pause
