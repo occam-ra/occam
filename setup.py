@@ -1,10 +1,19 @@
 from setuptools import setup, Extension, find_packages
 import sys
 import os
+import platform  # ADD THIS
 import pybind11
 
-# Get Python include directory
-python_include = os.path.join(sys.prefix, 'Include')
+# Get Python include directory - FIX FOR LINUX
+python_include = os.path.join(sys.prefix, 'Include' if platform.system() == 'Windows' else 'include')
+
+# Platform-specific compile/link args - ADD THIS BLOCK
+if platform.system() == 'Windows':
+    extra_compile_args = ['-std=c++14', '-O2', '-w', '-DMS_WIN64']
+    extra_link_args = ['-static']
+else:  # Linux/macOS
+    extra_compile_args = ['-std=c++14', '-O2']
+    extra_link_args = []
 
 ext_modules = [
     Extension(
@@ -44,8 +53,8 @@ ext_modules = [
             'cpp'
         ],
         language='c++',
-        extra_compile_args=['-std=c++14', '-O2', '-w', '-DMS_WIN64'],
-        extra_link_args=['-static']
+        extra_compile_args=extra_compile_args,  # USE VARIABLE
+        extra_link_args=extra_link_args        # USE VARIABLE
     ),
 ]
 

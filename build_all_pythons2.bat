@@ -21,20 +21,21 @@ echo Creating temporary storage for extra files...
 mkdir temp_excluded 2>nul
 
 REM Move debug/test scripts out
-move pyoccam\debug_*.py temp_excluded\ 2>nul
-move pyoccam\diagnose_*.py temp_excluded\ 2>nul
-move pyoccam\check_*.py temp_excluded\ 2>nul
-move pyoccam\examine_*.py temp_excluded\ 2>nul
-move pyoccam\find_*.py temp_excluded\ 2>nul
-move pyoccam\test_*.py temp_excluded\ 2>nul
-move pyoccam\final_*.py temp_excluded\ 2>nul
-move pyoccam\*_test.py temp_excluded\ 2>nul
+move pyoccam\*.py temp_excluded\ 2>nul
+move pyoccam\*.ipynb temp_excluded\ 2>nul
+
 
 REM Move output files out
-move pyoccam\*fit*.csv temp_excluded\ 2>nul
-move pyoccam\*search*.csv temp_excluded\ 2>nul
-move pyoccam\SY_*.csv temp_excluded\ 2>nul
-move pyoccam\dementia05_*.csv temp_excluded\ 2>nul
+move pyoccam\*.csv temp_excluded\ 2>nul
+move pyoccam\*.txt temp_excluded\ 2>nul
+
+REM Copy included files back
+move temp_excluded\pyoccam_demo.py pyoccam\ 2>nul
+move temp_excluded\pyoccam_demo.ipynb pyoccam\ 2>nul
+move temp_excluded\dementia05.txt pyoccam\ 2>nul
+move temp_excluded\landslides.txt pyoccam\ 2>nul
+
+
 
 REM Build wheels for Python 3.9, 3.10, 3.11, 3.12
 
