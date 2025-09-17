@@ -23,6 +23,9 @@ mkdir temp_excluded 2>nul
 REM Move debug/test scripts out
 move pyoccam\*.py temp_excluded\ 2>nul
 move pyoccam\*.ipynb temp_excluded\ 2>nul
+move pyoccam\*.bak temp_excluded\ 2>nul
+move pyoccam\*. temp_excluded\ 2>nul
+
 
 
 REM Move output files out
