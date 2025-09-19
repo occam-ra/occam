@@ -1,53 +1,31 @@
-# MANIFEST.in - Ensure all source files are included in sdist
-
-# Documentation
+# Include documentation
 include README.md
 include LICENSE
 
-# CRITICAL: Include all C++ source and header files
-recursive-include cpp *.cpp *.h
-recursive-include include *.h
+# CRITICAL: Include ALL header files - use graft instead of recursive-include
+graft include
+graft cpp
 
-# Include the pybind11 wrapper
-include pyoccam/pyoccam_pybind11.cpp
-
-# Include data files and demos
+# Also include the pyoccam source
 include pyoccam/__init__.py
-include pyoccam/dementia05.txt
-include pyoccam/landslides.txt
-include pyoccam/pyoccam_demo.py
-include pyoccam/pyoccam_demo.ipynb
+include pyoccam/pyoccam_pybind11.cpp
+include pyoccam/*.txt
+include pyoccam/*.py
+include pyoccam/*.ipynb
 
-# Include MinGW DLLs for Windows
+# Include DLLs for Windows
 include pyoccam/*.dll
 
-# Exclude compiled and temporary files
-global-exclude *.pyc
-global-exclude *.pyo
-global-exclude *.pyd
-global-exclude *.so
-global-exclude *.o
-global-exclude *.obj
-global-exclude *~
-global-exclude *.bak
+# Exclude unwanted files
+global-exclude *.pyc *.pyo *.pyd *.so *.o *.obj
+global-exclude *~ *.bak* *.swp
+global-exclude .DS_Store
 
-# Exclude test/debug scripts
-global-exclude debug_*.py
-global-exclude test_*.py
-global-exclude check_*.py
-global-exclude diagnose_*.py
-global-exclude examine_*.py
-global-exclude find_*.py
-global-exclude final_*.py
-
-# Exclude output files
-global-exclude *.csv
-
-# Exclude build artifacts
+# Exclude build directories
 prune build
 prune dist
-prune *.egg-info
-prune __pycache__
 prune .git
 prune .github
+prune *.egg-info
 prune windows-wheels
+prune __pycache__
