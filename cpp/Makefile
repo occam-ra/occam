@@ -5,7 +5,7 @@
 
 SHELL = /bin/sh
 CC = gcc
-PY_INCLUDE = /usr/include/python2.7
+PY_INCLUDE = /usr/include/python3.13
 CFLAGS = -w -Wall -Wextra -O3 -fPIC -std=c++11 -I ../include -I $(PY_INCLUDE) -frounding-math -fsignaling-nans -fsigned-zeros -fno-finite-math-only
 LFLAGS = -shared
 AR = ar
@@ -23,7 +23,7 @@ LIBOBJECTS = \
 	Key.o \
 	ManagerBase.o \
 	ManagerInitFromCommandLine.o \
-	Math.o \
+	OccamMath.o \
 	Model.o \
 	ModelCache.o \
 	Options.o \
@@ -48,7 +48,10 @@ ifeq ($(uname_p),i386)
 	CFLAGS=$(CFLAGS) -msse2 -mfpmath=sse
 endif
 
-all: $(LIB) $(DYLIB) $(CL)
+all: $(LIB) $(CL)
+
+# Old Python 2 bindings (deprecated - use pybind11 bindings instead)
+python2: $(DYLIB)
 
 .SUFFIXES:
 .SUFFIXES: .cpp .o
@@ -90,7 +93,7 @@ ManagerBase.o: ManagerBase.cpp ../include/Input.h \
  ../include/Relation.h ../include/Table.h ../include/Globals.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/Options.h ../include/VarIntersect.h \
- ../include/Math.h ../include/VBMManager.h ../include/ManagerBase.h \
+ ../include/OccamMath.h ../include/VBMManager.h ../include/ManagerBase.h \
  ../include/Model.h ../include/ModelCache.h \
  ../include/Options.h ../include/RelCache.h ../include/Relation.h \
  ../include/StateConstraint.h ../include/VariableList.h \
@@ -100,14 +103,14 @@ ManagerInitFromCommandLine.o: ManagerInitFromCommandLine.cpp ../include/Input.h 
  ../include/Relation.h ../include/Table.h ../include/Globals.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/Options.h ../include/VarIntersect.h \
- ../include/Math.h ../include/VBMManager.h ../include/ManagerBase.h \
+ ../include/OccamMath.h ../include/VBMManager.h ../include/ManagerBase.h \
  ../include/Model.h ../include/ModelCache.h \
  ../include/Options.h ../include/RelCache.h ../include/Relation.h \
  ../include/StateConstraint.h ../include/VariableList.h \
  ../include/_Core.h
 
 
-Math.o: Math.cpp ../include/Math.h ../include/VBMManager.h \
+OccamMath.o: OccamMath.cpp ../include/OccamMath.h ../include/VBMManager.h \
  ../include/ManagerBase.h ../include/Model.h ../include/ModelCache.h \
  ../include/Relation.h ../include/Table.h ../include/Globals.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
@@ -118,7 +121,7 @@ ModelCache.o: ModelCache.cpp ../include/Model.h ../include/ModelCache.h \
  ../include/Relation.h ../include/Table.h ../include/Globals.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/ModelCache.h
-Model.o: Model.cpp ../include/AttributeList.h ../include/Math.h \
+Model.o: Model.cpp ../include/AttributeList.h ../include/OccamMath.h \
  ../include/VBMManager.h ../include/ManagerBase.h ../include/Model.h \
  ../include/ModelCache.h ../include/Relation.h ../include/Table.h \
  ../include/Globals.h ../include/Types.h ../include/VariableList.h \
@@ -135,7 +138,7 @@ occ.o: occ.cpp ../include/VBMManager.h ../include/ManagerBase.h \
  ../include/Report.h
 Options.o: Options.cpp ../include/Options.h
 pyoccam.o: pyoccam.cpp ../include/AttributeList.h \
- ../include/Math.h ../include/VBMManager.h ../include/ManagerBase.h \
+ ../include/OccamMath.h ../include/VBMManager.h ../include/ManagerBase.h \
  ../include/Model.h ../include/ModelCache.h ../include/Relation.h \
  ../include/Table.h ../include/Globals.h ../include/Types.h \
  ../include/VariableList.h ../include/Variable.h ../include/Constants.h \
@@ -154,14 +157,14 @@ Report.o: Report.cpp ../include/attrDescs.h ../include/_Core.h \
  ../include/Relation.h ../include/Table.h ../include/Globals.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/ManagerBase.h ../include/Options.h \
- ../include/VarIntersect.h ../include/Math.h ../include/VBMManager.h \
+ ../include/VarIntersect.h ../include/OccamMath.h ../include/VBMManager.h \
  ../include/ManagerBase.h
 ReportCommon.o: ReportCommon.cpp ../include/attrDescs.h ../include/_Core.h \
  ../include/Report.h ../include/Model.h ../include/ModelCache.h \
  ../include/Relation.h ../include/Table.h ../include/Globals.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/ManagerBase.h ../include/Options.h \
- ../include/VarIntersect.h ../include/Math.h ../include/VBMManager.h \
+ ../include/VarIntersect.h ../include/OccamMath.h ../include/VBMManager.h \
  ../include/ManagerBase.h
 
 
@@ -170,7 +173,7 @@ ReportPrintConditionalDV.o: ReportPrintConditionalDV.cpp \
  ../include/Relation.h ../include/Table.h ../include/Globals.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/ManagerBase.h ../include/Options.h \
- ../include/VarIntersect.h ../include/Math.h ../include/VBMManager.h \
+ ../include/VarIntersect.h ../include/OccamMath.h ../include/VBMManager.h \
  ../include/ManagerBase.h 
 ReportPrintResiduals.o: ReportPrintResiduals.cpp ../include/Key.h \
  ../include/Types.h ../include/ManagerBase.h ../include/Model.h \
@@ -182,7 +185,7 @@ ReportQsort.o: ReportQsort.cpp ../include/Key.h ../include/Types.h \
  ../include/Model.h ../include/ModelCache.h ../include/Relation.h \
  ../include/Table.h ../include/Globals.h ../include/VariableList.h \
  ../include/Variable.h ../include/Constants.h
-SBMManager.o: SBMManager.cpp ../include/AttributeList.h ../include/Math.h \
+SBMManager.o: SBMManager.cpp ../include/AttributeList.h ../include/OccamMath.h \
  ../include/VBMManager.h ../include/ManagerBase.h ../include/Model.h \
  ../include/ModelCache.h ../include/Relation.h ../include/Table.h \
  ../include/Globals.h ../include/Types.h ../include/VariableList.h \
@@ -203,14 +206,14 @@ Search.o: Search.cpp ../include/Search.h ../include/SearchBase.h \
  ../include/Types.h ../include/VariableList.h ../include/Variable.h \
  ../include/Constants.h ../include/Options.h ../include/VarIntersect.h \
  ../include/VBMManager.h ../include/SBMManager.h ../include/ModelCache.h \
- ../include/_Core.h ../include/Math.h 
+ ../include/_Core.h ../include/OccamMath.h 
 StateConstraint.o: StateConstraint.cpp ../include/StateConstraint.h \
  ../include/Types.h ../include/_Core.h
 Table.o: Table.cpp ../include/_Core.h
 VariableList.o: VariableList.cpp ../include/VariableList.h \
  ../include/Variable.h ../include/Constants.h ../include/Types.h \
  ../include/_Core.h
-VBMManager.o: VBMManager.cpp ../include/AttributeList.h ../include/Math.h \
+VBMManager.o: VBMManager.cpp ../include/AttributeList.h ../include/OccamMath.h \
  ../include/VBMManager.h ../include/ManagerBase.h ../include/Model.h \
  ../include/ModelCache.h ../include/Relation.h ../include/Table.h \
  ../include/Globals.h ../include/Types.h ../include/VariableList.h \
