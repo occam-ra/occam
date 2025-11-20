@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}OCCAM Search Results{% endblock %}
+
+{% block content %}
+<h2>Model Search Results</h2>
+
+<div class="results">
+    <p><strong>Search Type:</strong> {{ search_type }}</p>
+    <p><strong>Levels:</strong> {{ levels }}</p>
+    <p><strong>Width:</strong> {{ width }}</p>
+    <p><strong>Elapsed time:</strong> {{ "%.2f"|format(elapsed) }} seconds</p>
+</div>
+
+<pre class="output">{{ output }}</pre>
+
+<div class="actions">
+    <p>
+        <a href="{{ url_for('occam_main') }}">Return to Input Form</a> |
+        <a href="{{ url_for('index') }}">Return to Home</a>
+    </p>
+</div>
+{% endblock %}
