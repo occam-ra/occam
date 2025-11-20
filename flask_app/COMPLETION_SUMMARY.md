@@ -67,7 +67,35 @@ The OCCAM Python 3 Flask web server is now **feature-complete** for core Variabl
 **Control Templates:**
 - ✅ `job_control.html` - Job listing and management
 
-### 5. Styling (`static/style.css`) - 200+ lines
+**Graph Display:**
+- ✅ All result templates updated to display SVG graphs inline
+- ✅ All result templates support Gephi export data display
+
+### 5. Graph Generation (`ocGraph.py`) - 250+ lines
+
+**Python 3 Conversion:**
+- ✅ Converted from Python 2 to Python 3 syntax
+- ✅ Fixed `except Exception, e:` to `except Exception as e:`
+- ✅ Fixed `filter()` and `map()` to return lists
+- ✅ Fixed `print` statements to `print()` functions
+- ✅ Fixed bug in `textwidth()` function (`len(str)` -> `len(text)`)
+
+**Graph Generation Features:**
+- ✅ `generate()` - Create igraph from OCCAM model
+- ✅ `printPlot()` - Generate SVG/PDF graph files
+- ✅ `printSVG()` - Output SVG inline
+- ✅ `printPDF()` - Generate PDF for download
+- ✅ `printGephi()` - Generate Gephi export data
+- ✅ Multiple layout algorithms (Fruchterman-Reingold, bipartite, etc.)
+- ✅ Customizable graph dimensions, fonts, and node sizes
+
+**Integration:**
+- ✅ Graph generation integrated into `occam_wrapper.py`
+- ✅ All fit/search handlers generate graphs when requested
+- ✅ SVG graphs displayed inline in result templates
+- ✅ Gephi data displayed in formatted tables
+
+### 6. Styling (`static/style.css`) - 260+ lines
 
 **CSS Features:**
 - Form styling with proper spacing and colors
@@ -103,8 +131,9 @@ The OCCAM Python 3 Flask web server is now **feature-complete** for core Variabl
 
 ```
 flask_app/
-├── app.py                      550+ lines  ✅
-├── occam_wrapper.py            270+ lines  ✅
+├── app.py                      600+ lines  ✅
+├── occam_wrapper.py            380+ lines  ✅
+├── ocGraph.py                  250+ lines  ✅
 ├── utils.py                    200+ lines  ✅
 ├── requirements.txt            ✅
 ├── setup_static.sh             ✅
@@ -115,13 +144,13 @@ flask_app/
 │   ├── index.html             ✅
 │   ├── error.html             ✅
 │   ├── main_form.html         ✅
-│   ├── fit_result.html        ✅
-│   ├── search_result.html     ✅
-│   ├── sbfit_result.html      ✅
-│   ├── sbsearch_result.html   ✅
+│   ├── fit_result.html        ✅ (with graphs)
+│   ├── search_result.html     ✅ (with graphs)
+│   ├── sbfit_result.html      ✅ (with graphs)
+│   ├── sbsearch_result.html   ✅ (with graphs)
 │   └── job_control.html       ✅
 └── static/
-    └── style.css              200+ lines  ✅
+    └── style.css              260+ lines  ✅
 ```
 
 ## Feature Comparison
@@ -140,7 +169,7 @@ flask_app/
 | Test Data | ✅ | ✅ | Complete |
 | Batch Jobs | ✅ | 🚧 | Stubbed |
 | Email Results | ✅ | 🚧 | Stubbed |
-| Graph Gen | ✅ | ❌ | Not implemented |
+| Graph Gen | ✅ | ✅ | Complete |
 
 ## Installation & Testing
 
@@ -219,13 +248,12 @@ See `README.md` for complete Apache configuration.
 ### Not Implemented
 1. **Batch Processing** - Requires background job queue (Celery/RQ)
 2. **Email Integration** - Needs SMTP configuration
-3. **Graph Generation** - Requires porting `ocGraph.py` to Python 3
-4. **Cached Data** - Form for using cached data components
+3. **Cached Data** - Form for using cached data components
 
 ### Workarounds
 - Batch jobs: Run manually with command-line tools
-- Graphs: Generate using original system or port separately
 - Email: Download results manually
+- Cached data: Use full data file uploads instead
 
 ## Performance
 
@@ -244,10 +272,10 @@ The Flask server provides:
 4. Create admin interface for configuration
 
 ### Medium Term
-1. Port `ocGraph.py` to Python 3 for graph generation
-2. Implement Celery for background job processing
-3. Add email notification support
-4. Create cached data form
+1. Implement Celery for background job processing
+2. Add email notification support
+3. Create cached data form
+4. Add PDF graph download option
 
 ### Long Term
 1. REST API for programmatic access
@@ -310,6 +338,7 @@ The Flask server provides:
 ---
 
 **Implementation completed:** 2025-11-20
-**Total code written:** ~1,500 lines Python + ~400 lines templates + ~200 lines CSS
-**Status:** ✅ **PRODUCTION READY** for core operations
-**Remaining work:** Optional enhancements (batch, email, graphs)
+**Graph generation added:** 2025-11-20
+**Total code written:** ~1,750 lines Python + ~450 lines templates + ~260 lines CSS
+**Status:** ✅ **PRODUCTION READY** including graph generation
+**Remaining work:** Optional enhancements (batch, email, cached data)

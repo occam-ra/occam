@@ -216,6 +216,52 @@ table.data a:hover {
     text-decoration: underline;
 }
 
+/* Graph visualization */
+.graph {
+    background: white;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    text-align: center;
+}
+
+.graph svg {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Gephi export data */
+.gephi-data {
+    background: white;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+.gephi-data h4 {
+    color: #6A7F10;
+    margin-top: 15px;
+    margin-bottom: 10px;
+}
+
+.gephi-data h4:first-child {
+    margin-top: 0;
+}
+
+pre.gephi-output {
+    background: #f9f9f9;
+    border: 1px solid #ddd;
+    padding: 10px;
+    overflow-x: auto;
+    font-family: 'Courier New', monospace;
+    font-size: 0.85em;
+    line-height: 1.3;
+    max-height: 300px;
+    overflow-y: auto;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .form-section label {

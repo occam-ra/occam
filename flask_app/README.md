@@ -16,6 +16,7 @@ This Flask application provides the same user interface and functionality as the
 flask_app/
 ├── app.py                 # Main Flask application
 ├── occam_wrapper.py       # Compatibility wrapper for _pyoccam
+├── ocGraph.py             # Graph generation (Python 3 port)
 ├── utils.py               # Utility functions (file handling, etc.)
 ├── requirements.txt       # Python dependencies
 ├── templates/             # Jinja2 templates
@@ -23,9 +24,10 @@ flask_app/
 │   ├── index.html        # Landing page
 │   ├── error.html        # Error display
 │   ├── main_form.html    # Main input form
-│   └── ...               # Other templates
+│   └── ...               # Result templates (fit, search, sbfit, sbsearch)
 └── static/               # Static assets (CSS, images)
     ├── base.css
+    ├── style.css
     ├── occam_logo.jpg
     └── examples/
 ```
@@ -33,22 +35,20 @@ flask_app/
 ## Status
 
 ### ✅ Completed
-- Flask application structure
+- Flask application structure with all core routes
+- Variable-Based and State-Based modeling (VB and SB)
+- Model fit and search operations
 - Utility functions for file handling
 - OccamManager wrapper providing ocutils.py-compatible API
-- Base templates (base.html, index.html, error.html)
-- Request routing framework
-
-### 🚧 In Progress
-- Complete all Jinja2 templates from original HTML
-- Implement all route handlers (fit, search, etc.)
-- Graph generation integration
+- All Jinja2 templates (9 templates)
+- Graph generation with SVG and Gephi export
 - Job control functionality
+- HTML and CSV output formats
 
-### ❌ Blocked/Pending
-- **State-Based Modeling (SB)**: Requires SBMManager in pybind11 bindings
-  - Currently only VBMManager is available
-  - SBfit and SBsearch actions will not work until SBMManager is added to `pyoccam_pybind11.cpp`
+### ❌ Not Implemented
+- Batch job processing (requires background job queue)
+- Email notifications (requires SMTP configuration)
+- Cached data forms
 
 ## Installation
 
@@ -57,6 +57,8 @@ flask_app/
    cd flask_app
    pip install -r requirements.txt
    ```
+
+   Note: Graph generation requires `python-igraph` and `pycairo`. If these fail to install, graph generation will be disabled but all other features will work.
 
 2. Install pyoccam module:
    ```bash
