@@ -63,12 +63,24 @@ flask_app/
 2. Install pyoccam module:
    ```bash
    # Option A: Install from prebuilt wheel
-   pip install ../pyoccam/wheels/pyoccam-0.1.0-cp3*-linux_x86_64.whl
+   pip install ../pyoccam/wheels/pyoccam-0.1.*-cp3*-linux_x86_64.whl
 
-   # Option B: Build from source (requires pybind11, GMP, etc.)
+   # Option B: Build from source
+   # First, install build dependencies:
+   sudo apt-get install build-essential g++ libgmp3-dev python3-dev
+   pip3 install pybind11
+
+   # Build the C++ library
+   cd ../cpp
+   make
+
+   # Build and install the Python module
    cd ../pyoccam
-   # TODO: Add build instructions
+   python3 setup.py build_ext --inplace
+   pip3 install .
    ```
+
+   For detailed build instructions including macOS/Windows, see [../pyoccam/BUILD.md](../pyoccam/BUILD.md)
 
 3. Copy static assets:
    ```bash
@@ -151,24 +163,30 @@ The `OccamManager` class in `occam_wrapper.py` provides compatibility with the o
 | `setReportSeparator()` | `set_report_separator()` | Python naming |
 | `doAction()` | `do_fit()` / `do_search()` | Explicit methods |
 
-## Testing
-
-TODO: Add testing instructions once basic functionality is working
-
 ## Known Issues
 
-1. **SBMManager not implemented**: State-based modeling requires pybind11 implementation
-2. **Job control**: Background job management needs adaptation for Flask
-3. **Email functionality**: Batch job email needs SMTP configuration
-4. **Graph generation**: ocGraph.py integration pending
+1. **Batch processing**: Requires background job queue (Celery/RQ) for async operations
+2. **Email functionality**: Batch job email notifications need SMTP configuration
+3. **Cached data forms**: Form for using cached data components not yet implemented
+
+## Testing
+
+Test the Flask server with example data:
+```bash
+cd flask_app
+python3 app.py
+
+# In browser, navigate to http://localhost:5000
+# Upload an example file from ../examples/
+# Test VB fit, VB search, SB fit, and SB search operations
+```
 
 ## Next Steps
 
-See [../pyoccam/PORTING_STATUS.md](../pyoccam/PORTING_STATUS.md) for pybind11 binding completion status.
-
-Priority tasks:
-1. Add SBMManager to pyoccam_pybind11.cpp
-2. Complete all Jinja2 templates
-3. Implement all route handlers
-4. Test with real OCCAM data files
-5. Deploy and performance test
+Optional enhancements:
+1. Implement Celery/RQ for background batch processing
+2. Add email notification support via SMTP
+3. Create cached data input forms
+4. Add PDF graph download option
+5. Implement CSRF protection for forms
+6. Add session-based job tracking
