@@ -455,8 +455,6 @@ void printConfusionMatrixHTML(const char* dv_name, const char* dv_target, double
 }
 
 void printConfusionMatrixStatsHTML(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
-    (void)dv_name;
-    (void)dv_target;
     // TODO: DRY this out
     // Population totals
     const double pop = tp + fp + tn + fn;
@@ -500,8 +498,6 @@ void printConfusionMatrixCSV(const char* dv_name, const char* dv_target, double 
     printf(",,|,RN=,%0.3f,RP=,%0.3f,#correct=,%0.3f\n\n", tn + fn, tp + fp, tp + tn);
 }
 void printConfusionMatrixStatsCSV(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
-    (void)dv_name;
-    (void)dv_target;
     const double pop = tp + fp + tn + fn;
     const double rule_pos = tp + fp;
     const double rule_neg = tn + fn;

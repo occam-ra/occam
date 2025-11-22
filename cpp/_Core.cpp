@@ -29,11 +29,6 @@ void logMemory(void *old, unsigned long long oldSize, long factor, const char *f
 
 void logMemory(void *old, unsigned long long oldSize, long factor, const char *file, long line)
 {
-    (void)old;
-    (void)oldSize;
-    (void)factor;
-    (void)file;
-    (void)line;
 }
 
 #endif

@@ -51,7 +51,6 @@ void Key::buildFullKey(KeySegment *key, int keysize, class VariableList *vars, i
  */
 void Key::setKeyValue(KeySegment *key, int keysize, class VariableList *vars, int index, int value)
 {
-    (void)keysize;
     Variable *var = vars->getVariable(index);
     int segment = var->segment;
     KeySegment mask = var->mask;
@@ -64,7 +63,6 @@ void Key::setKeyValue(KeySegment *key, int keysize, class VariableList *vars, in
  */
 int Key::getKeyValue(KeySegment *key, int keysize, class VariableList *vars, int index)
 {
-    (void)keysize;
     KeySegment temp = 0;
     Variable *var = vars->getVariable(index);
     int segment = var->segment;
