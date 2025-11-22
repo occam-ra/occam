@@ -2,16 +2,6 @@
 # [This program is licensed under the GPL version 3 or later.]
 # Please see the file LICENSE in the source distribution of this software for license terms.
 
-project('occam-cpp', 'cpp',
-  version: '3.0.0',
-  default_options: [
-    'cpp_std=c++14',
-    'warning_level=2',
-    'optimization=3',
-    'b_ndebug=if-release'
-  ]
-)
-
 # Dependencies
 gmp_dep = dependency('gmp', required: true)
 thread_dep = dependency('threads', required: false)
