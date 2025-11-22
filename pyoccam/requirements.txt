@@ -1,0 +1,3 @@
+# Runtime dependencies for pyoccam
+# pyoccam is a C++ extension with no Python runtime dependencies
+# Install the wheel directly or build from source (see requirements-build.txt)

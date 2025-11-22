@@ -1,0 +1,13 @@
+# Optional graph generation dependencies for OCCAM Flask server
+# Install with: pip install -r requirements-graphs.txt
+
+# Include base requirements
+-r requirements.txt
+
+# Graph generation libraries
+python-igraph>=0.10.0
+pycairo>=1.20.0
+
+# Note: These may require system packages:
+# Ubuntu/Debian: sudo apt install libcairo2-dev pkg-config python3-dev
+# macOS: brew install cairo pkg-config

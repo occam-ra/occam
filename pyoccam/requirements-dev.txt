@@ -1,0 +1,13 @@
+# Development dependencies for pyoccam
+# Install with: pip install -r requirements-dev.txt
+
+# Testing
+pytest>=7.0
+pytest-cov>=4.0
+
+# Development tools
+ipython>=8.0
+jupyter>=1.0
+
+# Include build dependencies
+-r requirements-build.txt

@@ -1,0 +1,12 @@
+# Runtime dependencies for OCCAM Flask web server
+
+# Core dependencies
+pyoccam>=3.0.0
+Flask>=3.0.0
+Werkzeug>=3.0.1
+Jinja2>=3.1.2
+
+# Optional: Graph generation
+# Uncomment these for graph visualization features:
+# python-igraph>=0.10.0
+# pycairo>=1.20.0

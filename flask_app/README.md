@@ -177,6 +177,36 @@ cd flask_app
 python3 -c "from occam_server import app; print('Flask app OK')"
 ```
 
+### Alternative: Using Requirements Files
+
+Instead of using `pip install -e .`, you can install dependencies using requirements files:
+
+**Basic Installation:**
+```bash
+cd flask_app
+pip install -r requirements.txt
+```
+
+**With Graph Generation Support:**
+```bash
+cd flask_app
+pip install -r requirements-graphs.txt
+```
+
+**For Development:**
+```bash
+cd flask_app
+pip install -r requirements-dev.txt
+```
+
+**Requirements Files Available:**
+
+- `requirements.txt` - Core runtime dependencies (Flask, pyoccam, etc.)
+- `requirements-graphs.txt` - Adds graph generation libraries (python-igraph, pycairo)
+- `requirements-dev.txt` - Development tools (pytest, black, gunicorn, etc.)
+
+Note: `pyoccam` must be built and installed first (from the project root with Meson), or installed from a wheel.
+
 ## Running
 
 ### Development Server

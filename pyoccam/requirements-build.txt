@@ -1,0 +1,12 @@
+# Build dependencies for pyoccam
+# Use these when building from source
+
+# Core build system
+meson-python>=0.15.0
+pybind11>=2.11.0
+ninja>=1.11.0
+
+# Python build tools
+build>=1.0.0
+wheel>=0.42.0
+setuptools>=68.0.0
