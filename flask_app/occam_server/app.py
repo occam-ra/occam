@@ -113,7 +113,7 @@ def render_form(action=''):
     }
 
     if action in COMMON_ACTIONS:
-        return render_template('common_form.html', **context)
+        return render_template('main_form.html', **context)
     elif action == 'compare':
         return render_template('compare_form.html', **context)
     elif action == 'log':
