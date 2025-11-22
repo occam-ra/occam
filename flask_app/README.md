@@ -211,20 +211,16 @@ Note: `pyoccam` must be built and installed first (from the project root with Me
 
 ### Development Server
 
-**Option 1: Using Python module**
-```bash
-python3 -m occam_server.app
-```
+**Important:** You must run the server from the `flask_app/occam_server` directory so it can find the `static/` and `templates/` directories.
 
-**Option 2: Direct script execution**
 ```bash
-cd flask_app
-python3 occam_server/app.py
+cd flask_app/occam_server
+python3 app.py
 ```
 
 Access at: http://localhost:5000
 
-**Configuration:** The development server runs with `debug=True` by default. Edit `occam_server/app.py` to change settings.
+**Configuration:** The development server runs with `debug=True` by default. Edit `app.py` to change settings.
 
 ### Production Deployment
 
@@ -232,11 +228,14 @@ Access at: http://localhost:5000
 ```bash
 pip install gunicorn
 
+# Run from flask_app/occam_server directory
+cd flask_app/occam_server
+
 # Run with 4 worker processes
-gunicorn -w 4 -b 0.0.0.0:8000 occam_server.app:app
+gunicorn -w 4 -b 0.0.0.0:8000 app:app
 
 # Or with auto-reload for development
-gunicorn -w 4 -b 0.0.0.0:8000 --reload occam_server.app:app
+gunicorn -w 4 -b 0.0.0.0:8000 --reload app:app
 ```
 
 #### Option 2: Apache + mod_wsgi
@@ -329,10 +328,11 @@ The `OccamManager` class in `occam_wrapper.py` provides compatibility with the o
 Test the Flask server with example data:
 ```bash
 # Start development server
-python3 -m occam_server.app
+cd flask_app/occam_server
+python3 app.py
 
 # In browser, navigate to http://localhost:5000
-# 1. Upload an example file from static/examples/ (e.g., netdata5c.txt)
+# 1. Upload an example file from static/examples/ (e.g., fit.in, search.in)
 # 2. Test VB fit operation
 # 3. Test VB search operation
 # 4. Test SB fit operation
@@ -343,15 +343,19 @@ python3 -m occam_server.app
 ### Example Test Sequence
 
 ```bash
+# Start server
+cd flask_app/occam_server
+python3 app.py &
+
 # Test basic functionality
 curl http://localhost:5000/  # Should return landing page
 
-# Test with example data (requires server running)
+# Test with example data (in browser)
 # 1. Visit http://localhost:5000
-# 2. Click "Choose File" and select static/examples/netdata5c.txt
-# 3. Set Action to "fit"
+# 2. Click "Choose File" and select one of the example files (e.g., fit.in)
+# 3. Select action (fit, search, etc.)
 # 4. Click "Submit"
-# 5. Verify output shows model fit results
+# 5. Verify output shows analysis results
 ```
 
 ### Unit Tests (Future)
