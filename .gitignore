@@ -54,6 +54,9 @@ libwinpthread-1.dll
 *~
 *.orig
 
+# Webapp data dir
+/flask_app/data
+
 # IMPORTANT EXCEPTIONS - Files to KEEP
 !.gitignore
 !README.md
