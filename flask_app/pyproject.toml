@@ -55,7 +55,3 @@ Issues = "https://github.com/occam-ra/occam/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["occam_server"]
-
-[tool.hatch.build.targets.wheel.force-include]
-"occam_server/static" = "occam_server/static"
-"occam_server/templates" = "occam_server/templates"

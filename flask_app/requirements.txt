@@ -1,9 +1,0 @@
-Flask==3.0.0
-Werkzeug==3.0.1
-Jinja2==3.1.2
-
-# Graph generation dependencies (optional)
-python-igraph>=0.10.0
-pycairo>=1.20.0
-
-# pyoccam will be installed from wheel or built locally
