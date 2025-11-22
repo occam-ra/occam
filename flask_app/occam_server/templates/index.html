@@ -24,7 +24,8 @@
 
 <div style="float: left; width: 400px">
     <ul>
-        <li><a href="{{ url_for('occam_main') }}">Run Occam</a></li>
+        <li><a href="{{ url_for('occam_main') }}">Run Occam</a> - Interactive analysis</li>
+        <li><a href="{{ url_for('batch_form') }}">Batch Jobs</a> - Submit background jobs with email notifications</li>
         <li>For basic operation instructions, please consult the
             <a href="{{ url_for('static', filename='occam-manual.pdf') }}">PDF manual</a>.
         </li>

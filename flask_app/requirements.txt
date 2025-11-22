@@ -6,6 +6,10 @@ Flask>=3.0.0
 Werkzeug>=3.0.1
 Jinja2>=3.1.2
 
+# Batch processing and job queue
+redis>=5.0.0
+rq>=1.15.0
+
 # Optional: Graph generation
 # Uncomment these for graph visualization features:
 # python-igraph>=0.10.0

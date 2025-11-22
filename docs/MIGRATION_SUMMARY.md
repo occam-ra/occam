@@ -102,7 +102,7 @@ Templates use:
 - Conditional rendering (`{% if %}`)
 
 ### 7. Documentation
-- `flask_app/README.md` - Complete setup and deployment guide
+- `docs/FLASK_README.md` - Complete setup and deployment guide
 - `pyoccam/PORTING_STATUS.md` - C++ bindings status
 - Installation instructions
 - Testing guidelines

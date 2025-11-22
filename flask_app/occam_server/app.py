@@ -29,6 +29,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 # Import our modules
 from occam_wrapper import OccamManager
+from jobs import JobManager
 from utils import (
     get_unique_filename,
     get_timestamped_filename,
@@ -42,6 +43,9 @@ app.config['DATA_DIR'] = Path(__file__).parent / 'data'
 app.config['DATA_DIR'].mkdir(exist_ok=True)
 
 VERSION = "3.5.0-flask"
+
+# Initialize batch job manager
+job_manager = JobManager()
 
 # Valid actions (security allowlist)
 COMMON_ACTIONS = {'fit', 'search', 'SBsearch', 'SBfit', ''}
@@ -590,6 +594,137 @@ def handle_job_control(form_data, start_time):
                          jobs=jobs,
                          message=message,
                          version=VERSION)
+
+
+@app.route('/batch', methods=['GET'])
+def batch_form():
+    """Display batch job submission form"""
+    return render_template('batch_form.html', version=VERSION)
+
+
+@app.route('/batch', methods=['POST'])
+def submit_batch_job():
+    """Handle batch job submission"""
+    try:
+        # Get form data
+        action = request.form.get('action')
+        model_str = request.form.get('model', '')
+        email = request.form.get('email')
+
+        # Validate required fields
+        if not action:
+            return render_template('error.html',
+                                 error="Action is required"), 400
+        if not email:
+            return render_template('error.html',
+                                 error="Email address is required for batch jobs"), 400
+
+        # Get uploaded data file
+        if 'data' not in request.files:
+            return render_template('error.html',
+                                 error="No data file uploaded"), 400
+
+        file = request.files['data']
+        if file.filename == '':
+            return render_template('error.html',
+                                 error="No data file selected"), 400
+
+        # Save uploaded file to data directory
+        filename = secure_filename(file.filename)
+        datafile = get_timestamped_filename(
+            app.config['DATA_DIR'] / filename
+        )
+        file.save(datafile)
+
+        # Unzip if necessary
+        datafile = unzip_data_file(datafile)
+
+        # Collect optional parameters
+        options = {}
+        if request.form.get('separator'):
+            options['separator'] = request.form.get('separator')
+        if request.form.get('alpha'):
+            options['alpha'] = float(request.form.get('alpha'))
+        if request.form.get('search_levels'):
+            options['search_levels'] = int(request.form.get('search_levels'))
+        if request.form.get('search_width'):
+            options['search_width'] = int(request.form.get('search_width'))
+
+        # Submit job to queue
+        job_id = job_manager.submit_job(
+            action=action,
+            data_file=datafile,
+            model_str=model_str,
+            email=email,
+            **options
+        )
+
+        # Redirect to job status page
+        return redirect(url_for('view_batch_job', job_id=job_id))
+
+    except Exception as e:
+        traceback.print_exc()
+        return render_template('error.html',
+                             error=str(e),
+                             traceback=traceback.format_exc()), 500
+
+
+@app.route('/batch/jobs')
+def batch_jobs_list():
+    """List all batch jobs"""
+    try:
+        jobs = job_manager.list_jobs()
+        return render_template('batch_jobs.html',
+                             jobs=jobs,
+                             version=VERSION)
+    except Exception as e:
+        traceback.print_exc()
+        return render_template('error.html',
+                             error=str(e),
+                             traceback=traceback.format_exc()), 500
+
+
+@app.route('/batch/job/<job_id>')
+def view_batch_job(job_id):
+    """View individual batch job status and results"""
+    try:
+        status = job_manager.get_job_status(job_id)
+        if not status:
+            return render_template('error.html',
+                                 error=f"Job {job_id} not found"), 404
+
+        return render_template('batch_result.html',
+                             job_id=status['job_id'],
+                             action=status.get('action'),
+                             submitted_at=status.get('submitted_at'),
+                             completed_at=status.get('completed_at'),
+                             status=status.get('status'),
+                             output=status.get('output'),
+                             error=status.get('error'),
+                             version=VERSION)
+    except Exception as e:
+        traceback.print_exc()
+        return render_template('error.html',
+                             error=str(e),
+                             traceback=traceback.format_exc()), 500
+
+
+@app.route('/batch/job/<job_id>/cancel', methods=['POST'])
+def cancel_batch_job(job_id):
+    """Cancel a batch job"""
+    try:
+        success = job_manager.cancel_job(job_id)
+        if success:
+            # Redirect back to jobs list
+            return redirect(url_for('batch_jobs_list'))
+        else:
+            return render_template('error.html',
+                                 error=f"Could not cancel job {job_id}"), 400
+    except Exception as e:
+        traceback.print_exc()
+        return render_template('error.html',
+                             error=str(e),
+                             traceback=traceback.format_exc()), 500
 
 
 def get_data_file(form_data):

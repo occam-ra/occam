@@ -45,7 +45,7 @@ pip install .
 python build_wheels.py
 ```
 
-For detailed build instructions, see **[INSTALL.md](INSTALL.md)**.
+For detailed build instructions, see **[docs/INSTALL.md](docs/INSTALL.md)**.
 
 ## Components
 
@@ -56,10 +56,11 @@ For detailed build instructions, see **[INSTALL.md](INSTALL.md)**.
 
 ## Documentation
 
-- **Installation**: See [INSTALL.md](INSTALL.md) for detailed build and installation instructions
+- **Installation**: See [docs/INSTALL.md](docs/INSTALL.md) for detailed build and installation instructions
 - **Examples**: See `pyoccam/pyoccam_demo.py` and `pyoccam/pyoccam_demo.ipynb`
 - **Contributing**: See [CONTRIBUTING.md](CONTRIBUTING.md)
-- **Web Server**: See [flask_app/README.md](flask_app/README.md)
+- **Web Server**: See [docs/FLASK_README.md](docs/FLASK_README.md)
+- **Container Deployment**: See [docs/CONTAINER_README.md](docs/CONTAINER_README.md)
 
 ## Requirements
 

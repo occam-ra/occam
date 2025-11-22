@@ -7,7 +7,6 @@
 import re
 import itertools
 import igraph
-from common import *
 
 # Drawing library boilerplate
 

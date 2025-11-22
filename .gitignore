@@ -1,6 +1,8 @@
 # Build artifacts
 build/
+builddir/
 dist/
+dist_test/
 *.egg-info/
 __pycache__/
 *.py
@@ -54,19 +56,18 @@ libwinpthread-1.dll
 *~
 *.orig
 
-# Webapp data dir
+# Webapp data dir and config
 /flask_app/data
+/flask_app/.env
 
 # IMPORTANT EXCEPTIONS - Files to KEEP
 !.gitignore
 !README.md
-!MANIFEST.in
 !pyoccam/pyoccam_pybind11.cpp
 !pyoccam/dementia05.txt
 !pyoccam/landslides.txt
 !pyoccam/pyoccam_demo.py
 !pyoccam/pyoccam_demo.ipynb
-!pyoccam/test_exact_server.py
 
 # Requirements files
 !requirements*.txt

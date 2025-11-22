@@ -1,69 +1,104 @@
-#podman build -t build_occam:20230328 .
-# Built against an old ubuntu that was a contemporary to the source
-FROM ubuntu:16.04
+# OCCAM Web Server - Modern Flask Application Container
+# Multi-stage build for efficient image size
 
-# Run the container in our timezone so logs are easier to process
-ENV DEBIAN_FRONTEND noninteractive
-ENV DEBCONF_NONINTERACTIVE_SEEN true
-RUN ln -sf /usr/share/zoneinfo/US/Pacific /etc/localtime
+# Build stage - compile OCCAM and build wheels
+FROM ubuntu:24.04 AS builder
 
-RUN apt-get update
-RUN apt install -y tzdata
-RUN dpkg-reconfigure -f noninteractive tzdata
-# We can run apache2 inside the container and start it as a service
-RUN apt install -y apache2
-# Maybe this can be trimmed. It was the standard suggested package list.
-RUN apt install -y git gcc build-essential libgmp3-dev python-dev libxml2 libxml2-dev zlib1g-dev python-pip
-RUN apt install -y libtool autoconf bison flex
-RUN apt install -y git vim openssh-client
-RUN apt install -y libboost-math-dev
-# Set up build arguments with default values
-ARG GITHUB_USERNAME
-ARG GITHUB_EMAIL
-ARG GITHUB_PRIVATE_KEY
+ENV DEBIAN_FRONTEND=noninteractive
 
-WORKDIR /var/www
+# Install build dependencies
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    gcc \
+    g++ \
+    meson \
+    ninja-build \
+    libgmp-dev \
+    python3-dev \
+    python3-pip \
+    python3-venv \
+    git \
+    && rm -rf /var/lib/apt/lists/*
 
-# Prevent caching outdated repo
-ADD https://api.github.com/repos/occam-ra/occam /tmp/repo-info.json
+# Create build directory
+WORKDIR /build
 
-# Maybe checkout something better than HEAD?
-RUN git clone https://github.com/occam-ra/occam.git
+# Copy source code
+COPY .. /build/
 
-WORKDIR occam
+# Build OCCAM C++ library and CLI
+RUN meson setup builddir && \
+    ninja -C builddir
 
-# Configure git with the build arguments if provided
-RUN if [ -n "$GITHUB_USERNAME" ] && [ -n "$GITHUB_EMAIL" ]; then \
-      git config --global user.name "$GITHUB_USERNAME" && \
-      git config --global user.email "$GITHUB_EMAIL" && \
-      git remote set-url origin git@github.com:occam-ra/occam.git; \
-    fi
+# Build Python wheels
+WORKDIR /build/pyoccam
+RUN pip3 install --no-cache-dir build && \
+    python3 -m build
 
-# Create the .ssh directory and copy the private key if provided
-RUN if [ -n "$GITHUB_PRIVATE_KEY" ]; then \
-      mkdir -p /root/.ssh && \
-      echo "$GITHUB_PRIVATE_KEY" > /root/.ssh/id_github && \
-      chmod 600 /root/.ssh/id_github && \
-      echo "Host github.com\n  IdentityFile /root/.ssh/id_github" > /root/.ssh/config; \
-    fi
+WORKDIR /build/flask_app
+RUN python3 -m build
 
-# Install igraph
-RUN pip install python-igraph==0.8.0
+# Runtime stage - minimal image with only runtime dependencies
+FROM ubuntu:24.04
 
-RUN a2enmod cgi
+ENV DEBIAN_FRONTEND=noninteractive
+ENV PYTHONUNBUFFERED=1
 
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y \
+    python3 \
+    python3-pip \
+    python3-venv \
+    libgmp10 \
+    redis-server \
+    supervisor \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
 
-# Maybe put some effort into making this into a multi-stage build if keeping the container process is favored.
-# Some of the libs installed above and the apache bits may be needed both in build and deploy. But for now.... complete the install in
-# this build layer.
+# Create app user
+RUN useradd -m -u 1000 -s /bin/bash occam && \
+    mkdir -p /var/www/occam /var/log/supervisor
 
-RUN make install
- 
-RUN chown -R www-data: /var/www/occam/install/web/data
+# Install Python wheels from builder
+COPY --from=builder /build/pyoccam/dist/*.whl /tmp/
+COPY --from=builder /build/flask_app/dist/*.whl /tmp/
 
-COPY 000-default.conf /etc/apache2/sites-enabled
+# Install Python packages
+RUN pip3 install --no-cache-dir --break-system-packages \
+    /tmp/*.whl \
+    gunicorn \
+    redis \
+    rq \
+    && rm -rf /tmp/*.whl
 
-EXPOSE 80
+# Copy OCCAM CLI from builder
+COPY --from=builder /build/builddir/occ /usr/local/bin/occ
 
-CMD ["/usr/sbin/apache2ctl", "-D", "FOREGROUND"]
+# Copy Flask application
+COPY flask_app/occam_server /var/www/occam/occam_server
+
+# Create necessary directories
+RUN mkdir -p /var/www/occam/data /var/www/occam/logs && \
+    chown -R occam:occam /var/www/occam && \
+    chmod 775 /var/www/occam/data
+
+# Copy supervisor configuration
+COPY podman/supervisord.conf /etc/supervisor/conf.d/occam.conf
+
+# Copy entrypoint script
+COPY podman/docker-entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Expose ports
+EXPOSE 5000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
+    CMD curl -f http://localhost:5000/ || exit 1
+
+# Set working directory
+WORKDIR /var/www/occam
+
+# Use supervisor to manage processes
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/supervisord.conf"]

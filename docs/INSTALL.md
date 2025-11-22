@@ -278,7 +278,32 @@ Then open your browser to `http://localhost:5000` (or the specified port).
 
 ### Production Deployment (Web Interface)
 
-For production use, deploy with a WSGI server:
+#### Automated Installation (Recommended)
+
+For production deployments, automated installation scripts are provided for Apache2 and Nginx:
+
+```bash
+cd install
+
+# Apache2 + mod_wsgi
+sudo bash install-apache.sh
+
+# OR Nginx + Gunicorn
+sudo bash install-nginx.sh
+```
+
+These scripts automatically:
+- Install all system dependencies (Apache/Nginx, Redis, etc.)
+- Configure web server with virtual hosts
+- Set up systemd services for application and background workers
+- Configure SSL/HTTPS (optional)
+- Set proper permissions and security headers
+
+See `install/INSTALL.md` for detailed instructions and configuration options.
+
+#### Manual Deployment
+
+For manual deployment or development use with a WSGI server:
 
 ```bash
 # Install gunicorn
@@ -289,7 +314,7 @@ cd flask_app
 gunicorn -w 4 -b 0.0.0.0:8080 "occam_server:app"
 ```
 
-Or use Apache/nginx with mod_wsgi. See `flask_app/README.md` for details.
+For full manual setup with Apache/nginx, see `docs/FLASK_README.md` for detailed configuration examples.
 
 ## Troubleshooting
 
@@ -351,7 +376,7 @@ Make sure you're using the MSYS2 MinGW64 terminal, not the standard Windows Comm
 ## Additional Resources
 
 - **Build System Documentation**: `BUILD.md` (if present)
-- **Flask App Documentation**: `flask_app/README.md`
+- **Flask App Documentation**: `docs/FLASK_README.md`
 - **PyOCCAM Examples**: `pyoccam/pyoccam_demo.py`, `pyoccam/pyoccam_demo.ipynb`
 - **Contributing**: `CONTRIBUTING.md`
 - **License**: `LICENSE`

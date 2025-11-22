@@ -1,20 +1,44 @@
 #!/bin/bash
+# Build script for OCCAM Web Server container
+# Supports both Docker and Podman
 
-if [[ "$1" == "--github" ]]; then
-  # Prompt the user for input
-  read -p "Enter your GitHub username: " GITHUB_USERNAME
-  read -p "Enter your GitHub email: " GITHUB_EMAIL
-  read -p "Enter the path to your GitHub private key: " GITHUB_PRIVATE_KEY_PATH
+set -e
 
-  # Read the contents of the private key file
-  GITHUB_PRIVATE_KEY=$(cat "$GITHUB_PRIVATE_KEY_PATH")
+CONTAINER_TOOL="${CONTAINER_TOOL:-podman}"
+IMAGE_NAME="occam-web"
+IMAGE_TAG="${IMAGE_TAG:-latest}"
 
-  # Build the Occam machine image with the provided values
-  podman build -t occam_local \
-    --build-arg GITHUB_USERNAME="$GITHUB_USERNAME" \
-    --build-arg GITHUB_EMAIL="$GITHUB_EMAIL" \
-    --build-arg GITHUB_PRIVATE_KEY="$GITHUB_PRIVATE_KEY" .
-else
-  # Build the Occam machine image without GitHub details
-  podman build -t occam_local .
+# Detect container runtime if not specified
+if ! command -v "$CONTAINER_TOOL" &> /dev/null; then
+    if command -v podman &> /dev/null; then
+        CONTAINER_TOOL="podman"
+    elif command -v docker &> /dev/null; then
+        CONTAINER_TOOL="docker"
+    else
+        echo "Error: Neither podman nor docker found in PATH"
+        exit 1
+    fi
 fi
+
+echo "Using container tool: $CONTAINER_TOOL"
+echo "Building image: $IMAGE_NAME:$IMAGE_TAG"
+
+# Build from parent directory
+cd "$(dirname "$0")/.."
+
+$CONTAINER_TOOL build \
+    -t "$IMAGE_NAME:$IMAGE_TAG" \
+    -f podman/Dockerfile \
+    . \
+    "$@"
+
+echo ""
+echo "Build complete!"
+echo "Image: $IMAGE_NAME:$IMAGE_TAG"
+echo ""
+echo "To run the container:"
+echo "  $CONTAINER_TOOL run -d -p 5000:5000 --name occam-web $IMAGE_NAME:$IMAGE_TAG"
+echo ""
+echo "Or use docker-compose:"
+echo "  cd podman && docker-compose up -d"
+echo ""
