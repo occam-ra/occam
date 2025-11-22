@@ -23,6 +23,7 @@ from pathlib import Path
 
 from flask import Flask, render_template, request, send_file, redirect, url_for, Response
 from werkzeug.utils import secure_filename
+from werkzeug.middleware.proxy_fix import ProxyFix
 
 # Add parent directory to path for local imports
 sys.path.insert(0, str(Path(__file__).parent))
@@ -38,6 +39,15 @@ from utils import (
 )
 
 app = Flask(__name__)
+
+# Configure Flask to trust proxy headers (X-Forwarded-*)
+# This is essential when running behind Apache/Nginx reverse proxy with HTTPS
+# x_for=1: trust X-Forwarded-For (client IP)
+# x_proto=1: trust X-Forwarded-Proto (http/https)
+# x_host=1: trust X-Forwarded-Host (original host)
+# x_prefix=1: trust X-Forwarded-Prefix (URL prefix)
+app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1)
+
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
 app.config['DATA_DIR'] = Path(__file__).parent / 'data'
 app.config['DATA_DIR'].mkdir(exist_ok=True)
