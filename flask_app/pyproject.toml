@@ -53,5 +53,8 @@ Documentation = "https://github.com/occam-ra/occam/blob/master/flask_app/README.
 Repository = "https://github.com/occam-ra/occam"
 Issues = "https://github.com/occam-ra/occam/issues"
 
+[tool.hatch.build]
+only-include = ["occam_server"]
+
 [tool.hatch.build.targets.wheel]
 packages = ["occam_server"]
