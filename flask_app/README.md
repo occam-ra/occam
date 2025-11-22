@@ -222,6 +222,8 @@ Access at: http://localhost:5000
 
 **Configuration:** The development server runs with `debug=True` by default. Edit `app.py` to change settings.
 
+**Note:** You may see "Bad request version" errors in the server log if someone tries to access the server via HTTPS (e.g., https://localhost:5000). This is normal - the development server only supports HTTP. The errors show TLS handshake bytes and can be safely ignored. For production with HTTPS support, use Gunicorn behind a reverse proxy (Apache/Nginx) or deploy with proper SSL certificates.
+
 ### Production Deployment
 
 #### Option 1: Gunicorn (Recommended)
