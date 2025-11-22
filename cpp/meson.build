@@ -7,8 +7,9 @@ gmp_dep = dependency('gmp', required: true)
 thread_dep = dependency('threads', required: false)
 math_dep = meson.get_compiler('cpp').find_library('m', required: false)
 
-# Compiler flags for floating-point precision
+# Compiler flags for floating-point precision and optimization
 add_project_arguments([
+  '-O2',
   '-frounding-math',
   '-fsignaling-nans',
   '-fsigned-zeros',

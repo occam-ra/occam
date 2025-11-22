@@ -25,15 +25,15 @@ using std::pow;
 #include "OccamMath.h"
 #include <climits>
 
-void Report::printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget) {
+void Report::printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, const char* classTarget) {
     printConditional_DV(fd, model, NULL, calcExpectedDV, classTarget);
 }
 
-void Report::printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, char* classTarget) {
+void Report::printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, const char* classTarget) {
     printConditional_DV(fd, NULL, rel, calcExpectedDV, classTarget);
 }
 
-void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, char* classTarget) {
+void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, const char* classTarget) {
     if (model == NULL && rel == NULL) {
         fprintf(fd, "No model or relation specified.\n");
         return;
@@ -307,6 +307,9 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
             block_end = "\n";
             line_sep = "-------------------------------------------------------------------------\n";
             break;
+        default:
+            fprintf(stderr, "Error: unexpected separator style %d\n", sep_style);
+            abort();
     }
     if (rel != NULL)
         fprintf(fd, "%s%s%s", blank_line, line_sep, blank_line);
@@ -900,14 +903,14 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
     // Prep for P-MARGIN, P-RULE
     // Make table containing univorm distribution of DV cardinality
     double* uniform = new double[dv_card];
-    for (unsigned j = 0; j < dv_card; ++j) {
+    for (int j = 0; j < dv_card; ++j) {
         uniform[j] = 1.0 / dv_card;
     }
-    
+
     // Make table containing the marginal DV probabilities
     // probability of a given dv state j: marginal[dv_order[j]]
     double* marginal_tab = new double[dv_card];
-    for (unsigned j = 0; j < dv_card; ++j) {
+    for (int j = 0; j < dv_card; ++j) {
         marginal_tab[j] = marginal[dv_order[j]];
     }
 
@@ -991,7 +994,7 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
         // Make table containing the calculated DV probabilities at this IV state
         // probability of a given dv state j: fit_prob[i][dv_order[j]] / fit_key_prob[i];
         double* calculated = new double[dv_card];
-        for (unsigned j = 0; j < dv_card; ++j) {
+        for (int j = 0; j < dv_card; ++j) {
             calculated[j] = fit_key_prob[i] == 0 ? 0 : fit_prob[i][dv_order[j]] / fit_key_prob[i];
         }
 
@@ -1211,7 +1214,7 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
     if (!strcmp(classTarget, "") && model) {
         printf("Note: no default state selected, so confusion matrices will not be printed.\n");
         printf("%s%s", new_line, new_line);
-    } else if (!checkTarget && model || trtp + trfn <= 0)  { 
+    } else if ((!checkTarget && model) || trtp + trfn <= 0)  { 
             printf("Note: selected default state '%s=%s' is not among states occurring in the DV in the data, so confusion matrices will not be printed", dv_var->abbrev, classTarget);
     } else if (trtn + trfp <= 0) {
         printf("Note: there are no occurrences of any non-default (\"positive\") conditional DV state (that is, any state other than '%s=%s'), in the training data, so confusion matrices will not be printed", dv_var->abbrev, classTarget);

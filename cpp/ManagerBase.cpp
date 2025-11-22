@@ -2,8 +2,10 @@
 #define _USE_MATH_DEFINES
 #define _CRT_NONSTDC_NO_WARNINGS
 #define _CRT_NONSTDC_NO_DEPRECATE
+#ifdef _MSC_VER
 #pragma warning(disable: 4996)
 #pragma warning(disable: 4244)
+#endif
 /*
  * Copyright Â© 1990 The Portland State University OCCAM Project Team
  * [This program is licensed under the GPL version 3 or later.]
@@ -65,7 +67,7 @@ using std::min;
 using std::make_pair;
 using std::pair;
 
-constexpr char* errorReportingTip = 
+constexpr const char* errorReportingTip =
 "For help resolving this error,"
 " please send an email to 'h.forrest.alexander@gmail.com'"
 " including a copy of the OCCAM output so far and your input data.";
@@ -76,12 +78,12 @@ void segfault_handler(int sig) {
     fflush(stdout);
     fflush(stderr);
     fprintf(stderr, "Error: segmentation fault (Windows).\n");
-    fprintf(stderr, "%s\n", errorReportingTip); 
+    fprintf(stderr, "%s\n", errorReportingTip);
     exit(1);
 #else
 	static const size_t trace_n = 256;
-	void* trace[256];
-    size_t size = backtrace(trace, 256);
+	void* trace[trace_n];
+    size_t size = backtrace(trace, trace_n);
     fflush(stdout);
     fflush(stderr);
     fprintf(stderr, "Error: segmentation fault.\n"
@@ -98,12 +100,12 @@ void fpe_handler(int sig) {
     fflush(stdout);
     fflush(stderr);
     fprintf(stderr, "ERROR: floating point exception (Windows).\n");
-    fprintf(stderr, "%s\n", errorReportingTip);  
+    fprintf(stderr, "%s\n", errorReportingTip);
     exit(1);
 #else
 	static const size_t trace_n = 256;
-	void* trace[256];
-    size_t size = backtrace(trace, 256);
+	void* trace[trace_n];
+    size_t size = backtrace(trace, trace_n);
     fflush(stdout);
     fflush(stderr);
     fprintf(stderr, "ERROR: floating point exception (likely due to a numerical inaccuracy).\n"
@@ -133,7 +135,7 @@ void logProjection(const char *name) {
 #endif
 
 ManagerBase::ManagerBase(VariableList *vars, Table *input) :
-        varList(vars), inputData(input), keysize(vars ? vars->getKeySize() : 0) {
+        varList(vars), keysize(vars ? vars->getKeySize() : 0), inputData(input) {
     signal(SIGSEGV, segfault_handler);
   
 // TODO: figure out exactly how zealous these checks can be  
@@ -517,7 +519,7 @@ bool ManagerBase::makeMaxProjection(Table *qt, Table *maxpt, Table *inputData, R
 
 int ManagerBase::getDefaultDVIndex() {
     if (!varList->isDirected())
-        return NULL; // can only do this for directed models
+        return 0; // can only do this for directed models
     if (DVOrder == NULL)
         createDvOrder();
     return DVOrder[0];
@@ -525,7 +527,7 @@ int ManagerBase::getDefaultDVIndex() {
 
 int ManagerBase::getDvOrder(int index) {
     if (!varList->isDirected())
-        return NULL;
+        return 0;
     if (DVOrder == NULL)
         createDvOrder();
     int dv_card = varList->getVariable(varList->getDV())->cardinality;
@@ -533,7 +535,7 @@ int ManagerBase::getDvOrder(int index) {
         if (DVOrder[i] == index)
             return i;
     }
-    return NULL;
+    return 0;
 }
 
 static double *sort_freq;
@@ -938,7 +940,8 @@ void ManagerBase::doIntersectionProcessing(Model *model, ocIntersectProcessor *p
         intersectArray = new VarIntersect[intersectMax];
     }
     int count = model->getRelationCount();
-    VariableList *varList = model->getRelation(0)->getVariableList();
+    // NOTE: varList appears to be leftover from debugging or refactoring - it's retrieved but never used
+    // VariableList *varList = model->getRelation(0)->getVariableList();
     Relation *rel;
     int i, j, k;
     //-- go through the relations in the model and create VarIntersect entries
@@ -1065,7 +1068,11 @@ void ManagerBase::computeStatistics(Relation *rel) {
     rel->setAttribute(ATTRIBUTE_IND_LR, indLR);
     rel->setAttribute(ATTRIBUTE_COND_LR, condLR);
 
-    double l2 = 2.0 * M_LN2 * tupleCount * (hDep - hCond);
+    // NOTE: l2 calculation appears unused - possibly incomplete feature or dead code from refactoring
+    // This would be an alternative calculation: 2 * ln(2) * N * (H_dep - H_cond)
+    // but condLR is already calculated above using ocLR() which uses a different formula
+    // double l2 = 2.0 * M_LN2 * tupleCount * (hDep - hCond);
+
     double hCondProb = chic(condLR, df);
     rel->setAttribute(ATTRIBUTE_COND_H_PROB, hCondProb);
     delete[] varindices;

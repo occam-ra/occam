@@ -19,7 +19,7 @@
  * collected towards the top in an attempt to increase my understanding */
 int attrDescCount = sizeof(attrDescriptions) / sizeof(attrDesc);
 bool Report::htmlMode = false;
-int Report::maxNameLength;
+size_t Report::maxNameLength;
 
 
 Report::Report(class ManagerBase *mgr) {

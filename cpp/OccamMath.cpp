@@ -69,7 +69,7 @@ double ocTransmission(Table *p, Table *q) {
 double ocPearsonChiSquaredFlat(int card, double* p, double* q, long sampleSize) {
 
     double p2 = 0.0;
-    for (unsigned i = 0; i < card; ++i) {
+    for (int i = 0; i < card; ++i) {
 
         double pi = p[i];
         double qi = q[i];

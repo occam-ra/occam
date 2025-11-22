@@ -87,12 +87,12 @@ class Report {
     void printSummary(FILE* fd, Model* model, double adjustConstant);
     //-- Print conditional DVs
 	//-- Print conditionals for a model.
-	void printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget);
+	void printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, const char* classTarget);
 	//-- Print conditionals for a relation.
-	void printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, char* classTarget);
+	void printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, const char* classTarget);
 	//-- This function is called by both of the others above.
 	//-- If both model and relation are present, the relation is printed.
-	void printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, char* classTarget);
+	void printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, const char* classTarget);
 
     void printConfusionMatrix(Model* model, Relation* rel, const char* dv_name, const char* dv_target,
         double trtp, double trfp, double trtn, double trfn,
@@ -101,7 +101,7 @@ class Report {
 
     // static variables
     // used several places, such as Report::print
-    static int maxNameLength;
+    static size_t maxNameLength;
 	
     class ManagerBase *manager;
 
