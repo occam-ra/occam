@@ -14,23 +14,29 @@ This Flask application provides the same user interface and functionality as the
 
 ```
 flask_app/
-├── app.py                 # Main Flask application
-├── occam_wrapper.py       # Compatibility wrapper for _pyoccam
-├── ocGraph.py             # Graph generation (Python 3 port)
-├── utils.py               # Utility functions (file handling, etc.)
-├── requirements.txt       # Python dependencies
-├── templates/             # Jinja2 templates
-│   ├── base.html         # Base template with PSU branding
-│   ├── index.html        # Landing page
-│   ├── error.html        # Error display
-│   ├── main_form.html    # Main input form
-│   └── ...               # Result templates (fit, search, sbfit, sbsearch)
-└── static/               # Static assets (CSS, images)
-    ├── base.css
-    ├── style.css
-    ├── occam_logo.jpg
-    └── examples/
+├── pyproject.toml         # Modern Python packaging (PEP 518)
+├── README.md              # This file
+├── occam_server/          # Main package
+│   ├── __init__.py       # Package initialization
+│   ├── app.py            # Main Flask application
+│   ├── occam_wrapper.py  # Compatibility wrapper for _pyoccam
+│   ├── ocGraph.py        # Graph generation (Python 3 port)
+│   ├── utils.py          # Utility functions (file handling, etc.)
+│   ├── templates/        # Jinja2 templates
+│   │   ├── base.html     # Base template with PSU branding
+│   │   ├── index.html    # Landing page
+│   │   ├── error.html    # Error display
+│   │   ├── main_form.html # Main input form
+│   │   └── ...           # Result templates (fit, search, sbfit, sbsearch)
+│   └── static/           # Static assets (CSS, images)
+│       ├── base.css
+│       ├── style.css
+│       ├── occam_logo.jpg
+│       └── examples/
+└── data/                  # Runtime data directory (created during setup)
 ```
+
+The package is structured as a modern Python package using `pyproject.toml` for dependency management and build configuration.
 
 ## Status
 
@@ -52,95 +58,212 @@ flask_app/
 
 ## Installation
 
-1. Install Python 3 and dependencies:
-   ```bash
-   cd flask_app
-   pip install -r requirements.txt
-   ```
+### Quick Start
 
-   Note: Graph generation requires `python-igraph` and `pycairo`. If these fail to install, graph generation will be disabled but all other features will work.
+From the project root directory:
 
-2. Install pyoccam module:
-   ```bash
-   # Option A: Install from prebuilt wheel
-   pip install ../pyoccam/wheels/pyoccam-0.1.*-cp3*-linux_x86_64.whl
+```bash
+# 1. Install system dependencies
+sudo apt install build-essential meson ninja-build libgmp-dev python3-dev python3-pip
 
-   # Option B: Build from source
-   # First, install build dependencies:
-   sudo apt-get install build-essential g++ libgmp3-dev python3-dev
-   pip3 install pybind11
+# 2. Build everything (C++ library, CLI, and Python extension)
+meson setup builddir
+ninja -C builddir
 
-   # Build the C++ library
-   cd ../cpp
-   make
+# 3. Install the Flask server
+cd flask_app
+pip install -e .
 
-   # Build and install the Python module
-   cd ../pyoccam
-   python3 setup.py build_ext --inplace
-   pip3 install .
-   ```
+# 4. Create data directory
+mkdir -p data
+chmod 775 data
+```
 
-   For detailed build instructions including macOS/Windows, see [../pyoccam/BUILD.md](../pyoccam/BUILD.md)
+The Flask server should now be ready to run.
 
-3. Copy static assets:
-   ```bash
-   mkdir -p static
-   cp ../html/base.css static/
-   cp ../html/occam_logo.jpg static/
-   cp -r ../examples static/
-   ```
+### Detailed Installation Steps
 
-4. Create data directory:
-   ```bash
-   mkdir data
-   chmod 775 data
-   ```
+#### 1. System Dependencies
+
+**Required:**
+```bash
+sudo apt install build-essential meson ninja-build libgmp-dev python3-dev python3-pip
+```
+
+**Optional (for graph generation):**
+```bash
+pip install python-igraph pycairo
+```
+
+Note: If graph dependencies fail to install, graph generation will be disabled but all other features will work.
+
+#### 2. Build OCCAM Components
+
+The project uses Meson/Ninja for cross-platform building:
+
+```bash
+# From project root
+meson setup builddir
+ninja -C builddir
+```
+
+This builds:
+- C++ library (`liboccam3.a`)
+- Command-line tool (`occ`)
+- Python extension (`_pyoccam`)
+
+#### 3. Install Flask Server
+
+**Option A: Editable Install (Development)**
+```bash
+cd flask_app
+pip install -e .
+```
+
+**Option B: Regular Install**
+```bash
+cd flask_app
+pip install .
+```
+
+**Option C: Build Wheel**
+```bash
+cd flask_app
+pip install build
+python -m build
+pip install dist/occam_server-*.whl
+```
+
+#### 4. Setup Data Directory
+
+```bash
+cd flask_app
+mkdir -p data
+chmod 775 data
+```
+
+### Building Python Wheels
+
+To build distributable wheels for Python 3.9-3.13:
+
+```bash
+# From project root
+pip install build
+
+# Build pyoccam wheel
+cd pyoccam
+python -m build
+ls dist/  # pyoccam-*.whl
+
+# Build Flask server wheel
+cd ../flask_app
+python -m build
+ls dist/  # occam_server-*.whl
+```
+
+### Verifying Installation
+
+Test that everything is installed correctly:
+
+```bash
+# Test C++ CLI
+./builddir/occ --help
+
+# Test Python extension
+python3 -c "import _pyoccam; print('pyoccam OK')"
+
+# Test Flask server
+cd flask_app
+python3 -c "from occam_server import app; print('Flask app OK')"
+```
 
 ## Running
 
 ### Development Server
+
+**Option 1: Using Python module**
 ```bash
-python3 app.py
+python3 -m occam_server.app
+```
+
+**Option 2: Direct script execution**
+```bash
+cd flask_app
+python3 occam_server/app.py
 ```
 
 Access at: http://localhost:5000
+
+**Configuration:** The development server runs with `debug=True` by default. Edit `occam_server/app.py` to change settings.
 
 ### Production Deployment
 
 #### Option 1: Gunicorn (Recommended)
 ```bash
 pip install gunicorn
-gunicorn -w 4 -b 0.0.0.0:8000 app:app
+
+# Run with 4 worker processes
+gunicorn -w 4 -b 0.0.0.0:8000 occam_server.app:app
+
+# Or with auto-reload for development
+gunicorn -w 4 -b 0.0.0.0:8000 --reload occam_server.app:app
 ```
 
 #### Option 2: Apache + mod_wsgi
 1. Install mod_wsgi:
    ```bash
-   apt install libapache2-mod-wsgi-py3
-   a2enmod wsgi
+   sudo apt install libapache2-mod-wsgi-py3
+   sudo a2enmod wsgi
    ```
 
-2. Create WSGI file (`occam.wsgi`):
+2. Create WSGI file (`/var/www/occam/occam.wsgi`):
    ```python
    import sys
-   sys.path.insert(0, '/path/to/flask_app')
-   from app import app as application
+   import os
+
+   # Ensure data directory exists
+   data_dir = '/var/www/occam/data'
+   os.makedirs(data_dir, exist_ok=True)
+
+   from occam_server.app import app as application
    ```
 
 3. Configure Apache virtual host:
    ```apache
    <VirtualHost *:80>
        ServerName occam.example.com
-       WSGIDaemonProcess occam python-path=/path/to/flask_app
-       WSGIScriptAlias / /path/to/flask_app/occam.wsgi
 
-       <Directory /path/to/flask_app>
+       WSGIDaemonProcess occam user=www-data group=www-data threads=5
+       WSGIScriptAlias / /var/www/occam/occam.wsgi
+
+       <Directory /var/www/occam>
            WSGIProcessGroup occam
            WSGIApplicationGroup %{GLOBAL}
            Require all granted
        </Directory>
+
+       # Static files
+       Alias /static /var/www/occam/static
+       <Directory /var/www/occam/static>
+           Require all granted
+       </Directory>
+
+       # Data directory (write access needed)
+       <Directory /var/www/occam/data>
+           Require all denied
+       </Directory>
    </VirtualHost>
    ```
+
+4. Set permissions:
+   ```bash
+   sudo chown -R www-data:www-data /var/www/occam/data
+   sudo chmod 775 /var/www/occam/data
+   ```
+
+#### Option 3: Docker (Future)
+
+See `../podman/` directory for containerization setup.
 
 ## Migration Notes
 
@@ -171,15 +294,43 @@ The `OccamManager` class in `occam_wrapper.py` provides compatibility with the o
 
 ## Testing
 
+### Manual Testing
+
 Test the Flask server with example data:
 ```bash
-cd flask_app
-python3 app.py
+# Start development server
+python3 -m occam_server.app
 
 # In browser, navigate to http://localhost:5000
-# Upload an example file from ../examples/
-# Test VB fit, VB search, SB fit, and SB search operations
+# 1. Upload an example file from static/examples/ (e.g., netdata5c.txt)
+# 2. Test VB fit operation
+# 3. Test VB search operation
+# 4. Test SB fit operation
+# 5. Test SB search operation
+# 6. Test graph generation (if python-igraph installed)
 ```
+
+### Example Test Sequence
+
+```bash
+# Test basic functionality
+curl http://localhost:5000/  # Should return landing page
+
+# Test with example data (requires server running)
+# 1. Visit http://localhost:5000
+# 2. Click "Choose File" and select static/examples/netdata5c.txt
+# 3. Set Action to "fit"
+# 4. Click "Submit"
+# 5. Verify output shows model fit results
+```
+
+### Unit Tests (Future)
+
+Future enhancements could include:
+- pytest tests for route handlers
+- Mock tests for _pyoccam integration
+- Integration tests for file upload/processing
+- Template rendering tests
 
 ## Next Steps
 
