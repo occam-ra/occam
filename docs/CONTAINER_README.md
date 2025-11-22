@@ -316,7 +316,7 @@ podman run -d \
 
 If running behind nginx or Apache:
 
-**nginx example:**
+**Nginx example:**
 ```nginx
 server {
     listen 80;
@@ -331,6 +331,21 @@ server {
     }
 }
 ```
+
+**Apache2 example:**
+```apache
+<VirtualHost *:80>
+    ServerName occam.example.com
+
+    ProxyPreserveHost On
+    ProxyPass / http://localhost:5000/
+    ProxyPassReverse / http://localhost:5000/
+
+    RequestHeader set X-Forwarded-Proto "http"
+</VirtualHost>
+```
+
+**For complete deployment instructions with SSL/HTTPS, see:** `CONTAINER_DEPLOYMENT.md`
 
 ## Troubleshooting
 
