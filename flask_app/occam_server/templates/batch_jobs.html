@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block title %}OCCAM Batch Jobs{% endblock %}
+
+{% block content %}
+<h2>Batch Jobs</h2>
+
+{% if jobs %}
+<table border="1" cellpadding="5" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+    <thead>
+        <tr>
+            <th>Job ID</th>
+            <th>Action</th>
+            <th>Submitted</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for job in jobs %}
+        <tr>
+            <td><code>{{ job.job_id[:8] }}...</code></td>
+            <td>{{ job.action }}</td>
+            <td>{{ job.submitted_at }}</td>
+            <td>
+                {% if job.status == 'finished' %}
+                    <span style="color: green;">✓ Completed</span>
+                {% elif job.status == 'failed' %}
+                    <span style="color: red;">✗ Failed</span>
+                {% elif job.status == 'started' %}
+                    <span style="color: blue;">⟳ Running</span>
+                {% else %}
+                    <span style="color: gray;">⋯ Queued</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{{ url_for('view_batch_job', job_id=job.job_id) }}">View</a>
+                {% if job.status in ['queued', 'started'] %}
+                | <a href="{{ url_for('cancel_batch_job', job_id=job.job_id) }}"
+                     onclick="return confirm('Cancel this job?')">Cancel</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<p style="margin-top: 20px;">
+    <em>Note: Job results are kept for 24 hours after completion.</em>
+</p>
+
+{% else %}
+<p>No batch jobs found.</p>
+{% endif %}
+
+<div class="help-section">
+    <h3>Quick Links</h3>
+    <ul>
+        <li><a href="{{ url_for('batch_form') }}">Submit New Batch Job</a></li>
+        <li><a href="{{ url_for('index') }}">Return to Home</a></li>
+        <li><a href="javascript:location.reload()">Refresh Status</a></li>
+    </ul>
+</div>
+
+{% endblock %}

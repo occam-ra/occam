@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+
+{% block title %}Batch Job {{ job_id[:8] }}... - Results{% endblock %}
+
+{% block content %}
+<h2>Batch Job Results</h2>
+
+<div class="info-section">
+    <h3>Job Information</h3>
+    <table>
+        <tr><td><strong>Job ID:</strong></td><td><code>{{ job_id }}</code></td></tr>
+        <tr><td><strong>Action:</strong></td><td>{{ action }}</td></tr>
+        <tr><td><strong>Submitted:</strong></td><td>{{ submitted_at }}</td></tr>
+        <tr><td><strong>Status:</strong></td><td>
+            {% if status == 'finished' %}
+                <span style="color: green;">✓ Completed</span>
+            {% elif status == 'failed' %}
+                <span style="color: red;">✗ Failed</span>
+            {% elif status == 'started' %}
+                <span style="color: blue;">⟳ Running</span>
+            {% else %}
+                <span style="color: gray;">⋯ Queued</span>
+            {% endif %}
+        </td></tr>
+        {% if completed_at %}
+        <tr><td><strong>Completed:</strong></td><td>{{ completed_at }}</td></tr>
+        {% endif %}
+    </table>
+</div>
+
+{% if status == 'finished' and output %}
+<div class="result-section">
+    <h3>Analysis Results</h3>
+    <pre>{{ output }}</pre>
+</div>
+{% elif status == 'failed' %}
+<div class="error-section" style="background-color: #fee; padding: 10px; border: 1px solid #c00;">
+    <h3>Job Failed</h3>
+    <p><strong>Error:</strong> {{ error }}</p>
+</div>
+{% elif status in ['queued', 'started'] %}
+<div class="info-section">
+    <p><em>Job is {{ status }}. Please refresh this page to see updated status.</em></p>
+    <p><button onclick="location.reload()">Refresh Status</button></p>
+</div>
+{% endif %}
+
+<div class="help-section">
+    <h3>Quick Links</h3>
+    <ul>
+        <li><a href="{{ url_for('batch_jobs_list') }}">Back to Job List</a></li>
+        <li><a href="{{ url_for('batch_form') }}">Submit New Batch Job</a></li>
+        <li><a href="{{ url_for('index') }}">Return to Home</a></li>
+    </ul>
+</div>
+
+{% endblock %}

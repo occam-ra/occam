@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     python3-dev \
     python3-pip \
     python3-venv \
+    pkg-config \
     git \
     && rm -rf /var/lib/apt/lists/*
 
@@ -30,13 +31,10 @@ COPY .. /build/
 RUN meson setup builddir && \
     ninja -C builddir
 
-# Build Python wheels
-WORKDIR /build/pyoccam
-RUN pip3 install --no-cache-dir build && \
-    python3 -m build
-
-WORKDIR /build/flask_app
-RUN python3 -m build
+# Build Python wheels using pip wheel (avoids sdist issue with parent directory refs)
+WORKDIR /build
+RUN pip3 wheel --no-cache-dir --no-deps --wheel-dir /tmp/wheels ./pyoccam && \
+    pip3 wheel --no-cache-dir --no-deps --wheel-dir /tmp/wheels ./flask_app
 
 # Runtime stage - minimal image with only runtime dependencies
 FROM ubuntu:24.04
@@ -55,13 +53,12 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Create app user
-RUN useradd -m -u 1000 -s /bin/bash occam && \
+# Create app user (use UID 1001 to avoid conflict with ubuntu user)
+RUN useradd -m -u 1001 -s /bin/bash occam && \
     mkdir -p /var/www/occam /var/log/supervisor
 
 # Install Python wheels from builder
-COPY --from=builder /build/pyoccam/dist/*.whl /tmp/
-COPY --from=builder /build/flask_app/dist/*.whl /tmp/
+COPY --from=builder /tmp/wheels/*.whl /tmp/
 
 # Install Python packages
 RUN pip3 install --no-cache-dir --break-system-packages \
@@ -72,7 +69,7 @@ RUN pip3 install --no-cache-dir --break-system-packages \
     && rm -rf /tmp/*.whl
 
 # Copy OCCAM CLI from builder
-COPY --from=builder /build/builddir/occ /usr/local/bin/occ
+COPY --from=builder /build/builddir/cpp/occ /usr/local/bin/occ
 
 # Copy Flask application
 COPY flask_app/occam_server /var/www/occam/occam_server
@@ -84,6 +81,9 @@ RUN mkdir -p /var/www/occam/data /var/www/occam/logs && \
 
 # Copy supervisor configuration
 COPY podman/supervisord.conf /etc/supervisor/conf.d/occam.conf
+
+# Copy gunicorn configuration
+COPY podman/gunicorn_config.py /var/www/occam/gunicorn_config.py
 
 # Copy entrypoint script
 COPY podman/docker-entrypoint.sh /usr/local/bin/

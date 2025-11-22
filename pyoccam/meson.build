@@ -87,10 +87,9 @@ py.install_sources(
   preserve_path: false
 )
 
-# Install demo and test files
+# Install demo files
 py.install_sources(
   'pyoccam_demo.py',
-  'test_exact_server.py',
   subdir: 'pyoccam',
   preserve_path: false
 )

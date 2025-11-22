@@ -1,0 +1,63 @@
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Build artifacts
+builddir/
+build/
+dist/
+*.egg-info/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.so
+*.o
+*.a
+*.dll
+*.dylib
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Data files
+data/
+*.txt
+*.csv
+*.dat
+*.json
+*.tsv
+
+# Logs
+logs/
+*.log
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.bak
+*.backup
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Documentation (already in image)
+docs/
+
+# Old web server
+html/
+
+# Keep necessary files
+!requirements*.txt
+!README.md
+!LICENSE
+!examples/*.txt
+!pyoccam/dementia05.txt
+!pyoccam/landslides.txt

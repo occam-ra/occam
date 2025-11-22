@@ -16,14 +16,32 @@
 #undef SB
 //#define SB
 
+void print_usage(const char* progname) {
+    printf("OCCAM - Reconstructability Analysis\n");
+    printf("Usage: %s [options] datafile\n\n", progname);
+    printf("Options:\n");
+    printf("  -a ACTION         search | fit (default=search)\n");
+    printf("  -L LEVELS         Number of search levels (default=3)\n");
+    printf("  -w WIDTH          Search width - models kept per level (default=3)\n");
+    printf("  -m MODEL          Model to fit (required with -a fit)\n");
+    printf("  -h, --help        Show this help message\n");
+    printf("\nExamples:\n");
+    printf("  %s data.txt                    # Run default search\n", progname);
+    printf("  %s -a fit -m IV:AB data.txt    # Fit specific model\n", progname);
+    printf("  %s -L 5 -w 4 data.txt          # Search with 5 levels, width 4\n", progname);
+}
+
 int main(int argc, char* argv[]) {
+    // Check for help flags first
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "-h") == 0 || strcmp(argv[i], "--help") == 0) {
+            print_usage(argv[0]);
+            return 0;
+        }
+    }
+
     if (argc <= 1) {
-        printf("usage: %s [options] datafile\n", argv[0]);
-        printf("\tOptions:\n");
-        printf("\t-a search | fit (default=search)\n");
-        printf("\t-L search-levels\n");
-        printf("\t-w search-width\n");
-        printf("\t-m fit-model (required with -a fit)\n");
+        print_usage(argv[0]);
         return 1;
     }
     time_t  t0, t1;

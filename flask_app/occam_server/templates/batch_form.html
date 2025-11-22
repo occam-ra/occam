@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+
+{% block title %}OCCAM Batch Job Submission{% endblock %}
+
+{% block content %}
+<h2>Submit Batch Job</h2>
+
+<p>Submit an OCCAM analysis job to run in the background. You'll receive an email notification when the job completes.</p>
+
+<form method="POST" action="{{ url_for('submit_batch_job') }}" enctype="multipart/form-data">
+
+    <!-- Action Selection -->
+    <div class="form-section">
+        <h3>Select Action</h3>
+        <select name="action" id="action" required>
+            <option value="search">Variable-Based Search</option>
+            <option value="fit">Variable-Based Fit</option>
+            <option value="SBsearch">State-Based Search</option>
+            <option value="SBfit">State-Based Fit</option>
+        </select>
+    </div>
+
+    <!-- Data File Upload -->
+    <div class="form-section">
+        <h3>Data File</h3>
+        <p>
+            <label for="data">Upload data file:</label>
+            <input type="file" name="data" id="data" accept=".txt,.zip" required>
+        </p>
+        <p class="help-text">
+            Upload a .txt data file or .zip archive.
+            See <a href="{{ url_for('static', filename='examples/search.in') }}">example files</a>.
+        </p>
+    </div>
+
+    <!-- Model Specification -->
+    <div class="form-section">
+        <h3>Model Specification</h3>
+        <p>
+            <label for="model">Model (optional):</label><br>
+            <input type="text" name="model" id="model" size="50" placeholder="e.g., IV:DV">
+        </p>
+        <p class="help-text">
+            Leave blank for search operations. For fit operations, specify the model structure.
+        </p>
+    </div>
+
+    <!-- Email for Notification -->
+    <div class="form-section">
+        <h3>Email Notification</h3>
+        <p>
+            <label for="email">Your email address:</label><br>
+            <input type="email" name="email" id="email" size="50" required
+                   placeholder="user@example.com">
+        </p>
+        <p class="help-text">
+            You'll receive an email when your job completes (usually within a few minutes).
+        </p>
+    </div>
+
+    <!-- Advanced Options -->
+    <div class="form-section">
+        <h3>Advanced Options</h3>
+
+        <p>
+            <label for="separator">Output separator:</label>
+            <select name="separator" id="separator">
+                <option value="1">Tab (default)</option>
+                <option value="2">Comma</option>
+                <option value="3">Space</option>
+            </select>
+        </p>
+
+        <p>
+            <label for="alpha">Significance level (alpha):</label>
+            <input type="number" name="alpha" id="alpha" step="0.01" min="0" max="1"
+                   placeholder="0.05" value="0.05">
+        </p>
+
+        <div id="search-options" style="display:none;">
+            <p>
+                <label for="search_levels">Search levels:</label>
+                <input type="number" name="search_levels" id="search_levels"
+                       placeholder="7" value="7">
+            </p>
+            <p>
+                <label for="search_width">Search width:</label>
+                <input type="number" name="search_width" id="search_width"
+                       placeholder="3" value="3">
+            </p>
+        </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="form-section">
+        <button type="submit" class="submit-button">Submit Batch Job</button>
+    </div>
+
+</form>
+
+<div class="help-section">
+    <h3>Quick Links</h3>
+    <ul>
+        <li><a href="{{ url_for('batch_jobs_list') }}">View Your Jobs</a></li>
+        <li><a href="{{ url_for('index') }}">Return to Home</a></li>
+        <li><a href="{{ url_for('occam_main') }}">Interactive Analysis</a></li>
+    </ul>
+</div>
+
+<script>
+// Show/hide search options based on action
+document.getElementById('action').addEventListener('change', function() {
+    var searchOpts = document.getElementById('search-options');
+    if (this.value === 'search' || this.value === 'SBsearch') {
+        searchOpts.style.display = 'block';
+    } else {
+        searchOpts.style.display = 'none';
+    }
+});
+</script>
+
+{% endblock %}

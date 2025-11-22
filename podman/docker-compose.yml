@@ -1,0 +1,53 @@
+# OCCAM Web Server - Compose Configuration
+# Compatible with: docker compose, docker-compose, podman compose, podman-compose
+#
+# Quick start:
+#   ./compose.sh up -d      # Auto-detects docker/podman
+#   ./compose.sh logs -f    # View logs
+#   ./compose.sh down       # Stop and remove
+
+version: '3.8'
+
+services:
+  occam-web:
+    build:
+      context: ..
+      dockerfile: podman/Dockerfile
+    image: occam-web:latest
+    container_name: occam-web
+    ports:
+      - "5000:5000"
+    environment:
+      # Redis configuration
+      - REDIS_URL=redis://127.0.0.1:6379/0
+
+      # SMTP configuration for email notifications
+      - SMTP_HOST=${SMTP_HOST:-localhost}
+      - SMTP_PORT=${SMTP_PORT:-25}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SMTP_FROM=${SMTP_FROM:-noreply@occam.local}
+
+      # Gunicorn configuration
+      - GUNICORN_WORKERS=${GUNICORN_WORKERS:-4}
+      - GUNICORN_RELOAD=${GUNICORN_RELOAD:-false}
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+    volumes:
+      # Persistent data directory
+      - occam-data:/var/www/occam/data
+
+      # Optional: Mount logs for external access
+      - occam-logs:/var/www/occam/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+volumes:
+  occam-data:
+    driver: local
+  occam-logs:
+    driver: local
