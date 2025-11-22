@@ -201,7 +201,7 @@ window.onload = updateFormFields;
     <ul>
         <li><a href="{{ url_for('occam_main', action='jobcontrol') }}">View Active Jobs</a></li>
         <li><a href="{{ url_for('index') }}">Return to Home</a></li>
-        <li><a href="https://www.pdx.edu/sysc/sites/www.pdx.edu.sysc/files/OCCAM%20Manual-3.13.2017_mz.pdf" target="_blank">OCCAM Manual (PDF)</a></li>
+        <li><a href="{{ url_for('static', filename='occam-manual.pdf') }}" target="_blank">OCCAM Manual (PDF)</a></li>
     </ul>
 </div>
 

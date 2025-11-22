@@ -27,16 +27,17 @@
     <ul>
         <li><a href="{{ url_for('occam_main') }}">Run Occam</a></li>
         <li>For basic operation instructions, please consult the
-            <a href="https://www.pdx.edu/sysc/sites/www.pdx.edu.sysc/files/OCCAM%20Manual-3.13.2017_mz.pdf">PDF manual</a>.
+            <a href="{{ url_for('static', filename='occam-manual.pdf') }}">PDF manual</a>.
         </li>
         <li>Sample data files. You can download these to your computer,
-            for use with at the web link above.
-            <br><a href="{{ url_for('static', filename='examples/search.in') }}">A Neutral System</a>
-            <br><a href="{{ url_for('static', filename='examples/searchd.in') }}">A Directed System</a>
+            for use with the web link above.
+            <br><a href="{{ url_for('static', filename='examples/search.in') }}">Search Example</a>
+            <br><a href="{{ url_for('static', filename='examples/fit.in') }}">Fit Example</a>
         </li>
         <li>Links:
-            <br>Dr. Zwick's <a href="http://www.pdx.edu/sysc/research-discrete-multivariate-modeling">DMM Research Page</a>
-            <br><a href="http://www.pdx.edu/sysc/">Systems Science Graduate Program</a>
+            <br><a href="https://www.pdx.edu/sysc/discrete-multivariate-modeling">DMM Research at PSU</a>
+            <br><a href="https://www.pdx.edu/sysc/">Systems Science Graduate Program</a>
+            <br><a href="https://github.com/occam-ra/occam">OCCAM on GitHub</a>
         </li>
         <li>Contacts:
             <br><a href="mailto:zwick@pdx.edu">Dr. Martin Zwick, Systems Science</a>
