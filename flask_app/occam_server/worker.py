@@ -169,9 +169,8 @@ def run_worker():
     redis_url = os.environ.get('REDIS_URL', 'redis://localhost:6379/0')
     redis_conn = Redis.from_url(redis_url)
 
-    with Connection(redis_conn):
-        worker = Worker(['occam'])
-        worker.work()
+    worker = Worker(['occam'], connection=redis_conn)
+    worker.work()
 
 
 if __name__ == '__main__':

@@ -15,10 +15,6 @@ chmod 775 /var/www/occam/logs
 chown -R occam:occam /var/www/occam/data
 chmod 775 /var/www/occam/data
 
-# Wait for Redis to be ready
-echo "Waiting for Redis to start..."
-timeout 30 bash -c 'until redis-cli -h 127.0.0.1 ping 2>/dev/null; do sleep 1; done' || echo "Redis not responding, continuing anyway..."
-
 # Print startup information
 echo "========================================"
 echo "OCCAM Web Server Container Started"
