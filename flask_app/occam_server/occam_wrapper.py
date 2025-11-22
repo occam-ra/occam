@@ -17,11 +17,13 @@ import sys
 from pathlib import Path
 
 try:
-    import _pyoccam
+    from pyoccam import _pyoccam
 except ImportError:
     print("ERROR: _pyoccam module not found. Please install pyoccam:")
     print("  pip install pyoccam")
-    print("Or install from wheel in pyoccam/wheels/")
+    print("Or build and install from source:")
+    print("  meson setup builddir && ninja -C builddir")
+    print("  pip install pyoccam/")
     sys.exit(1)
 
 # Import graph generation module

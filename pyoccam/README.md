@@ -93,7 +93,7 @@ pip install -e .
 ### Basic Example
 
 ```python
-import _pyoccam as occam
+from pyoccam import _pyoccam as occam
 
 # Create a manager for variable-based modeling
 manager = occam.Manager()

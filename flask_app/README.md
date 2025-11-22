@@ -170,7 +170,7 @@ Test that everything is installed correctly:
 ./builddir/occ --help
 
 # Test Python extension
-python3 -c "import _pyoccam; print('pyoccam OK')"
+python3 -c "from pyoccam import _pyoccam; print('pyoccam OK')"
 
 # Test Flask server
 cd flask_app
