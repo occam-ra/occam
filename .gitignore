@@ -58,12 +58,15 @@ libwinpthread-1.dll
 !.gitignore
 !README.md
 !MANIFEST.in
-!setup.py
-!pyoccam/setup.py
 !pyoccam/pyoccam_pybind11.cpp
 !pyoccam/dementia05.txt
 !pyoccam/landslides.txt
 !pyoccam/pyoccam_demo.py
 !pyoccam/pyoccam_demo.ipynb
 !pyoccam/test_exact_server.py
-!build_pyoccam.bat
+
+# New build system files
+!build_wheels.py
+!pyoccam/__init__.py
+!flask_app/**/*.py
+!flask_app/occam_server/**/*.py

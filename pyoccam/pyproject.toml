@@ -1,0 +1,50 @@
+[build-system]
+requires = ["meson-python", "pybind11"]
+build-backend = "mesonpy"
+
+[project]
+name = "pyoccam"
+version = "3.0.0"
+description = "Python bindings for OCCAM (Organizational Complexity Computation And Modeling)"
+readme = "../README.md"
+requires-python = ">=3.9"
+license = {text = "GPL-3.0-or-later"}
+authors = [
+    {name = "David Percy", email = "percyd@pdx.edu"},
+    {name = "Portland State University OCCAM Project Team"}
+]
+keywords = ["occam", "reconstructability", "analysis", "modeling", "information theory"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "ipython>=8.0",
+    "jupyter>=1.0",
+]
+docs = [
+    "sphinx>=5.0",
+    "sphinx-rtd-theme>=1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/occam-ra/occam"
+Documentation = "https://github.com/occam-ra/occam/blob/master/README.md"
+Repository = "https://github.com/occam-ra/occam"
+Issues = "https://github.com/occam-ra/occam/issues"
+
+[tool.meson-python.args]
+# Pass any additional Meson arguments if needed
+# setup = ["-Doption=value"]

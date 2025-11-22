@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}OCCAM Error{% endblock %}
+
+{% block content %}
+<h2>Error</h2>
+
+<div class="error">
+    <p><strong>{{ error }}</strong></p>
+
+    {% if traceback %}
+    <details>
+        <summary>Show Details</summary>
+        <pre>{{ traceback }}</pre>
+    </details>
+    {% endif %}
+</div>
+
+<p><a href="{{ url_for('index') }}">Return to Home</a></p>
+{% endblock %}

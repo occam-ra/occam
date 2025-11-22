@@ -1,197 +1,366 @@
-# Installation
+# OCCAM Installation Guide
 
-## Overview
+This guide covers installation of OCCAM on Windows, macOS, and Linux systems using the modern Meson/Ninja build system.
 
-The current version of OCCAM runs on a Linux webserver. The installation procedure is fairly well defined for Linux, so you should be able to get OCCAM up and running on your Linux system.
+## Quick Start
 
-It is possible that you may be able to install OCCAM locally on a dedicated machine. This is not recommended, as it is difficult and error prone.  If you choose this approach, the instructions in [`VIRTUALENV.md`](VIRTUALENV.md) may be helpful. Then skip to installing OCCAM below.
+For users who just want to use PyOCCAM:
 
-For most users, the recommended installation method at this time is to use VirtualBox, which will let you create a fully containerized linux machine inside your existing OS. This will isolate OCCAM inside the VirtualBox and not require configuration changes to your larger system. The procedure is as follows:
-
-1. Install a virtual machine or virtual environment, and install Ubuntu or some other Linux server on your (virtual) machine, and install dependencies
-2. Install OCCAM using git
-3. Install apache and configure it for CGI-bin
-4. Set file ownership and permissions to allow apache to access the files
-
-So let's begin:
-
-## Ready A Virtual Machine
-
-In this section we show how to set up a VirtualBox virtual machine running Ubuntu 16.04, ready to build OCCAM. Note that other VM options are available and viable.
-
-### Install VirtualBox
-
-To create an instance of OCCAM without a dedicated Linux machine you can [Download VirtualBox](https://www.virtualbox.org/wiki/Downloads).  Select New and make sure it is of the Linux type with enough memory and storage space to run the chosen OS.
-
-You'll want to make sure your box is "Attached to" a Bridged Adapter in Network settings for Adapter 1. The rest of the settings are based mostly on the preference of the user and limitations of the host machine.
-
-You can then create a Linux server box by installing from a [Ubuntu 16.04 LTS ISO](http://releases.ubuntu.com/16.04/).
-
-### Install Ubuntu Server 16.04
-
-You will need Ubuntu 16.04 LTS to run OCCAM, as later versions of Ubuntu will most likely not support Python 2.7.
-
-Choose the Ubuntu Server for either 32-bit or 64-bit (depending on the host OS) from [ISOs](http://releases.ubuntu.com/16.04/).
-
-Configure VirtualBox to use this ISO. Note that the ISO will need to be available in the same location for the entire VirtualBox setup phase.
-
-Use at least 2GB of memory and 5GB of storage.
-
-### Update Installation
-
-You will want to make sure you are at current installation, including security fixes.
-
-```
-$ sudo apt update
-$ sudo apt upgrade
+```bash
+pip install pyoccam
 ```
 
-### Install OpenSSH Server
+For users who want to run the Flask web server:
 
-Though it is not needed or installing OCCAM, installing
-OpenSSH Server makes it easier to work in the VirtualBox:
-
-```
-$ sudo apt install openssh-server
+```bash
+pip install pyoccam occam-server
+occam-server
 ```
 
-You may need to configure networking in the VirtualBox and on your host machine to be able to SSH in.
+## Building from Source
 
-### Install Apache2
+### Prerequisites
 
-Depending on how you configured your machine, you may already have Apache2 installed: check this with
+#### System Requirements
 
-```
-$ apache2 -v
-```
+**All Platforms:**
+- Python 3.9 or later (3.9, 3.10, 3.11, 3.12, 3.13 supported)
+- Meson build system (≥ 1.0.0)
+- Ninja build tool
+- C++ compiler with C++14 support
+- GMP library (GNU Multiple Precision Arithmetic Library)
 
-If it is missing, install it now
+**Platform-Specific:**
 
-```
-$ apt install apache2
-```
-
-### Install Python 2.7
-
-You currently need Python 2.7 installed to run OCCAM.
-
-```
-$ apt install python2.7
+**Linux (Debian/Ubuntu):**
+```bash
+sudo apt install build-essential g++ gcc meson ninja-build \
+    libgmp3-dev python3-dev python3-pip pybind11-dev
 ```
 
-Note that you are dependent on system Python 2 packages, as `pip` no longer supports Python 2.
-
-You may need to make Python 2 be `python`.
-
-```
-$ sudo sh -c 'cd /usr/bin && ln -s python2 python'
+**Linux (Fedora/RHEL):**
+```bash
+sudo dnf install gcc gcc-c++ meson ninja-build gmp-devel \
+    python3-devel python3-pip pybind11-devel
 ```
 
-### Install Build Dependencies
-
-A number of packages must be installed to build OCCAM.
-
-```
-$ sudo apt install gcc build-essential libgmp3-dev python-dev libxml2 \
-  libxml2-dev zlib1g-dev python-igraph libboost-math-dev
+**macOS:**
+```bash
+# Install Homebrew if not already installed: https://brew.sh
+brew install meson ninja gmp python@3.11 pybind11
 ```
 
-## Build OCCAM
+**Windows:**
+- Install [MSYS2](https://www.msys2.org/) or [MinGW-w64](https://www.mingw-w64.org/)
+- Using MSYS2 terminal:
+  ```bash
+  pacman -S mingw-w64-x86_64-gcc mingw-w64-x86_64-meson \
+      mingw-w64-x86_64-ninja mingw-w64-x86_64-gmp \
+      mingw-w64-x86_64-python mingw-w64-x86_64-pybind11
+  ```
 
-Now that you have a machine with the right dependencies set up, you can build OCCAM.  First you need to get the OCCAM repository onto your machine.  You can do this by downloading the ZIP unzipping the folder wherever you like, or by using git.
+#### Python Dependencies
 
-```
-$ git clone https://github.com/occam-ra/occam.git
-$ cd occam
-$ make
-```
-
-**Note**: Contributors may want to fork the OCCAM repo and clone that.
-
-### Install OCCAM
-
-Pick an installation folder. We recommend `/var/www/occam` and will be using it for these instructions.  Make sure that permissions are set up correctly there so that the install can work: see below for more information on this if needed. Then install.
-
-```
-$ make INSTALL_ROOT=/var/www/occam install
+```bash
+pip install meson ninja meson-python pybind11
 ```
 
-At this point OCCAM should be ready to go.  Now you need to make sure Apache is serving it correctly.
+### Building Components
 
-## Set Up Apache
+OCCAM consists of three components that can be built independently or together:
 
-Apache should already be running: you just need to point the default site to your `occam/install/web` directory, set up the `ServerName` and `VirtualDirectory` and make sure that CGI is enabled.
+1. **C++ Library and CLI** - Core OCCAM engine and command-line tool
+2. **PyOCCAM** - Python bindings for OCCAM
+3. **OCCAM Server** - Flask-based web interface
 
-```
-$ sudo vi /etc/apache2/sites-enabled/000-default.conf
-```
+#### Build C++ Library and CLI Only
 
-You'll want to add or change the following lines in that configuration file.
-Note that you should set `ServerName` to whatever domain name you want the
-server to run as.
+```bash
+# Configure build
+meson setup build
 
-```
-    # Move this directive to the top of the file.
-    ServerName localhost
+# Compile
+meson compile -C build
 
-	DocumentRoot /var/www/occam/web
+# Test the CLI
+./build/cpp/occ
 
-	<Directory /var/www/occam/web>
-		Options +ExecCGI
-		AddHandler cgi-script .cgi .pl
-		options Indexes FollowSymLinks
-		AllowOverride All
-		Require all granted
-	</Directory>
+# Install system-wide (optional)
+sudo meson install -C build
 ```
 
-Now enable CGI and restart the server.
+#### Build PyOCCAM (Python Extension)
 
-```
-$ a2enmod cgi
-$ service apache2 restart
-```
+```bash
+cd pyoccam
 
-### Setting Permissions
+# Development install (editable)
+pip install -e .
 
-If you are running OCCAM as a user other than `www-data`, you will need to edit `/etc/apache2/envars`. If you want to run as user `occam`, set this as follows:
+# Or build wheel for distribution
+pip install build
+python -m build
 
-```
-export APACHE_RUN_USER=occam
-export APACHE_RUN_GROUP=occam
-```
-
-An alternate approach is to set ownership and and permissions on the OCCAM installation so that Apache will have access. Using group `www-data` for the OCCAM installation may avoid problems on systems with existing applications that depend on the current Apache configuration.
-
-```
-$ chgrp -R www-data /var/www/occam/web
-$ chmod -R 750 /var/www/occam/web
-$ chmod g+s /var/www/occam/web/
-$ chmod g+w /var/www/occam/web/data/
+# Install from wheel
+pip install dist/pyoccam-*.whl
 ```
 
-This will recursively change group ownership to the `www-data` group; change file permissions to [0750 = User: rwx Group: r-x World: no access)]; set new files created in this directory to have their group set to the directory's group; and add group write privileges for the `data/` subdirectory. This method avoids the insecure `chmod 777` and uses group permissions so you don't have to change your Apache user.
+#### Build OCCAM Server (Flask Web Interface)
 
-The last step is very important, because OCCAM creates temporary versions of the data files: the `www-data` group needs write permissions for that directory. If you don't do this last step, OCCAM will run part of the way: the front form will come up, and you can choose a data file and set search options, but when you run the search you will get a permissions error because the data file cannot be created on the server.
+```bash
+cd flask_app
 
-### Remapping the URL with aliasing
+# Install with dependencies
+pip install .
 
-You might want to use aliasing to remap your URL and filesystem location. By default your OCCAM URL will be something like <http://localhost/occam/web>: you might want <http://localhost/occam>. You might also have other reasons for this depending on your webserver configuration.
+# Or install with graph generation support
+pip install ".[graphs]"
 
-Add this directive to your apache config file for this site:
-
-```
-Alias "/occam" "/var/www/occam/web"
-```
-
-## Trying It Out
-
-You should be able to restart Apache and take your IP address...
-
-```
-$ sudo service apache2 restart
-$ ifconfig | grep "inet addr" | head -n 1
-		inet addr:10.0.0.165  Bcast:10.0.0.255  Mask:255.255.255.0
+# Run the server
+occam-server --port 8080
 ```
 
-Now you can open a browser window (to <http://localhost/occam/web> or possibly to <http://localhost/occam> depending on aliasing) and view your fully operational OCCAM session!
+### Building for Multiple Python Versions
+
+To build PyOCCAM wheels for multiple Python versions (useful for distribution):
+
+```bash
+# Build for all available Python versions (3.9-3.13)
+python build_wheels.py
+
+# Build for specific versions only
+python build_wheels.py 3.11 3.12
+
+# Clean build directories first
+python build_wheels.py --clean
+
+# Wheels will be in dist/ directory
+ls dist/*.whl
+```
+
+### Build Options
+
+Meson supports various build configurations via `meson.options`:
+
+```bash
+# Debug build
+meson setup build --buildtype=debug
+
+# Release build with optimizations (default)
+meson setup build --buildtype=release
+
+# Disable SSE2 optimizations
+meson setup build -Dwith_sse2=false
+
+# Don't build the CLI tool
+meson setup build -Dbuild_cli=false
+```
+
+## Installation Methods
+
+### Method 1: System-Wide Installation
+
+```bash
+# Build and install C++ components
+meson setup build
+meson compile -C build
+sudo meson install -C build
+
+# Install PyOCCAM
+cd pyoccam
+pip install .
+
+# Install OCCAM Server
+cd ../flask_app
+pip install .
+```
+
+### Method 2: Virtual Environment (Recommended)
+
+```bash
+# Create virtual environment
+python -m venv occam-env
+
+# Activate it
+source occam-env/bin/activate  # Linux/macOS
+# or
+occam-env\Scripts\activate     # Windows
+
+# Install PyOCCAM
+cd pyoccam
+pip install .
+
+# Install OCCAM Server with optional dependencies
+cd ../flask_app
+pip install ".[graphs]"
+```
+
+### Method 3: Development Installation
+
+For developers who want to modify the code:
+
+```bash
+# C++ components
+meson setup build
+meson compile -C build
+
+# PyOCCAM in development mode
+cd pyoccam
+pip install -e .
+
+# OCCAM Server in development mode
+cd ../flask_app
+pip install -e ".[graphs,dev]"
+```
+
+## Verification
+
+### Test C++ Installation
+
+```bash
+# If installed system-wide
+occ --help
+
+# If built locally
+./build/cpp/occ --help
+```
+
+### Test PyOCCAM Installation
+
+```python
+python3 -c "import pyoccam; print(pyoccam.__version__)"
+```
+
+### Test OCCAM Server Installation
+
+```bash
+occam-server --help
+```
+
+## Running OCCAM
+
+### Command-Line Interface
+
+```bash
+# Using the C++ CLI
+occ input.txt
+
+# See occ help for all options
+occ --help
+```
+
+### Python Interface
+
+```python
+import pyoccam
+
+# Your OCCAM analysis code here
+# See pyoccam/pyoccam_demo.py for examples
+```
+
+### Web Interface
+
+```bash
+# Start Flask development server
+occam-server
+
+# Run on specific port
+occam-server --port 8080
+
+# Run on all network interfaces
+occam-server --host 0.0.0.0 --port 8080
+
+# Enable debug mode
+occam-server --debug
+```
+
+Then open your browser to `http://localhost:5000` (or the specified port).
+
+### Production Deployment (Web Interface)
+
+For production use, deploy with a WSGI server:
+
+```bash
+# Install gunicorn
+pip install gunicorn
+
+# Run with gunicorn
+cd flask_app
+gunicorn -w 4 -b 0.0.0.0:8080 "occam_server:app"
+```
+
+Or use Apache/nginx with mod_wsgi. See `flask_app/README.md` for details.
+
+## Troubleshooting
+
+### Meson not found
+
+```bash
+pip install --user meson ninja
+# Add ~/.local/bin to PATH if needed
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### GMP library not found
+
+**Linux:**
+```bash
+sudo apt install libgmp-dev  # Debian/Ubuntu
+sudo dnf install gmp-devel   # Fedora/RHEL
+```
+
+**macOS:**
+```bash
+brew install gmp
+```
+
+**Windows:**
+Use MSYS2 and install `mingw-w64-x86_64-gmp`
+
+### pybind11 not found
+
+```bash
+pip install pybind11
+```
+
+Or install system package:
+```bash
+sudo apt install pybind11-dev  # Debian/Ubuntu
+brew install pybind11          # macOS
+```
+
+### Python version issues
+
+Ensure you're using Python 3.9 or later:
+
+```bash
+python --version
+# Should show Python 3.9.x or later
+```
+
+If you have multiple Python versions, specify explicitly:
+
+```bash
+python3.11 -m pip install .
+```
+
+### Build failures on Windows
+
+Make sure you're using the MSYS2 MinGW64 terminal, not the standard Windows Command Prompt. The build requires a Unix-like environment on Windows.
+
+## Additional Resources
+
+- **Build System Documentation**: `BUILD.md` (if present)
+- **Flask App Documentation**: `flask_app/README.md`
+- **PyOCCAM Examples**: `pyoccam/pyoccam_demo.py`, `pyoccam/pyoccam_demo.ipynb`
+- **Contributing**: `CONTRIBUTING.md`
+- **License**: `LICENSE`
+
+## Getting Help
+
+- **Issues**: https://github.com/occam-ra/occam/issues
+- **Discussions**: https://github.com/occam-ra/occam/discussions
+
+## Legacy Installation
+
+For information about the old Python 2 / Make-based build system, see the git history before the Meson migration (commit XXXXX).

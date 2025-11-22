@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}OCCAM Search Results{% endblock %}
+
+{% block content %}
+<h2>Model Search Results</h2>
+
+<div class="results">
+    <p><strong>Search Type:</strong> {{ search_type }}</p>
+    <p><strong>Levels:</strong> {{ levels }}</p>
+    <p><strong>Width:</strong> {{ width }}</p>
+    <p><strong>Elapsed time:</strong> {{ "%.2f"|format(elapsed) }} seconds</p>
+</div>
+
+<pre class="output">{{ output }}</pre>
+
+{% if svg_content %}
+<hr>
+<h3>Hypergraph Visualization{% if best_model %} for Best Model ({{ best_model }}){% endif %}</h3>
+<div class="graph">
+    {{ svg_content | safe }}
+</div>
+{% endif %}
+
+{% if gephi_data %}
+<hr>
+<h3>Gephi Export Data{% if best_model %} for Best Model ({{ best_model }}){% endif %}</h3>
+<div class="gephi-data">
+    <h4>Nodes Table</h4>
+    <pre class="gephi-output">{{ gephi_data.nodes }}</pre>
+
+    <h4>Edges Table</h4>
+    <pre class="gephi-output">{{ gephi_data.edges }}</pre>
+</div>
+{% endif %}
+
+<div class="actions">
+    <p>
+        <a href="{{ url_for('occam_main') }}">Return to Input Form</a> |
+        <a href="{{ url_for('index') }}">Return to Home</a>
+    </p>
+</div>
+{% endblock %}

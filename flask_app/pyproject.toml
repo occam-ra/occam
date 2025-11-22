@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "occam-server"
+version = "1.0.0"
+description = "Flask web server for OCCAM reconstructability analysis"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "GPL-3.0-or-later"}
+authors = [
+    {name = "Portland State University OCCAM Project Team"}
+]
+keywords = ["occam", "flask", "web server", "reconstructability", "analysis"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Framework :: Flask",
+    "Topic :: Scientific/Engineering :: Information Analysis",
+]
+
+dependencies = [
+    "pyoccam>=3.0.0",
+    "Flask>=3.0.0",
+    "Werkzeug>=3.0.1",
+    "Jinja2>=3.1.2",
+]
+
+[project.optional-dependencies]
+graphs = [
+    "python-igraph>=0.10.0",
+    "pycairo>=1.20.0",
+]
+dev = [
+    "pytest>=7.0",
+    "black>=23.0",
+]
+
+[project.scripts]
+occam-server = "occam_server.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/occam-ra/occam"
+Documentation = "https://github.com/occam-ra/occam/blob/master/flask_app/README.md"
+Repository = "https://github.com/occam-ra/occam"
+Issues = "https://github.com/occam-ra/occam/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["occam_server"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"occam_server/static" = "occam_server/static"
+"occam_server/templates" = "occam_server/templates"

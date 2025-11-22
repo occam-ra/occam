@@ -1,0 +1,208 @@
+{% extends "base.html" %}
+
+{% block title %}OCCAM Input Form{% endblock %}
+
+{% block content %}
+<h2>OCCAM Analysis</h2>
+
+<form method="POST" action="{{ url_for('occam_main') }}" enctype="multipart/form-data">
+
+    <!-- Action Selection -->
+    <div class="form-section">
+        <h3>Select Action</h3>
+        <select name="action" id="action" onchange="updateFormFields()">
+            <option value="search">Variable-Based Search</option>
+            <option value="fit">Variable-Based Fit</option>
+            <option value="SBsearch">State-Based Search</option>
+            <option value="SBfit">State-Based Fit</option>
+        </select>
+    </div>
+
+    <!-- Data File Upload -->
+    <div class="form-section">
+        <h3>Data File</h3>
+        <p>
+            <label for="data">Upload data file:</label>
+            <input type="file" name="data" id="data" accept=".txt,.zip" required>
+        </p>
+        <p class="help-text">
+            Upload a .txt data file or .zip archive containing a single data file.
+            See <a href="{{ url_for('static', filename='examples/search.in') }}">example files</a>.
+        </p>
+    </div>
+
+    <!-- Search Parameters (for search actions) -->
+    <div class="form-section" id="search-params">
+        <h3>Search Parameters</h3>
+        <p>
+            <label for="searchType">Search Type:</label>
+            <select name="searchType" id="searchType">
+                <option value="loopless-up">Loopless (ascending)</option>
+                <option value="loopless-down">Loopless (descending)</option>
+                <option value="disjoint-up">Disjoint (ascending)</option>
+                <option value="disjoint-down">Disjoint (descending)</option>
+                <option value="chain-up">Chain (ascending)</option>
+                <option value="chain-down">Chain (descending)</option>
+            </select>
+        </p>
+        <p>
+            <label for="searchLevels">Number of levels:</label>
+            <input type="number" name="searchLevels" id="searchLevels" value="3" min="1" max="20">
+        </p>
+        <p>
+            <label for="searchWidth">Search width:</label>
+            <input type="number" name="searchWidth" id="searchWidth" value="3" min="1" max="100">
+        </p>
+        <p>
+            <label for="refModel">Reference model:</label>
+            <select name="refModel" id="refModel">
+                <option value="bottom">Bottom (independence)</option>
+                <option value="top">Top (saturated)</option>
+                <option value="default">Default</option>
+            </select>
+        </p>
+    </div>
+
+    <!-- SB Search Parameters (for SB search) -->
+    <div class="form-section" id="sb-search-params" style="display:none;">
+        <h3>State-Based Search Parameters</h3>
+        <p>
+            <label for="sbSearchType">Search Type:</label>
+            <select name="searchType" id="sbSearchType">
+                <option value="sb-loopless-up">SB Loopless (ascending)</option>
+                <option value="sb-loopless-down">SB Loopless (descending)</option>
+                <option value="sb-disjoint-up">SB Disjoint (ascending)</option>
+                <option value="sb-disjoint-down">SB Disjoint (descending)</option>
+                <option value="sb-chain-up">SB Chain (ascending)</option>
+                <option value="sb-chain-down">SB Chain (descending)</option>
+            </select>
+        </p>
+    </div>
+
+    <!-- Model Specification (for fit actions) -->
+    <div class="form-section" id="model-params">
+        <h3>Model Specification</h3>
+        <p>
+            <label for="model">Model:</label>
+            <input type="text" name="model" id="model" size="50"
+                   placeholder="e.g., IV:ABC, DV:D or AB:01,BC:10">
+        </p>
+        <p class="help-text">
+            For VB: Specify model structure (e.g., "IV:ABC,DV:D")<br>
+            For SB: Specify state constraints (e.g., "AB:01,BC:10")
+        </p>
+    </div>
+
+    <!-- Options -->
+    <div class="form-section">
+        <h3>Options</h3>
+        <p>
+            <input type="checkbox" name="skipnominal" id="skipnominal" value="1">
+            <label for="skipnominal">Skip nominal data output</label>
+        </p>
+        <p>
+            <input type="checkbox" name="skipresiduals" id="skipresiduals" value="1" checked>
+            <label for="skipresiduals">Skip residuals table</label>
+        </p>
+        <p>
+            <input type="checkbox" name="skipivitables" id="skipivitables" value="1" checked>
+            <label for="skipivitables">Skip IVI tables</label>
+        </p>
+        <p>
+            <input type="checkbox" name="calcExpectedDV" id="calcExpectedDV" value="1">
+            <label for="calcExpectedDV">Calculate expected DV</label>
+        </p>
+    </div>
+
+    <!-- Classifier Options (for fit actions) -->
+    <div class="form-section" id="classifier-params">
+        <h3>Classifier Options</h3>
+        <p>
+            <label for="negativeDVforConfusion">Target state for confusion matrix:</label>
+            <input type="text" name="negativeDVforConfusion" id="negativeDVforConfusion" size="10"
+                   placeholder="e.g., 0">
+        </p>
+        <p class="help-text">
+            Specify target state for classifier evaluation (confusion matrix)
+        </p>
+    </div>
+
+    <!-- Output Format -->
+    <div class="form-section">
+        <h3>Output Format</h3>
+        <p>
+            <input type="radio" name="format" id="format-html" value="" checked>
+            <label for="format-html">HTML (view in browser)</label>
+        </p>
+        <p>
+            <input type="radio" name="format" id="format-csv" value="csv">
+            <label for="format-csv">CSV (download file)</label>
+        </p>
+    </div>
+
+    <!-- Submit -->
+    <div class="form-section">
+        <p>
+            <input type="submit" value="Run Analysis">
+            <input type="reset" value="Reset Form">
+        </p>
+    </div>
+
+</form>
+
+<script>
+function updateFormFields() {
+    var action = document.getElementById('action').value;
+    var searchParams = document.getElementById('search-params');
+    var sbSearchParams = document.getElementById('sb-search-params');
+    var modelParams = document.getElementById('model-params');
+    var classifierParams = document.getElementById('classifier-params');
+    var searchType = document.getElementById('searchType');
+    var sbSearchType = document.getElementById('sbSearchType');
+
+    // Show/hide sections based on action
+    if (action === 'search') {
+        searchParams.style.display = 'block';
+        sbSearchParams.style.display = 'none';
+        modelParams.style.display = 'none';
+        classifierParams.style.display = 'none';
+        searchType.disabled = false;
+        sbSearchType.disabled = true;
+    } else if (action === 'SBsearch') {
+        searchParams.style.display = 'block';
+        sbSearchParams.style.display = 'block';
+        modelParams.style.display = 'none';
+        classifierParams.style.display = 'none';
+        searchType.disabled = true;
+        sbSearchType.disabled = false;
+    } else if (action === 'fit') {
+        searchParams.style.display = 'none';
+        sbSearchParams.style.display = 'none';
+        modelParams.style.display = 'block';
+        classifierParams.style.display = 'block';
+        searchType.disabled = true;
+        sbSearchType.disabled = true;
+    } else if (action === 'SBfit') {
+        searchParams.style.display = 'none';
+        sbSearchParams.style.display = 'none';
+        modelParams.style.display = 'block';
+        classifierParams.style.display = 'block';
+        searchType.disabled = true;
+        sbSearchType.disabled = true;
+    }
+}
+
+// Initialize form on load
+window.onload = updateFormFields;
+</script>
+
+<div class="help-section">
+    <h3>Quick Links</h3>
+    <ul>
+        <li><a href="{{ url_for('occam_main', action='jobcontrol') }}">View Active Jobs</a></li>
+        <li><a href="{{ url_for('index') }}">Return to Home</a></li>
+        <li><a href="https://www.pdx.edu/sysc/sites/www.pdx.edu.sysc/files/OCCAM%20Manual-3.13.2017_mz.pdf" target="_blank">OCCAM Manual (PDF)</a></li>
+    </ul>
+</div>
+
+{% endblock %}

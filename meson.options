@@ -1,0 +1,25 @@
+# Meson build options for OCCAM
+
+option('build_cli',
+  type: 'boolean',
+  value: true,
+  description: 'Build the C++ command-line tool (occ)'
+)
+
+option('build_tests',
+  type: 'boolean',
+  value: false,
+  description: 'Build the test suite (requires Google Test)'
+)
+
+option('with_sse2',
+  type: 'boolean',
+  value: true,
+  description: 'Enable SSE2 optimizations on x86/x86_64 platforms'
+)
+
+option('install_headers',
+  type: 'boolean',
+  value: true,
+  description: 'Install C++ header files'
+)
