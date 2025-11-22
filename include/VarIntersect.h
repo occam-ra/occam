@@ -16,7 +16,7 @@ struct VarIntersect {
         bool sign;
         int count;
         VarIntersect() :
-                startIndex(0), sign(true), rel(NULL), count(1) {
+                startIndex(0), rel(NULL), sign(true), count(1) {
         }
 };
 

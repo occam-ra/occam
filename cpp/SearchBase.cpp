@@ -41,6 +41,7 @@ SearchBase::~SearchBase()
 
 Model **SearchBase::search(Model *start)
 {
+    (void)start;
     return NULL;	// should never be called
 }
 

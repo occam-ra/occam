@@ -149,7 +149,7 @@ void SearchStackEntry::dump(Model *model) {
 static void getComplement(int *innerList, int innerListCount, int *outerList, int maxcount) {
     int here = 0;
     int *outp = outerList;
-    int index;
+    int index = -1;
     //-- note: this code assumes innerList is sorted
     for (int i = 0; i < maxcount; i++) {
         while (here < innerListCount && (index = innerList[here]) < i) {
@@ -247,7 +247,6 @@ static bool pushRelation(SearchStackEntry *stack, int &top, Model *model, int re
         return pushStartingRelation(stack, top, model, relIndex);
 
     Relation *rel = model->getRelation(relIndex);
-    int maxcount = rel->getVariableList()->getVarCount(); // full var list size
     int varcount = rel->getVariableCount(); // size in this rel
     int *innerList, *outerList;
     int innerListCount, outerListCount;
@@ -486,7 +485,7 @@ Model** SearchSbFullUp::search(Model* start) {
             }
             models = new Model *[max_models + 1];
             memset(models, 0, sizeof(Model *) * (max_models + 1));
-            int cur_var = 0, cur_index = 0, model_count = 0;
+            int cur_var = 0, cur_index = 0;
             var_indices[cur_index] = var_list->getDV();
             if (DV->cardinality > 2) {
                 for (int i = 0; i < DV->cardinality; i++) {
@@ -520,7 +519,7 @@ Model** SearchSbFullUp::search(Model* start) {
             max_models *= var_list->getVariable(i)->cardinality + 1;
         models = new Model *[max_models + 1];
         memset(models, 0, sizeof(Model *) * (max_models + 1));
-        int cur_var = 0, cur_index = 0, model_count = 0;
+        int cur_var = 0, cur_index = 0;
         recurseDirected(start, cur_var, cur_index, var_indices, state_indices, models_found, models);
         delete[] var_indices;
         delete[] state_indices;
@@ -684,7 +683,6 @@ void SearchSbLooplessUp::recurseDirected(int cur_var, int cur_index, int *var_in
 
 bool SearchSbLooplessUp::addToCache(Model *model, int &models_found, Model **model_list) {
     ModelCache* cache = manager->getModelCache();
-    Model* cached_model = NULL;
     // put the model in the cache, or use the cached one if already there
     if (!cache->addModel(model)) {
         Model *cached_model = cache->findModel(model->getPrintName());
@@ -718,7 +716,7 @@ Model **SearchSbLooplessUp::search(Model *start) {
     int var_count = var_list->getVarCount();
     int rel_count = start->getRelationCount();
     int max_models = 0;
-    int models_found = NULL;
+    int models_found = 0;
     if (manager->hasLoops(start)) {
         printf("SearchSbLooplessUp: Error. Cannot complete a loopless search starting from a model with a loop.\n");
         exit(1);
@@ -753,7 +751,7 @@ Model **SearchSbLooplessUp::search(Model *start) {
             }
             model_list = new Model *[max_models + 1];
             memset(model_list, 0, sizeof(Model *) * (max_models + 1));
-            int cur_var = 0, cur_index = 0, model_count = 0;
+            int cur_var = 0, cur_index = 0;
             var_indices[cur_index] = var_list->getDV();
             if (DV->cardinality > 2) {
                 for (int i = 0; i < DV->cardinality; i++) {
@@ -1009,7 +1007,7 @@ Model **SearchLooplessUp::search(Model *start) {
                 if (((VBMManager *) manager)->applyFilter(model)) {
                     models[slot++] = model;
                 }
-                delete relvars;
+                delete[] relvars;
             }
         }
     }
@@ -1217,10 +1215,9 @@ bool SearchChain::makeChainModels() {
         static char *oldBrk = 0;
         if (oldBrk == 0)
             oldBrk = (char*) sbrk(0);
-        double used = ((char*) sbrk(0)) - oldBrk;
+        (void)((char*) sbrk(0) - oldBrk);  // Track memory usage
 #else
         // Windows: Memory tracking disabled
-        double used = 0.0;
 #endif
         if (!cache->addModel(model)) {
             Model *cachedModel = cache->findModel(model->getPrintName());
@@ -1300,7 +1297,6 @@ Model **SearchChain::search(Model *start) {
 Model **SearchDisjointDown::search(Model *start) {
 
     VariableList *varList = manager->getVariableList();
-    int varcount = varList->getVarCount();
     bool isDirected = varList->isDirected();
     int relCount = start->getRelationCount();
     int numModels = 100;

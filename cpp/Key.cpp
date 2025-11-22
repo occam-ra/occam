@@ -51,6 +51,7 @@ void Key::buildFullKey(KeySegment *key, int keysize, class VariableList *vars, i
  */
 void Key::setKeyValue(KeySegment *key, int keysize, class VariableList *vars, int index, int value)
 {
+    (void)keysize;
     Variable *var = vars->getVariable(index);
     int segment = var->segment;
     KeySegment mask = var->mask;
@@ -63,10 +64,11 @@ void Key::setKeyValue(KeySegment *key, int keysize, class VariableList *vars, in
  */
 int Key::getKeyValue(KeySegment *key, int keysize, class VariableList *vars, int index)
 {
+    (void)keysize;
     KeySegment temp = 0;
     Variable *var = vars->getVariable(index);
     int segment = var->segment;
-    temp = (key[segment] & var->mask); 
+    temp = (key[segment] & var->mask);
     int value = temp >> var->shift;
     return value;
 }
@@ -187,11 +189,11 @@ void Key::keyToUserString(KeySegment *key, VariableList *vars, char *str, const 
             //assert(value >= 0 && value < 16);
             if (showKey) {
                 int len1 = strlen(map[value]);
-                strncpy(cp, map[value], len1);
+                memcpy(cp, map[value], len1);
                 cp += len1;
             }
             if (dlen > 0) {
-                strncpy(cp, delim, dlen);
+                memcpy(cp, delim, dlen);
                 cp += dlen;
             }
         }

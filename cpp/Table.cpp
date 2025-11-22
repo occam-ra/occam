@@ -305,7 +305,7 @@ void Table::dump(bool detail)
         KeySegment *key = getKey(i);
         double value = getValue(i);
         if (detail) {
-            printf("\t%d. ", i);
+            printf("\t%lld. ", i);
             Key::dumpKey(key, keysize);
             printf("%g<br>", value);
         }

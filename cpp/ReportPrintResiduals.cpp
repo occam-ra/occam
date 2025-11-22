@@ -271,7 +271,8 @@ void Report::findLift(Relation* rel, double sample_size, double& lift, char*& st
     KeySegment* bestKey = nullptr;
 
     auto tableAction = [&](Relation* rel, double value, KeySegment* refkey, double refvalue, double iviValue) {
-       
+        (void)rel;
+        (void)refvalue;
         double newLift = value / iviValue;
         double newFreq = value;
 

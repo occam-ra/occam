@@ -420,7 +420,7 @@ void SBMManager::computeDependentStatistics(Model *model) {
     if (!getVariableList()->isDirected())
         return; // can only do this for directed models
     double depH = topRef->getRelation(0)->getAttribute(ATTRIBUTE_DEP_H);
-    Relation *indRel;
+    Relation *indRel = NULL;
     int i;
     for (i = 0; i < bottomRef->getRelationCount(); i++) {
         indRel = bottomRef->getRelation(i);
@@ -429,7 +429,6 @@ void SBMManager::computeDependentStatistics(Model *model) {
     }
     double indH = indRel->getAttribute(ATTRIBUTE_H);
     double refH = computeH(bottomRef);
-    double refCondH = refH - indH;
 
     //printf("compute H in SB computeDependStat\n");
     double h = computeH(model, IPF);
@@ -615,7 +614,8 @@ void SBMManager::computePercentCorrect(Model *model) {
         delete predTestTable;
     }
     delete maxTable;
-    delete predModelTable, predInputTable;
+    delete predModelTable;
+    delete predInputTable;
 }
 
 void SBMManager::setFilter(const char *attrname, double attrvalue, RelOp op) {

@@ -125,7 +125,7 @@ void VBMManager::makeAllChildRelations(Relation *rel, Relation **children, bool 
     for (int r = order - 1; r >= 0; r--) {
         children[r] = getChildRelation(rel, rel->getVariable(r), makeProject);
     }
-    delete varindices;
+    delete[] varindices;
 }
 
 Model *VBMManager::makeChildModel(Model *model, int remove, bool *fromCache, bool makeProject) {
@@ -142,7 +142,7 @@ Model *VBMManager::makeChildModel(Model *model, int remove, bool *fromCache, boo
             for (int j = 0; j < varCount; j++) {
                 newModel->addRelation(children[j]);
             }
-            delete children;
+            delete[] children;
         } else {
             newModel->addRelation(rel);
         }
@@ -866,7 +866,8 @@ void VBMManager::computePercentCorrect(Model *model) {
         delete predTestTable;
     }
     delete maxTable;
-    delete predModelTable, predInputTable;
+    delete predModelTable;
+    delete predInputTable;
 }
 
 void VBMManager::setFilter(const char *attrname, double attrvalue, RelOp op) {

@@ -196,9 +196,12 @@ private:
     }
     
 public:
-    PyVBMManager() : report(nullptr), debug_mode(false), 
-                     report_separator(3), ref_model("bottom"),
-                     calc_expected_dv(false), skip_trained_model_table(false),
+    PyVBMManager() : report(nullptr),
+                     report_separator(3),
+                     ref_model("bottom"),
+                     debug_mode(false),
+                     calc_expected_dv(false),
+                     skip_trained_model_table(false),
                      skip_ivi_tables(false) {
         // Default report variables - matching server output format
         report_variables = "level$I, h, ddf$I, lr, alpha, %dH(DV), daic, dbic, incr_alpha, pct_correct_data";
@@ -865,9 +868,12 @@ private:
     }
 
 public:
-    PySBMManager() : report(nullptr), debug_mode(false),
-                     report_separator(3), ref_model("bottom"),
-                     calc_expected_dv(false), skip_trained_model_table(false),
+    PySBMManager() : report(nullptr),
+                     report_separator(3),
+                     ref_model("bottom"),
+                     debug_mode(false),
+                     calc_expected_dv(false),
+                     skip_trained_model_table(false),
                      skip_ivi_tables(false) {
         report_variables = "level$I, h, ddf$I, lr, alpha, %dH(DV), daic, dbic, incr_alpha, pct_correct_data";
     }

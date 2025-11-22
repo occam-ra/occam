@@ -229,7 +229,7 @@ void VariableList::dump() {
     for (int i = 0; i < varCount; i++) {
         Variable *v = vars + i;
         printf("\t%d\t%d\t%d\t%d\t%d\t%8s\t%s\t%0*lx\t", v->dv, v->cardinality, v->segment, v->size, v->shift, v->name,
-                v->abbrev, sizeof(KeySegment) * 2, v->mask);
+                v->abbrev, (int)(sizeof(KeySegment) * 2), v->mask);
         for (int j = 0; j < v->cardinality; j++) {
             printf("%s\t", getVarValue(i,j));
         }

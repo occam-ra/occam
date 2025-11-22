@@ -292,7 +292,7 @@ void Report::print(FILE *fd) {
     else
         fprintf(fd, "</table><br>\n");
 
-    delete attrID;
+    delete[] attrID;
 }
 
 // Print out the line of column headers for the search output report
@@ -455,6 +455,8 @@ void printConfusionMatrixHTML(const char* dv_name, const char* dv_target, double
 }
 
 void printConfusionMatrixStatsHTML(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    (void)dv_name;
+    (void)dv_target;
     // TODO: DRY this out
     // Population totals
     const double pop = tp + fp + tn + fn;
@@ -464,8 +466,6 @@ void printConfusionMatrixStatsHTML(const char* dv_name, const char* dv_target, d
     const double real_neg = tn + fp;
 
     const double right = tp + tn;
-    const double wrong = fp + fn;
-    const double prevalence = double(real_pos) / pop;
     const double accuracy = double(right) / pop;
 
     // By test outcome:
@@ -500,14 +500,14 @@ void printConfusionMatrixCSV(const char* dv_name, const char* dv_target, double 
     printf(",,|,RN=,%0.3f,RP=,%0.3f,#correct=,%0.3f\n\n", tn + fn, tp + fp, tp + tn);
 }
 void printConfusionMatrixStatsCSV(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    (void)dv_name;
+    (void)dv_target;
     const double pop = tp + fp + tn + fn;
     const double rule_pos = tp + fp;
     const double rule_neg = tn + fn;
     const double real_pos = tp + fn;
     const double real_neg = tn + fp;
     const double right = tp + tn;
-    const double wrong = fp + fn;
-    const double prevalence = double(real_pos) / pop;
     const double accuracy = double(right) / pop;
     const double precision = double(tp) / rule_pos;
     const double npv = double(tn) / rule_neg;

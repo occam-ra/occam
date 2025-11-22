@@ -842,7 +842,7 @@ double gammds(double y, double p, int *ifault) {
 
 double ppchi(double p, double df, int *ifault) {
     int if1, kount;
-    double a, b, c, g, p1, p2, q, s1, s2, s3, s4, s5, s6, t, x, xx;
+    double a = 0.0, b, c, g, p1, p2, q, s1, s2, s3, s4, s5, s6, t, x, xx;
     double v = df;
     double ch;
     double ppchi;
@@ -1050,7 +1050,6 @@ double ocDegreesOfFreedomStateBased(Model *model) {
     bool have_pivot = false;
     int rowmax = 0;
     icol = 0;
-    int i1, j1;
     double *temp_ptr;
     for (irow = 0; irow < nrows; irow++) {    // Find pivot in column j, starting in row i:
         have_pivot = false;

@@ -140,7 +140,7 @@ int main(int argc, char* argv[]) {
             delete[] keptModels;
             keptCount = width < nextCount ? width : nextCount;
             keptModels = new Model*[keptCount];
-            printf("models: %d\tkept: %d\n", levelCount, keptCount); fflush(stdout);
+            printf("models: %ld\tkept: %ld\n", (long)levelCount, (long)keptCount); fflush(stdout);
             Report::sort(nextModels, nextCount, mgr->getSortAttr(), Direction::Descending);
             int i;
             for (i=0; i < keptCount; i++) {

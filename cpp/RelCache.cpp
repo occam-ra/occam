@@ -74,7 +74,6 @@ void RelCache::deleteTables() {
 bool RelCache::addRelation(class Relation *rel) {
     if (findRelation(rel->getPrintName()) != NULL)
         return false; //error; exists
-    KeySegment *mask = rel->getMask();
     int hashindex = hashcode(rel->getPrintName(), RELCACHE_HASHSIZE);
     rel->setHashNext(hash[hashindex]);
     hash[hashindex] = rel;

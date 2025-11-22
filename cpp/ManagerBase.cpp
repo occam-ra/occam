@@ -321,7 +321,7 @@ Relation *ManagerBase::getChildRelation(Relation *rel, int skip, bool makeProjec
     }
     //-- build and cache the relation
     newRel = getRelation(varindices, order - 1, makeProject, stateindices);
-    delete varindices;
+    delete[] varindices;
     return newRel;
 }
 
@@ -1252,8 +1252,8 @@ Model *ManagerBase::makeModel(const char *name, bool makeProject) {
             cp3 = strchr(cp2, ']');
             if (cp3 == NULL) {
                 delete model;
-                delete relname;
-                delete vars;
+                delete[] relname;
+                delete[] vars;
                 return NULL; // error in name
             }
             relname[cp3 - relname] = '\0';
@@ -1274,11 +1274,11 @@ Model *ManagerBase::makeModel(const char *name, bool makeProject) {
                     varcount++;
                 }
             }
-            delete notVars;
+            delete[] notVars;
             if (varcount == 0) {
                 delete model;
-                delete relname;
-                delete vars;
+                delete[] relname;
+                delete[] vars;
                 return NULL; // error in name
             }
             rel = getRelation(vars, varcount, makeProject);
@@ -1286,16 +1286,16 @@ Model *ManagerBase::makeModel(const char *name, bool makeProject) {
             varcount = varList->getVariableList(relname, vars);
             if (varcount == 0) {
                 delete model;
-                delete relname;
-                delete vars;
+                delete[] relname;
+                delete[] vars;
                 return NULL; // error in name
             }
             rel = getRelation(vars, varcount, makeProject);
         }
         if (rel == NULL) {
             delete model;
-            delete relname;
-            delete vars;
+            delete[] relname;
+            delete[] vars;
             return NULL; // error in name
         }
         model->addRelation(rel, true);
@@ -1351,20 +1351,26 @@ Model *ManagerBase::makeSbModel(const char *name, bool makeProject) {
             const char *indName = getIndRelation()->getPrintName();
             varCount = varList->getVarStateList(indName, vars, states);
             if (varCount == 0) {
-                delete model, relName, vars;
+                delete model;
+                delete[] relName;
+                delete[] vars;
                 return NULL; // error in name
             }
             rel = getRelation(vars, varCount, makeProject, states);
         } else {
             varCount = varList->getVarStateList(relName, vars, states);
             if (varCount == 0) {
-                delete model, relName, vars;
+                delete model;
+                delete[] relName;
+                delete[] vars;
                 return NULL; // error in name
             }
             rel = getRelation(vars, varCount, makeProject, states);
         }
         if (rel == NULL) {
-            delete model, relName, vars;
+            delete model;
+            delete[] relName;
+            delete[] vars;
             return NULL; // error in name
         }
         model->addRelation(rel, true, getModelCache());

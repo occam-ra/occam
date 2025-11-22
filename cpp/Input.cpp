@@ -482,7 +482,7 @@ void ocRebinDefineVar(Options *options, VariableList *vars, LostVar ** lostvarp)
                         exit(1);
                     }
 
-                    while (temp = sscanf(rebin, "%[^; \t];%[^& ]", cur_token, rest)) {
+                    while ((temp = sscanf(rebin, "%[^; \t];%[^& ]", cur_token, rest)) != 0) {
                         cp = cur_token;
                         //if(temp==2)printf("cur_token %s and rest %s\n",cur_token,rest);
                         //else if(temp ==1)printf("cur token %s",cur_token);
@@ -526,7 +526,6 @@ void ocRebinDefineVar(Options *options, VariableList *vars, LostVar ** lostvarp)
                         char *cp = cur_token;
                         char rest_tok[MAXLINE];
                         char rest_tok1[MAXLINE];
-                        int flag_newval = 0;
                         char * ch1 = NULL;
 
                         int ret = 0;
@@ -570,7 +569,6 @@ void ocRebinDefineVar(Options *options, VariableList *vars, LostVar ** lostvarp)
                                     cp = rest_tok;
                                 else {
                                     flag_old_1 = 0;
-                                    flag_newval = 0;
                                     break;
                                 }
                             }
@@ -616,7 +614,6 @@ int ocReadFile(FILE *fd, Options *options, Table **indata, Table **testdata, Var
     Table *testdatap = NULL;
     LostVar *lostvarp = NULL;
     int dataLines = 0;
-    int testLines = 0;
     *vars = varp = new VariableList(8);
     if (fd) {
         options->readOptions(fd);
@@ -631,7 +628,7 @@ int ocReadFile(FILE *fd, Options *options, Table **indata, Table **testdata, Var
     //-- If there's still data, then it must be test data
     if (!feof(fd)) {
         *testdata = testdatap = new Table(varp->getKeySize(), 64);
-        testLines = ocReadData(fd, varp, testdatap, lostvarp);
+        ocReadData(fd, varp, testdatap, lostvarp);
         testdatap->sort();
     }
     bool result = varp->checkCardinalities();

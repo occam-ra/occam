@@ -261,7 +261,6 @@ int** Model::makeStateSpaceArray(VariableList *varList, int statespace) {
     }
     int l = varCount - 1;
     int i = 0;
-    int loop1 = 0;
     while (i < statespace - 1) {    // first copy from previous state
         for (int j = 0; j < varCount; j++) {
             stateSpaceArray[i + 1][j] = stateSpaceArray[i][j];
@@ -557,10 +556,10 @@ void Model::dump(bool detail) {
     //printf("\tModel: %s\n", getPrintName());
     attributeList->dump();
     printf("\n");
-    printf("\t\tSize: %d,\tRelCount: %d,\tMaxRel:%d\n", size(), getRelationCount(), maxRelationCount);
+    printf("\t\tSize: %ld,\tRelCount: %d,\tMaxRel:%d\n", (long)size(), getRelationCount(), maxRelationCount);
     if (detail) {
         if (fitTable)
-            printf(",\tFitTable: %d", fitTable->size());
+            printf(",\tFitTable: %lld", fitTable->size());
         for (int i = 0; i < relationCount; i++) {
             relations[i]->dump();
         }
