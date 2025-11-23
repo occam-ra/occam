@@ -4,6 +4,10 @@
 
 ### Option 1: Using Build/Run Scripts (Simplest)
 
+```bash
+# From the podman/ directory
+cd podman
+
 # Build the container
 ./build.sh
 
@@ -11,9 +15,14 @@
 ./run.sh
 
 # Visit http://localhost:5000
+```
 
 
 ### Option 2: Using Compose (Recommended for Production)
+
+```bash
+# From the podman/ directory
+cd podman
 
 # Auto-detects docker/podman and uses appropriate compose tool
 ./compose.sh up -d
@@ -25,17 +34,26 @@
 ./compose.sh down
 
 # Visit http://localhost:5000
+```
 
 
 ### Option 3: Manual Commands
 
-## With Podman:
-podman build -t occam-web:latest -f Dockerfile ..
-podman run -d -p 5000:5000 --name occam-web occam-web:latest
+**With Podman (from podman/ directory):**
+```bash
+cd podman
+BUILDAH_ISOLATION=chroot sudo -E podman build -t occam-web:latest -f Dockerfile ..
+sudo podman run -d -p 5000:5000 --name occam-web occam-web:latest
+```
 
-## With Docker:
+**With Docker (from podman/ directory):**
+```bash
+cd podman
 docker build -t occam-web:latest -f Dockerfile ..
 docker run -d -p 5000:5000 --name occam-web occam-web:latest
+```
+
+**Note:** Use `./build.sh` instead of manual commands - it handles permission issues automatically.
 
 
 ## Container Management
@@ -108,10 +126,8 @@ Both work! The scripts auto-detect which you have installed.
 
 ## For Complete Documentation
 
-See CONTAINER_README.md in this directory for:
-- Environment variables
-- Email configuration
-- Persistent volumes
-- Troubleshooting
-- Production deployment
-- Security considerations
+- **CONTAINER_README.md** - Full container reference and configuration
+- **CONTAINER_DEPLOYMENT.md** - Production deployment with Apache/Nginx reverse proxy
+- **podman/DEPLOYMENT_SCRIPTS.md** - Automated deployment scripts documentation
+
+All documentation is in the `docs/` directory.
