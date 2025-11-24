@@ -79,27 +79,7 @@ body {
     margin: 5px 0;
 }
 
-/* Output display for HTML results */
-div.output {
-    background: white;
-    border: 1px solid #ddd;
-    padding: 15px;
-    overflow-x: auto;
-    font-family: 'Courier New', Courier, monospace;
-    font-size: 0.9em;
-    line-height: 1.4;
-    white-space: pre;
-    overflow-y: auto;
-    max-height: 800px;
-}
-
-/* Keep tables in output from getting monospace font */
-div.output table {
-    font-family: verdana, helvetica, arial, sans-serif;
-    white-space: normal;
-}
-
-/* Legacy pre.output for backward compatibility */
+/* Output display for analysis results */
 pre.output {
     background: white;
     border: 1px solid #ddd;
