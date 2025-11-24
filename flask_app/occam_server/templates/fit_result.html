@@ -10,7 +10,9 @@
     <p><strong>Elapsed time:</strong> {{ "%.2f"|format(elapsed) }} seconds</p>
 </div>
 
-<pre class="output">{{ output }}</pre>
+<div class="output">
+{{ output | safe }}
+</div>
 
 {% if svg_content %}
 <hr>
