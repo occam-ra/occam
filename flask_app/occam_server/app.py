@@ -35,7 +35,8 @@ from utils import (
     get_unique_filename,
     get_timestamped_filename,
     unzip_data_file,
-    prepare_cached_data
+    prepare_cached_data,
+    convert_tabular_to_html
 )
 
 app = Flask(__name__)
@@ -176,6 +177,9 @@ def handle_fit_html(form_data, datafile, start_time):
 
         output = oc.do_fit(model_name, target)
 
+        # Parse output into table and text sections
+        sections = convert_tabular_to_html(output)
+
         # Generate graphs if requested
         svg_file = None
         gephi_data = None
@@ -200,7 +204,7 @@ def handle_fit_html(form_data, datafile, start_time):
         elapsed = time.time() - start_time
 
         return render_template('fit_result.html',
-                             output=output,
+                             sections=sections,
                              model=model_name,
                              elapsed=elapsed,
                              svg_content=svg_content,
@@ -274,6 +278,9 @@ def handle_search_html(form_data, datafile, start_time):
 
         output = oc.do_search(search_type, levels, width)
 
+        # Parse output into table and text sections
+        sections = convert_tabular_to_html(output)
+
         # Generate graphs for best model if requested
         svg_content = None
         gephi_data = None
@@ -300,7 +307,7 @@ def handle_search_html(form_data, datafile, start_time):
         elapsed = time.time() - start_time
 
         return render_template('search_result.html',
-                             output=output,
+                             sections=sections,
                              search_type=search_type,
                              levels=levels,
                              width=width,
@@ -371,6 +378,9 @@ def handle_sb_fit_html(form_data, datafile, start_time):
 
         output = oc.do_fit(model_name, target)
 
+        # Parse output into table and text sections
+        sections = convert_tabular_to_html(output)
+
         # Generate graphs if requested
         svg_content = None
         gephi_data = None
@@ -390,7 +400,7 @@ def handle_sb_fit_html(form_data, datafile, start_time):
         elapsed = time.time() - start_time
 
         return render_template('sbfit_result.html',
-                             output=output,
+                             sections=sections,
                              model=model_name,
                              elapsed=elapsed,
                              svg_content=svg_content,
@@ -458,6 +468,9 @@ def handle_sb_search_html(form_data, datafile, start_time):
 
         output = oc.do_search(search_type, levels, width)
 
+        # Parse output into table and text sections
+        sections = convert_tabular_to_html(output)
+
         # Generate graphs for best model if requested
         svg_content = None
         gephi_data = None
@@ -483,7 +496,7 @@ def handle_sb_search_html(form_data, datafile, start_time):
         elapsed = time.time() - start_time
 
         return render_template('sbsearch_result.html',
-                             output=output,
+                             sections=sections,
                              search_type=search_type,
                              levels=levels,
                              width=width,

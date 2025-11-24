@@ -92,6 +92,16 @@ pre.output {
     word-wrap: break-word;
 }
 
+/* Results table container */
+.results-table {
+    background: white;
+    padding: 15px;
+    margin: 15px 0;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
 /* Tables */
 table.data {
     border-collapse: collapse;

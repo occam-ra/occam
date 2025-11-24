@@ -196,3 +196,114 @@ def get_data_filename(form_data, trim=False, key='datafilename'):
     filename = '_'.join(filename.split())
 
     return filename
+
+
+def convert_tabular_to_html(text_output):
+    """
+    Parse tab-separated output and convert table sections to HTML tables.
+
+    Identifies all consecutive lines with consistent tab-separated columns and
+    converts them to HTML tables. Returns a list of sections alternating between
+    text and table content.
+
+    Args:
+        text_output: Tab-separated text output from OCCAM
+
+    Returns:
+        list of dicts with 'type' ('text' or 'table') and 'content' keys
+    """
+    lines = text_output.split('\n')
+    sections = []
+    i = 0
+
+    while i < len(lines):
+        # Look for the start of a table
+        table_start = -1
+        table_end = -1
+        expected_tabs = None
+
+        # Collect non-table lines as text
+        text_lines = []
+        while i < len(lines):
+            line = lines[i]
+            tab_count = line.count('\t')
+
+            # Check if this looks like a table line (at least 2 tabs = 3+ columns)
+            if tab_count >= 2 and line.strip():
+                # Found potential table start
+                table_start = i
+                expected_tabs = tab_count
+                break
+            else:
+                text_lines.append(line)
+                i += 1
+
+        # Add text section if we have any
+        if text_lines:
+            sections.append({
+                'type': 'text',
+                'content': '\n'.join(text_lines)
+            })
+
+        # If no table found, we're done
+        if table_start == -1:
+            break
+
+        # Now collect table lines with consistent column count
+        table_lines = [lines[i]]
+        i += 1
+        while i < len(lines):
+            line = lines[i]
+            if not line.strip():
+                # Empty line might be end of table
+                # Peek ahead to see if more table lines follow
+                if i + 1 < len(lines) and lines[i + 1].count('\t') == expected_tabs:
+                    table_lines.append(line)
+                    i += 1
+                    continue
+                else:
+                    break
+            elif line.count('\t') == expected_tabs:
+                table_lines.append(line)
+                i += 1
+            else:
+                # Different column count, table ended
+                break
+
+        # Build HTML table if we have at least header + 1 row
+        if len(table_lines) >= 2:
+            table_html = '<table class="data">\n'
+
+            # First non-empty line is header
+            headers = table_lines[0].split('\t')
+            table_html += '  <thead>\n    <tr>\n'
+            for header in headers:
+                table_html += f'      <th>{header.strip()}</th>\n'
+            table_html += '    </tr>\n  </thead>\n'
+
+            # Remaining lines are data rows
+            table_html += '  <tbody>\n'
+            for row_idx, line in enumerate(table_lines[1:]):
+                if not line.strip():
+                    continue
+                row_class = 'r1' if row_idx % 2 == 1 else ''
+                table_html += f'    <tr class="{row_class}">\n'
+                cells = line.split('\t')
+                for cell in cells:
+                    table_html += f'      <td>{cell.strip()}</td>\n'
+                table_html += '    </tr>\n'
+            table_html += '  </tbody>\n'
+            table_html += '</table>'
+
+            sections.append({
+                'type': 'table',
+                'content': table_html
+            })
+        else:
+            # Not enough rows for a table, treat as text
+            sections.append({
+                'type': 'text',
+                'content': '\n'.join(table_lines)
+            })
+
+    return sections

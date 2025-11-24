@@ -12,7 +12,15 @@
     <p><strong>Elapsed time:</strong> {{ "%.2f"|format(elapsed) }} seconds</p>
 </div>
 
-<pre class="output">{{ output }}</pre>
+{% for section in sections %}
+  {% if section.type == 'text' %}
+<pre class="output">{{ section.content }}</pre>
+  {% elif section.type == 'table' %}
+<div class="results-table">
+{{ section.content | safe }}
+</div>
+  {% endif %}
+{% endfor %}
 
 {% if svg_content %}
 <hr>
