@@ -5,7 +5,8 @@ dist/
 dist_test/
 *.egg-info/
 __pycache__/
-*.py
+# Ignore Python bytecode but NOT source files
+# *.py  # DON'T ignore all .py files - we need Flask app, config files!
 *.pyd
 *.pyo
 *.pyc
