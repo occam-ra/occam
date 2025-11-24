@@ -166,6 +166,9 @@ def handle_fit_html(form_data, datafile, start_time):
         # Configure options
         configure_manager(oc, form_data)
 
+        # Set HTML output format
+        oc.set_report_separator(OccamManager.HTMLFORMAT)
+
         # Perform fit
         model_name = form_data.get('model', '')
         target = form_data.get('negativeDVforConfusion', '')
@@ -254,6 +257,9 @@ def handle_search_html(form_data, datafile, start_time):
         oc.init_from_file(datafile)
 
         configure_manager(oc, form_data)
+
+        # Set HTML output format
+        oc.set_report_separator(OccamManager.HTMLFORMAT)
 
         # Get search parameters
         search_type = form_data.get('searchType', 'loopless-up')
@@ -354,6 +360,9 @@ def handle_sb_fit_html(form_data, datafile, start_time):
 
         configure_manager(oc, form_data)
 
+        # Set HTML output format
+        oc.set_report_separator(OccamManager.HTMLFORMAT)
+
         model_name = form_data.get('model', '')
         target = form_data.get('negativeDVforConfusion', '')
 
@@ -433,6 +442,9 @@ def handle_sb_search_html(form_data, datafile, start_time):
         oc.init_from_file(datafile)
 
         configure_manager(oc, form_data)
+
+        # Set HTML output format
+        oc.set_report_separator(OccamManager.HTMLFORMAT)
 
         search_type = form_data.get('searchType', 'sb-loopless-up')
         levels = int(form_data.get('searchLevels', 3))
