@@ -269,7 +269,44 @@ sudo certbot certificates
 
 ## Updating the Container
 
-To deploy a new version:
+### Option 1: Automated Remote Upgrade (Easiest)
+
+Use the `upgrade-remote.sh` script to upgrade from your local machine:
+
+```bash
+# On your local machine (where you built the image):
+cd podman
+
+# Upgrade container on remote server
+./upgrade-remote.sh myserver.com
+# or
+./upgrade-remote.sh 192.168.1.100 ubuntu
+```
+
+**What it does:**
+1. Saves local container image to tar
+2. Transfers to remote server via scp
+3. Stops and removes old container
+4. Loads new image
+5. Starts new container (preserves data volumes)
+
+### Option 2: Manual Upgrade on Remote Server
+
+Transfer the image and run upgrade script on the server:
+
+```bash
+# On local machine: Save and transfer
+cd podman
+sudo podman save -o occam-web.tar localhost/occam-web:latest
+scp occam-web.tar user@remote-server:/tmp/
+
+# On remote server: Run upgrade script
+ssh user@remote-server
+cd /tmp
+bash upgrade-local.sh occam-web.tar
+```
+
+### Option 3: Manual Step-by-Step
 
 ```bash
 # 1. Transfer new image to server
@@ -290,6 +327,8 @@ sudo bash deploy-container.sh
 
 # Web server configuration is unchanged
 ```
+
+**Important:** Container volumes (`occam-data` and `occam-logs`) are preserved during upgrades, so your data is safe.
 
 ## Backup and Restore
 
