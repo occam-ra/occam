@@ -145,8 +145,9 @@ def handle_fit(form_data, start_time):
     # Get data file
     datafile = get_data_file(form_data)
 
-    # Check for text format output
-    text_format = 'format' in form_data
+    # Check for text format output (CSV download vs HTML display)
+    # Radio button sends format="" for HTML or format="csv" for CSV
+    text_format = form_data.get('format', '') == 'csv'
 
     if text_format:
         # CSV/text output
@@ -242,7 +243,8 @@ def handle_fit_text(form_data, datafile, start_time):
 def handle_search(form_data, start_time):
     """Handle model search request"""
     datafile = get_data_file(form_data)
-    text_format = 'format' in form_data
+    # Check for CSV download vs HTML display
+    text_format = form_data.get('format', '') == 'csv'
 
     if text_format:
         return handle_search_text(form_data, datafile, start_time)
@@ -344,7 +346,8 @@ def handle_search_text(form_data, datafile, start_time):
 def handle_sb_fit(form_data, start_time):
     """Handle state-based model fitting"""
     datafile = get_data_file(form_data)
-    text_format = 'format' in form_data
+    # Check for CSV download vs HTML display
+    text_format = form_data.get('format', '') == 'csv'
 
     if text_format:
         return handle_sb_fit_text(form_data, datafile, start_time)
@@ -427,7 +430,8 @@ def handle_sb_fit_text(form_data, datafile, start_time):
 def handle_sb_search(form_data, start_time):
     """Handle state-based model search"""
     datafile = get_data_file(form_data)
-    text_format = 'format' in form_data
+    # Check for CSV download vs HTML display
+    text_format = form_data.get('format', '') == 'csv'
 
     if text_format:
         return handle_sb_search_text(form_data, datafile, start_time)
