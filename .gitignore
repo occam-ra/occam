@@ -1,67 +1,207 @@
-# Build artifacts
+# ============================================================================
+# PyOccam .gitignore - Clean Repository for Development
+# ============================================================================
+
+# -----------------------------------------------------------------------------
+# Build Artifacts
+# -----------------------------------------------------------------------------
 build/
 dist/
 *.egg-info/
 __pycache__/
-*.py
-*.pyd
-*.pyo
 *.pyc
+*.pyo
+*.pyd
+
+# Compiled object files
 *.o
 *.obj
-*.dll
-*.def
-*.lib
 *.so
 *.dylib
 
-# IDE files
-.vscode/
-.idea/
-*.swp
-*.swo
+# Windows module definition and library files
+*.def
+*.lib
+libpython*.a
 
-# Data files (ignore all, then add exceptions)
-*.txt
-*.csv
-*.dat
-*.json
-*.tsv
+# -----------------------------------------------------------------------------
+# Personal Configuration & Credentials
+# -----------------------------------------------------------------------------
+.pypirc
 
-# Python files (if you want to ignore test outputs)
-test_*.py
-*_test.py
+# -----------------------------------------------------------------------------
+# Output Files & Results (ignore all test/analysis output)
+# -----------------------------------------------------------------------------
+# Search and fit results
+search_*.txt
+fit_*.txt
+results*.txt
+*_output.txt
+advanced_analysis_output*.txt
+
+# Debug files
+debug*.txt
+full_debug*.txt
+cm_called.txt
+
+# Log files
+build_log.txt
+*_log.txt
+
+# Generated data files
+balanced_fire_data*.txt
+
+# Heatmaps and visualizations
+*.png
+fit_heatmap*.png
+
+# -----------------------------------------------------------------------------
+# Temporary Files & Directories
+# -----------------------------------------------------------------------------
+# Temporary RA analysis files (huge directory of generated data)
+pyoccam/temp_ra_files/
+pyoccam/_occam_runs/
+
+# Temporary Python scripts
 temp_*.py
 
-# Notebooks checkpoints
-.ipynb_checkpoints/
-*.ipynb
-
-# OS files
-.DS_Store
-Thumbs.db
-
-# MinGW DLLs (if you don't want to track them)
-libgcc_s_seh-1.dll
-libstdc++-6.dll
-libwinpthread-1.dll
+# Editor temporary files
+*.swp
+*.swo
+*~
+*.orig
 
 # Backup files
 *.bak
 *.backup
-*~
-*.orig
 
-# IMPORTANT EXCEPTIONS - Files to KEEP
-!.gitignore
-!README.md
-!MANIFEST.in
-!setup.py
-!pyoccam/setup.py
-!pyoccam/pyoccam_pybind11.cpp
+# -----------------------------------------------------------------------------
+# Wheel Files (don't version control built wheels)
+# -----------------------------------------------------------------------------
+windows-wheels/
+pyoccam/wheels/
+
+# -----------------------------------------------------------------------------
+# IDE & Editor Files
+# -----------------------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Jupyter notebook checkpoints
+.ipynb_checkpoints/
+
+# -----------------------------------------------------------------------------
+# Personal Analysis Scripts (root directory experiments)
+# -----------------------------------------------------------------------------
+# Keep core demo files, ignore personal analysis
+advanced_analysis.ipynb
+advanced_analysis.py
+basic_analysis.ipynb
+basic_analysis.py
+it-toolbox-core.py
+qgis-processing-script.py
+download-upload-safe.py
+downnload_and_upload_built_wheels.py
+
+# -----------------------------------------------------------------------------
+# Build Script Variants (keep main ones, ignore backups/variants)
+# -----------------------------------------------------------------------------
+build-all-pythons.bat
+build-clean-copy.bat
+build_complete.bat
+build_this_python.bat
+build_wheels.bat
+build_all_pythons_output.txt
+
+# Keep: build_all_pythons2.bat (main build script)
+
+# -----------------------------------------------------------------------------
+# Documentation Variants (keep core, ignore working copies)
+# -----------------------------------------------------------------------------
+claude.MD
+claude_output.md
+FILES_TO_COPY.md
+README_FIX.md
+REBUILD_INSTRUCTIONS.txt
+PyOccam_API_Reference1.md
+pyoccam_journey.txt
+COMMA_FIX_INSTRUCTIONS.md
+COMPLETE_FIX_GUIDE.md
+NEXT_STEPS_DEBUG.md
+Response_To_Cm_Struct_Implementation_Strategy.MD
+
+# Keep: README.md, INSTALL.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, 
+#       LICENSE, Occam_python_pacage_journey.md, PyOccam_API_Reference.md
+
+# -----------------------------------------------------------------------------
+# Config File Variants
+# -----------------------------------------------------------------------------
+MANIFEST.in.bak
+pyproject.toml.bak
+pyproject.toml.txt
+
+# Keep: MANIFEST.in, setup.py
+
+# -----------------------------------------------------------------------------
+# File List (don't track this meta-file)
+# -----------------------------------------------------------------------------
+filelist.txt
+tree.txt
+
+# ============================================================================
+# IMPORTANT: Files TO KEEP (explicitly tracked)
+# ============================================================================
+# These files ARE tracked despite patterns above:
+
+# Core source files (all .cpp, .h files in root and subdirectories)
+# No need to list - they're not matched by ignore patterns
+
+# Essential Python files
+!pyoccam/__init__.py
+!pyoccam/pyoccam_demo.py
+!pyoccam/test_exact_server.py
+
+# Example data files
 !pyoccam/dementia05.txt
 !pyoccam/landslides.txt
-!pyoccam/pyoccam_demo.py
+
+# Example notebook
 !pyoccam/pyoccam_demo.ipynb
-!pyoccam/test_exact_server.py
-!build_pyoccam.bat
+
+# Core build infrastructure
+!setup.py
+!MANIFEST.in
+!Makefile
+!build_all_pythons2.bat
+
+# Core documentation
+!README.md
+!LICENSE
+!INSTALL.md
+!CONTRIBUTING.md
+!CODE_OF_CONDUCT.md
+!Occam_python_pacage_journey.md
+!PyOccam_API_Reference.md
+!CM_Struct_Implementation_Strategy.md
+
+# Test infrastructure
+!tests/
+
+# ============================================================================
+# Summary: What Gets Committed
+# ============================================================================
+# ✓ All C++ source (.cpp, .h)
+# ✓ Core Python files (__init__.py, setup.py, pyoccam_pybind11.cpp)
+# ✓ Example data (dementia05.txt, landslides.txt)
+# ✓ Example scripts (pyoccam_demo.py, pyoccam_demo.ipynb)
+# ✓ Documentation (README.md, LICENSE, INSTALL.md, API docs, journey docs)
+# ✓ Build infrastructure (setup.py, MANIFEST.in, Makefile, build_all_pythons2.bat)
+# ✓ Test files (tests/ directory)
+# ✗ Temporary output (search results, fit results, debug logs)
+# ✗ Built wheels (windows-wheels/, pyoccam/wheels/)
+# ✗ Build artifacts (build/, dist/, *.egg-info/)
+# ✗ Personal analysis scripts
+# ✗ Temporary RA data files
+# ============================================================================

@@ -1,5 +1,5 @@
 /*
- * Copyright © 1990 The Portland State University OCCAM Project Team
+ * Copyright Ãƒâ€šÃ‚Â© 1990 The Portland State University OCCAM Project Team
  * [This program is licensed under the GPL version 3 or later.]
  * Please see the file LICENSE in the source
  * distribution of this software for license terms.
@@ -25,15 +25,15 @@ using std::pow;
 #include "OccamMath.h"
 #include <climits>
 
-void Report::printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget) {
-    printConditional_DV(fd, model, NULL, calcExpectedDV, classTarget);
+void Report::printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget, bool skipIVItables) {
+    printConditional_DV(fd, model, NULL, calcExpectedDV, classTarget, skipIVItables);
 }
 
-void Report::printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, char* classTarget) {
-    printConditional_DV(fd, NULL, rel, calcExpectedDV, classTarget);
+void Report::printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, char* classTarget, bool skipIVItables) {
+    printConditional_DV(fd, NULL, rel, calcExpectedDV, classTarget, skipIVItables);
 }
 
-void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, char* classTarget) {
+void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, char* classTarget, bool skipIVItables) {
     if (model == NULL && rel == NULL) {
         fprintf(fd, "No model or relation specified.\n");
         return;
@@ -1219,19 +1219,102 @@ void Report::printConditional_DV(FILE *fd, Model *model, Relation *rel, bool cal
         // Print out the confusion matrix and associated statistics
         // Do this for the dual problem: flip positive and negative param order
         printConfusionMatrix(model, rel, dv_var->abbrev, classTarget, trtn, trfn, trtp, trfp, (test_sample_size > 0.0), tetn, tefn, tetp, tefp);
+        
+        /**
+         * CONFUSION MATRIX VALUE PERSISTENCE AND THE DOUBLE-SWAP PATTERN
+         * 
+         * PURPOSE:
+         * Store confusion matrix values in ManagerBase so they can be accessed by
+         * Python bindings (pyoccam_pybind11.cpp::get_confusion_matrix()) without
+         * having to regenerate the entire fit report.
+         * 
+         * THE DOUBLE-SWAP PATTERN:
+         * OCCAM computes confusion matrices for the "dual problem" - when the user
+         * specifies a "negative" class (e.g., Z=0), OCCAM internally swaps the
+         * positive/negative designation to handle the classification correctly.
+         * 
+         * This swap happens in TWO places:
+         * 1. When PRINTING: printConfusionMatrix() receives (trtn, trfn, trtp, trfp)
+         *    in line 1221 but internally swaps them before printing
+         * 2. When STORING: We apply the SAME swap here when storing to ManagerBase
+         * 
+         * WHY THE DOUBLE-SWAP?
+         * Without it, Python would receive the "pre-swap" values (e.g., trtn=105)
+         * while the printed text would show the "post-swap" values (e.g., TN=179).
+         * By swapping during storage, Python gets values that MATCH the printed output.
+         * 
+         * EXAMPLE (from dementia data, IV:ApZ model, target Z=0):
+         * - OCCAM computes: trtn=105, trtp=179, trfn=98, trfp=42
+         * - printConfusionMatrix swaps internally and prints: TN=179, TP=105, FN=98, FP=42
+         * - We swap when storing: cm.train_tn = trtp (179), cm.train_tp = trtn (105)
+         * - Python receives: TN=179, TP=105 MATCHES printed output!
+         * 
+         * LOCKING MECHANISM:
+         * Uses "first-write wins" pattern (checked via cm.has_values) to ensure
+         * we only store values for the MAIN model, not for component relations
+         * that get printed later in the same report.
+         */
+        
+        // Persist confusion matrix values to ManagerBase so they outlive this Report object
+        // Only store for main model (rel == NULL), not component relations
+        // Use "lock" pattern (first-write wins) to avoid overwriting with component values
+        if (rel == NULL && model != NULL && manager) {
+            auto cm = manager->getMainModelConfusionMatrix();
+            if (!cm.has_values) {  // First write wins - only store once per model
+                
+                // === TRAINING DATA VALUES ===
+                // DOUBLE-SWAP: Apply the same swap that printConfusionMatrix does
+                // This ensures Python receives values matching the printed text output
+                cm.train_tn = trtp;  // Swap: store trtp as TN (e.g., 179 not 105)
+                cm.train_tp = trtn;  // Swap: store trtn as TP (e.g., 105 not 179)
+                cm.train_fn = trfp;  // Swap: store trfp as FN (e.g., 42 not 98)
+                cm.train_fp = trfn;  // Swap: store trfn as FP (e.g., 98 not 42)
+                cm.has_values = true;
+                
+                // === MODEL AND TARGET METADATA ===
+                // Store which model and target state these CM values correspond to
+                // This enables cache validation in get_confusion_matrix()
+                const char* model_notation = model->getPrintName();
+                if (model_notation) {
+                    strncpy(cm.model_name, model_notation, sizeof(cm.model_name) - 1);
+                    cm.model_name[sizeof(cm.model_name) - 1] = '\0';
+                }
+                if (classTarget) {
+                    strncpy(cm.target_state, classTarget, sizeof(cm.target_state) - 1);
+                    cm.target_state[sizeof(cm.target_state) - 1] = '\0';
+                }
+                
+                // === TEST DATA VALUES (IF AVAILABLE) ===
+                if (test_sample_size > 0.0) {
+                    // DOUBLE-SWAP: Apply same swap pattern to test data
+                    cm.test_tn = tetp;  // Swap: store tetp as TN
+                    cm.test_tp = tetn;  // Swap: store tetn as TP
+                    cm.test_fn = tefp;  // Swap: store tefp as FN
+                    cm.test_fp = tefn;  // Swap: store tefn as FP
+                    cm.has_test_data = true;
+                } else {
+                    // No test data available - clear test fields
+                    cm.test_tn = cm.test_fp = cm.test_fn = cm.test_tp = 0.0;
+                    cm.has_test_data = false;
+                }
+                
+                // Commit the confusion matrix values to ManagerBase
+                manager->setMainModelConfusionMatrix(cm);
+            }
+        }
     }
 
 
     // If this is the entire model (not just a relation), print tables for each of the component relations,
     // if there are more than two of them (for VB) or more than 3 (for SB).
  
-    if ((rel == NULL) && ((model->getRelationCount() > 2 && !model->isStateBased()) || (model->isStateBased() && model->getRelationCount() > 3))) {
+    if (!skipIVItables && (rel == NULL) && ((model->getRelationCount() > 2 && !model->isStateBased()) || (model->isStateBased() && model->getRelationCount() > 3))) {
         for (int i = 0; i < model->getRelationCount(); i++) {
             if (model->getRelation(i)->isIndependentOnly())
                 continue;
             if (model->getRelation(i)->isDependentOnly())
                 continue;
-            printConditional_DV(fd, model->getRelation(i), calcExpectedDV, classTarget);
+            printConditional_DV(fd, model->getRelation(i), calcExpectedDV, classTarget, skipIVItables);
         }
     }
 

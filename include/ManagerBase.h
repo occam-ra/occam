@@ -1,5 +1,5 @@
 /*
- * Copyright © 1990 The Portland State University OCCAM Project Team
+ * Copyright Â© 1990 The Portland State University OCCAM Project Team
  * [This program is licensed under the GPL version 3 or later.]
  * Please see the file LICENSE in the source
  * distribution of this software for license terms.
@@ -11,6 +11,7 @@
 #include "Model.h"
 #include "Options.h"
 #include "VarIntersect.h"
+#include "ConfusionMatrixValues.h"
 #include <map>
 
 /**
@@ -245,6 +246,62 @@ class ManagerBase {
         class Table *getFitTable() {
             return fitTable1;
         }
+        
+        // ========== CONFUSION MATRIX STORAGE (for Python bindings) ==========
+        /**
+         * Confusion Matrix Storage System
+         * 
+         * These methods provide a global storage location for confusion matrix values
+         * that persists beyond the lifetime of temporary Report objects. This enables
+         * efficient programmatic access to CM values from Python without text parsing.
+         * 
+         * ARCHITECTURE:
+         * - Storage Location: ManagerBase (base class) so Report can access it
+         * - Population: Report::printConditional_DV() during fit report generation
+         * - Access: Python bindings via get_confusion_matrix()
+         * - Caching: Values cached with model name and target state for validation
+         * 
+         * WORKFLOW:
+         * 1. Python calls get_confusion_matrix(model, target)
+         * 2. Check cache: if values exist for this model/target, return them
+         * 3. Cache miss: generate fit report (populates CM as side effect)
+         * 4. Report::printConditional_DV() stores CM values here via set...()
+         * 5. Python reads stored values via get...()
+         * 
+         * IMPORTANT: Always call clearMainModelConfusionMatrix() before analyzing
+         * a new model to prevent returning stale cached values!
+         */
+        
+        /**
+         * Store confusion matrix values for the main model.
+         * Called by Report::printConditional_DV() after computing CM.
+         * 
+         * @param cm Confusion matrix values to store
+         */
+        void setMainModelConfusionMatrix(const ConfusionMatrixValues& cm) {
+            main_model_cm = cm;
+        }
+        
+        /**
+         * Retrieve cached confusion matrix values.
+         * Returns empty CM (has_values=false) if no values stored.
+         * 
+         * @return Current confusion matrix values
+         */
+        ConfusionMatrixValues getMainModelConfusionMatrix() const {
+            return main_model_cm;
+        }
+        
+        /**
+         * Clear cached confusion matrix values.
+         * MUST be called before analyzing a new model to prevent stale cache!
+         * 
+         * Resets the struct to default values (all zeros, has_values=false)
+         */
+        void clearMainModelConfusionMatrix() {
+            main_model_cm = ConfusionMatrixValues();  // Reset to defaults
+        }
+        
         // state based Model functions
         // calculates the number of state constraints generated
         // by a particular relation
@@ -300,6 +357,25 @@ class ManagerBase {
         double negativeConstant;
         bool valuesAreFunctions;
         Direction searchDirection;
+        
+        /**
+         * Confusion Matrix Storage for Main Model
+         * 
+         * Stores confusion matrix values for the most recently analyzed model.
+         * This member is populated by Report::printConditional_DV() and
+         * retrieved by Python bindings via get_confusion_matrix().
+         * 
+         * PLACEMENT: Protected (not private) so that derived classes like
+         * VBMManager can access it if needed for specialized operations.
+         * 
+         * LIFETIME: Persists across Report object creation/destruction,
+         * enabling Python to retrieve CM values after Report is deleted.
+         * 
+         * CACHING: Values include model_name and target_state for cache
+         * validation. Must call clearMainModelConfusionMatrix() before
+         * analyzing a new model to prevent stale data.
+         */
+        ConfusionMatrixValues main_model_cm;
 
 
 };

@@ -924,7 +924,23 @@ static void printRefTable(Model *model, FILE *fd, const char *ref, const char **
         line_sep = "-------------------------------------------------------------------------\n";
         header = "";
         beginLine = "    ";
-        separator = ",";
+        
+        // Use Report's separator instead of hardcoding comma
+        switch (Report::getSeparator()) {
+            case 1:  // TAB
+                separator = "\t";
+                break;
+            case 2:  // COMMA
+                separator = ",";
+                break;
+            case 3:  // SPACE
+                separator = "  ";
+                break;
+            default:
+                separator = "  ";
+                break;
+        }
+        
         endLine = "\n";
         footer = "\n";
         //headerSep = "    -----------------------------------------------\n";
@@ -974,7 +990,23 @@ void VBMManager::printFitReport(Model *model, FILE *fd) {
         line_sep = "-------------------------------------------------------------------------\n";
         header = "";
         beginLine = "    ";
-        separator = ",";
+        
+        // Use Report's separator instead of hardcoding comma
+        switch (Report::getSeparator()) {
+            case 1:  // TAB
+                separator = "\t";
+                break;
+            case 2:  // COMMA
+                separator = ",";
+                break;
+            case 3:  // SPACE
+                separator = "  ";
+                break;
+            default:
+                separator = "  ";
+                break;
+        }
+        
         endLine = "\n";
         footer = "\n";
     }
@@ -1071,7 +1103,15 @@ void VBMManager::printBasicStatistics() {
     } else {
         header = "";
         beginLine = "    ";
-        separator = ",";
+        // Use Report's static separator setting
+        int sepSetting = Report::getSeparator();
+        if (sepSetting == 3) {  // space-separated
+            separator = "  ";
+        } else if (sepSetting == 1) {  // tab-separated
+            separator = "\t";
+        } else {  // comma-separated (default for sepSetting == 2)
+            separator = ",";
+        }
         endLine = "";
         footer = "";
     }

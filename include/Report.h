@@ -72,7 +72,8 @@ class Report {
 	void print(FILE *fd);
 	void print(int fnum);	// use a file number instead of FILE*
 	//-- Set report separator type: 1=tab, 2=comma, 3=space filled
-	void setSeparator(int sep) { separator = sep; }
+	static void setSeparator(int sep) { separator = sep; }
+	static int getSeparator() { return separator; }
 
 	//-- HTML Mode - changes formatting
 	static bool isHTMLMode() {return htmlMode; }
@@ -87,12 +88,12 @@ class Report {
     void printSummary(FILE* fd, Model* model, double adjustConstant);
     //-- Print conditional DVs
 	//-- Print conditionals for a model.
-	void printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget);
+	void printConditional_DV(FILE *fd, Model *model, bool calcExpectedDV, char* classTarget, bool skipIVItables = false);
 	//-- Print conditionals for a relation.
-	void printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, char* classTarget);
+	void printConditional_DV(FILE *fd, Relation *rel, bool calcExpectedDV, char* classTarget, bool skipIVItables = false);
 	//-- This function is called by both of the others above.
 	//-- If both model and relation are present, the relation is printed.
-	void printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, char* classTarget);
+	void printConditional_DV(FILE *fd, Model *model, Relation *rel, bool calcExpectedDV, char* classTarget, bool skipIVItables = false);
 
     void printConfusionMatrix(Model* model, Relation* rel, const char* dv_name, const char* dv_target,
         double trtp, double trfp, double trtn, double trfn,
@@ -106,12 +107,12 @@ class Report {
     class ManagerBase *manager;
 
 	static bool htmlMode;
+	static int separator;
 	Model **models;
 	Model *defaultFitModel;
 	char **attrs;
 	long modelCount, maxModelCount;
 	long attrCount;
-	int separator;
 	void printSearchHeader(FILE *fd, int* attrID);
 	void printSearchRow(FILE *fd, Model* model, int* attrID, bool isOddRow);
     char* alloc_dv_header();

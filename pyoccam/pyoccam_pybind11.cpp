@@ -198,7 +198,7 @@ public:
     PyVBMManager() : report(nullptr), debug_mode(false), 
                      report_separator(3), ref_model("bottom"),
                      calc_expected_dv(false), skip_trained_model_table(false),
-                     skip_ivi_tables(false) {
+                     skip_ivi_tables(true) {  // Default to skipping IVI tables
         // Default report variables - matching server output format
         report_variables = "level$I, h, ddf$I, lr, alpha, %dH(DV), daic, dbic, incr_alpha, pct_correct_data";
     }
@@ -252,6 +252,7 @@ public:
     
     void set_report_separator(int sep) {
         report_separator = sep;
+        Report::setSeparator(sep);  // FIX: Actually set Report's static separator!
     }
     
     void set_report_variables(const std::string& variables) {
@@ -404,6 +405,11 @@ public:
                           << " new models, " << kept_count << " kept; "
                           << kept_models.size() << " total kept\n";
             
+            // Print progress using pybind11's py::print for Jupyter compatibility
+            py::print(py::str("Level {}/{}: {} new models, {} kept (total: {})")
+                .format(level, levels, candidates.size(), kept_count, kept_models.size()));
+            py::module_::import("sys").attr("stdout").attr("flush")();  // Force flush
+            
             // Stop if no models to expand
             if (current_beam.empty()) break;
         }
@@ -512,6 +518,11 @@ public:
     std::string generate_fit_report(const std::string& model_name, const std::string& target_state = "0") {
         // Following ocutils.py's doFit pattern
         
+        
+        // Clear confusion matrix before generating new report
+        // This ensures CM values are fresh for this model/target combination
+        manager.clearMainModelConfusionMatrix();
+        
         // Make the model with fit table (second parameter = 1)
         Model* model = manager.makeModel(model_name.c_str(), true);
         if (!model) {
@@ -613,11 +624,13 @@ public:
             // IMPORTANT: Pass the actual_target for confusion matrix
             // Don't pass empty string - that disables confusion matrix!
             fit_report->printConditional_DV(temp3, model, calc_expected_dv, 
-                                           const_cast<char*>(actual_target.c_str()));
+                                           const_cast<char*>(actual_target.c_str()), skip_ivi_tables);
             rewind(temp3);
             char buffer[4096];
+            int line_count = 0;
             while (fgets(buffer, sizeof(buffer), temp3)) {
                 output << buffer;
+                line_count++;
             }
             fclose(temp3);
             remove(tempname3);
@@ -630,6 +643,120 @@ public:
         delete fit_report;
         
         return output.str();
+    }
+    
+    // ========== CONFUSION MATRIX EXTRACTION ==========
+    // Simple architecture: get_confusion_matrix() only reads values
+    // If values don't exist OR are for a different model, it calls generate_fit_report()
+    
+    py::dict get_confusion_matrix(const std::string& model_name, 
+                                  const std::string& target_state = "0") {
+        py::dict result;
+        
+        
+        try {
+            // Check if we already have CM values for THIS specific model/target
+            auto cm = manager.getMainModelConfusionMatrix();
+            
+            // If no values exist, OR values are for a different model/target, regenerate
+            if (!cm.isFor(model_name.c_str(), target_state.c_str())) {
+                // Generate the fit report which stores CM as a side effect
+                generate_fit_report(model_name, target_state);
+                
+                // Now read the values that should have been stored
+                cm = manager.getMainModelConfusionMatrix();
+            } else {
+            }
+            
+            // Check if values were actually computed
+            if (!cm.has_values) {
+                result["error"] = "Confusion matrix could not be computed for this model/target. "
+                                 "Make sure the model is valid and the target state exists.";
+                result["has_values"] = false;
+                return result;
+            }
+            
+            // Double-check we got the right model (defensive)
+            if (!cm.isFor(model_name.c_str(), target_state.c_str())) {
+                result["error"] = "Internal error: CM computed for wrong model/target";
+                result["has_values"] = false;
+                return result;
+            }
+            
+            // Convert to Python dict (training data)
+            double total = cm.train_tp + cm.train_fp + cm.train_tn + cm.train_fn;
+            
+            // SKLEARN-COMPATIBLE KEYS: Use train_* and test_* prefixes
+            // Follows sklearn.model_selection.cross_validate() pattern
+            
+            // Training confusion matrix elements
+            result["train_tn"] = cm.train_tn;
+            result["train_fp"] = cm.train_fp;
+            result["train_fn"] = cm.train_fn;
+            result["train_tp"] = cm.train_tp;
+            
+            // Training derived metrics
+            result["train_accuracy"] = (total > 0) ? (cm.train_tp + cm.train_tn) / total : 0.0;
+            result["train_sensitivity"] = (cm.train_tp + cm.train_fn > 0) ? 
+                                          cm.train_tp / (cm.train_tp + cm.train_fn) : 0.0;
+            result["train_specificity"] = (cm.train_tn + cm.train_fp > 0) ? 
+                                          cm.train_tn / (cm.train_tn + cm.train_fp) : 0.0;
+            result["train_precision"] = (cm.train_tp + cm.train_fp > 0) ?
+                                        cm.train_tp / (cm.train_tp + cm.train_fp) : 0.0;
+            
+            // F1 score (harmonic mean of precision and recall/sensitivity)
+            double train_precision = result["train_precision"].cast<double>();
+            double train_sensitivity = result["train_sensitivity"].cast<double>();
+            result["train_f1_score"] = (train_precision + train_sensitivity > 0) ?
+                                       2.0 * (train_precision * train_sensitivity) / 
+                                       (train_precision + train_sensitivity) : 0.0;
+            
+            // NPV (Negative Predictive Value)
+            result["train_npv"] = (cm.train_tn + cm.train_fn > 0) ?
+                                  cm.train_tn / (cm.train_tn + cm.train_fn) : 0.0;
+            
+            result["has_values"] = true;
+            
+            // Test data if available
+            if (cm.has_test_data) {
+                double test_total = cm.test_tp + cm.test_fp + cm.test_tn + cm.test_fn;
+                
+                // Test confusion matrix elements
+                result["test_tn"] = cm.test_tn;
+                result["test_fp"] = cm.test_fp;
+                result["test_fn"] = cm.test_fn;
+                result["test_tp"] = cm.test_tp;
+                
+                // Test derived metrics
+                result["test_accuracy"] = (test_total > 0) ? 
+                                          (cm.test_tp + cm.test_tn) / test_total : 0.0;
+                result["test_sensitivity"] = (cm.test_tp + cm.test_fn > 0) ?
+                                             cm.test_tp / (cm.test_tp + cm.test_fn) : 0.0;
+                result["test_specificity"] = (cm.test_tn + cm.test_fp > 0) ?
+                                             cm.test_tn / (cm.test_tn + cm.test_fp) : 0.0;
+                result["test_precision"] = (cm.test_tp + cm.test_fp > 0) ?
+                                           cm.test_tp / (cm.test_tp + cm.test_fp) : 0.0;
+                
+                // Test F1 and NPV
+                double test_precision = result["test_precision"].cast<double>();
+                double test_sensitivity = result["test_sensitivity"].cast<double>();
+                result["test_f1_score"] = (test_precision + test_sensitivity > 0) ?
+                                          2.0 * (test_precision * test_sensitivity) / 
+                                          (test_precision + test_sensitivity) : 0.0;
+                result["test_npv"] = (cm.test_tn + cm.test_fn > 0) ?
+                                     cm.test_tn / (cm.test_tn + cm.test_fn) : 0.0;
+                
+                result["has_test_data"] = true;
+            } else {
+                result["has_test_data"] = false;
+            }
+            
+        } catch (const std::exception& e) {
+            result["error"] = std::string("Exception: ") + e.what();
+            result["has_values"] = false;
+        }
+        
+        return result;
     }
     
     // ========== BEST MODEL GETTERS ==========
@@ -825,6 +952,9 @@ PYBIND11_MODULE(_pyoccam, m) {
              py::arg("include_test_data") = false)
         .def("generate_fit_report", &PyVBMManager::generate_fit_report,
              "Generate complete fit report for a model (auto-includes test performance if test data present)",
+             py::arg("model_name"), py::arg("target_state") = "0")
+        .def("get_confusion_matrix", &PyVBMManager::get_confusion_matrix,
+             "Get confusion matrix for a model as a dictionary with TN, FP, FN, TP and derived metrics",
              py::arg("model_name"), py::arg("target_state") = "0")
         
         // Best model getters

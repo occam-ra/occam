@@ -1,5 +1,5 @@
 /*
- * Copyright © 1990 The Portland State University OCCAM Project Team
+ * Copyright Â© 1990 The Portland State University OCCAM Project Team
  * [This program is licensed under the GPL version 3 or later.]
  * Please see the file LICENSE in the source
  * distribution of this software for license terms.
@@ -20,6 +20,7 @@
 int attrDescCount = sizeof(attrDescriptions) / sizeof(attrDesc);
 bool Report::htmlMode = false;
 int Report::maxNameLength;
+int Report::separator = 3;
 
 
 Report::Report(class ManagerBase *mgr) {
@@ -32,7 +33,6 @@ Report::Report(class ManagerBase *mgr) {
     attrs = 0;
     modelCount = 0;
     attrCount = 0;
-    separator = 3;
 }
 
 Report::~Report() {
@@ -492,14 +492,49 @@ void printConfusionMatrixStatsHTML(const char* dv_name, const char* dv_target, d
     printf("</table>");
 }
 
-void printConfusionMatrixCSV(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
-      printf(",Actual,|,Rule\n");
+// TAB format - tab separated for spreadsheets
+void printConfusionMatrixTab(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    printf("\tActual\t|\tRule\n");
+    printf("\t\t|\t%s%s%s\t\t%s%s%s\n", dv_name, equals_sign(false), dv_target, dv_name, not_equals_sign(false), dv_target);
+    printf("\t%s%s%s\t|\tTN=\t%0.3f\tFP=\t%0.3f\tAN=\t%0.3f\n", dv_name, equals_sign(false), dv_target, tn, fp, tn + fp);
+    printf("\t%s%s%s\t|\tFN=\t%0.3f\tTP=\t%0.3f\tAP=\t%0.3f\n", dv_name, not_equals_sign(false), dv_target, fn, tp, fn + tp);
+    printf("\t\t|\tRN=\t%0.3f\tRP=\t%0.3f\t#correct=\t%0.3f\n\n", tn + fn, tp + fp, tp + tn);
+}
+
+// COMMA format - comma separated for spreadsheets
+void printConfusionMatrixComma(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    printf(",Actual,|,Rule\n");
     printf(",,|,%s%s%s,,%s%s%s\n", dv_name, equals_sign(false), dv_target, dv_name, not_equals_sign(false), dv_target);
     printf(",%s%s%s,|,TN=,%0.3f,FP=,%0.3f,AN=,%0.3f\n", dv_name, equals_sign(false), dv_target, tn, fp, tn + fp);
-    printf(",%s%s%s,|,FN=,%0.3f,TP=,%0.3f,AP=,%0.3f\n",dv_name, not_equals_sign(false), dv_target, fn, tp, fn + tp);
+    printf(",%s%s%s,|,FN=,%0.3f,TP=,%0.3f,AP=,%0.3f\n", dv_name, not_equals_sign(false), dv_target, fn, tp, fn + tp);
     printf(",,|,RN=,%0.3f,RP=,%0.3f,#correct=,%0.3f\n\n", tn + fn, tp + fp, tp + tn);
 }
-void printConfusionMatrixStatsCSV(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+
+// Space-separated format - nicely formatted for readability
+void printConfusionMatrixSpace(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    // Build the header labels with proper spacing
+    char pos_label[64], neg_label[64];
+    snprintf(pos_label, sizeof(pos_label), "%s=%s", dv_name, dv_target);
+    snprintf(neg_label, sizeof(neg_label), "%s=not%s", dv_name, dv_target);
+    
+    // Print the header with proper label alignment:
+    // - pos_label (Z=0) aligns above TN column
+    // - neg_label (Z=not0) aligns above FP column  
+    printf("\n");
+    printf("                        |           Rule Prediction\n");
+    printf("         Actual         |    %-12s       %-12s\n", pos_label, neg_label);  // ← FIXED: 7 spaces between labels
+    printf("  -------------------------------------------------------------------\n");
+    
+    // Print the data rows with PERFECTLY ALIGNED pipes at column 24
+    // Format: 3 spaces + 21-char label field (no space) + pipe = column 24
+    printf("   %-21s|    TN = %7.0f      FP = %7.0f      AN = %7.0f\n", pos_label, tn, fp, tn + fp);
+    printf("   %-21s|    FN = %7.0f      TP = %7.0f      AP = %7.0f\n", neg_label, fn, tp, fn + tp);
+    printf("  -------------------------------------------------------------------\n");
+    printf("   %-21s|    RN = %7.0f      RP = %7.0f      #correct = %7.0f\n", "Rule Totals", tn + fn, tp + fp, tp + tn);
+    printf("\n");
+}
+// TAB format stats - tab separated
+void printConfusionMatrixStatsTab(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
     const double pop = tp + fp + tn + fn;
     const double rule_pos = tp + fp;
     const double rule_neg = tn + fn;
@@ -514,14 +549,72 @@ void printConfusionMatrixStatsCSV(const char* dv_name, const char* dv_target, do
     const double sensitivity = double(tp) / real_pos;
     const double specificity = double(tn) / real_neg;
     const double f_1 = 2 * (precision * sensitivity) / (precision + sensitivity);
+    
+    printf("\tStatistic\tDefinition\tValue\n");
+    printf("\t%%correct\tcorrect / sample size\t%.03f\n", accuracy);
+    printf("\tSensitivity (aka Recall)\t(TP / AP)\t"); printd(sensitivity); printf("\n");
+    printf("\tSpecificity\t(TN / AN)\t"); printd(specificity); printf("\n");
+    printf("\tPrecision\t(TP / RP)\t"); printd(precision); printf("\n");
+    printf("\tNegative Predictive Value\t(TN / RN)\t"); printd(npv); printf("\n");
+    printf("\t>F1 score\t(precision * sensitivity) / (precision + sensitivity)\t%.03f\n", f_1);
+    printf("\n");
+}
+
+// COMMA format stats - comma separated
+void printConfusionMatrixStatsComma(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    const double pop = tp + fp + tn + fn;
+    const double rule_pos = tp + fp;
+    const double rule_neg = tn + fn;
+    const double real_pos = tp + fn;
+    const double real_neg = tn + fp;
+    const double right = tp + tn;
+    const double wrong = fp + fn;
+    const double prevalence = double(real_pos) / pop;
+    const double accuracy = double(right) / pop;
+    const double precision = double(tp) / rule_pos;
+    const double npv = double(tn) / rule_neg;
+    const double sensitivity = double(tp) / real_pos;
+    const double specificity = double(tn) / real_neg;
+    const double f_1 = 2 * (precision * sensitivity) / (precision + sensitivity);
+    
     printf(",Statistic,Definition,Value\n");
     printf(",%%correct,correct / sample size,%.03f\n", accuracy);
-
     printf(",Sensitivity (aka Recall), (TP / AP),"); printd(sensitivity); printf("\n");
     printf(",Specificity,(TN / AN),"); printd(specificity); printf("\n");
     printf(",Precision,(TP / RP),"); printd(precision); printf("\n");
     printf(",Negative Predictive Value,(TN / RN),"); printd(npv); printf("\n");
     printf(",>F1 score,(precision * sensitivity) / (precision + sensitivity),%.03f\n", f_1);
+    printf("\n");
+}
+
+// Space-separated format stats - nicely formatted
+void printConfusionMatrixStatsSpace(const char* dv_name, const char* dv_target, double tp, double fp, double tn, double fn) {
+    const double pop = tp + fp + tn + fn;
+    const double rule_pos = tp + fp;
+    const double rule_neg = tn + fn;
+    const double real_pos = tp + fn;
+    const double real_neg = tn + fp;
+    const double right = tp + tn;
+    const double wrong = fp + fn;
+    const double prevalence = double(real_pos) / pop;
+    const double accuracy = double(right) / pop;
+    const double precision = double(tp) / rule_pos;
+    const double npv = double(tn) / rule_neg;
+    const double sensitivity = double(tp) / real_pos;
+    const double specificity = double(tn) / real_neg;
+    const double f_1 = 2 * (precision * sensitivity) / (precision + sensitivity);
+    
+    printf("  Additional Statistics:\n");
+    printf("  -------------------------------------------------------------------\n");
+    printf("   %-30s  %s\n", "Statistic", "Value");
+    printf("  -------------------------------------------------------------------\n");
+    printf("   %-30s  %.3f\n", "Accuracy (correct/total)", accuracy);
+    printf("   %-30s  ", "Sensitivity (Recall)"); printd(sensitivity); printf("\n");
+    printf("   %-30s  ", "Specificity"); printd(specificity); printf("\n");
+    printf("   %-30s  ", "Precision"); printd(precision); printf("\n");
+    printf("   %-30s  ", "Negative Predictive Value"); printd(npv); printf("\n");
+    printf("   %-30s  %.3f\n", "F1 Score", f_1);
+    printf("  -------------------------------------------------------------------\n");
     printf("\n");
 }
 
@@ -548,28 +641,53 @@ void Report::printConfusionMatrix(Model* model, Relation* rel,
     printf("Confusion Matrix for Fit Rule (Training)\n");
 
     if(htmlMode) {
+        // case 0: HTML
         printf("<br><br>");
         printConfusionMatrixHTML(dv_name, dv_target, trtp, trfp, trtn, trfn);
         printf("<br>&nbsp;&nbsp;Additional Statistics (Training)\n");
         printConfusionMatrixStatsHTML(dv_name, dv_target, trtp,trfp,trtn,trfn);
     } else {
-        printConfusionMatrixCSV(dv_name, dv_target, trtp,trfp,trtn,trfn);
-        printf(",Additional Statistics (Training)\n");
-        printConfusionMatrixStatsCSV(dv_name, dv_target, trtp,trfp,trtn,trfn);
+        // Handle TAB, COMMA, SPACE separators
+        // Use TAB or SPACE for cleaner output; COMMA for CSV export
+        switch(separator) {
+            case 2:  // COMMASEP - CSV format
+                printConfusionMatrixComma(dv_name, dv_target, trtp,trfp,trtn,trfn);
+                printf(",Additional Statistics (Training)\n");
+                printConfusionMatrixStatsComma(dv_name, dv_target, trtp,trfp,trtn,trfn);
+                break;
+            case 1:  // TABSEP - Tab separated (cleaner than comma)
+            case 3:  // SPACESEP - Space filled (same as tab for now)
+            default:
+                printConfusionMatrixSpace(dv_name, dv_target, trtp,trfp,trtn,trfn);
+                printConfusionMatrixStatsSpace(dv_name, dv_target, trtp,trfp,trtn,trfn);
+                break;
+        }
     }
 
     if(htmlMode) { printf("<br><br>&nbsp;&nbsp;"); }
     if(test) {
         printf("Confusion Matrix for Fit Rule (Test)\n");
         if(htmlMode) {
+            // case 0: HTML
             printf("<br><br>");
             printConfusionMatrixHTML(dv_name, dv_target, tetp, tefp, tetn, tefn);
             printf("<br>&nbsp;&nbsp;Additional Statistics (Test)\n");
             printConfusionMatrixStatsHTML(dv_name, dv_target, tetp,tefp,tetn,tefn);
         } else {
-            printConfusionMatrixCSV(dv_name, dv_target, tetp,tefp,tetn,tefn);
-            printf(",Additional Statistics (Test)\n");
-            printConfusionMatrixStatsCSV(dv_name, dv_target, tetp,tefp,tetn,tefn);
+            // Handle TAB, COMMA, SPACE separators
+            switch(separator) {
+                case 2:  // COMMASEP - CSV format
+                    printConfusionMatrixComma(dv_name, dv_target, tetp,tefp,tetn,tefn);
+                    printf(",Additional Statistics (Test)\n");
+                    printConfusionMatrixStatsComma(dv_name, dv_target, tetp,tefp,tetn,tefn);
+                    break;
+                case 1:  // TABSEP - Tab separated (cleaner than comma)
+                case 3:  // SPACESEP - Space filled (same as tab for now)
+                default:
+                    printConfusionMatrixSpace(dv_name, dv_target, tetp,tefp,tetn,tefn);
+                    printConfusionMatrixStatsSpace(dv_name, dv_target, tetp,tefp,tetn,tefn);
+                    break;
+            }
         }
     }
 }
