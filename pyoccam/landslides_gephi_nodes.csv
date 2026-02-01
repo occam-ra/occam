@@ -1,0 +1,14 @@
+ID,Label,Type,Size
+c,c,Variable,10
+d,d,Variable,10
+Z,Landslide Occurrence,Variable,10
+f,f,Variable,10
+t,t,Variable,10
+v,v,Variable,10
+w,w,Variable,10
+l,l,Variable,10
+s,s,Variable,10
+R0,slZ,HyperEdge,4
+R1,twZ,HyperEdge,4
+R2,fdZ,HyperEdge,4
+R3,cvZ,HyperEdge,4

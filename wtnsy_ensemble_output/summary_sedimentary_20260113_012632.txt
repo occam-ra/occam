@@ -1,0 +1,52 @@
+================================================================================
+ENSEMBLE RA CLASSIFIER SUMMARY
+================================================================================
+
+BASE MODEL (Fallback):
+  IV:ElTtZ:SlZ:FdZ:LcZ:TbZ
+  Accuracy: 70.0%
+  Coverage: 2.8%
+
+SPECIALISTS MINED: 22
+  - IV:ElTtZ:SlZ:ClZ:TgZ
+  - IV:ElTtZ:SlZ:TgZ
+  - IV:ElTtZ:SlZ:LcZ:TbZ:TpZ
+  - IV:ElTtZ:SlZ:TbZ
+  - IV:ElTtZ:SlZ:FdZ:ClZ:TbZ
+  ... and 17 more
+
+RULE THRESHOLDS:
+  min_frequency: 20
+  min_confidence: 85.0%
+  min_accuracy: 90.0%
+  max_p_margin: 0.05
+
+RULES ACCEPTED: 100 (covering 3527 samples)
+
+TOP 25 RULES BY FREQUENCY:
+--------------------------------------------------------------------------------
+  1. El=1,Sl=2,Tb=1,Tt=1 -> Z=1  [n=104, conf=91.1%, acc=92%, p=0.0000]
+  2. El=1,Sl=2,Tg=6,Tt=1 -> Z=1  [n=100, conf=90.8%, acc=93%, p=0.0000]
+  3. El=1,Sl=2,Tg=6,Tb=1,Tt=1 -> Z=1  [n=100, conf=87.4%, acc=93%, p=0.0000]
+  4. El=1,Sl=2,Cl=4,Tb=1,Tt=1 -> Z=1  [n=76, conf=90.7%, acc=95%, p=0.0000]
+  5. El=1,Cl=1,Tg=14,Tt=10 -> Z=1  [n=75, conf=87.8%, acc=91%, p=0.0000]
+  6. El=1,Sl=2,Cl=4,Tg=6,Tt=1 -> Z=1  [n=74, conf=90.7%, acc=95%, p=0.0000]
+  7. El=1,Tb=4,Tt=1 -> Z=1  [n=73, conf=90.5%, acc=95%, p=0.0000]
+  8. El=1,Cl=3,Tg=6,Tt=1 -> Z=1  [n=63, conf=86.0%, acc=92%, p=0.0000]
+  9. El=1,Cl=3,Tg=22,Tt=1 -> Z=1  [n=57, conf=91.6%, acc=95%, p=0.0000]
+ 10. El=1,Tg=22,Tt=1 -> Z=1  [n=57, conf=91.5%, acc=95%, p=0.0000]
+ 11. El=1,Lc=9,Tg=14,Tt=10 -> Z=1  [n=54, conf=90.3%, acc=93%, p=0.0000]
+ 12. El=5,Tb=2,Tt=9 -> Z=0  [n=54, conf=92.7%, acc=93%, p=0.0000]
+ 13. El=1,Sl=3,Tg=14,Tt=10 -> Z=1  [n=50, conf=88.5%, acc=90%, p=0.0000]
+ 14. El=1,Sl=2,Tg=14,Tt=10 -> Z=1  [n=47, conf=86.2%, acc=91%, p=0.0000]
+ 15. El=2,Tb=4,Tt=1 -> Z=1  [n=47, conf=85.1%, acc=94%, p=0.0000]
+ 16. El=2,Cl=3,Tg=22,Tt=1 -> Z=1  [n=47, conf=89.5%, acc=94%, p=0.0000]
+ 17. El=2,Tg=22,Tt=1 -> Z=1  [n=47, conf=90.0%, acc=94%, p=0.0000]
+ 18. El=2,Sl=2,Tg=14,Tt=9 -> Z=1  [n=46, conf=89.0%, acc=91%, p=0.0000]
+ 19. El=2,Sl=2,Tb=2,Tt=9 -> Z=1  [n=46, conf=90.4%, acc=91%, p=0.0000]
+ 20. El=1,Sl=2,Lc=8,Tb=1,Tt=1 -> Z=1  [n=46, conf=90.3%, acc=93%, p=0.0000]
+ 21. El=2,Lc=9,Tg=14,Tt=9 -> Z=1  [n=44, conf=86.3%, acc=91%, p=0.0000]
+ 22. El=1,Sl=3,Tg=14,Tb=2,Tt=10 -> Z=1  [n=44, conf=90.3%, acc=91%, p=0.0000]
+ 23. El=1,Sl=2,Lc=8,Tg=6,Tt=1 -> Z=1  [n=44, conf=86.4%, acc=95%, p=0.0000]
+ 24. El=1,Lc=9,Tg=6,Tt=1 -> Z=1  [n=43, conf=89.8%, acc=95%, p=0.0000]
+ 25. El=2,Sl=3,Tg=14,Tt=9 -> Z=1  [n=42, conf=91.2%, acc=90%, p=0.0000]

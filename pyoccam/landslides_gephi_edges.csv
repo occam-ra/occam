@@ -1,0 +1,13 @@
+Source,Target,Weight
+s,R0,1
+l,R0,1
+Z,R0,1
+t,R1,1
+w,R1,1
+Z,R1,1
+f,R2,1
+d,R2,1
+Z,R2,1
+c,R3,1
+v,R3,1
+Z,R3,1

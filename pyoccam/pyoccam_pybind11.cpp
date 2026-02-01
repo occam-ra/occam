@@ -378,6 +378,28 @@ public:
                     // Compute statistics
                     computeModelStatistics(child, refModel);
                     
+                    // CRITICAL FIX: Calculate incr_alpha_reachable for this child
+                    // A model is "reachable" (per OCCAM manual) if ALL steps from
+                    // the starting model have Inc.Alpha < 0.05
+                    double incr_alpha = child->getAttribute("incr_alpha");
+                    double parent_reachable = parent->getAttribute("incr_alpha_reachable");
+                    
+                    // Child is reachable only if:
+                    // 1. Parent was reachable (all previous steps were significant)
+                    // 2. This step is significant (incr_alpha < 0.05)
+                    bool is_reachable = (parent_reachable == 1.0 && incr_alpha < 0.05);
+                    child->setAttribute("incr_alpha_reachable", is_reachable ? 1.0 : 0.0);
+                    
+                    // Debug output for reachability tracking
+                    if (debug_mode) {
+                        printf("  %s: Inc.Alpha=%.6f, Parent reachable=%s, This step sig=%s -> %s\n",
+                               child->getPrintName(),
+                               incr_alpha,
+                               parent_reachable == 1.0 ? "YES" : "NO",
+                               incr_alpha < 0.05 ? "YES" : "NO",
+                               is_reachable ? "REACHABLE" : "not reachable");
+                    }
+                    
                     // Add to candidates for this level
                     candidates.push_back(child);
                 }
@@ -450,6 +472,21 @@ public:
             if (best_aic) best_models["aic"] = best_aic;
             if (best_info) best_models["information"] = best_info;
             if (best_info_alpha) best_models["info_alpha"] = best_info_alpha;
+            
+            // Debug output for best model selection
+            if (debug_mode) {
+                printf("\n=== Best Model Selection ===");
+                if (best_bic) printf("\n  Best by BIC: %s (dBIC=%.2f)", 
+                    best_bic->getPrintName(), best_bic->getAttribute("dbic"));
+                if (best_info) printf("\n  Best by raw Info: %s (%%dH=%.2f%%)",
+                    best_info->getPrintName(), best_info->getAttribute("information")*100);
+                if (best_info_alpha) printf("\n  Best by Info (OCCAM def): %s (%%dH=%.2f%%, Inc.Alpha=%.4f)",
+                    best_info_alpha->getPrintName(), 
+                    best_info_alpha->getAttribute("information")*100,
+                    best_info_alpha->getAttribute("incr_alpha"));
+                else printf("\n  Best by Info (OCCAM def): NONE - no models with all steps significant!");
+                printf("\n");
+            }
         }
         
         // Create fresh report for this search (delete old one if exists)
@@ -777,16 +814,27 @@ public:
         return "";
     }
     
+    // OCCAM Manual Definition (Section IV "Search Output"):
+    // "Best Model by Information" = highest information model that is REACHABLE,
+    // where "reachable" means ALL steps from starting model have Inc.Alpha < 0.05
     std::string get_best_model_by_information() {
-        auto it = best_models.find("information");
+        auto it = best_models.find("info_alpha");  // Uses statistically significant models only
         if (it != best_models.end() && it->second) {
             return std::string(it->second->getPrintName());
         }
         return "";
     }
     
+    // DEPRECATED: Use get_best_model_by_information() instead
+    // Kept for backward compatibility - returns same result
     std::string get_best_model_by_info_alpha() {
-        auto it = best_models.find("info_alpha");
+        return get_best_model_by_information();  // Just calls the main function
+    }
+    
+    // Get highest raw information (ignores statistical significance)
+    // WARNING: May return overfitted models! Use get_best_model_by_information() instead.
+    std::string get_best_model_by_raw_information() {
+        auto it = best_models.find("information");
         if (it != best_models.end() && it->second) {
             return std::string(it->second->getPrintName());
         }
@@ -959,13 +1007,15 @@ PYBIND11_MODULE(_pyoccam, m) {
         
         // Best model getters
         .def("get_best_model_by_bic", &PyVBMManager::get_best_model_by_bic,
-             "Get best model by BIC from kept models")
+             "Get best model by BIC (most parsimonious)")
         .def("get_best_model_by_aic", &PyVBMManager::get_best_model_by_aic,
-             "Get best model by AIC from kept models")
+             "Get best model by AIC")
         .def("get_best_model_by_information", &PyVBMManager::get_best_model_by_information,
-             "Get best model by information from kept models")
+             "Get best model by information (OCCAM manual definition: highest info where ALL steps have Inc.Alpha < 0.05)")
         .def("get_best_model_by_info_alpha", &PyVBMManager::get_best_model_by_info_alpha,
-             "Get best model by information with incremental alpha < 0.05")
+             "DEPRECATED: Use get_best_model_by_information() - returns same result")
+        .def("get_best_model_by_raw_information", &PyVBMManager::get_best_model_by_raw_information,
+             "Get model with highest raw information (WARNING: may be overfitted, ignores statistical significance)")
         
         // Model operations
         .def("make_model", &PyVBMManager::make_model,
@@ -998,5 +1048,5 @@ PYBIND11_MODULE(_pyoccam, m) {
     m.attr("SPACESEP") = 3;
     m.attr("HTMLFORMAT") = 4;
     
-    m.attr("__version__") = "0.1.2";
+    m.attr("__version__") = "0.1.3";  // Fixed get_best_model_by_information() to match OCCAM manual
 }

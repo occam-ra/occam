@@ -76,9 +76,10 @@ temp_*.py
 *.backup
 
 # -----------------------------------------------------------------------------
-# Wheel Files (don't version control built wheels)
+# Wheel Files
 # -----------------------------------------------------------------------------
-windows-wheels/
+# windows-wheels/ IS tracked - GitHub Actions picks up manually-built Windows
+# wheels from here (cibuildwheel skips Windows due to MinGW requirement)
 pyoccam/wheels/
 
 # -----------------------------------------------------------------------------
@@ -200,7 +201,8 @@ tree.txt
 # ✓ Build infrastructure (setup.py, MANIFEST.in, Makefile, build_all_pythons2.bat)
 # ✓ Test files (tests/ directory)
 # ✗ Temporary output (search results, fit results, debug logs)
-# ✗ Built wheels (windows-wheels/, pyoccam/wheels/)
+# ✓ Windows wheels (windows-wheels/) - needed by GitHub Actions
+# ✗ Old wheel archive (pyoccam/wheels/)
 # ✗ Build artifacts (build/, dist/, *.egg-info/)
 # ✗ Personal analysis scripts
 # ✗ Temporary RA data files

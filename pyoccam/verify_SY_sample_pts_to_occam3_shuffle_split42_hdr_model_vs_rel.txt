@@ -1,0 +1,110 @@
+    Model,IV:HbLcTcZ (Directed System)
+    IV Component:,ASpect_reclass; CLay_reclass; CurVature_reclass; ELevation_reclass; Fault_Dns_reclass; HaBitatMap_UTM; Geol_Lith; nlcd_2021_Land_Cover; Geol_rock_Type; Rd_strm_Dns_reclass; SLope_reclass; TWi_reclass; GeomDesc; TaxOrder; TaxSuborder; taxGrtGroup; TaxSubgrp; taxPartSize; TaxClname; DrainageCl,AsClCvElFdHbGlLcGtRdSlTwGdToTsGgTs1PsTcDc
+    Model Component: ,HaBitatMap_UTM; nlcd_2021_Land_Cover; TaxClname; LS,HbLcTcZ
+    Degrees of Freedom (DF):,3.0611e+08
+    Loops:,NO
+    Entropy(H):,10.4105
+    Information captured (%):,36.0481
+    Transmission (T):,0.572974
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),855.473,1
+    Pearson X2,597.388,
+    Delta DF (dDF),3.0611e+08,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),482.208,0
+    Pearson X2,597.388,
+    Delta DF (dDF),26,
+
+-------------------------------------------------------------------------
+
+
+========== RESIDUALS ==========
+
+
+
+========== CONDITIONAL PROBABILITY TABLES ==========
+
+Conditional DV (D) (%) for each IV composite state for the Model IV:HbLcTcZ.
+IV order: HbLcTc (HaBitatMap_UTM; nlcd_2021_Land_Cover; TaxClname).
+IV            |    Data            |    Model                            |Test Data        
+            |    obs. p(DV|IV)    |calc. q(DV|IV)                        |    obs. p(DV|IV)%correct
+Hb    Lc    Tc    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+1    1    1    |    19.000    5.263    94.737    |    51.161    48.839     0    1.000    5.263    0.919    1.000    |    4.000    25.000    75.000    25.000    75.000
+1    1    2    |    87.000    2.299    97.701    |    51.161    48.839     0    2.000    2.299    0.829    1.000    |    19.000    10.526    89.474    10.526    89.474
+1    1    3    |    3.000    66.667    33.333    |    51.161    48.839     0    2.000    66.667    0.968    1.000    |    2.000    100.000    0.000    100.000    100.000
+1    2    1    |    11.000    0.000    100.000    |    51.161    48.839     0    0.000    0.000    0.939    1.000    |    3.000    0.000    100.000    0.000    100.000
+1    2    2    |    33.000    21.212    78.788    |    51.161    48.839     0    7.000    21.212    0.895    1.000    |    12.000    25.000    75.000    25.000    75.000
+1    2    3    |    10.000    60.000    40.000    |    51.161    48.839     0    6.000    60.000    0.941    1.000    |    1.000    100.000    0.000    100.000    100.000
+1    3    2    |    12.000    25.000    75.000    |    51.161    48.839     0    3.000    25.000    0.936    1.000    |    2.000    0.000    100.000    0.000    100.000
+1    3    3    |    4.000    25.000    75.000    |    51.161    48.839     0    1.000    25.000    0.963    1.000    |    1.000    100.000    0.000    100.000    100.000
+2    1    1    |    18.000    0.000    100.000    |    51.161    48.839     0    0.000    0.000    0.921    1.000    |    2.000    0.000    100.000    0.000    100.000
+2    1    2    |    54.000    1.852    98.148    |    51.161    48.839     0    1.000    1.852    0.864    1.000    |    13.000    38.462    61.538    38.462    61.538
+2    1    3    |    7.000    100.000    0.000    |    51.161    48.839     0    7.000    100.000    0.951    1.000    |    2.000    100.000    0.000    100.000    100.000
+2    2    1    |    8.000    37.500    62.500    |    51.161    48.839     0    3.000    37.500    0.948    1.000    |    0.000    0.000    0.000    0.000    0.000
+2    2    2    |    121.000    42.975    57.025    |    51.161    48.839     0    52.000    42.975    0.798    1.000    |    34.000    41.176    58.824    41.176    58.824
+2    2    3    |    31.000    93.548    6.452    |    51.161    48.839     0    29.000    93.548    0.899    1.000    |    7.000    71.429    28.571    71.429    71.429
+2    3    1    |    2.000    0.000    100.000    |    51.161    48.839     0    0.000    0.000    0.974    1.000    |    0.000    0.000    0.000    0.000    0.000
+2    3    2    |    30.000    63.333    36.667    |    51.161    48.839     0    19.000    63.333    0.899    1.000    |    10.000    60.000    40.000    60.000    60.000
+2    3    3    |    7.000    100.000    0.000    |    51.161    48.839     0    7.000    100.000    0.951    1.000    |    0.000    0.000    0.000    0.000    0.000
+3    1    1    |    2.000    0.000    100.000    |    51.161    48.839     0    0.000    0.000    0.974    1.000    |    0.000    0.000    0.000    0.000    0.000
+3    1    2    |    52.000    17.308    82.692    |    51.161    48.839     0    9.000    17.308    0.867    1.000    |    6.000    66.667    33.333    66.667    66.667
+3    1    3    |    8.000    75.000    25.000    |    51.161    48.839     0    6.000    75.000    0.948    1.000    |    7.000    71.429    28.571    71.429    71.429
+3    2    1    |    10.000    30.000    70.000    |    51.161    48.839     0    3.000    30.000    0.941    1.000    |    1.000    100.000    0.000    100.000    100.000
+3    2    2    |    331.000    62.538    37.462    |    51.161    48.839     0    207.000    62.538    0.673    1.000    |    94.000    57.447    42.553    57.447    57.447
+3    2    3    |    133.000    90.977    9.023    |    51.161    48.839     0    121.000    90.977    0.789    1.000    |    30.000    93.333    6.667    93.333    93.333
+3    3    1    |    1.000    100.000    0.000    |    51.161    48.839     0    1.000    100.000    0.981    1.000    |    0.000    0.000    0.000    0.000    0.000
+3    3    2    |    57.000    71.930    28.070    |    51.161    48.839     0    41.000    71.930    0.861    1.000    |    9.000    88.889    11.111    88.889    88.889
+3    3    3    |    26.000    88.462    11.538    |    51.161    48.839     0    23.000    88.462    0.907    1.000    |    9.000    77.778    22.222    77.778    77.778
+            |    1077.000    51.161    48.839    |    51.161    48.839    0    551.000    51.161            |    268.000    55.597    44.403    55.597    70.149
+            |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    55.597%    correct (using rule from the independence model of the training data)
+Model rule:    55.597%    correct
+Best possible:    70.149%    correct (using rules optimal for the test data)
+Improvement by model:    0.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+
+Confusion Matrices for the Model IV:HbLcTcZ with default ('negative') state (after rebinning) Z=0.
+Confusion Matrix for Fit Rule (Training)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,551.000,FP=,0.000,AN=,551.000
+,Z=not0,|,FN=,526.000,TP=,0.000,AP=,526.000
+,,|,RN=,1077.000,RP=,0.000,#correct=,551.000
+
+,Additional Statistics (Training)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.512
+,Sensitivity (aka Recall), (TP / AP),0.000
+,Specificity,(TN / AN),1.000
+,Precision,(TP / RP),undefined
+,Negative Predictive Value,(TN / RN),0.512
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),nan
+
+Confusion Matrix for Fit Rule (Test)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,149.000,FP=,0.000,AN=,149.000
+,Z=not0,|,FN=,119.000,TP=,0.000,AP=,119.000
+,,|,RN=,268.000,RP=,0.000,#correct=,149.000
+
+,Additional Statistics (Test)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.556
+,Sensitivity (aka Recall), (TP / AP),0.000
+,Specificity,(TN / AN),1.000
+,Precision,(TP / RP),undefined
+,Negative Predictive Value,(TN / RN),0.556
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),nan
+

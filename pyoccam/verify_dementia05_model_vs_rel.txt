@@ -1,0 +1,188 @@
+    Model,IV:ApZ:EdZ:KZ (Directed System)
+    IV Component:,APOE; Gender; Education; AgeLastExam; rs1801133; rs3818361; rs7561528; rs744373; rs6943822; rs4298437; rs7012010; rs11136000; rs10786998; rs11193130; rs610932; rs3851179; rs3764650; rs3865444,ApSxEdAgABCDEFGHJKLMNP
+    Model Component: ,APOE; CaseControl,ApZ
+    Model Component: ,Education; CaseControl,EdZ
+    Model Component: ,rs11193130; CaseControl,KZ
+    Degrees of Freedom (DF):,-1
+    Loops:,YES
+    Entropy(H):,9.587
+    Information captured (%):,13.9805
+    Transmission (T):,0.859076
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),504.956,1
+    Pearson X2,263.587,
+    Delta DF (dDF),7.25594e+08,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),82.0689,0
+    Pearson X2,263.587,
+    Delta DF (dDF),6,
+
+-------------------------------------------------------------------------
+
+
+========== RESIDUALS ==========
+
+
+
+========== CONDITIONAL PROBABILITY TABLES ==========
+
+Conditional DV (D) (%) for each IV composite state for the Model IV:ApZ:EdZ:KZ.
+IV order: ApEdK (APOE; Education; rs11193130).
+IV            |    Data            |    Model                
+            |    obs. p(DV|IV)    |calc. q(DV|IV)            
+Ap    Ed    K    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+0    0    .    |    1.000    100.000    0.000    |    52.123    47.877     0    1.000    100.000    0.966    1.000
+0    0    0    |    4.000    0.000    100.000    |    52.123    47.877     0    0.000    0.000    0.932    1.000
+0    0    1    |    8.000    12.500    87.500    |    52.123    47.877     0    1.000    12.500    0.904    1.000
+0    0    2    |    4.000    25.000    75.000    |    52.123    47.877     0    1.000    25.000    0.932    1.000
+0    1    .    |    1.000    0.000    100.000    |    52.123    47.877     0    0.000    0.000    0.966    1.000
+0    1    0    |    31.000    64.516    35.484    |    52.123    47.877     0    20.000    64.516    0.813    1.000
+0    1    1    |    37.000    62.162    37.838    |    52.123    47.877     0    23.000    62.162    0.796    1.000
+0    1    2    |    23.000    78.261    21.739    |    52.123    47.877     0    18.000    78.261    0.842    1.000
+0    2    .    |    8.000    62.500    37.500    |    52.123    47.877     0    5.000    62.500    0.904    1.000
+0    2    0    |    66.000    63.636    36.364    |    52.123    47.877     0    42.000    63.636    0.730    1.000
+0    2    1    |    61.000    65.574    34.426    |    52.123    47.877     0    40.000    65.574    0.740    1.000
+0    2    2    |    33.000    84.848    15.152    |    52.123    47.877     0    28.000    84.848    0.807    1.000
+1    0    .    |    1.000    100.000    0.000    |    52.123    47.877     0    1.000    100.000    0.966    1.000
+1    0    0    |    1.000    0.000    100.000    |    52.123    47.877     0    0.000    0.000    0.966    1.000
+1    0    1    |    7.000    14.286    85.714    |    52.123    47.877     0    1.000    14.286    0.910    1.000
+1    0    2    |    2.000    0.000    100.000    |    52.123    47.877     0    0.000    0.000    0.952    1.000
+1    1    0    |    13.000    30.769    69.231    |    52.123    47.877     0    4.000    30.769    0.878    1.000
+1    1    1    |    24.000    16.667    83.333    |    52.123    47.877     0    4.000    16.667    0.838    1.000
+1    1    2    |    11.000    54.545    45.455    |    52.123    47.877     0    6.000    54.545    0.893    1.000
+1    2    0    |    32.000    21.875    78.125    |    52.123    47.877     0    7.000    21.875    0.810    1.000
+1    2    1    |    39.000    25.641    74.359    |    52.123    47.877     0    10.000    25.641    0.791    1.000
+1    2    2    |    17.000    52.941    47.059    |    52.123    47.877     0    9.000    52.941    0.861    1.000
+            |    424.000    52.123    47.877    |    52.123    47.877    0    221.000    52.123        
+            |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+
+Confusion Matrix for the Model IV:ApZ:EdZ:KZ with default ('negative') state (after rebinning) Z=0.
+Confusion Matrix for Fit Rule (Training)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,221.000,FP=,0.000,AN=,221.000
+,Z=not0,|,FN=,203.000,TP=,0.000,AP=,203.000
+,,|,RN=,424.000,RP=,0.000,#correct=,221.000
+
+,Additional Statistics (Training)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.521
+,Sensitivity (aka Recall), (TP / AP),0.000
+,Specificity,(TN / AN),1.000
+,Precision,(TP / RP),undefined
+,Negative Predictive Value,(TN / RN),0.521
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),nan
+
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation ApZ.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                    
+    |    obs. p(DV|IV)            
+Ap    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+0    |    277.000    64.621    35.379     0    179.000    64.621    0.000    0.000
+1    |    147.000    28.571    71.429     1    105.000    71.429    0.000    0.000
+    |    424.000    52.123    47.877    0    284.000    66.981        
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+
+Confusion Matrix for the Relation ApZ with default ('negative') state (after rebinning) Z=0.
+Confusion Matrix for Fit Rule (Training)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,179.000,FP=,42.000,AN=,221.000
+,Z=not0,|,FN=,98.000,TP=,105.000,AP=,203.000
+,,|,RN=,277.000,RP=,147.000,#correct=,284.000
+
+,Additional Statistics (Training)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.670
+,Sensitivity (aka Recall), (TP / AP),0.517
+,Specificity,(TN / AN),0.810
+,Precision,(TP / RP),0.714
+,Negative Predictive Value,(TN / RN),0.646
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),0.600
+
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation EdZ.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                    
+    |    obs. p(DV|IV)            
+Ed    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+0    |    28.000    17.857    82.143     1    23.000    82.143    0.001    0.000
+1    |    140.000    53.571    46.429     0    75.000    53.571    0.398    0.731
+2    |    256.000    55.078    44.922     0    141.000    55.078    0.104    0.344
+    |    424.000    52.123    47.877    0    239.000    56.368        
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+
+Confusion Matrix for the Relation EdZ with default ('negative') state (after rebinning) Z=0.
+Confusion Matrix for Fit Rule (Training)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,216.000,FP=,5.000,AN=,221.000
+,Z=not0,|,FN=,180.000,TP=,23.000,AP=,203.000
+,,|,RN=,396.000,RP=,28.000,#correct=,239.000
+
+,Additional Statistics (Training)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.564
+,Sensitivity (aka Recall), (TP / AP),0.113
+,Specificity,(TN / AN),0.977
+,Precision,(TP / RP),0.821
+,Negative Predictive Value,(TN / RN),0.545
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),0.199
+
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation KZ.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                    
+    |    obs. p(DV|IV)            
+K    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+.    |    11.000    63.636    36.364     0    7.000    63.636    0.366    0.444
+0    |    147.000    49.660    50.340     1    74.000    50.340    0.934    0.550
+1    |    176.000    44.886    55.114     1    97.000    55.114    0.176    0.055
+2    |    90.000    68.889    31.111     0    62.000    68.889    0.000    0.001
+    |    424.000    52.123    47.877    0    240.000    56.604        
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+
+Confusion Matrix for the Relation KZ with default ('negative') state (after rebinning) Z=0.
+Confusion Matrix for Fit Rule (Training)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,69.000,FP=,152.000,AN=,221.000
+,Z=not0,|,FN=,32.000,TP=,171.000,AP=,203.000
+,,|,RN=,101.000,RP=,323.000,#correct=,240.000
+
+,Additional Statistics (Training)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.566
+,Sensitivity (aka Recall), (TP / AP),0.842
+,Specificity,(TN / AN),0.312
+,Precision,(TP / RP),0.529
+,Negative Predictive Value,(TN / RN),0.683
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),0.650
+

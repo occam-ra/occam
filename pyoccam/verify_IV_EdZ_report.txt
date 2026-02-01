@@ -1,0 +1,65 @@
+    Model,IV:EdZ (Directed System)
+    IV Component:,APOE; Gender; Education; AgeLastExam; rs1801133; rs3818361; rs7561528; rs744373; rs6943822; rs4298437; rs7012010; rs11136000; rs10786998; rs11193130; rs610932; rs3851179; rs3764650; rs3865444,ApSxEdAgABCDEFGHJKLMNP
+    Model Component: ,Education; CaseControl,EdZ
+    Degrees of Freedom (DF):,7.25594e+08
+    Loops:,NO
+    Entropy(H):,9.70087
+    Information captured (%):,2.57836
+    Transmission (T):,0.97295
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),571.889,1
+    Pearson X2,219.463,
+    Delta DF (dDF),7.25594e+08,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),15.1356,0.000516828
+    Pearson X2,219.463,
+    Delta DF (dDF),2,
+
+-------------------------------------------------------------------------
+
+
+========== RESIDUALS ==========
+
+
+
+========== CONDITIONAL PROBABILITY TABLES ==========
+
+Conditional DV (D) (%) for each IV composite state for the Model IV:EdZ.
+IV order: Ed (Education).
+IV    |    Data            |    Model                
+    |    obs. p(DV|IV)    |calc. q(DV|IV)            
+Ed    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+0    |    28.000    17.857    82.143    |    52.123    47.877     0    5.000    17.857    0.822    1.000
+1    |    140.000    53.571    46.429    |    52.123    47.877     0    75.000    53.571    0.615    1.000
+2    |    256.000    55.078    44.922    |    52.123    47.877     0    141.000    55.078    0.497    1.000
+    |    424.000    52.123    47.877    |    52.123    47.877    0    221.000    52.123        
+    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+
+Confusion Matrix for the Model IV:EdZ with default ('negative') state (after rebinning) Z=0.
+Confusion Matrix for Fit Rule (Training)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,221.000,FP=,0.000,AN=,221.000
+,Z=not0,|,FN=,203.000,TP=,0.000,AP=,203.000
+,,|,RN=,424.000,RP=,0.000,#correct=,221.000
+
+,Additional Statistics (Training)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.521
+,Sensitivity (aka Recall), (TP / AP),0.000
+,Specificity,(TN / AN),1.000
+,Precision,(TP / RP),undefined
+,Negative Predictive Value,(TN / RN),0.521
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),nan
+

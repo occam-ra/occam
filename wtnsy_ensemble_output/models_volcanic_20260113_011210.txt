@@ -1,0 +1,57 @@
+
+====================================================================================================
+ALL MODELS RANKED BY ACCURACY (with coverage)
+====================================================================================================
+Rank  Model                                      Accuracy   Coverage       dBIC  Level
+----------------------------------------------------------------------------------------------------
+1     IV:ElZ:FdZ:TpZ:RoZ:TtZ                        78.3%       2.3%    1705.92      5
+2     IV:ElZ:FdZ:RdZ:ClZ:DcZ:RoZ:TtZ                78.3%       0.6%    1698.66      7
+3     IV:ElZ:ClZ:DcZ:RoZ:TtZ                        78.3%       2.9%    1714.68      5
+4     IV:ElZ:TpZ:RoZ:TtZ                            78.3%       5.0%    1713.68      4
+5     IV:ElZ:RdZ:ClZ:DcZ:RoZ:TtZ                    78.3%       1.4%    1701.40      6
+6     IV:ElZ:TpZ:TtZ                                78.1%      22.1%    1684.88      3
+7     IV:ElZ:SlZ:FdZ:ClZ:DcZ:RoZ:TtZ                78.1%       0.7%    1690.04      7
+8     IV:ElZ:FdZ:SdZ:ClZ:DcZ:RoZ:TtZ                78.1%       0.6%    1687.87      7
+9     IV:ElZ:SlZ:FdZ:RdZ:ClZ:RoZ:TtZ                78.0%       1.4%    1684.50      7
+10    IV:ElZ:SlZ:FdZ:ClZ:RoZ:TtZ                    78.0%       3.4%    1697.89      6
+11    IV:ElZ:FdZ:RdZ:DcZ:RoZ:TtZ                    78.0%       1.7%    1697.21      6
+12    IV:ElZ:FdZ:RdZ:SdZ:ClZ:RoZ:TtZ                78.0%       1.2%    1682.18      7
+13    IV:ElZ:FdZ:ClZ:DcZ:RoZ:TtZ                    77.9%       1.3%    1712.03      6
+14    IV:ElZ:ClZ:TtZ                                77.9%      52.1%    1684.20      3
+15    IV:ElZ:ClZ:RoZ                                77.9%      66.7%    1703.28      3
+16    IV:ElZ:FdZ:ClZ:RoZ:TtZ                        77.8%       6.1%    1720.29      5
+17    IV:ElZ:FdZ:RdZ:ClZ:RoZ:TtZ                    77.7%       2.8%    1706.96      6
+18    IV:ElZ:FdZ:DcZ:RoZ:TtZ                        77.6%       3.4%    1710.47      5
+19    IV:ElZ:FdZ:RoZ:TtZ                            77.6%      14.5%    1718.28      4
+20    IV:ElZ:TpZ:RoZ                                77.3%      35.0%    1681.89      3
+21    IV:ElZ:RdZ:ClZ:RoZ:TtZ                        77.0%       6.6%    1710.89      5
+22    IV:ElZ:ClZ:RoZ:TtZ                            76.9%      12.6%    1724.21      4
+23    IV:ElZ:DcZ:RoZ:TtZ                            76.7%       6.1%    1702.41      4
+24    IV:ElZ:RoZ:TtZ                                76.7%      23.3%    1711.60      3
+25    IV:ElZ:RdZ:RoZ:TtZ                            76.6%      14.2%    1698.33      4
+26    IV:ElZ:ClZ                                    76.2%      95.0%    1661.23      2
+27    IV:ElZ:TpZ                                    76.0%      71.4%    1651.27      2
+28    IV:ElZ:TtZ                                    75.9%      86.7%    1673.81      2
+29    IV:ElZ:RoZ                                    75.9%      93.3%    1657.61      2
+30    IV:ElZ:FdZ                                    75.9%     100.0%    1626.51      2
+31    IV:ElZ                                        75.8%     100.0%    1595.16      1
+32    IV:TbZ                                        68.5%      93.3%     624.83      1
+33    IV:TgZ                                        66.1%      94.7%     575.20      1
+34    IV:GdZ                                        60.0%      91.3%     394.69      1
+35    IV:TsZ                                        58.7%     100.0%     242.17      1
+36    IV:Z                                          56.5%     100.0%       0.00      0
+
+
+====================================================================================================
+COVERAGE vs ACCURACY TRADEOFF (Pareto frontier candidates)
+====================================================================================================
+Model                                           Accuracy   Coverage      Acc×Cov
+----------------------------------------------------------------------------------------------------
+IV:ElZ:FdZ                                         75.9%     100.0%        75.9
+IV:ElZ:ClZ                                         76.2%      95.0%        72.4
+IV:ElZ:ClZ:RoZ                                     77.9%      66.7%        51.9
+IV:ElZ:ClZ:TtZ                                     77.9%      52.1%        40.6
+IV:ElZ:TpZ:TtZ                                     78.1%      22.1%        17.3
+IV:ElZ:TpZ:RoZ:TtZ                                 78.3%       5.0%         3.9
+IV:ElZ:ClZ:DcZ:RoZ:TtZ                             78.3%       2.9%         2.2
+IV:ElZ:FdZ:TpZ:RoZ:TtZ                             78.3%       2.3%         1.8

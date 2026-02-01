@@ -1,0 +1,87 @@
+    Model,IV:HbZ (Directed System)
+    IV Component:,ASpect_reclass; CLay_reclass; CurVature_reclass; ELevation_reclass; Fault_Dns_reclass; HaBitatMap_UTM; Geol_Lith; nlcd_2021_Land_Cover; Geol_rock_Type; Rd_strm_Dns_reclass; SLope_reclass; TWi_reclass; GeomDesc; TaxOrder; TaxSuborder; taxGrtGroup; TaxSubgrp; taxPartSize; TaxClname; DrainageCl,AsClCvElFdHbGlLcGtRdSlTwGdToTsGgTs1PsTcDc
+    Model Component: ,HaBitatMap_UTM; LS,HbZ
+    Degrees of Freedom (DF):,3.0611e+08
+    Loops:,NO
+    Entropy(H):,10.6078
+    Information captured (%):,14.0204
+    Transmission (T):,0.77033
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),1150.13,1
+    Pearson X2,560.654,
+    Delta DF (dDF),3.0611e+08,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),187.549,0
+    Pearson X2,560.654,
+    Delta DF (dDF),2,
+
+-------------------------------------------------------------------------
+
+
+========== RESIDUALS ==========
+
+
+
+========== CONDITIONAL PROBABILITY TABLES ==========
+
+Conditional DV (D) (%) for each IV composite state for the Model IV:HbZ.
+IV order: Hb (HaBitatMap_UTM).
+IV    |    Data            |    Model                            |Test Data        
+    |    obs. p(DV|IV)    |calc. q(DV|IV)                        |    obs. p(DV|IV)%correct
+Hb    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+1    |    179.000    12.291    87.709    |    51.161    48.839     0    22.000    12.291    0.757    1.000    |    44.000    22.727    77.273    22.727    77.273
+2    |    278.000    42.446    57.554    |    51.161    48.839     0    118.000    42.446    0.699    1.000    |    68.000    47.059    52.941    47.059    52.941
+3    |    620.000    66.290    33.710    |    51.161    48.839     0    411.000    66.290    0.563    1.000    |    156.000    68.590    31.410    68.590    68.590
+    |    1077.000    51.161    48.839    |    51.161    48.839    0    551.000    51.161            |    268.000    55.597    44.403    55.597    66.045
+    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    55.597%    correct (using rule from the independence model of the training data)
+Model rule:    55.597%    correct
+Best possible:    66.045%    correct (using rules optimal for the test data)
+Improvement by model:    0.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+
+Confusion Matrices for the Model IV:HbZ with default ('negative') state (after rebinning) Z=0.
+Confusion Matrix for Fit Rule (Training)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,551.000,FP=,0.000,AN=,551.000
+,Z=not0,|,FN=,526.000,TP=,0.000,AP=,526.000
+,,|,RN=,1077.000,RP=,0.000,#correct=,551.000
+
+,Additional Statistics (Training)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.512
+,Sensitivity (aka Recall), (TP / AP),0.000
+,Specificity,(TN / AN),1.000
+,Precision,(TP / RP),undefined
+,Negative Predictive Value,(TN / RN),0.512
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),nan
+
+Confusion Matrix for Fit Rule (Test)
+,Actual,|,Rule
+,,|,Z=0,,Z=not0
+,Z=0,|,TN=,149.000,FP=,0.000,AN=,149.000
+,Z=not0,|,FN=,119.000,TP=,0.000,AP=,119.000
+,,|,RN=,268.000,RP=,0.000,#correct=,149.000
+
+,Additional Statistics (Test)
+,Statistic,Definition,Value
+,%correct,correct / sample size,0.556
+,Sensitivity (aka Recall), (TP / AP),0.000
+,Specificity,(TN / AN),1.000
+,Precision,(TP / RP),undefined
+,Negative Predictive Value,(TN / RN),0.556
+,>F1 score,(precision * sensitivity) / (precision + sensitivity),nan
+

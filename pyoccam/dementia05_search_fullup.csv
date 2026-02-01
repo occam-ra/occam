@@ -1,0 +1,96 @@
+Occam (Portland State University)
+Version 3.4.0
+Fri Aug 15 04:38:20 2025
+
+Option settings:
+nominal,ID		,0,0,ID
+nominal,APOE		,2,1,AP
+nominal,Gender		,2,1,SX
+nominal,Education	,3,1,ED
+nominal,AgeLastExam	,3,1,AG
+nominal,rs1801133	,3,1,A
+nominal,rs3818361	,4,1,B
+nominal,rs7561528	,3,1,C
+nominal,rs744373	,3,1,D
+nominal,rs6943822	,3,1,E
+nominal,rs4298437	,3,1,F
+nominal,rs7012010	,3,1,G
+nominal,rs11136000	,3,1,H
+nominal,rs10786998	,4,1,J
+nominal,rs11193130	,4,1,K
+nominal,rs610932	,3,1,L
+nominal,rs3851179	,3,1,M
+nominal,rs3764650	,4,1,N
+nominal,rs3865444	,4,1,P
+nominal,CaseControl	,2,2,Z
+no-frequency,Y
+ipf-maxdev,           0.2
+ipf-maxit,           266
+Data Lines Read	424
+Alpha threshold	0.05
+Input data file,dementia05.txt
+Starting model,bottom
+Search direction,up
+Ref model,bottom
+Models to consider,all
+Search width,3
+Search levels,7
+Search sort by,bic
+Search preference,descending
+Report sort by,information
+Report preference,descending
+
+    State Space Size,1.45119e+09
+    Sample Size,     424
+    H(data), 8.72792
+    H(IV), 8.72792
+    H(DV),  0.9987
+    T(IV:DV),  0.9987
+    IVs in use (18), Ap Sx Ed Ag A B C D E F G H J K L M N P
+    DV,Z
+
+Searching levels:
+1 : 18 new models, 3 kept; 19 total models, 4 total kept; 0 kb memory used;  0.0 seconds, 0.0 total
+2 : 48 new models, 3 kept; 67 total models, 7 total kept; 140 kb memory used;  0.0 seconds, 0.0 total
+3 : 48 new models, 3 kept; 115 total models, 10 total kept; 140 kb memory used;  0.1 seconds, 0.1 total
+4 : 52 new models, 3 kept; 167 total models, 13 total kept; 280 kb memory used;  0.1 seconds, 0.3 total
+5 : 57 new models, 3 kept; 224 total models, 16 total kept; 280 kb memory used;  0.2 seconds, 0.4 total
+6 : 63 new models, 3 kept; 287 total models, 19 total kept; 420 kb memory used;  0.2 seconds, 0.6 total
+7 : 63 new models, 3 kept; 350 total models, 22 total kept; 552 kb memory used;  0.2 seconds, 0.8 total
+
+ID,MODEL,Level,H,dDF,dLR,Alpha,Inf,%dH(DV),dAIC,dBIC,Inc.Alpha,Prog.,%C(Data),%cover
+22 ,IV:ApSxZ:EdZ:AgZ:CZ:KZ,       7,      9.5505,            12,    103.4945,      0.0000,0.17630362,     17.6304,     79.4945,     30.8977,      0.0076,            15,     71.6981,     40.2778
+21 ,IV:ApSxZ:EdZ:CZ:KZ:LZ,       7,      9.5515,            12,    102.9089,      0.0000,0.17530603,     17.5306,     78.9089,     30.3121,      0.1415,            18,     73.3491,     39.3519
+20 ,IV:ApSxZ:EdZ:CZ:EZ:KZ,       7,      9.5517,            12,    102.8195,      0.0000,0.17515372,     17.5154,     78.8195,     30.2227,      0.0084,            14,     72.6415,     41.2037
+19*,IV:ApZ:EdZ:AgZ:CZ:KZ,       5,      9.5576,            10,     99.3472,      0.0000,0.16923867,     16.9239,     79.3472,     38.8499,      0.0056,            13,     71.6981,     54.1667
+18 ,IV:ApSxZ:EdZ:CZ:KZ,       6,      9.5582,            10,     98.9984,      0.0000,0.16864447,     16.8644,     78.9984,     38.5011,      0.0035,            12,     70.2830,     63.1944
+17 ,IV:ApZ:SxZ:EdZ:CZ:KZ,       5,      9.5661,             9,     94.3476,      0.0000,0.16072169,     16.0722,     76.3476,     39.9000,      0.0026,            10,     70.2830,     63.1944
+16*,IV:ApZ:EdZ:CZ:KZ,       4,      9.5665,             8,     94.1440,      0.0000,0.16037485,     16.0375,     78.1440,     45.7461,      0.0007,             8,     70.0472,     76.3889
+15 ,IV:ApSxZ:EdZ:AgZ:CZ,       6,      9.5709,             9,     91.5564,      0.0000,0.15596693,     15.5967,     73.5564,     37.1088,      0.0450,            12,     68.8679,     77.7778
+14 ,IV:ApSxZ:EdZ:CZ:EZ,       6,      9.5717,             9,     91.0773,      0.0000,0.15515083,     15.5151,     73.0773,     36.6297,      0.0572,            12,     70.0472,     77.7778
+13*,IV:ApZ:EdZ:AgZ:CZ,       4,      9.5791,             7,     86.7343,      0.0000,0.14775248,     14.7752,     72.7343,     44.3862,      0.0318,             9,     70.2830,     87.0370
+12 ,IV:ApSxZ:EdZ:CZ,       5,      9.5814,             7,     85.3534,      0.0000,0.14540012,     14.5400,     71.3534,     43.0053,      0.0218,            10,     70.0472,    100.0000
+11*,IV:ApZ:EdZ:KZ,       3,      9.5870,             6,     82.0689,      0.0000,0.13980489,     13.9805,     70.0689,     45.7705,      0.0003,             5,     69.8113,     91.6667
+10 ,IV:ApZ:SxZ:EdZ:CZ,       4,      9.5903,             6,     80.1082,      0.0000,0.13646488,     13.6465,     68.1082,     43.8098,      0.6024,             9,     69.5755,    100.0000
+9*,IV:ApZ:EdZ:CZ,       3,      9.5908,             5,     79.8373,      0.0000,0.13600335,     13.6003,     69.8373,     49.5886,      0.0010,             6,     69.5755,    100.0000
+8*,IV:ApZ:CZ:KZ,       3,      9.5910,             6,     79.7227,      0.0000,0.13580807,     13.5808,     67.7227,     43.4243,      0.0009,             5,     68.6321,     87.5000
+7*,IV:ApZ:EdZ,       2,      9.6133,             3,     66.5901,      0.0000,0.11343675,     11.3437,     60.5901,     48.4409,      0.0000,             2,     69.5755,    100.0000
+6*,IV:ApZ:CZ,       2,      9.6144,             3,     65.9506,      0.0000,0.11234732,     11.2347,     59.9506,     47.8014,      0.0000,             3,     67.9245,    100.0000
+5*,IV:ApZ:KZ,       2,      9.6150,             4,     65.6244,      0.0000,0.11179159,     11.1792,     57.6244,     41.4255,      0.0024,             4,     66.9811,    100.0000
+4*,IV:ApZ,       1,      9.6396,             1,     51.1652,      0.0000,0.08716028,      8.7160,     49.1652,     45.1155,      0.0000,             1,     66.9811,    100.0000
+3*,IV:CZ,       1,      9.6998,             2,     15.7735,      0.0004,0.02687026,      2.6870,     11.7735,      3.6740,      0.0004,             1,     58.0189,    100.0000
+2*,IV:EdZ,       1,      9.7009,             2,     15.1356,      0.0005,0.02578359,      2.5784,     11.1356,      3.0361,      0.0005,             1,     56.3679,    100.0000
+1*,IV:Z,       0,      9.7266,             0,      0.0000,      1.0000,0.00000000,      0.0000,      0.0000,      0.0000,      0.0000,             0,     52.1226,    100.0000
+ID,MODEL,Level,H,dDF,dLR,Alpha,Inf,%dH(DV),dAIC,dBIC,Inc.Alpha,Prog.,%C(Data),%cover
+
+
+Best Model(s) by dBIC:
+9*,IV:ApZ:EdZ:CZ,       3,      9.5908,             5,     79.8373,      0.0000,0.13600335,     13.6003,     69.8373,     49.5886,      0.0010,             6,     69.5755,    100.0000
+Best Model(s) by dAIC:
+22 ,IV:ApSxZ:EdZ:AgZ:CZ:KZ,       7,      9.5505,            12,    103.4945,      0.0000,0.17630362,     17.6304,     79.4945,     30.8977,      0.0076,            15,     71.6981,     40.2778
+Best Model(s) by Information, with all Inc. Alpha < 0.05:
+19*,IV:ApZ:EdZ:AgZ:CZ:KZ,       5,      9.5576,            10,     99.3472,      0.0000,0.16923867,     16.9239,     79.3472,     38.8499,      0.0056,            13,     71.6981,     54.1667
+
+
+Run time: 0.993674 seconds
+

@@ -1,0 +1,41 @@
+    Model,IV:ApZ (Directed System)
+    IV Component:,APOE; Gender; Education; AgeLastExam; rs1801133; rs3818361; rs7561528; rs744373; rs6943822; rs4298437; rs7012010; rs11136000; rs10786998; rs11193130; rs610932; rs3851179; rs3764650; rs3865444,ApSxEdAgABCDEFGHJKLMNP
+    Model Component: ,APOE; CaseControl,ApZ
+    Degrees of Freedom (DF):,-1
+    Loops:,NO
+    Entropy(H):,-1
+    Information captured (%):,-100
+    Transmission (T):,-1
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),535.859,1
+    Pearson X2,0,1
+    Delta DF (dDF),7.25594e+08,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),51.1652,0
+    Pearson X2,0,0
+    Delta DF (dDF),1,
+
+-------------------------------------------------------------------------
+
+
+========== CONDITIONAL PROBABILITY TABLES ==========
+
+Conditional DV (D) (%) for each IV composite state for the Model IV:ApZ.
+IV order: Ap (APOE).
+IV    |    Data            |    Model                
+    |    obs. p(DV|IV)    |calc. q(DV|IV)            
+Ap    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+1    |    0.000    100.000    0.000    |    28.571    71.429     1    0.000    0.000    1.000    1.000
+    |    424.000    0.000    0.000    |    4.992    12.480    1    0.000    0.000        
+    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+Note: there are no occurrences of any non-default ("positive") conditional DV state (that is, any state other than 'Z=0'), in the training data, so confusion matrices will not be printed
