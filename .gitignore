@@ -28,6 +28,9 @@ libpython*.a
 # Personal Configuration & Credentials
 # -----------------------------------------------------------------------------
 .pypirc
+*token*.txt
+*Token*.txt
+*Recovery-Codes*.txt
 
 # -----------------------------------------------------------------------------
 # Output Files & Results (ignore all test/analysis output)
@@ -47,6 +50,25 @@ cm_called.txt
 # Log files
 build_log.txt
 *_log.txt
+
+# Ensemble/analysis output directories
+wtnsy_ensemble_output/
+pyoccam/occam_output/
+pyoccam/notebook_output/
+pyoccam/landslides_visualizations/
+pyoccam/import_test/
+
+# Misc cruft
+gitstatus.txt
+rules.csv
+fit_analyzer.zip
+separator_debug.txt
+
+# Backup files
+*.oldCM
+*.bak2
+*Copy*
+*original*
 
 # Generated data files
 balanced_fire_data*.txt
