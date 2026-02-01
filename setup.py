@@ -10,7 +10,7 @@ python_include = os.path.join(sys.prefix, 'Include' if platform.system() == 'Win
 # Platform-specific compile/link args - ADD THIS BLOCK
 if platform.system() == 'Windows':
     extra_compile_args = ['-std=c++14', '-O2', '-w', '-DMS_WIN64']
-    extra_link_args = ['-static']
+    extra_link_args = []
 else:  # Linux/macOS
     extra_compile_args = ['-std=c++14', '-O2']
     extra_link_args = []
