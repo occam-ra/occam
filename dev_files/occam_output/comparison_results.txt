@@ -1,0 +1,28 @@
+WILDFIRE RA vs ML COMPARISON RESULTS
+Date: 2025-10-07 17:32:22
+Input file: fire_data_split_all_signature_groups_nlcd_rebinned_sigs.txt
+Number of folds: 1
+Search type: full-up
+
+================================================================================
+
+
+RA Results:
+----------------------------------------
+Fold 1: {'accuracy': 0.5371120107962213, 'precision': 0.5544554455445545, 'recall': 0.37786774628879893, 'f1': 0.449438202247191, 'sensitivity': 0.0, 'specificity': 0.6963562753036437, 'model': 'IV:I0M0Z:M2Z:O4Z:O5Z:ElevZ'}
+
+Logistic Regression Results:
+----------------------------------------
+Fold 1: {'accuracy': 0.606612685560054, 'precision': 0.6118980169971672, 'recall': 0.582995951417004, 'f1': 0.5970974429854873, 'TN': 467, 'FP': 274, 'FN': 309, 'TP': 432}
+
+Random Forest Results:
+----------------------------------------
+Fold 1: {'accuracy': 0.5843454790823212, 'precision': 0.5884016973125884, 'recall': 0.5614035087719298, 'f1': 0.574585635359116, 'TN': 450, 'FP': 291, 'FN': 325, 'TP': 416}
+
+Decision Tree Results:
+----------------------------------------
+Fold 1: {'accuracy': 0.5843454790823212, 'precision': 0.5881523272214386, 'recall': 0.562753036437247, 'f1': 0.5751724137931034, 'TN': 449, 'FP': 292, 'FN': 324, 'TP': 417}
+
+SVM Results:
+----------------------------------------
+Fold 1: {'accuracy': 0.6126855600539811, 'precision': 0.6222547584187409, 'recall': 0.573549257759784, 'f1': 0.5969101123595505, 'TN': 483, 'FP': 258, 'FN': 316, 'TP': 425}

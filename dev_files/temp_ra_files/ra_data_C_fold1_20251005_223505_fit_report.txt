@@ -1,0 +1,125 @@
+Sample size: 211
+Variables: 24
+Test data: Present
+
+    Model,IV:I2PyrosigZ:O4PyrosigZ:ElevZ (Directed System)
+    IV Component:,in_d_l0; mid_d_l0; out_d_l0; in_d_l1; mid_d_l1; out_d_l1; in_d_l2; mid_d_l2; out_d_l2; in_d_l3; mid_d_l3; out_d_l3; in_d_l4; mid_d_l4; out_d_l4; in_d_l5; mid_d_l5; out_d_l5; in_d_l6; mid_d_l6; out_d_l6; pyrome_sig; elev_bin,I0M0O0I1M1O1I2M2O2I3M3O3I4M4O4I5M5O5I6M6O6PyrosigElev
+    Model Component: ,in_d_l2; pyrome_sig; LARGE_FIRE,I2PyrosigZ
+    Model Component: ,out_d_l4; pyrome_sig; LARGE_FIRE,O4PyrosigZ
+    Model Component: ,elev_bin; LARGE_FIRE,ElevZ
+    Degrees of Freedom (DF):,-1
+    Loops:,YES
+    Entropy(H):,5.22997
+    Information captured (%):,43.383
+    Transmission (T):,0.246406
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),72.0758,0
+    Pearson X2,37.9512,0
+    Delta DF (dDF),5,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),55.2283,0
+    Pearson X2,37.9512,0.00017979
+    Delta DF (dDF),7,
+
+-------------------------------------------------------------------------
+
+
+Conditional DV (D) (%) for each IV composite state for the Model IV:I2PyrosigZ:O4PyrosigZ:ElevZ.
+IV order: I2O4PyrosigElev (in_d_l2; out_d_l4; pyrome_sig; elev_bin).
+IV                |    Data            |    Model                            |Test Data        
+                |    obs. p(DV|IV)    |calc. q(DV|IV)                        |    obs. p(DV|IV)%correct
+I2    O4    Pyrosig    Elev    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    52    C    low    |    1.000    0.000    100.000    |    0.000    100.000     1    1.000    100.000    0.317    0.315    |    0.000    0.000    0.000    0.000    0.000
+71    71    C    low    |    34.000    11.765    88.235    |    12.770    87.230     1    30.000    88.235    0.000    0.000    |    7.000    14.286    85.714    85.714    85.714
+71    82    C    low    |    1.000    0.000    100.000    |    17.413    82.587     1    1.000    100.000    0.514    0.511    |    1.000    0.000    100.000    100.000    100.000
+71    99    C    low    |    1.000    100.000    0.000    |    48.900    51.100     1    0.000    0.000    0.982    0.979    |    0.000    0.000    0.000    0.000    0.000
+82    71    C    low    |    1.000    100.000    0.000    |    42.429    57.571     1    0.000    0.000    0.880    0.876    |    0.000    0.000    0.000    0.000    0.000
+82    82    C    low    |    20.000    45.000    55.000    |    51.489    48.511     0    9.000    45.000    0.894    0.911    |    3.000    100.000    0.000    100.000    100.000
+82    82    C    unknown    |    3.000    100.000    0.000    |    74.789    25.211     0    3.000    100.000    0.390    0.395    |    1.000    100.000    0.000    100.000    100.000
+99    71    C    low    |    58.000    37.931    62.069    |    38.331    61.669     1    36.000    62.069    0.078    0.072    |    14.000    42.857    57.143    57.143    57.143
+99    81    C    low    |    1.000    100.000    0.000    |    100.000    0.000     0    1.000    100.000    0.317    0.320    |    0.000    0.000    0.000    0.000    0.000
+99    82    C    low    |    26.000    50.000    50.000    |    47.234    52.766     1    13.000    50.000    0.778    0.759    |    9.000    22.222    77.778    77.778    77.778
+99    99    C    low    |    62.000    80.645    19.355    |    80.249    19.751     0    50.000    80.645    0.000    0.000    |    18.000    72.222    27.778    72.222    72.222
+99    99    C    unknown    |    3.000    66.667    33.333    |    91.907    8.093     0    2.000    66.667    0.147    0.149    |    0.000    0.000    0.000    0.000    0.000
+                |    211.000    50.237    49.763    |    50.237    49.763    0    146.000    69.194            |    53.000    49.057    50.943    73.585    73.585
+                |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    73.585%    correct
+Best possible:    73.585%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation I2PyrosigZ.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV        |    Data                                |Test Data        
+        |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+I2    Pyrosig    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    C    |    37.000    13.514    86.486     1    32.000    86.486    0.000    0.000    |    8.000    12.500    87.500    87.500    87.500
+82    C    |    24.000    54.167    45.833     0    13.000    54.167    0.683    0.700    |    4.000    100.000    0.000    100.000    100.000
+99    C    |    150.000    58.667    41.333     0    88.000    58.667    0.034    0.040    |    41.000    51.220    48.780    51.220    51.220
+        |    211.000    50.237    49.763    0    133.000    63.033            |    53.000    49.057    50.943    60.377    60.377
+        |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    60.377%    correct
+Best possible:    60.377%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation O4PyrosigZ.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV        |    Data                                |Test Data        
+        |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+O4    Pyrosig    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+52    C    |    1.000    0.000    100.000     1    1.000    100.000    0.317    0.315    |    0.000    0.000    0.000    0.000    0.000
+71    C    |    93.000    29.032    70.968     1    66.000    70.968    0.000    0.000    |    21.000    33.333    66.667    66.667    66.667
+81    C    |    1.000    100.000    0.000     0    1.000    100.000    0.317    0.320    |    0.000    0.000    0.000    0.000    0.000
+82    C    |    50.000    50.000    50.000    *0    25.000    50.000    1.000    0.973    |    14.000    42.857    57.143    42.857    57.143
+99    C    |    66.000    80.303    19.697     0    53.000    80.303    0.000    0.000    |    18.000    72.222    27.778    72.222    72.222
+        |    211.000    50.237    49.763    0    146.000    69.194            |    53.000    49.057    50.943    62.264    66.038
+        |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    62.264%    correct
+Best possible:    66.038%    correct (using rules optimal for the test data)
+Improvement by model:    77.778%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation ElevZ.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                                |Test Data        
+    |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+Elev    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+low    |    205.000    49.268    50.732     1    104.000    50.732    0.834    0.782    |    52.000    48.077    51.923    51.923    51.923
+unknown    |    6.000    83.333    16.667     0    5.000    83.333    0.103    0.105    |    1.000    100.000    0.000    100.000    100.000
+    |    211.000    50.237    49.763    0    109.000    51.659            |    53.000    49.057    50.943    52.830    52.830
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    52.830%    correct
+Best possible:    52.830%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.

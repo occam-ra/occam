@@ -1,0 +1,18 @@
+Fit Report for Model: IV:I0M0Z:M2Z:O4Z:O5Z:ElevZ
+===================================================
+Sample size: 3455
+Variables: 23
+Test data: Present
+
+Model Statistics:
+-----------------
+H(model): 8.51671
+Information: 0.227185
+dBIC: 315.112
+dAIC: -232.023
+Alpha: 0
+%Correct: 63.8205
+
+
+Note: Full conditional DV tables are being debugged.
+Target state for confusion matrix: 0

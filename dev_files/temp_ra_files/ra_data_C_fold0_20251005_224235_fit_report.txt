@@ -1,0 +1,231 @@
+Sample size: 211
+Variables: 23
+Test data: Present
+
+    Model,IV:I1Z:M1Z:I2Z:I3Z:I6Z:O6Z:ElevZ (Directed System)
+    IV Component:,in_d_l0; mid_d_l0; out_d_l0; in_d_l1; mid_d_l1; out_d_l1; in_d_l2; mid_d_l2; out_d_l2; in_d_l3; mid_d_l3; out_d_l3; in_d_l4; mid_d_l4; out_d_l4; in_d_l5; mid_d_l5; out_d_l5; in_d_l6; mid_d_l6; out_d_l6; elev_bin,I0M0O0I1M1O1I2M2O2I3M3O3I4M4O4I5M5O5I6M6O6Elev
+    Model Component: ,in_d_l1; LARGE_FIRE,I1Z
+    Model Component: ,mid_d_l1; LARGE_FIRE,M1Z
+    Model Component: ,in_d_l2; LARGE_FIRE,I2Z
+    Model Component: ,in_d_l3; LARGE_FIRE,I3Z
+    Model Component: ,in_d_l6; LARGE_FIRE,I6Z
+    Model Component: ,out_d_l6; LARGE_FIRE,O6Z
+    Model Component: ,elev_bin; LARGE_FIRE,ElevZ
+    Degrees of Freedom (DF):,-1
+    Loops:,YES
+    Entropy(H):,5.10372
+    Information captured (%):,47.5801
+    Transmission (T):,0.218364
+
+-------------------------------------------------------------------------
+
+    REFERENCE = TOP
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),63.8733,0
+    Pearson X2,24.5155,0
+    Delta DF (dDF),9,
+
+-------------------------------------------------------------------------
+
+    REFERENCE = BOTTOM
+    ,Value,Prob. (Alpha)
+    Log-Likelihood (LR),57.976,0
+    Pearson X2,24.5155,0
+    Delta DF (dDF),13,
+
+-------------------------------------------------------------------------
+
+
+Conditional DV (D) (%) for each IV composite state for the Model IV:I1Z:M1Z:I2Z:I3Z:I6Z:O6Z:ElevZ.
+IV order: I1M1I2I3I6O6Elev (in_d_l1; mid_d_l1; in_d_l2; in_d_l3; in_d_l6; out_d_l6; elev_bin).
+IV                            |    Data            |    Model                            |Test Data        
+                            |    obs. p(DV|IV)    |calc. q(DV|IV)                        |    obs. p(DV|IV)%correct
+I1    M1    I2    I3    I6    O6    Elev    |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    71    71    71    71    71    low    |    29.000    17.241    82.759    |    17.591    82.409     1    24.000    82.759    0.000    0.000    |    10.000    0.000    100.000    100.000    100.000
+71    71    71    71    71    82    low    |    1.000    0.000    100.000    |    17.436    82.564     1    1.000    100.000    0.515    0.512    |    0.000    0.000    0.000    0.000    0.000
+71    71    71    71    71    99    low    |    1.000    100.000    0.000    |    47.469    52.531     1    0.000    0.000    0.960    0.956    |    0.000    0.000    0.000    0.000    0.000
+71    71    71    82    82    82    low    |    1.000    0.000    100.000    |    17.403    82.597     1    1.000    100.000    0.514    0.511    |    0.000    0.000    0.000    0.000    0.000
+82    82    82    82    71    71    low    |    1.000    100.000    0.000    |    95.001    4.999     0    1.000    100.000    0.368    0.371    |    0.000    0.000    0.000    0.000    0.000
+82    82    82    82    82    71    low    |    1.000    0.000    100.000    |    50.521    49.479     0    0.000    0.000    0.992    0.995    |    0.000    0.000    0.000    0.000    0.000
+82    82    82    82    82    82    low    |    19.000    52.632    47.368    |    50.252    49.748     0    10.000    52.632    0.982    0.999    |    1.000    100.000    0.000    100.000    100.000
+82    82    82    82    82    82    unknown    |    2.000    100.000    0.000    |    100.000    0.000     0    2.000    100.000    0.158    0.160    |    2.000    100.000    0.000    100.000    100.000
+82    82    99    82    82    82    low    |    1.000    100.000    0.000    |    94.734    5.266     0    1.000    100.000    0.371    0.373    |    0.000    0.000    0.000    0.000    0.000
+82    82    99    99    99    71    low    |    1.000    100.000    0.000    |    96.199    3.801     0    1.000    100.000    0.355    0.358    |    0.000    0.000    0.000    0.000    0.000
+82    99    99    99    99    99    unknown    |    1.000    100.000    0.000    |    100.000    0.000     0    1.000    100.000    0.317    0.320    |    0.000    0.000    0.000    0.000    0.000
+99    71    71    71    71    71    low    |    2.000    0.000    100.000    |    3.813    96.187     1    2.000    100.000    0.192    0.189    |    1.000    0.000    100.000    100.000    100.000
+99    71    99    71    71    71    low    |    5.000    20.000    80.000    |    27.008    72.992     1    4.000    80.000    0.304    0.299    |    0.000    0.000    0.000    0.000    0.000
+99    71    99    99    71    71    low    |    8.000    50.000    50.000    |    45.104    54.896     1    4.000    50.000    0.782    0.771    |    1.000    0.000    100.000    100.000    100.000
+99    71    99    99    71    82    low    |    1.000    0.000    100.000    |    44.838    55.162     1    1.000    100.000    0.918    0.914    |    0.000    0.000    0.000    0.000    0.000
+99    71    99    99    99    71    low    |    33.000    36.364    63.636    |    33.943    66.057     1    21.000    63.636    0.065    0.061    |    9.000    44.444    55.556    55.556    55.556
+99    71    99    99    99    82    low    |    5.000    40.000    60.000    |    33.702    66.298     1    3.000    60.000    0.466    0.459    |    2.000    50.000    50.000    50.000    50.000
+99    71    99    99    99    99    low    |    1.000    0.000    100.000    |    68.506    31.494     0    0.000    0.000    0.711    0.715    |    0.000    0.000    0.000    0.000    0.000
+99    82    82    82    82    82    low    |    1.000    0.000    100.000    |    2.482    97.518     1    1.000    100.000    0.342    0.340    |    1.000    100.000    0.000    0.000    100.000
+99    82    99    82    82    82    low    |    1.000    0.000    100.000    |    31.187    68.813     1    1.000    100.000    0.706    0.703    |    0.000    0.000    0.000    0.000    0.000
+99    82    99    99    99    71    low    |    2.000    0.000    100.000    |    38.937    61.063     1    2.000    100.000    0.754    0.749    |    1.000    0.000    100.000    100.000    100.000
+99    82    99    99    99    82    low    |    16.000    43.750    56.250    |    38.682    61.318     1    9.000    56.250    0.365    0.355    |    4.000    75.000    25.000    25.000    75.000
+99    82    99    99    99    99    low    |    1.000    100.000    0.000    |    72.969    27.031     0    1.000    100.000    0.646    0.649    |    0.000    0.000    0.000    0.000    0.000
+99    99    99    71    71    71    low    |    2.000    50.000    50.000    |    42.219    57.781     1    1.000    50.000    0.826    0.820    |    0.000    0.000    0.000    0.000    0.000
+99    99    99    82    82    82    low    |    1.000    100.000    0.000    |    41.900    58.100     1    0.000    0.000    0.871    0.867    |    0.000    0.000    0.000    0.000    0.000
+99    99    99    99    71    71    low    |    5.000    60.000    40.000    |    61.868    38.132     0    3.000    60.000    0.595    0.603    |    4.000    75.000    25.000    75.000    75.000
+99    99    99    99    71    99    low    |    1.000    100.000    0.000    |    87.291    12.709     0    1.000    100.000    0.456    0.458    |    0.000    0.000    0.000    0.000    0.000
+99    99    99    99    82    82    low    |    1.000    0.000    100.000    |    7.940    92.060     1    1.000    100.000    0.400    0.397    |    1.000    100.000    0.000    0.000    100.000
+99    99    99    99    99    71    low    |    5.000    60.000    40.000    |    50.365    49.635     0    3.000    60.000    0.987    0.995    |    2.000    0.000    100.000    0.000    100.000
+99    99    99    99    99    82    low    |    4.000    25.000    75.000    |    50.096    49.904     0    1.000    25.000    0.997    0.995    |    2.000    100.000    0.000    100.000    100.000
+99    99    99    99    99    99    low    |    57.000    80.702    19.298    |    81.116    18.884     0    46.000    80.702    0.000    0.000    |    11.000    72.727    27.273    72.727    72.727
+99    99    99    99    99    99    unknown    |    1.000    100.000    0.000    |    100.000    0.000     0    1.000    100.000    0.317    0.320    |    1.000    0.000    100.000    0.000    100.000
+                            |    211.000    50.237    49.763    |    50.237    49.763    0    148.000    70.142            |    53.000    49.057    50.943    67.925    81.132
+                            |    freq    Z=0    Z=1    |    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    67.925%    correct
+Best possible:    81.132%    correct (using rules optimal for the test data)
+Improvement by model:    58.824%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation I1Z.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                                |Test Data        
+    |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+I1    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    |    32.000    18.750    81.250     1    26.000    81.250    0.000    0.000    |    10.000    0.000    100.000    100.000    100.000
+82    |    26.000    61.538    38.462     0    16.000    61.538    0.239    0.249    |    3.000    100.000    0.000    100.000    100.000
+99    |    153.000    54.902    45.098     0    84.000    54.902    0.227    0.250    |    40.000    57.500    42.500    57.500    57.500
+    |    211.000    50.237    49.763    0    126.000    59.716            |    53.000    49.057    50.943    67.925    67.925
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    67.925%    correct
+Best possible:    67.925%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation M1Z.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                                |Test Data        
+    |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+M1    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    |    87.000    28.736    71.264     1    62.000    71.264    0.000    0.000    |    23.000    21.739    78.261    78.261    78.261
+82    |    46.000    50.000    50.000    *0    23.000    50.000    1.000    0.974    |    9.000    77.778    22.222    77.778    77.778
+99    |    78.000    74.359    25.641     0    58.000    74.359    0.000    0.000    |    21.000    66.667    33.333    66.667    66.667
+    |    211.000    50.237    49.763    0    143.000    67.773            |    53.000    49.057    50.943    73.585    73.585
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    73.585%    correct
+Best possible:    73.585%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation I2Z.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                                |Test Data        
+    |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+I2    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    |    34.000    17.647    82.353     1    28.000    82.353    0.000    0.000    |    11.000    0.000    100.000    100.000    100.000
+82    |    24.000    54.167    45.833     0    13.000    54.167    0.683    0.700    |    4.000    100.000    0.000    100.000    100.000
+99    |    153.000    56.863    43.137     0    87.000    56.863    0.091    0.103    |    38.000    57.895    42.105    57.895    57.895
+    |    211.000    50.237    49.763    0    128.000    60.664            |    53.000    49.057    50.943    69.811    69.811
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    69.811%    correct
+Best possible:    69.811%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation I3Z.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                                |Test Data        
+    |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+I3    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    |    40.000    20.000    80.000     1    32.000    80.000    0.000    0.000    |    11.000    0.000    100.000    100.000    100.000
+82    |    28.000    53.571    46.429     0    15.000    53.571    0.710    0.729    |    4.000    100.000    0.000    100.000    100.000
+99    |    143.000    58.042    41.958     0    83.000    58.042    0.055    0.063    |    38.000    57.895    42.105    57.895    57.895
+    |    211.000    50.237    49.763    0    130.000    61.611            |    53.000    49.057    50.943    69.811    69.811
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    69.811%    correct
+Best possible:    69.811%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation I6Z.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                                |Test Data        
+    |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+I6    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    |    56.000    30.357    69.643     1    39.000    69.643    0.003    0.003    |    16.000    18.750    81.250    81.250    81.250
+82    |    28.000    50.000    50.000    *0    14.000    50.000    1.000    0.980    |    5.000    100.000    0.000    100.000    100.000
+99    |    127.000    59.055    40.945     0    75.000    59.055    0.042    0.048    |    32.000    56.250    43.750    56.250    56.250
+    |    211.000    50.237    49.763    0    128.000    60.664            |    53.000    49.057    50.943    67.925    67.925
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    67.925%    correct
+Best possible:    67.925%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation O6Z.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                                |Test Data        
+    |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+O6    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+71    |    94.000    32.979    67.021     1    63.000    67.021    0.001    0.001    |    28.000    25.000    75.000    75.000    75.000
+82    |    54.000    44.444    55.556     1    30.000    55.556    0.418    0.399    |    13.000    84.615    15.385    15.385    84.615
+99    |    63.000    80.952    19.048     0    51.000    80.952    0.000    0.000    |    12.000    66.667    33.333    66.667    66.667
+    |    211.000    50.237    49.763    0    144.000    68.246            |    53.000    49.057    50.943    58.491    75.472
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    58.491%    correct
+Best possible:    75.472%    correct (using rules optimal for the test data)
+Improvement by model:    35.714%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
+
+-------------------------------------------------------------------------
+
+Conditional DV (D) (%) for each IV composite state for the Relation ElevZ.
+(For component relations, the Data and Model parts of the table are equal, so only one is given.)
+IV    |    Data                                |Test Data        
+    |    obs. p(DV|IV)                        |    obs. p(DV|IV)%correct
+Elev    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+low    |    207.000    49.275    50.725     1    105.000    50.725    0.835    0.782    |    50.000    48.000    52.000    52.000    52.000
+unknown    |    4.000    100.000    0.000     0    4.000    100.000    0.046    0.047    |    3.000    66.667    33.333    66.667    66.667
+    |    211.000    50.237    49.763    0    109.000    51.659            |    53.000    49.057    50.943    52.830    52.830
+    |    freq    Z=0    Z=1    rule    #correct    %correct    p(rule)    p(margin)    |    freq    Z=0    Z=1    by rule    best
+
+Performance on Test Data
+Independence Model rule:    49.057%    correct (using rule from the independence model of the training data)
+Model rule:    52.830%    correct
+Best possible:    52.830%    correct (using rules optimal for the test data)
+Improvement by model:    100.000%    (Model - Default) / (Best - Default)
+
+Rules marked with an asterisk (*) are selected using the independence model.
