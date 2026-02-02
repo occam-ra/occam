@@ -31,6 +31,8 @@ libpython*.a
 *token*.txt
 *Token*.txt
 *Recovery-Codes*.txt
+secret_tokens/
+secrets/
 
 # -----------------------------------------------------------------------------
 # Output Files & Results (ignore all test/analysis output)
