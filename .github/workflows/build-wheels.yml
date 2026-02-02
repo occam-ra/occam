@@ -77,9 +77,9 @@ jobs:
           name: wheels-windows
           path: windows-wheels/*.whl
 
-  # Collect everything (wheels + sdist) and publish to TestPyPI
+  # Collect everything (wheels + sdist) and publish
   upload_wheels:
-    name: Upload to TestPyPI
+    name: Upload to PyPI
     needs: [sdist, build_unix_wheels, check_windows_wheels]
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
@@ -107,3 +107,9 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           skip-existing: true
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
+
+      - name: Publish to Production PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+          password: ${{ secrets.PYPI_API_TOKEN }}

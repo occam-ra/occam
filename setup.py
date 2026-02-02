@@ -60,7 +60,7 @@ ext_modules = [
 
 setup(
     name='pyoccam',
-    version='0.9.2',
+    version='0.9.3',
     author='David Percy',
     author_email='percyd@pdx.edu',
     description='OCCAM Reconstructability Analysis Tools',

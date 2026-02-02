@@ -22,7 +22,7 @@ except ImportError:
 import os
 from pathlib import Path
 
-__version__ = '0.9.2'  # Fixed get_best_model_by_information() to match OCCAM manual
+__version__ = '0.9.3'  # Added make_occam_input_from_csv() converter function
 
 # Get the package directory
 PACKAGE_DIR = Path(__file__).parent
@@ -47,12 +47,6 @@ class OccamData:
     This class provides a sklearn-compatible interface for OCCAM datasets,
     wrapping the VBMManager with convenient attributes and methods.
     
-    KEY DESIGN DECISIONS:
-    - Automatic initialization: Creates and configures VBMManager on construction
-    - Lazy computation: Metadata extracted after successful data load
-    - Convenience methods: Provides quick_search() for rapid exploration
-    - Test data support: Automatically detects and flags test data presence
-    
     Attributes:
         data_file: Path to the loaded data file
         n_samples: Number of samples in training data
@@ -62,19 +56,6 @@ class OccamData:
         manager: VBMManager instance for running analyses
         has_test_data: Boolean flag indicating test data presence
         DESCR: Optional description of the dataset (set by load functions)
-    
-    Usage Examples:
-        # Load and explore dataset:
-        >>> data = pyoccam.load_dementia()
-        >>> print(f"{data.n_samples} samples, {data.n_features} features")
-        >>> print(f"Target variable: {data.target_name}")
-        
-        # Access manager for analysis:
-        >>> report = data.manager.generate_search_report("loopless-up", 3, 3)
-        >>> best = data.manager.get_best_model_by_bic()
-        
-        # Convenience method:
-        >>> best = data.quick_search()  # Shortcut for above
     """
     def __init__(self, data_file, manager=None):
         self.data_file = str(data_file)
@@ -107,11 +88,6 @@ class OccamData:
         """
         Run a quick exploratory search on this dataset.
         
-        Convenience method that runs beam search and returns the best model
-        by BIC criterion. Equivalent to:
-            report = self.manager.generate_search_report(...)
-            best = self.manager.get_best_model_by_bic()
-        
         Args:
             search_type: Search algorithm (default: "loopless-up")
             levels: Number of levels to search (default: 3)
@@ -134,20 +110,7 @@ def load_dementia():
     Load the dementia dataset.
     
     Returns:
-        OccamData object with:
-            - .n_samples: number of samples
-            - .n_features: number of features
-            - .feature_names: list of feature names
-            - .target_name: name of dependent variable
-            - .manager: VBMManager for analysis
-            
-    Example:
-        >>> dementia = pyoccam.load_dementia()
-        >>> print(f"{dementia.n_samples} samples, {dementia.n_features} features")
-        >>> dementia.manager.generate_search_report("loopless-up", 3, 3)
-        
-        # Or use the convenience method:
-        >>> best = dementia.quick_search()
+        OccamData object with .manager attribute for analysis
     """
     data_file = PACKAGE_DIR / "dementia05.txt"
     if not data_file.exists():
@@ -159,7 +122,7 @@ Sample size: 424 subjects
 Features: APOE, Gender, Education, Age, and genetic markers
 Target: CaseControl (0=control, 1=case)"""
     
-    print(f"âœ“ Loaded dementia: {data.n_samples} samples, {data.n_features} features")
+    print(f"[OK] Loaded dementia: {data.n_samples} samples, {data.n_features} features")
     return data
 
 def load_landslides():
@@ -168,11 +131,6 @@ def load_landslides():
     
     Returns:
         OccamData object (same structure as load_dementia)
-        
-    Example:
-        >>> landslides = pyoccam.load_landslides()
-        >>> print(landslides)
-        >>> landslides.manager.generate_search_report("loopless-up", 3, 3)
     """
     # Try different possible filenames
     possible_files = [
@@ -196,7 +154,7 @@ def load_landslides():
     data = OccamData(data_file)
     data.DESCR = "Landslides/Geological hazard dataset"
     
-    print(f"âœ“ Loaded landslides: {data.n_samples} samples, {data.n_features} features")
+    print(f"[OK] Loaded landslides: {data.n_samples} samples, {data.n_features} features")
     return data
 
 def load_data(filename):
@@ -208,10 +166,6 @@ def load_data(filename):
         
     Returns:
         OccamData object
-        
-    Example:
-        >>> data = pyoccam.load_data("mydata.txt")
-        >>> print(data)
     """
     # Check if it's a packaged file
     if not os.path.isabs(filename) and not os.path.exists(filename):
@@ -223,7 +177,7 @@ def load_data(filename):
         raise FileNotFoundError(f"Data file not found: {filename}")
     
     data = OccamData(filename)
-    print(f"âœ“ Loaded {os.path.basename(filename)}: {data.n_samples} samples")
+    print(f"[OK] Loaded {os.path.basename(filename)}: {data.n_samples} samples")
     return data
 
 # ==================================
@@ -241,7 +195,7 @@ def get_demo_script(copy_to_current=False):
         import shutil
         dest = Path("pyoccam_demo.py")
         shutil.copy2(demo_file, dest)
-        print(f"âœ“ Copied demo script to: {dest.absolute()}")
+        print(f"[OK] Copied demo script to: {dest.absolute()}")
         return str(dest.absolute())
     else:
         return str(demo_file)
@@ -261,7 +215,7 @@ def get_demo_notebook(copy_to_current=False):
         import shutil
         dest = Path(notebook_file.name)
         shutil.copy2(notebook_file, dest)
-        print(f"âœ“ Copied notebook to: {dest.absolute()}")
+        print(f"[OK] Copied notebook to: {dest.absolute()}")
         return str(dest.absolute())
     else:
         return str(notebook_file)
@@ -294,10 +248,6 @@ def quick_search(data_or_file="dementia05.txt", search_type="loopless-up", level
         
     Returns:
         tuple of (data_object, best_model_name)
-        
-    Example:
-        >>> data, best = pyoccam.quick_search()
-        >>> print(f"Best: {best}")
     """
     if isinstance(data_or_file, OccamData):
         data = data_or_file
@@ -339,17 +289,28 @@ STANDARD WORKFLOW:
   # 2. Get the manager
   manager = data.manager
   
-  # 3. Configure (Don't include ID or Model!)
-  manager.set_report_variables("Level$I, h, ddf, dLR, Alpha, %dH(DV), dAIC, dBIC")
-  
-  # 4. Run search
+  # 3. Run search
   report = manager.generate_search_report("loopless-up", 7, 3)
   
-  # 5. Get best model (choose criterion)
+  # 4. Get best model (choose criterion)
   best = manager.get_best_model_by_bic()           # Most parsimonious
-  best = manager.get_best_model_by_information()   # Highest info with ALL steps Inc.Alpha < 0.05
+  best = manager.get_best_model_by_information()   # Highest info (alpha < 0.05)
   best = manager.get_best_model_by_aic()           # Intermediate
-  # WARNING: Avoid get_best_model_by_raw_information() - may return overfitted models!
+
+CSV CONVERSION:
+  # Convert CSV to OCCAM format (last column = DV, auto-exclude high cardinality)
+  output_file, data = pyoccam.make_occam_input_from_csv("mydata.csv")
+  
+  # With options:
+  output_file, data = pyoccam.make_occam_input_from_csv(
+      "mydata.csv",
+      max_cardinality=20,           # Exclude columns with >20 unique values
+      dv_column="target",           # Specify DV column by name
+      exclude_columns=["ID", "Name"] # Always exclude these columns
+  )
+  
+  # Then analyze:
+  best = data.quick_search()
 
 DEMOS:
   pyoccam.run_demo()                      # Run demo
@@ -358,6 +319,218 @@ DEMOS:
 
 Type pyoccam.help() to see this again.
 """)
+
+# ==================================
+# CSV TO OCCAM CONVERTER
+# ==================================
+
+def make_occam_input_from_csv(csv_filename, output_filename=None, max_cardinality=20, 
+                               dv_column=None, exclude_columns=None, verbose=True):
+    """
+    Convert a standard CSV file to OCCAM input format.
+    
+    Automatically detects categorical vs numeric columns, computes cardinality,
+    and generates appropriate variable definitions. Columns with cardinality > max_cardinality
+    are automatically excluded (set to role=0).
+    
+    Args:
+        csv_filename: Path to input CSV file
+        output_filename: Path for output OCCAM file (default: same name with .txt extension)
+        max_cardinality: Maximum unique values before column is excluded (default: 20)
+        dv_column: Name or index of dependent variable column (default: last column)
+        exclude_columns: List of column names to always exclude (e.g., ['ID', 'Pt_ID'])
+        verbose: Print progress messages (default: True)
+        
+    Returns:
+        tuple: (output_path, OccamData object) - ready for analysis
+        
+    Example:
+        >>> output_file, data = pyoccam.make_occam_input_from_csv("mydata.csv")
+        >>> best = data.quick_search()
+    """
+    import csv
+    from collections import Counter
+    from pathlib import Path
+    
+    csv_path = Path(csv_filename)
+    if not csv_path.exists():
+        raise FileNotFoundError(f"CSV file not found: {csv_filename}")
+    
+    # Default output filename
+    if output_filename is None:
+        output_filename = csv_path.with_suffix('.txt')
+    output_path = Path(output_filename)
+    
+    exclude_columns = set(exclude_columns or [])
+    
+    if verbose:
+        print(f"Reading CSV: {csv_path}")
+    
+    # Read CSV and analyze columns
+    with open(csv_path, 'r', newline='', encoding='utf-8-sig') as f:
+        reader = csv.reader(f)
+        headers = next(reader)
+        
+        # Initialize column data structures
+        n_cols = len(headers)
+        column_values = [[] for _ in range(n_cols)]
+        
+        # Read all data rows
+        rows = []
+        for row in reader:
+            if len(row) == n_cols:  # Skip malformed rows
+                rows.append(row)
+                for i, val in enumerate(row):
+                    column_values[i].append(val)
+    
+    n_samples = len(rows)
+    if verbose:
+        print(f"  Found {n_samples} samples, {n_cols} columns")
+    
+    # Determine DV column
+    if dv_column is None:
+        dv_idx = n_cols - 1  # Last column
+    elif isinstance(dv_column, int):
+        dv_idx = dv_column
+    else:
+        try:
+            dv_idx = headers.index(dv_column)
+        except ValueError:
+            raise ValueError(f"DV column '{dv_column}' not found in headers")
+    
+    if verbose:
+        print(f"  Dependent variable: {headers[dv_idx]} (column {dv_idx})")
+    
+    # Analyze each column
+    column_info = []
+    used_abbrevs = set()
+    
+    def make_abbreviation(name, used):
+        """Generate a unique 2-letter abbreviation from column name."""
+        # Clean the name
+        clean = ''.join(c for c in name if c.isalnum())
+        
+        # Try first two letters (lowercase)
+        if len(clean) >= 2:
+            abbr = clean[:2].lower()
+            if abbr not in used:
+                used.add(abbr)
+                return abbr
+        
+        # Try first letter + consonants
+        consonants = ''.join(c for c in clean[1:] if c.lower() not in 'aeiou')
+        if consonants:
+            abbr = (clean[0] + consonants[0]).lower()
+            if abbr not in used:
+                used.add(abbr)
+                return abbr
+        
+        # Try first letter + number
+        for i in range(1, 100):
+            abbr = f"{clean[0].lower()}{i}"
+            if abbr not in used:
+                used.add(abbr)
+                return abbr
+        
+        return clean[:2].lower()  # Fallback
+    
+    for i, (name, values) in enumerate(zip(headers, column_values)):
+        unique_values = sorted(set(values))
+        cardinality = len(unique_values)
+        
+        # Create value-to-index mapping
+        value_map = {v: idx for idx, v in enumerate(unique_values)}
+        
+        # Determine role: 0=exclude, 1=IV, 2=DV
+        if i == dv_idx:
+            role = 2  # Dependent variable
+            include = True
+            reason = "DV"
+        elif name in exclude_columns:
+            role = 0  # Excluded by user
+            include = False
+            reason = "user excluded"
+        elif cardinality > max_cardinality:
+            role = 0  # Excluded due to high cardinality
+            include = False
+            reason = f"cardinality {cardinality} > {max_cardinality}"
+        elif cardinality < 2:
+            role = 0  # Constant column
+            include = False
+            reason = "constant (cardinality < 2)"
+        else:
+            role = 1  # Independent variable
+            include = True
+            reason = "IV"
+        
+        abbrev = make_abbreviation(name, used_abbrevs)
+        
+        column_info.append({
+            'name': name,
+            'cardinality': cardinality,
+            'role': role,
+            'abbrev': abbrev,
+            'include': include,
+            'reason': reason,
+            'value_map': value_map,
+            'unique_values': unique_values
+        })
+    
+    # Report column decisions
+    included = [c for c in column_info if c['include']]
+    excluded = [c for c in column_info if not c['include']]
+    
+    if verbose:
+        print(f"\n  Included columns ({len(included)}):")
+        for c in included:
+            print(f"    {c['abbrev']:4s} {c['name'][:30]:30s} card={c['cardinality']:3d} ({c['reason']})")
+        
+        if excluded:
+            print(f"\n  Excluded columns ({len(excluded)}):")
+            for c in excluded:
+                print(f"    {c['abbrev']:4s} {c['name'][:30]:30s} card={c['cardinality']:3d} ({c['reason']})")
+    
+    # Write OCCAM format file
+    if verbose:
+        print(f"\nWriting OCCAM file: {output_path}")
+    
+    with open(output_path, 'w') as f:
+        # Header
+        f.write(":nominal\n")
+        
+        # Variable definitions
+        for col in column_info:
+            # Format: name, cardinality, role, abbreviation
+            f.write(f"{col['name']}, {col['cardinality']}, {col['role']}, {col['abbrev']}\n")
+        
+        # Data section
+        f.write(":no-frequency\n")
+        f.write(":data\n")
+        
+        # Data rows (convert values to indices)
+        for row in rows:
+            converted = []
+            for i, val in enumerate(row):
+                idx = column_info[i]['value_map'].get(val, 0)
+                converted.append(str(idx))
+            f.write(','.join(converted) + '\n')
+    
+    if verbose:
+        print(f"[OK] Created OCCAM input file: {output_path}")
+        print(f"  {n_samples} samples, {len(included)} active variables")
+    
+    # Load and return the data object
+    try:
+        data = OccamData(output_path)
+        return str(output_path), data
+    except Exception as e:
+        print(f"[!] Warning: Could not load generated file: {e}")
+        return str(output_path), None
+
+
+# Alias for convenience
+csv_to_occam = make_occam_input_from_csv
+
 
 # Welcome message
 print(f"PyOccam {__version__} loaded. Type pyoccam.help() for usage.")
