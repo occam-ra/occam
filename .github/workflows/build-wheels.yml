@@ -101,14 +101,7 @@ jobs:
           echo "Windows wheels: $(ls dist/*win*.whl   2>/dev/null | wc -l)"
           echo "sdist:          $(ls dist/*.tar.gz     2>/dev/null | wc -l)"
 
-      - name: Publish to TestPyPI
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          skip-existing: true
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
-
-      - name: Publish to Production PyPI
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           skip-existing: true
