@@ -97,7 +97,8 @@ data = pyoccam.load_data("file.txt")  # Any OCCAM format file
 
 ## Links
 
-- **Documentation**: [OCCAM Manual (PDF)](https://pdxscholar.library.pdx.edu/sysc_fac/145/)
+- **Practical Guide**: [PRACTICAL_GUIDE.md](https://github.com/occam-ra/occam/blob/pyoccam-port/PRACTICAL_GUIDE.md) - Tips from real projects
+- **OCCAM Manual**: [PDF](https://pdxscholar.library.pdx.edu/sysc_fac/145/) - Complete theory & reference
 - **Source Code**: [github.com/occam-ra/occam](https://github.com/occam-ra/occam)
 - **Web Interface**: [occam.hsd.pdx.edu](https://occam.hsd.pdx.edu/)
 

@@ -1,6 +1,32 @@
 # OCCAM: Reconstructability Analysis Tools
 Copyright (c) 1990 The Portland State University OCCAM Project Team
 
+---
+
+## 🐍 PyOccam - Python Package
+
+**New!** OCCAM is now available as a Python package:
+
+```bash
+pip install pyoccam
+```
+
+```python
+import pyoccam
+data = pyoccam.load_dementia()
+best = data.quick_search()
+print(f"Best model: {best}")
+```
+
+**Documentation:**
+- [PyOccam README](pyoccam/README.md) - Quick start guide
+- [PRACTICAL_GUIDE.md](PRACTICAL_GUIDE.md) - Tips from real-world projects (landslides, wildfires)
+- [PyOccam_API_Reference.md](PyOccam_API_Reference.md) - Complete API documentation
+
+---
+
+## About OCCAM
+
 OCCAM is a collection of software tools comprising a library
 with both command-line and web interfaces for
 *Reconstructability Analysis* (RA), a kind of statistical
