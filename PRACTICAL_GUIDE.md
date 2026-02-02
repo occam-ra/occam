@@ -28,9 +28,11 @@ import pyoccam
 # Simple conversion - last column becomes DV
 output_file, data = pyoccam.make_occam_input_from_csv("mydata.csv")
 
-# With all options
+# With train/test split for validation
 output_file, data = pyoccam.make_occam_input_from_csv(
     "mydata.csv",
+    test_split=0.2,                       # 20% held out for testing
+    random_state=42,                      # Reproducible split
     output_filename="mydata_occam.txt",  # Custom output name
     max_cardinality=20,                   # Exclude columns with >20 unique values
     dv_column="LS",                       # Specify DV by name (or index)
@@ -38,9 +40,12 @@ output_file, data = pyoccam.make_occam_input_from_csv(
     verbose=True                          # Show progress
 )
 
-# Then run analysis
+# Then run analysis - test metrics now available!
 if data:
     best = data.quick_search()
+    cm = data.manager.get_confusion_matrix(best, target_state="0")
+    print(f"Train: {cm['train_accuracy']:.1%}")
+    print(f"Test:  {cm['test_accuracy']:.1%}")  # Validates model!
 ```
 
 ### Command Line Usage
@@ -49,21 +54,23 @@ if data:
 # Basic - converts and runs quick search
 python -m pyoccam csv2occam mydata.csv
 
-# Custom cardinality threshold
-python -m pyoccam csv2occam mydata.csv --max-cardinality 30
+# With 20% test split for validation
+python -m pyoccam csv2occam mydata.csv --test-split 0.2
 
-# Specify DV and exclusions
-python -m pyoccam csv2occam mydata.csv --dv LS --exclude "x,y,Pt_ID,OBJECTID"
-
-# Full options
+# Full options with test split
 python -m pyoccam csv2occam mydata.csv \
-    -c 25 \
-    -d target_column \
-    -e "ID,x,y,geometry,Shape_Leng,Shape_Area" \
-    -o output.txt
+    --test-split 0.2 \
+    --random-state 42 \
+    --max-cardinality 25 \
+    --dv target_column \
+    --exclude "ID,x,y,geometry,Shape_Leng,Shape_Area" \
+    --output output.txt
+
+# Short form
+python -m pyoccam csv2occam mydata.csv -t 0.2 -r 42 -c 25 -d LS -e "x,y,Pt_ID"
 
 # Skip automatic search (just convert)
-python -m pyoccam csv2occam mydata.csv --no-search
+python -m pyoccam csv2occam mydata.csv --test-split 0.2 --no-search
 
 # See all options
 python -m pyoccam csv2occam --help
@@ -433,8 +440,13 @@ data = pyoccam.load_dementia()           # Built-in
 data = pyoccam.load_landslides()         # Built-in
 data = pyoccam.load_data("file.txt")     # Any OCCAM file
 
-# Convert CSV
-out, data = pyoccam.make_occam_input_from_csv("data.csv", max_cardinality=20)
+# Convert CSV with train/test split
+out, data = pyoccam.make_occam_input_from_csv(
+    "data.csv", 
+    test_split=0.2,          # 20% test set
+    random_state=42,         # Reproducible
+    max_cardinality=20
+)
 
 # Configure
 manager = data.manager
@@ -451,9 +463,9 @@ best = manager.get_best_model_by_information()   # Liberal (alpha<0.05)
 # Fit report
 fit = manager.generate_fit_report(best, target_state="0")
 
-# Confusion matrix
+# Confusion matrix (train AND test if split was used)
 cm = manager.get_confusion_matrix(best, target_state="0")
-print(cm['train_accuracy'], cm['train_sensitivity'], cm['train_specificity'])
+print(f"Train: {cm['train_accuracy']:.1%}, Test: {cm.get('test_accuracy', 'N/A')}")
 ```
 
 ---

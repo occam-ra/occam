@@ -53,22 +53,28 @@ print(f"Accuracy: {cm['train_accuracy']:.1%}")
 ```python
 import pyoccam
 
-# Convert CSV to OCCAM format (auto-excludes high-cardinality columns)
+# Convert CSV to OCCAM format with train/test split
 output_file, data = pyoccam.make_occam_input_from_csv(
     "mydata.csv",
+    test_split=0.2,                  # 20% held out for validation
+    random_state=42,                 # Reproducible split
     max_cardinality=20,              # Exclude columns with >20 unique values
     dv_column="target",              # Specify dependent variable
     exclude_columns=["ID", "Name"]   # Always exclude these
 )
 
-# Analyze
+# Analyze - now with train AND test metrics!
 best = data.quick_search()
+cm = data.manager.get_confusion_matrix(best, target_state="0")
+print(f"Train accuracy: {cm['train_accuracy']:.1%}")
+print(f"Test accuracy:  {cm['test_accuracy']:.1%}")
 ```
 
 Or from the command line:
 
 ```bash
-python -m pyoccam csv2occam mydata.csv --max-cardinality 30 --exclude ID,Name
+# With 20% test split
+python -m pyoccam csv2occam mydata.csv --test-split 0.2 --exclude ID,Name
 ```
 
 ## Model Selection Methods

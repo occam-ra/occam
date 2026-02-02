@@ -63,6 +63,14 @@ Examples:
     csv_parser.add_argument('-e', '--exclude',
         help='Comma-separated list of column names to exclude (e.g., "ID,Name,Date")')
     
+    csv_parser.add_argument('-t', '--test-split',
+        type=float, default=None,
+        help='Fraction of data for test set (0.0-1.0, e.g., 0.2 for 20%% test)')
+    
+    csv_parser.add_argument('-r', '--random-state',
+        type=int, default=42,
+        help='Random seed for train/test split (default: 42)')
+    
     csv_parser.add_argument('-q', '--quiet',
         action='store_true',
         help='Suppress progress messages')
@@ -115,6 +123,8 @@ def run_csv2occam(args):
         max_cardinality=args.max_cardinality,
         dv_column=dv_column,
         exclude_columns=exclude_columns,
+        test_split=args.test_split,
+        random_state=args.random_state,
         verbose=not args.quiet
     )
     
@@ -128,7 +138,10 @@ def run_csv2occam(args):
         # Get confusion matrix
         cm = data.manager.get_confusion_matrix(best, target_state="0")
         if cm.get('has_values', False):
-            print(f"\nAccuracy: {cm['train_accuracy']:.1%}")
+            print(f"\nTrain Accuracy: {cm['train_accuracy']:.1%}")
+            # Show test accuracy if we have test data
+            if data.has_test_data and 'test_accuracy' in cm:
+                print(f"Test Accuracy:  {cm['test_accuracy']:.1%}")
 
 if __name__ == '__main__':
     main()

@@ -22,7 +22,7 @@ except ImportError:
 import os
 from pathlib import Path
 
-__version__ = '0.9.3'  # Added make_occam_input_from_csv() converter function
+__version__ = '0.9.4'  # Added test_split parameter and advanced demo
 
 # Get the package directory
 PACKAGE_DIR = Path(__file__).parent
@@ -301,16 +301,20 @@ CSV CONVERSION:
   # Convert CSV to OCCAM format (last column = DV, auto-exclude high cardinality)
   output_file, data = pyoccam.make_occam_input_from_csv("mydata.csv")
   
-  # With options:
+  # With train/test split for validation:
   output_file, data = pyoccam.make_occam_input_from_csv(
       "mydata.csv",
+      test_split=0.2,               # 20% held out for testing
+      random_state=42,              # Reproducible split
       max_cardinality=20,           # Exclude columns with >20 unique values
       dv_column="target",           # Specify DV column by name
       exclude_columns=["ID", "Name"] # Always exclude these columns
   )
   
-  # Then analyze:
+  # Then analyze (test metrics now available!):
   best = data.quick_search()
+  cm = data.manager.get_confusion_matrix(best, target_state="0")
+  print(f"Train: {cm['train_accuracy']:.1%}, Test: {cm['test_accuracy']:.1%}")
 
 DEMOS:
   pyoccam.run_demo()                      # Run demo
@@ -325,7 +329,8 @@ Type pyoccam.help() to see this again.
 # ==================================
 
 def make_occam_input_from_csv(csv_filename, output_filename=None, max_cardinality=20, 
-                               dv_column=None, exclude_columns=None, verbose=True):
+                               dv_column=None, exclude_columns=None, test_split=None,
+                               random_state=42, verbose=True):
     """
     Convert a standard CSV file to OCCAM input format.
     
@@ -339,14 +344,26 @@ def make_occam_input_from_csv(csv_filename, output_filename=None, max_cardinalit
         max_cardinality: Maximum unique values before column is excluded (default: 20)
         dv_column: Name or index of dependent variable column (default: last column)
         exclude_columns: List of column names to always exclude (e.g., ['ID', 'Pt_ID'])
+        test_split: Fraction of data to use as test set (0.0-1.0, default: None = no test split)
+                    If provided, creates :test section in OCCAM file for model validation.
+                    Common values: 0.2 (20% test), 0.3 (30% test)
+        random_state: Random seed for reproducible train/test splits (default: 42)
         verbose: Print progress messages (default: True)
         
     Returns:
         tuple: (output_path, OccamData object) - ready for analysis
         
     Example:
+        >>> # Simple conversion
         >>> output_file, data = pyoccam.make_occam_input_from_csv("mydata.csv")
         >>> best = data.quick_search()
+        
+        >>> # With 20% test split for validation
+        >>> output_file, data = pyoccam.make_occam_input_from_csv(
+        ...     "mydata.csv", test_split=0.2, random_state=42)
+        >>> cm = data.manager.get_confusion_matrix(best, target_state="0")
+        >>> print(f"Train acc: {cm['train_accuracy']:.1%}")
+        >>> print(f"Test acc:  {cm['test_accuracy']:.1%}")  # Now available!
     """
     import csv
     from collections import Counter
@@ -386,6 +403,34 @@ def make_occam_input_from_csv(csv_filename, output_filename=None, max_cardinalit
     n_samples = len(rows)
     if verbose:
         print(f"  Found {n_samples} samples, {n_cols} columns")
+    
+    # Split into train/test if requested
+    train_rows = rows
+    test_rows = []
+    
+    if test_split is not None and test_split > 0:
+        import random
+        random.seed(random_state)
+        
+        # Shuffle and split
+        shuffled_indices = list(range(n_samples))
+        random.shuffle(shuffled_indices)
+        
+        n_test = int(n_samples * test_split)
+        n_train = n_samples - n_test
+        
+        train_indices = shuffled_indices[:n_train]
+        test_indices = shuffled_indices[n_train:]
+        
+        train_rows = [rows[i] for i in train_indices]
+        test_rows = [rows[i] for i in test_indices]
+        
+        if verbose:
+            print(f"  Train/test split: {len(train_rows)} train, {len(test_rows)} test ({test_split:.0%})")
+            print(f"  Random state: {random_state}")
+    
+    # For column analysis, use ALL rows to get complete value mappings
+    # (otherwise test data might have values not in training)
     
     # Determine DV column
     if dv_column is None:
@@ -503,21 +548,34 @@ def make_occam_input_from_csv(csv_filename, output_filename=None, max_cardinalit
             # Format: name, cardinality, role, abbreviation
             f.write(f"{col['name']}, {col['cardinality']}, {col['role']}, {col['abbrev']}\n")
         
-        # Data section
+        # Data section (training data)
         f.write(":no-frequency\n")
         f.write(":data\n")
         
-        # Data rows (convert values to indices)
-        for row in rows:
+        # Training data rows (convert values to indices)
+        for row in train_rows:
             converted = []
             for i, val in enumerate(row):
                 idx = column_info[i]['value_map'].get(val, 0)
                 converted.append(str(idx))
             f.write(','.join(converted) + '\n')
+        
+        # Test section (if split was requested)
+        if test_rows:
+            f.write(":test\n")
+            for row in test_rows:
+                converted = []
+                for i, val in enumerate(row):
+                    idx = column_info[i]['value_map'].get(val, 0)
+                    converted.append(str(idx))
+                f.write(','.join(converted) + '\n')
     
     if verbose:
         print(f"[OK] Created OCCAM input file: {output_path}")
-        print(f"  {n_samples} samples, {len(included)} active variables")
+        if test_rows:
+            print(f"  {len(train_rows)} train + {len(test_rows)} test samples, {len(included)} active variables")
+        else:
+            print(f"  {n_samples} samples, {len(included)} active variables")
     
     # Load and return the data object
     try:
