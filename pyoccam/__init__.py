@@ -20,9 +20,11 @@ except ImportError:
         raise
 
 import os
+import csv
 from pathlib import Path
+from pyoccam.analyze_fit import FitReportAnalyzer
 
-__version__ = '0.9.4'  # Added test_split parameter and advanced demo
+__version__ = '0.9.5'  # Fix help() f-string bug, clean up packaging
 
 # Get the package directory
 PACKAGE_DIR = Path(__file__).parent
@@ -79,17 +81,21 @@ class OccamData:
         self.target_name = variables[-1] if variables else None
         self.has_test_data = manager.has_test_data()
         
+        # Optional lookup tables (populated by load_landslides or make_occam_input_from_csv)
+        self.lookups = None  # dict of {variable_name: {encoded_int: original_str}}
+    
     def __repr__(self):
+        lookups_info = f", lookups={len(self.lookups)} vars" if self.lookups else ""
         return (f"OccamData(n_samples={self.n_samples}, "
                 f"n_features={self.n_features}, "
-                f"target='{self.target_name}')")
+                f"target='{self.target_name}'{lookups_info})")
     
-    def quick_search(self, search_type="loopless-up", levels=3, width=3):
+    def quick_search(self, search_type="full-up", levels=3, width=3):
         """
         Run a quick exploratory search on this dataset.
         
         Args:
-            search_type: Search algorithm (default: "loopless-up")
+            search_type: Search algorithm (default: "full-up")
             levels: Number of levels to search (default: 3)
             width: Beam width (default: 3)
         
@@ -100,6 +106,54 @@ class OccamData:
         best = self.manager.get_best_model_by_bic()
         print(f"Best model: {best}")
         return best
+
+# ==================================
+# LOOKUP TABLE UTILITIES
+# ==================================
+
+def load_lookups(csv_path):
+    """
+    Load a consolidated lookup CSV into a nested dict.
+    
+    Args:
+        csv_path: Path to CSV with columns: variable, encoded_value, original_value
+        
+    Returns:
+        dict of {variable_name: {encoded_int: original_str}}
+    """
+    lookups = {}
+    csv_path = Path(csv_path)
+    if not csv_path.exists():
+        return lookups
+    
+    with open(csv_path, 'r', newline='', encoding='utf-8-sig') as f:
+        reader = csv.DictReader(f)
+        for row in reader:
+            var = row['variable']
+            encoded = int(row['encoded_value'])
+            original = row['original_value']
+            if var not in lookups:
+                lookups[var] = {}
+            lookups[var][encoded] = original
+    return lookups
+
+
+def save_lookups(lookups, csv_path):
+    """
+    Save a lookup dict to consolidated CSV format.
+    
+    Args:
+        lookups: dict of {variable_name: {encoded_int: original_str}}
+        csv_path: Output file path
+    """
+    csv_path = Path(csv_path)
+    with open(csv_path, 'w', newline='', encoding='utf-8') as f:
+        writer = csv.writer(f)
+        writer.writerow(['variable', 'encoded_value', 'original_value'])
+        for var_name in sorted(lookups.keys()):
+            for encoded in sorted(lookups[var_name].keys()):
+                writer.writerow([var_name, encoded, lookups[var_name][encoded]])
+
 
 # ==================================
 # DATA LOADING FUNCTIONS
@@ -154,7 +208,13 @@ def load_landslides():
     data = OccamData(data_file)
     data.DESCR = "Landslides/Geological hazard dataset"
     
-    print(f"[OK] Loaded landslides: {data.n_samples} samples, {data.n_features} features")
+    # Attach lookup tables if available
+    lookups_file = PACKAGE_DIR / "landslides_lookups.csv"
+    if lookups_file.exists():
+        data.lookups = load_lookups(lookups_file)
+        print(f"[OK] Loaded landslides: {data.n_samples} samples, {data.n_features} features, {len(data.lookups)} lookup tables")
+    else:
+        print(f"[OK] Loaded landslides: {data.n_samples} samples, {data.n_features} features (no lookup tables)")
     return data
 
 def load_data(filename):
@@ -184,18 +244,53 @@ def load_data(filename):
 # DEMO ACCESS FUNCTIONS
 # ==================================
 
-def get_demo_script(copy_to_current=False):
-    """Get or copy the demo script."""
-    demo_file = PACKAGE_DIR / "pyoccam_demo.py"
+def get_demo_script(which='basic', copy_to_current=False):
+    """Get or copy a demo script.
+    
+    Args:
+        which: Which demo to get:
+            'basic' (default) - Getting started with dementia dataset
+            'advanced' - Model comparison, batch processing, landslides
+            'csv' - CSV conversion, lookup tables, train/test split
+        copy_to_current: If True, copy to current directory
+    
+    Returns:
+        Path to the demo script
+    """
+    demo_map = {
+        'basic': 'pyoccam_demo.py',
+        'advanced': 'pyoccam_demo_advanced.py',
+        'csv': 'pyoccam_demo_csv.py',
+    }
+    
+    # Extra files to copy alongside certain demos
+    demo_extras = {
+        'csv': ['sample_mydata.csv'],
+    }
+    
+    if which not in demo_map:
+        raise ValueError(f"Unknown demo '{which}'. Choose from: {', '.join(demo_map.keys())}")
+    
+    demo_file = PACKAGE_DIR / demo_map[which]
     
     if not demo_file.exists():
         raise FileNotFoundError(f"Demo script not found at {demo_file}")
     
     if copy_to_current:
         import shutil
-        dest = Path("pyoccam_demo.py")
+        dest = Path(demo_file.name)
         shutil.copy2(demo_file, dest)
-        print(f"[OK] Copied demo script to: {dest.absolute()}")
+        print(f"[OK] Copied {which} demo to: {dest.absolute()}")
+        
+        # Copy any extra files needed by this demo
+        for extra in demo_extras.get(which, []):
+            src = PACKAGE_DIR / extra
+            if src.exists():
+                extra_dest = Path(extra)
+                if not extra_dest.exists():
+                    shutil.copy2(src, extra_dest)
+                    print(f"[OK] Copied {extra} (required by demo)")
+        
         return str(dest.absolute())
     else:
         return str(demo_file)
@@ -239,7 +334,7 @@ def run_demo():
 # CONVENIENCE FUNCTIONS
 # ==================================
 
-def quick_search(data_or_file="dementia05.txt", search_type="loopless-up", levels=3, width=3):
+def quick_search(data_or_file="dementia05.txt", search_type="full-up", levels=3, width=3):
     """
     Quick one-line search.
     
@@ -264,9 +359,10 @@ def quick_search(data_or_file="dementia05.txt", search_type="loopless-up", level
 
 def help():
     """Show help."""
+    sep = '=' * 60
     print(f"""
 PyOccam {__version__} - Quick Help
-{'='*60}
+{sep}
 
 LOADING DATA (returns data object with .manager attribute):
   dementia = pyoccam.load_dementia()      # Load dementia dataset
@@ -278,29 +374,39 @@ USING DATA OBJECTS:
   print(dementia.feature_names)           # Feature variable names
   print(dementia.target_name)             # Dependent variable name
   manager = dementia.manager              # Access the VBMManager
-  
+
   # Convenience method on data object:
   best = dementia.quick_search()          # Run search on this data
 
 STANDARD WORKFLOW:
   # 1. Load data
   data = pyoccam.load_dementia()
-  
+
   # 2. Get the manager
   manager = data.manager
-  
+
   # 3. Run search
-  report = manager.generate_search_report("loopless-up", 7, 3)
-  
+  report = manager.generate_search_report("full-up", 7, 3)
+
   # 4. Get best model (choose criterion)
   best = manager.get_best_model_by_bic()           # Most parsimonious
   best = manager.get_best_model_by_information()   # Highest info (alpha < 0.05)
   best = manager.get_best_model_by_aic()           # Intermediate
 
+LOOKUP TABLES:
+  # Landslides dataset includes lookup tables for all encoded variables
+  data = pyoccam.load_landslides()
+  print(data.lookups['TaxOrder'])           # {{0: 'Alfisols', 1: 'Andisols', ...}}
+  print(data.lookups['GeomDesc'][7])        # 'hillslopes'
+
+  # Load any lookup CSV (variable, encoded_value, original_value)
+  lookups = pyoccam.load_lookups("my_lookups.csv")
+
 CSV CONVERSION:
   # Convert CSV to OCCAM format (last column = DV, auto-exclude high cardinality)
+  # Also saves <name>_lookups.csv with all value mappings!
   output_file, data = pyoccam.make_occam_input_from_csv("mydata.csv")
-  
+
   # With train/test split for validation:
   output_file, data = pyoccam.make_occam_input_from_csv(
       "mydata.csv",
@@ -310,16 +416,31 @@ CSV CONVERSION:
       dv_column="target",           # Specify DV column by name
       exclude_columns=["ID", "Name"] # Always exclude these columns
   )
-  
+
   # Then analyze (test metrics now available!):
   best = data.quick_search()
   cm = data.manager.get_confusion_matrix(best, target_state="0")
-  print(f"Train: {cm['train_accuracy']:.1%}, Test: {cm['test_accuracy']:.1%}")
+  print(f"Train: {{cm['train_accuracy']:.1%}}, Test: {{cm['test_accuracy']:.1%}}")
+
+FIT REPORT ANALYZER:
+  # Automatically analyze a fit report for interesting patterns
+  from pyoccam import FitReportAnalyzer
+
+  report = manager.generate_fit_report(model_name, target_state="0")
+  cm = manager.get_confusion_matrix(model_name, target_state="0")
+  analyzer = FitReportAnalyzer(report, cm_dict=cm)   # Pass both for full analysis
+  analyzer.print_summary()          # Human-readable analysis
+  findings = analyzer.analyze()     # Structured dict for code
+
+  # Standalone from command line:
+  # python -m pyoccam.analyze_fit my_fit_report.txt
 
 DEMOS:
-  pyoccam.run_demo()                      # Run demo
-  pyoccam.get_demo_script(copy_to_current=True)   # Copy demo locally
-  pyoccam.get_demo_notebook(copy_to_current=True) # Copy notebook
+  pyoccam.run_demo()                                  # Run basic demo
+  pyoccam.get_demo_script('basic', copy_to_current=True)    # Copy basic demo
+  pyoccam.get_demo_script('advanced', copy_to_current=True)  # Model comparison, batch
+  pyoccam.get_demo_script('csv', copy_to_current=True)       # CSV conversion demo
+  pyoccam.get_demo_notebook(copy_to_current=True)            # Jupyter notebook
 
 Type pyoccam.help() to see this again.
 """)
@@ -577,9 +698,24 @@ def make_occam_input_from_csv(csv_filename, output_filename=None, max_cardinalit
         else:
             print(f"  {n_samples} samples, {len(included)} active variables")
     
+    # Build and save lookup tables for all included columns
+    lookups = {}
+    for col in column_info:
+        if col['include']:
+            var_lookups = {}
+            for original_val, encoded_idx in col['value_map'].items():
+                var_lookups[encoded_idx] = original_val
+            lookups[col['name']] = var_lookups
+    
+    lookups_path = output_path.with_name(output_path.stem + '_lookups.csv')
+    save_lookups(lookups, lookups_path)
+    if verbose:
+        print(f"[OK] Saved lookup tables: {lookups_path} ({len(lookups)} variables)")
+    
     # Load and return the data object
     try:
         data = OccamData(output_path)
+        data.lookups = lookups
         return str(output_path), data
     except Exception as e:
         print(f"[!] Warning: Could not load generated file: {e}")

@@ -1,240 +1,141 @@
 #!/usr/bin/env python3
 """
-PyOccam Demo - Traditional OCCAM Workflow with Data Objects
-Following the standard OCCAM manual approach:
-1. Load data (as data objects)
-2. Search for best model
+PyOccam Demo - Getting Started with Reconstructability Analysis
+================================================================
+
+This script walks through the standard OCCAM workflow:
+1. Load data
+2. Search for the best model
 3. Examine search results
 4. Fit the best model
-5. Examine fit results
+5. Extract confusion matrix metrics
+6. Automatic fit report analysis
+
+Uses the bundled dementia dataset (424 patients, 18 features).
+For advanced features, see pyoccam_demo_advanced.py
 """
 
 import pyoccam
-import os
-import time
-from datetime import datetime
 
-data = pyoccam.load_landslides()
-
-# Configuration
-DATA_NAME = "stratified_300k_binary_dv_5class_hdr.txt"                # Which dataset: "dementia" or "landslides"
-SEARCH_TYPE = "full-up"           # Algorithm: loopless-up or full-up
-SEARCH_LEVELS = 7                     # Search depth in lattice
-SEARCH_WIDTH = 3                      # Models to keep at each level
-TARGET_STATE = "0"                    # For confusion matrix (DV negative state)
-OUTPUT_FORMAT = "tab"                # Output format: space, tab, or comma
-
-print("="*70)
-print("PYOCCAM DEMO - TRADITIONAL OCCAM WORKFLOW")
-print("="*70)
-print(f"Configuration:")
-print(f"  Dataset: {DATA_NAME}")
-print(f"  Search: {SEARCH_TYPE}, levels={SEARCH_LEVELS}, width={SEARCH_WIDTH}")
-print(f"  Output format: {OUTPUT_FORMAT}")
-print(f"  Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-print("="*70)
+print(f"PyOccam {pyoccam.__version__} - Getting Started Demo")
+print("=" * 60)
 
 # ==============================================================================
-# STEP 1: LOAD DATA (As Data Objects)
+# STEP 1: LOAD DATA
 # ==============================================================================
 print("\nSTEP 1: Load Data")
 print("-" * 40)
 
-# Load data using the appropriate function
-if DATA_NAME == "dementia":
-    data = pyoccam.load_dementia()
-elif DATA_NAME == "landslides":
-    data = pyoccam.load_landslides()
-else:
-    # Load custom data file - assumes file is in current directory
-    data = pyoccam.load_data(DATA_NAME)
+data = pyoccam.load_dementia()
 
-# Display data information (sklearn-style attributes)
-print(f"\nDataset Information:")
-print(f"  Data file: {os.path.basename(data.data_file)}")
-print(f"  Samples: {data.n_samples}")
+print(f"  Dataset:  {data}")
+print(f"  Samples:  {data.n_samples}")
 print(f"  Features: {data.n_features}")
-print(f"  Target: {data.target_name}")
-print(f"  Test data: {'Yes' if data.has_test_data else 'No'}")
-
-# Show feature names
-print(f"\nFeature variables ({data.n_features}):")
-for i, var in enumerate(data.feature_names[:10], 1):  # Show first 10
-    print(f"  {i:2d}. {var}")
-if len(data.feature_names) > 10:
-    print(f"  ... and {len(data.feature_names)-10} more")
+print(f"  Target:   {data.target_name}")
+print(f"\n  Feature variables:")
+for i, name in enumerate(data.feature_names):
+    print(f"    {i+1:2d}. {name}")
 
 # ==============================================================================
-# STEP 2: CONFIGURE SEARCH
+# STEP 2: SEARCH FOR BEST MODEL
 # ==============================================================================
-print("\nSTEP 2: Configure Search Settings")
+print("\nSTEP 2: Search for Best Model")
 print("-" * 40)
 
-# Get the manager from the data object
 manager = data.manager
 
-# Set output format
-if OUTPUT_FORMAT == "comma":
-    manager.set_report_separator(pyoccam.COMMASEP)
-elif OUTPUT_FORMAT == "tab":
-    manager.set_report_separator(pyoccam.TABSEP)
-else:
-    manager.set_report_separator(pyoccam.SPACESEP)
-
-# IMPORTANT: Don't include ID or Model - they're added automatically!
-manager.set_report_variables("Level$I, h, ddf, dLR, Alpha, Inf, %dH(DV), dAIC, dBIC")
-manager.set_ref_model("bottom")
-
-print("✓ Configuration set:")
-print(f"  Reference model: bottom")
-print(f"  Output format: {OUTPUT_FORMAT}")
-
-# ==============================================================================
-# STEP 3: RUN SEARCH
-# ==============================================================================
-print("\nSTEP 3: Search for Best Models")
-print("-" * 40)
-print(f"Running {SEARCH_TYPE} search...")
-print(f"  Levels: {SEARCH_LEVELS}")
-print(f"  Width: {SEARCH_WIDTH}")
-
-start_time = time.time()
-
-# Run search using the manager
+# Run a full-up search (finds models with loops — richer than loopless)
+print("Running full-up search (levels=5, width=3)...")
 search_report = manager.generate_search_report(
-    search_type=SEARCH_TYPE,
-    levels=SEARCH_LEVELS,
-    width=SEARCH_WIDTH,
-    include_test_data=data.has_test_data  # Use data object's test data status
+    search_type="full-up",
+    levels=5,
+    width=3
 )
 
-elapsed = time.time() - start_time
-print(f"\n✓ Search completed in {elapsed:.2f} seconds")
-
 # ==============================================================================
-# STEP 4: EXAMINE SEARCH RESULTS
+# STEP 3: EXAMINE SEARCH RESULTS
 # ==============================================================================
-print("\nSTEP 4: Examine Search Results")
+print("\nSTEP 3: Examine Search Results")
 print("-" * 40)
 
-# Get best models by different criteria
 best_bic = manager.get_best_model_by_bic()
 best_aic = manager.get_best_model_by_aic()
 best_info = manager.get_best_model_by_information()
 
-print("Best models found:")
-print(f"  By BIC:         {best_bic}")
-print(f"  By AIC:         {best_aic}")
-print(f"  By Information: {best_info}")
-print(f"\nTotal models kept: {manager.get_search_model_count()}")
-
-# Display search report (first part)
-print("\nSearch Report (first 30 lines):")
-print("="*70)
-lines = search_report.split('\n')
-for line in lines[:30]:
-    print(line)
-if len(lines) > 30:
-    print(f"... ({len(lines)-30} more lines)")
-
-# Save search report
-search_filename = f"search_{SEARCH_TYPE}_{DATA_NAME}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-with open(search_filename, 'w') as f:
-    f.write(search_report)
-print(f"\n✓ Search report saved to: {search_filename}")
+print(f"  Best by BIC (conservative):   {best_bic}")
+print(f"  Best by AIC (moderate):        {best_aic}")
+print(f"  Best by Information:           {best_info}")
 
 # ==============================================================================
-# STEP 5: FIT THE BEST MODEL
+# STEP 4: FIT THE BEST MODEL
 # ==============================================================================
-print("\nSTEP 5: Fit the Best Model")
+print("\nSTEP 4: Fit the Best Model")
 print("-" * 40)
 
-if best_bic:
-    print(f"Generating fit report for: {best_bic}")
-    print(f"Target state for confusion matrix: {TARGET_STATE}")
-    
-    start_fit = time.time()
-    
-    # Generate comprehensive fit report
-    fit_report = manager.generate_fit_report(best_bic, TARGET_STATE)
-    
-    elapsed_fit = time.time() - start_fit
-    print(f"\n✓ Fit report generated in {elapsed_fit:.2f} seconds")
-    
-    # ==============================================================================
-    # STEP 6: EXAMINE FIT RESULTS
-    # ==============================================================================
-    print("\nSTEP 6: Examine Fit Results")
-    print("-" * 40)
-    
-    # Check what's in the report
-    components = []
-    if "Conditional" in fit_report or "CONDITIONAL" in fit_report:
-        components.append("Conditional probability tables")
-    if "Confusion" in fit_report or "CONFUSION" in fit_report:
-        components.append("Confusion matrix")
-    if "Residuals" in fit_report or "RESIDUALS" in fit_report:
-        components.append("Residuals")
-    
-    print(f"Report contains: {', '.join(components) if components else 'Standard fit statistics'}")
-    
-    # Display key sections
-    print("\nFit Report (first 50 lines):")
-    print("="*70)
-    fit_lines = fit_report.split('\n')
-    for line in fit_lines[:50]:
-        print(line)
-    if len(fit_lines) > 50:
-        print(f"... ({len(fit_lines)-50} more lines)")
-    
-    # Save fit report
-    fit_filename = f"fit_{best_bic.replace(':', '_')}_{datetime.now().strftime('%Y%m%d_%H%M%S')}.txt"
-    with open(fit_filename, 'w') as f:
-        f.write(fit_report)
-    print(f"\n✓ Fit report saved to: {fit_filename}")
-    
-    # Get and display model statistics
-    print("\nModel Statistics:")
-    print("-" * 40)
-    try:
-        stats = manager.get_model_statistics(best_bic)
-        print(f"Model:         {stats.name}")
-        print(f"Information:   {stats.information*100:.2f}%")
-        print(f"dBIC:          {stats.dbic:.2f}")
-        print(f"dAIC:          {stats.daic:.2f}")
-        print(f"Alpha:         {stats.alpha:.6f}")
-        print(f"% Correct:     {stats.pct_correct_data:.2f}%")
-    except:
-        print("(Model statistics available in the fit report)")
+# AIC strikes a nice balance -- more interesting than the conservative BIC
+print(f"Fitting model: {best_aic}")
+fit_report = manager.generate_fit_report(best_aic, target_state="0")
+
+# Print the full fit report -- includes conditional DV tables
+# and confusion matrix with all statistics
+print("\nFit Report:")
+print("=" * 60)
+print(fit_report)
 
 # ==============================================================================
-# ALTERNATIVE: Use Data Object's Convenience Method
+# STEP 5: EXTRACT CONFUSION MATRIX
 # ==============================================================================
-print("\n" + "="*70)
-print("ALTERNATIVE: Quick Search Method")
-print("="*70)
-print("You can also use the data object's quick_search() method:")
-print('  best = data.quick_search(search_type="full-up", levels=3, width=3)')
-print("\nThis runs a search and returns the best model name directly.")
+print("\nSTEP 5: Confusion Matrix Metrics")
+print("-" * 40)
+
+# get_confusion_matrix() returns a dict with sklearn-compatible keys:
+#   train_tn, train_fp, train_fn, train_tp, train_accuracy, etc.
+cm = manager.get_confusion_matrix(best_aic, target_state="0")
+
+if cm.get('has_values', False):
+    print(f"  Model:       {best_aic}")
+    print(f"  Accuracy:    {cm['train_accuracy']:.1%}")
+    print(f"  Sensitivity: {cm['train_sensitivity']:.1%}")
+    print(f"  Specificity: {cm['train_specificity']:.1%}")
+    print(f"  Precision:   {cm['train_precision']:.1%}")
+    print(f"  F1 Score:    {cm['train_f1_score']:.1%}")
+    print(f"\n  TP={cm['train_tp']:4.0f}  FP={cm['train_fp']:4.0f}")
+    print(f"  FN={cm['train_fn']:4.0f}  TN={cm['train_tn']:4.0f}")
 
 # ==============================================================================
-# SUMMARY
+# STEP 6: AUTOMATIC FIT REPORT ANALYSIS
 # ==============================================================================
-print("\n" + "="*70)
-print("ANALYSIS COMPLETE")
-print("="*70)
-print(f"Total time: {time.time() - start_time:.2f} seconds")
-print(f"\nOutput files created:")
-print(f"  - {search_filename}")
-if 'fit_filename' in locals():
-    print(f"  - {fit_filename}")
+print("\nSTEP 6: Automatic Fit Report Analysis")
+print("-" * 40)
+print("The FitReportAnalyzer automatically identifies notable patterns:")
+print()
 
-print("\nObjects available for further analysis:")
-print("  'data'    - The data object with .n_samples, .feature_names, etc.")
-print("  'manager' - The VBMManager (same as data.manager)")
+from pyoccam import FitReportAnalyzer
 
-print("\nExample commands:")
-print('  data.quick_search("full-up", 5, 5)  # Quick search on this data')
-print('  manager.generate_fit_report("IV:ApZ:EdZ", "0")')
-print('  stats = manager.get_model_statistics("IV:ApZ")')
-print("="*70)
+# Pass both the text report AND the CM dict for complete analysis
+analyzer = FitReportAnalyzer(fit_report, cm_dict=cm)
+analyzer.print_summary()
+
+# Programmatic access to findings:
+findings = analyzer.analyze()
+print(f"\nProgrammatic access:")
+print(f"  Patterns found: {len(findings['conditional_patterns'])}")
+print(f"  Recommendations: {len(findings['recommendations'])}")
+print(f"  Confusion matrices: {len(findings['confusion_insights'])}")
+
+# ==============================================================================
+# DONE
+# ==============================================================================
+print("\n" + "=" * 60)
+print("Demo Complete!")
+print("=" * 60)
+print("""
+Next steps:
+  pyoccam.help()                          # Quick reference
+  pyoccam.load_landslides()               # Try the landslides dataset
+  pyoccam.get_demo_script('advanced')     # Get the advanced demo
+
+Key pattern -- always reload data for a new search:
+  data = pyoccam.load_dementia()          # Fresh manager each time
+  best = data.quick_search("full-up", 5, 3)
+""")

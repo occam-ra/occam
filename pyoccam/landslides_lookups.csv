@@ -1,0 +1,284 @@
+variable,encoded_value,original_value
+ASpect_reclass,0,Flat
+ASpect_reclass,1,North
+ASpect_reclass,2,Northeast
+ASpect_reclass,3,East
+ASpect_reclass,4,Southeast
+ASpect_reclass,5,South
+ASpect_reclass,6,Southwest
+ASpect_reclass,7,West
+ASpect_reclass,8,Northwest
+CLay_reclass,0,clay bin 0
+CLay_reclass,1,clay bin 1
+CLay_reclass,2,clay bin 2
+CLay_reclass,3,clay bin 3
+CLay_reclass,4,clay bin 4
+CLay_reclass,5,clay bin 5
+CurVature_reclass,0,curvature bin 0
+CurVature_reclass,1,curvature bin 1
+CurVature_reclass,2,curvature bin 2
+CurVature_reclass,3,curvature bin 3
+CurVature_reclass,4,curvature bin 4
+ELevation_reclass,0,elevation bin 0
+ELevation_reclass,1,elevation bin 1
+ELevation_reclass,2,elevation bin 2
+ELevation_reclass,3,elevation bin 3
+ELevation_reclass,4,elevation bin 4
+Fault_Dns_reclass,0,fault density bin 0
+Fault_Dns_reclass,1,fault density bin 1
+Fault_Dns_reclass,2,fault density bin 2
+Fault_Dns_reclass,3,fault density bin 3
+Fault_Dns_reclass,4,fault density bin 4
+Fault_Dns_reclass,5,fault density bin 5
+HaBitatMap_UTM,0,Mixed Hardwood - Conifer mature
+HaBitatMap_UTM,1,Mixed Hardwood - Conifer old-growth
+HaBitatMap_UTM,2,Douglas Fir - Western Hemlock mature
+HaBitatMap_UTM,3,"Marshes, Bogs and Emergent Wetlands"
+HaBitatMap_UTM,4,Early Shrub-Tree
+HaBitatMap_UTM,5,Mixed Hardwood - Conifer medium
+HaBitatMap_UTM,6,Chaparral
+HaBitatMap_UTM,7,Coastal Dunes and Beaches
+HaBitatMap_UTM,8,Open Water (Big Rivers and Reservoirs)
+HaBitatMap_UTM,9,Saltmarsh
+HaBitatMap_UTM,10,Rocky Coast
+HaBitatMap_UTM,11,Urban (High Intensity Developed)
+HaBitatMap_UTM,12,Douglas Fir - Western Hemlock medium
+HaBitatMap_UTM,13,Oak
+HaBitatMap_UTM,14,Coastal and Valley Grasslands
+HaBitatMap_UTM,15,Coastal and Valley Riparian
+HaBitatMap_UTM,16,Mixed Oak - Conifer young to medium
+HaBitatMap_UTM,17,Mixed Hardwood - Conifer young
+HaBitatMap_UTM,18,Siskiyou Mixed Conifer mature
+HaBitatMap_UTM,19,Suburban (Moderate Intensity Developed)
+HaBitatMap_UTM,20,Cultivated Crops
+HaBitatMap_UTM,21,Pasture or Hay
+HaBitatMap_UTM,22,Douglas Fir - Western Hemlock young
+HaBitatMap_UTM,23,Silver Fir - Mountain Hemlock medium
+HaBitatMap_UTM,24,Rural Residential (Low Intensity Developed)
+HaBitatMap_UTM,25,"Coastal Spruce, Cedar or Redwood mature"
+HaBitatMap_UTM,26,"Coastal Spruce, Cedar or Redwood medium"
+HaBitatMap_UTM,27,Lowland Woody Wetlands and Swamps
+HaBitatMap_UTM,28,Siskiyou Mixed Conifer medium
+HaBitatMap_UTM,29,Bays and Estuaries
+HaBitatMap_UTM,30,"Coastal Spruce, Cedar or Redwood old-growth"
+HaBitatMap_UTM,31,"Coastal Spruce, Cedar or Redwood young"
+HaBitatMap_UTM,32,Douglas Fir - Western Hemlock old-growth
+Geol_Lith,0,basalt
+Geol_Lith,1,mafic composition lithologies
+Geol_Lith,2,mixed grained sediments
+Geol_Lith,3,mixed lithologies
+Geol_Lith,4,mudstone
+Geol_Lith,5,sandstone
+Geol_Lith,6,shelf sandstone
+Geol_Lith,7,siltstone
+Geol_Lith,8,basaltic sandstone
+Geol_Lith,9,basanite
+Geol_Lith,10,breccia
+Geol_Lith,11,deltaic sandstone
+Geol_Lith,12,felsic composition lithologies
+Geol_Lith,13,fine grained sediments
+Geol_Lith,14,gabbro
+Geol_Lith,15,intermediate composition lithologies
+nlcd_2021_Land_Cover,0,"Developed, Open Space"
+nlcd_2021_Land_Cover,1,"Developed, Low Intensity"
+nlcd_2021_Land_Cover,2,"Developed, Medium Intensity"
+nlcd_2021_Land_Cover,3,"Developed, High Intensity"
+nlcd_2021_Land_Cover,4,Barren Land
+nlcd_2021_Land_Cover,5,Deciduous Forest
+nlcd_2021_Land_Cover,6,Evergreen Forest
+nlcd_2021_Land_Cover,7,Mixed Forest
+nlcd_2021_Land_Cover,8,Shrub/Scrub
+nlcd_2021_Land_Cover,9,Herbaceous
+nlcd_2021_Land_Cover,10,Hay/Pasture
+nlcd_2021_Land_Cover,11,Woody Wetlands
+nlcd_2021_Land_Cover,12,Emergent Herbaceous Wetlands
+Geol_rock_Type,0,intrusive rocks
+Geol_rock_Type,1,invasive extrusive rocks
+Geol_rock_Type,2,marine sedimentary rocks
+Geol_rock_Type,3,marine volcanic rocks
+Geol_rock_Type,4,sediments
+Geol_rock_Type,5,volcanic rocks
+Rd_strm_Dns_reclass,0,road/stream density bin 0
+Rd_strm_Dns_reclass,1,road/stream density bin 1
+Rd_strm_Dns_reclass,2,road/stream density bin 2
+Rd_strm_Dns_reclass,3,road/stream density bin 3
+SLope_reclass,0,slope bin 0
+SLope_reclass,1,slope bin 1
+SLope_reclass,2,slope bin 2
+SLope_reclass,3,slope bin 3
+TWi_reclass,0,TWI bin 0
+TWi_reclass,1,TWI bin 1
+TWi_reclass,2,TWI bin 2
+TWi_reclass,3,TWI bin 3
+TWi_reclass,4,TWI bin 4
+GeomDesc,0,alluvial fans
+GeomDesc,1,dunes
+GeomDesc,2,"estuaries, lowlands, tidal marshes"
+GeomDesc,3,flood plains
+GeomDesc,4,"flood plains, river valleys"
+GeomDesc,5,"flood plains, swales"
+GeomDesc,6,headlands
+GeomDesc,7,hillslopes
+GeomDesc,8,marine terraces
+GeomDesc,9,mountain slopes
+GeomDesc,10,"mountain slopes, mountains"
+GeomDesc,11,mountains
+GeomDesc,12,"mountains, terraces"
+GeomDesc,13,"river valleys, stream terraces"
+GeomDesc,14,stream terraces
+GeomDesc,15,terraces
+GeomDesc,16,tidal flats
+TaxOrder,0,Alfisols
+TaxOrder,1,Andisols
+TaxOrder,2,Entisols
+TaxOrder,3,Histosols
+TaxOrder,4,Inceptisols
+TaxOrder,5,Spodosols
+TaxOrder,6,Ultisols
+TaxSuborder,0,Aquands
+TaxSuborder,1,Aquents
+TaxSuborder,2,Aquepts
+TaxSuborder,3,Cryands
+TaxSuborder,4,Hemists
+TaxSuborder,5,Humults
+TaxSuborder,6,Ochrepts
+TaxSuborder,7,Orthods
+TaxSuborder,8,Psamments
+TaxSuborder,9,Tropepts
+TaxSuborder,10,Udalfs
+TaxSuborder,11,Udands
+TaxSuborder,12,Udepts
+TaxSuborder,13,Umbrepts
+taxGrtGroup,0,Cryochrepts
+taxGrtGroup,1,Dystrochrepts
+taxGrtGroup,2,Dystrudepts
+taxGrtGroup,3,Endoaquands
+taxGrtGroup,4,Endoaquepts
+taxGrtGroup,5,Fluvaquents
+taxGrtGroup,6,Fulvudands
+taxGrtGroup,7,Haplocryands
+taxGrtGroup,8,Haplohumults
+taxGrtGroup,9,Haplorthods
+taxGrtGroup,10,Hapludalfs
+taxGrtGroup,11,Hapludands
+taxGrtGroup,12,Haplumbrepts
+taxGrtGroup,13,Humitropepts
+taxGrtGroup,14,Melanudands
+taxGrtGroup,15,Palehumults
+taxGrtGroup,16,Tropaquepts
+taxGrtGroup,17,Tropohemists
+taxGrtGroup,18,Tropopsamments
+TaxSubgrp,0,Aeric Tropaquepts
+TaxSubgrp,1,Aeric Tropic Fluvaquents
+TaxSubgrp,2,Alic Endoaquands
+TaxSubgrp,3,Alic Fulvudands
+TaxSubgrp,4,Alic Hapludands
+TaxSubgrp,5,Alic Melanudands
+TaxSubgrp,6,Alic Pachic Melanudands
+TaxSubgrp,7,Andic Dystrudepts
+TaxSubgrp,8,Andic Haplumbrepts
+TaxSubgrp,9,Andic Humitropepts
+TaxSubgrp,10,Aquic Humitropepts
+TaxSubgrp,11,Dystric Cryochrepts
+TaxSubgrp,12,Entic Haplorthods
+TaxSubgrp,13,Fluvaquentic Endoaquepts
+TaxSubgrp,14,Fluventic Haplumbrepts
+TaxSubgrp,15,Fluventic Humic Dystrudepts
+TaxSubgrp,16,Fluventic Humitropepts
+TaxSubgrp,17,Lithic Cryochrepts
+TaxSubgrp,18,Lithic Haplocryands
+TaxSubgrp,19,Lithic Haplumbrepts
+TaxSubgrp,20,Typic Fulvudands
+TaxSubgrp,21,Typic Haplocryands
+TaxSubgrp,22,Typic Haplohumults
+TaxSubgrp,23,Typic Haplorthods
+TaxSubgrp,24,Typic Haplumbrepts
+TaxSubgrp,25,Typic Humitropepts
+TaxSubgrp,26,Typic Palehumults
+TaxSubgrp,27,Typic Tropaquepts
+TaxSubgrp,28,Typic Tropohemists
+TaxSubgrp,29,Typic Tropopsamments
+TaxSubgrp,30,Ultic Hapludalfs
+TaxSubgrp,31,Umbric Dystrochrepts
+taxPartSize,0,clayey
+taxPartSize,1,clayey-skeletal
+taxPartSize,2,coarse-loamy
+taxPartSize,3,fine
+taxPartSize,4,fine-loamy
+taxPartSize,5,fine-loamy over sandy or sandy-skeletal
+taxPartSize,6,fine-silty
+taxPartSize,7,loamy-skeletal
+taxPartSize,8,medial
+taxPartSize,9,medial over clayey
+taxPartSize,10,medial over loamy
+taxPartSize,11,medial over sandy or sandy-skeletal
+taxPartSize,12,medial-skeletal
+taxPartSize,13,not used
+taxPartSize,14,sandy
+TaxClname,0,"Clayey, mixed, isomesic Typic Haplohumults"
+TaxClname,1,"Clayey, mixed, isomesic Typic Palehumults"
+TaxClname,2,"Clayey, mixed, mesic Typic Palehumults"
+TaxClname,3,"Clayey-skeletal, mixed Dystric Cryochrepts"
+TaxClname,4,"Coarse-loamy, mixed, isomesic, ortstein Typic Haplorthods"
+TaxClname,5,"Coarse-loamy, mixed, mesic Fluventic Haplumbrepts"
+TaxClname,6,"Coarse-loamy, mixed, superactive, isomesic Fluventic Humic Dystrudepts"
+TaxClname,7,"Dysic, isomesic Typic Tropohemists"
+TaxClname,8,"Fine, isotic, isomesic Andic Dystrudepts"
+TaxClname,9,"Fine, isotic, mesic Typic Haplohumults"
+TaxClname,10,"Fine, mixed, acid, isomesic Typic Tropaquepts"
+TaxClname,11,"Fine, mixed, active, mesic Typic Haplohumults"
+TaxClname,12,"Fine, mixed, active, mesic Typic Palehumults"
+TaxClname,13,"Fine, mixed, isomesic Andic Humitropepts"
+TaxClname,14,"Fine, mixed, isomesic Aquic Humitropepts"
+TaxClname,15,"Fine, mixed, mesic Andic Haplumbrepts"
+TaxClname,16,"Fine, mixed, mesic Umbric Dystrochrepts"
+TaxClname,17,"Fine-loamy over sandy or sandy-skeletal, mixed, isomesic, ortstein Typic Haplorthods"
+TaxClname,18,"Fine-loamy, isotic, isomesic Andic Dystrudepts"
+TaxClname,19,"Fine-loamy, isotic, mesic Andic Dystrudepts"
+TaxClname,20,"Fine-loamy, mixed, mesic Andic Haplumbrepts"
+TaxClname,21,"Fine-loamy, mixed, mesic Typic Haplumbrepts"
+TaxClname,22,"Fine-silty, isotic, isomesic Andic Dystrudepts"
+TaxClname,23,"Fine-silty, mixed, acid, isomesic Aeric Tropaquepts"
+TaxClname,24,"Fine-silty, mixed, isomesic Aquic Humitropepts"
+TaxClname,25,"Fine-silty, mixed, isomesic Fluventic Humitropepts"
+TaxClname,26,"Fine-silty, mixed, isomesic Typic Humitropepts"
+TaxClname,27,"Fine-silty, mixed, mesic Fluventic Haplumbrepts"
+TaxClname,28,"Fine-silty, mixed, mesic Typic Haplohumults"
+TaxClname,29,"Fine-silty, mixed, mesic Ultic Hapludalfs"
+TaxClname,30,"Fine-silty, mixed, nonacid, isomesic Aeric Tropic Fluvaquents"
+TaxClname,31,"Fine-silty, mixed, superactive, nonacid, isomesic Fluvaquentic Endoaquepts"
+TaxClname,32,Isomesic Typic Fulvudands
+TaxClname,33,"Loamy-skeletal, mixed Lithic Cryochrepts"
+TaxClname,34,"Loamy-skeletal, mixed, mesic Lithic Haplumbrepts"
+TaxClname,35,"Loamy-skeletal, mixed, mesic Typic Haplumbrepts"
+TaxClname,36,"Loamy-skeletal, mixed, mesic Umbric Dystrochrepts"
+TaxClname,37,"Medial over clayey, mixed, isomesic Alic Fulvudands"
+TaxClname,38,"Medial over loamy, ferrihydritic over isotic, acid, isomesic Alic Endoaquands"
+TaxClname,39,"Medial over loamy, ferrihydritic over isotic, isomesic Typic Fulvudands"
+TaxClname,40,"Medial over loamy, ferrihydritic over isotic, mesic Alic Hapludands"
+TaxClname,41,"Medial over loamy, mixed, isomesic Alic Melanudands"
+TaxClname,42,"Medial over loamy, mixed, mesic Alic Fulvudands"
+TaxClname,43,"Medial over loamy, mixed, mesic Alic Hapludands"
+TaxClname,44,"Medial over sandy or sandy-skeletal, mixed, isomesic Alic Melanudands"
+TaxClname,45,"Medial, ferrihydritic, frigid Alic Hapludands"
+TaxClname,46,"Medial, ferrihydritic, isomesic Typic Fulvudands"
+TaxClname,47,"Medial, frigid Alic Hapludands"
+TaxClname,48,"Medial, frigid Typic Haplocryands"
+TaxClname,49,"Medial, isomesic Alic Fulvudands"
+TaxClname,50,"Medial, isomesic Alic Pachic Melanudands"
+TaxClname,51,"Medial-skeletal, ferrihydritic, frigid Alic Hapludands"
+TaxClname,52,"Medial-skeletal, frigid Alic Hapludands"
+TaxClname,53,"Medial-skeletal, frigid Lithic Haplocryands"
+TaxClname,54,"Medial-skeletal, frigid Typic Haplocryands"
+TaxClname,55,"Medial-skeletal, mesic Alic Hapludands"
+TaxClname,56,"Mixed, isomesic Typic Tropopsamments"
+TaxClname,57,"Sandy, mixed, isomesic Entic Haplorthods"
+DrainageCl,0,Excessively drained
+DrainageCl,1,Moderately well drained
+DrainageCl,2,Poorly drained
+DrainageCl,3,Somewhat excessively drained
+DrainageCl,4,Somewhat poorly drained
+DrainageCl,5,Very poorly drained
+DrainageCl,6,Well drained
+LS,0,no landslide
+LS,1,landslide

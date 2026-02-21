@@ -1,7 +1,7 @@
 # PyOccam API Reference Guide
-**Version 0.1.2 | November 2025**
+**Version 0.9.5 | February 2026**
 
-Complete reference for the PyOccam Python package - Python bindings for OCCAM Reconstructability Analysis.
+Complete reference for the PyOccam Python package — Python bindings for OCCAM Reconstructability Analysis.
 
 ---
 
@@ -9,11 +9,14 @@ Complete reference for the PyOccam Python package - Python bindings for OCCAM Re
 1. [Quick Start](#quick-start)
 2. [Package Installation](#package-installation)
 3. [Data Loading API](#data-loading-api)
-4. [VBMManager API](#vbmmanager-api)
-5. [Model Class API](#model-class-api)
-6. [Constants](#constants)
-7. [Complete Workflow Examples](#complete-workflow-examples)
-8. [Troubleshooting](#troubleshooting)
+4. [CSV Conversion API](#csv-conversion-api)
+5. [Lookup Tables API](#lookup-tables-api)
+6. [VBMManager API](#vbmmanager-api)
+7. [Model Class API](#model-class-api)
+8. [FitReportAnalyzer API](#fitreportanalyzer-api)
+9. [Constants](#constants)
+10. [Complete Workflow Examples](#complete-workflow-examples)
+11. [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -41,19 +44,25 @@ print(f"Best model: {best}")  # e.g., "IV:ApZ:EdK:GnA"
 fit_report = manager.generate_fit_report(best, target_state="0")
 print(fit_report)
 
-# Get confusion matrix as dictionary (v0.9.0 uses sklearn-compatible train_* keys)
+# Get confusion matrix as dictionary (sklearn-compatible keys)
 cm = manager.get_confusion_matrix(best, target_state="0")
 print(f"Accuracy: {cm['train_accuracy']:.3f}")
-print(f"TN={cm['train_tn']:.0f}, FP={cm['train_fp']:.0f}, FN={cm['train_fn']:.0f}, TP={cm['train_tp']:.0f}")
+print(f"TN={cm['train_tn']:.0f}, FP={cm['train_fp']:.0f}")
+print(f"FN={cm['train_fn']:.0f}, TP={cm['train_tp']:.0f}")
 ```
 
 ---
 
 ## Package Installation
 
-### From Test PyPI
+### From Test PyPI (current)
 ```bash
 pip install -i https://test.pypi.org/simple/ pyoccam
+```
+
+### From PyPI (when available)
+```bash
+pip install pyoccam
 ```
 
 ### From Source (Windows with MinGW)
@@ -68,7 +77,8 @@ pip install -e .
 ### Verify Installation
 ```python
 import pyoccam
-print(pyoccam.__version__)  # Should print: 0.1.2
+print(pyoccam.__version__)  # Should print: 0.9.5
+pyoccam.help()              # Show full usage guide
 ```
 
 ---
@@ -83,7 +93,7 @@ Load the built-in dementia (Alzheimer's Disease) dataset.
 **Example:**
 ```python
 data = pyoccam.load_dementia()
-# Output: âœ“ Loaded dementia: 424 samples, 10 features
+# Output: [OK] Loaded dementia: 424 samples, 10 features
 
 print(data.n_samples)      # 424
 print(data.n_features)     # 10
@@ -95,20 +105,24 @@ print(data.has_test_data)  # False (unless test data was loaded)
 ---
 
 ### `load_landslides()`
-Load the built-in landslides dataset.
+Load the built-in landslides dataset with lookup tables.
 
-**Returns:** `OccamData` object
+**Returns:** `OccamData` object with `.lookups` populated
 
 **Example:**
 ```python
 data = pyoccam.load_landslides()
-# Output: âœ“ Loaded landslides: N samples, M features
+# Output: [OK] Loaded landslides: 1077 samples, 20 features, 21 lookup tables
+
+# Decode variable encodings using lookup tables
+print(data.lookups['TaxOrder'])      # {0: 'Alfisols', 1: 'Andisols', ...}
+print(data.lookups['GeomDesc'][7])   # 'hillslopes'
 ```
 
 ---
 
 ### `load_data(filename)`
-Load any OCCAM data file.
+Load any OCCAM-format data file.
 
 **Parameters:**
 - `filename` (str): Path to data file or name of packaged file
@@ -118,7 +132,7 @@ Load any OCCAM data file.
 **Example:**
 ```python
 # Load from absolute path
-data = pyoccam.load_data("/path/to/mydata.txt")
+data = pyoccam.load_data("D:/data/mydata.txt")
 
 # Load from relative path
 data = pyoccam.load_data("mydata.txt")
@@ -140,11 +154,12 @@ Container for dataset information (similar to sklearn's Bunch).
 - `target_name` (str): Name of dependent variable
 - `has_test_data` (bool): Whether test data is present
 - `manager` (VBMManager): VBMManager instance for analysis
+- `lookups` (dict or None): Lookup tables mapping encoded integers to original values
 - `DESCR` (str): Dataset description (if available)
 
 **Methods:**
 
-#### `quick_search(search_type="loopless-up", levels=3, width=3)`
+#### `quick_search(search_type="full-up", levels=3, width=3)`
 Run a quick search on this data.
 
 **Example:**
@@ -153,6 +168,86 @@ data = pyoccam.load_dementia()
 best = data.quick_search(levels=5, width=3)
 print(f"Best model: {best}")
 ```
+
+---
+
+## CSV Conversion API
+
+### `make_occam_input_from_csv(csv_filename, ...)`
+Convert a standard CSV file to OCCAM input format. Automatically detects categorical columns, computes cardinality, and generates variable definitions. Columns with cardinality > `max_cardinality` are automatically excluded.
+
+Also aliased as `pyoccam.csv_to_occam()`.
+
+**Parameters:**
+- `csv_filename` (str): Path to input CSV file
+- `output_filename` (str, optional): Output file path (default: same name with `.txt`)
+- `max_cardinality` (int): Max unique values before a column is excluded (default: 20)
+- `dv_column` (str or int, optional): Dependent variable column name or index (default: last column)
+- `exclude_columns` (list, optional): Column names to always exclude (e.g., `['ID', 'Name']`)
+- `test_split` (float, optional): Fraction for test set (0.0-1.0, default: None = no split)
+- `random_state` (int): Random seed for reproducible splits (default: 42)
+- `verbose` (bool): Print progress messages (default: True)
+
+**Returns:** `tuple` of `(output_path_str, OccamData)`
+
+**Example - Basic conversion:**
+```python
+output_file, data = pyoccam.make_occam_input_from_csv("mydata.csv")
+# Automatically:
+#   - Identifies DV as last column
+#   - Excludes high-cardinality columns (IDs, continuous values)
+#   - Generates lookup tables: mydata_lookups.csv
+#   - Returns ready-to-analyze OccamData
+```
+
+**Example - With train/test split:**
+```python
+output_file, data = pyoccam.make_occam_input_from_csv(
+    "mydata.csv",
+    test_split=0.2,                    # 20% held out for testing
+    random_state=42,                   # Reproducible split
+    exclude_columns=["site_id"],       # Always exclude these
+    dv_column="risk"                   # Specify DV by name
+)
+
+# Now analyze with validation
+best = data.quick_search(levels=7, width=3)
+cm = data.manager.get_confusion_matrix(best, target_state="0")
+print(f"Train accuracy: {cm['train_accuracy']:.1%}")
+print(f"Test accuracy:  {cm['test_accuracy']:.1%}")
+```
+
+**Generated files:**
+- `mydata.txt` - OCCAM input file
+- `mydata_lookups.csv` - Value mapping table (variable, encoded_value, original_value)
+
+---
+
+## Lookup Tables API
+
+### `load_lookups(csv_path)`
+Load a consolidated lookup CSV into a nested dictionary.
+
+**Parameters:**
+- `csv_path` (str): Path to CSV with columns: `variable`, `encoded_value`, `original_value`
+
+**Returns:** `dict` of `{variable_name: {encoded_int: original_str}}`
+
+**Example:**
+```python
+lookups = pyoccam.load_lookups("mydata_lookups.csv")
+print(lookups['soil_type'])      # {0: 'clay', 1: 'loam', 2: 'sand', ...}
+print(lookups['soil_type'][1])   # 'loam'
+```
+
+---
+
+### `save_lookups(lookups, csv_path)`
+Save a lookup dictionary to consolidated CSV format.
+
+**Parameters:**
+- `lookups` (dict): Nested dict of `{variable_name: {encoded_int: original_str}}`
+- `csv_path` (str): Output file path
 
 ---
 
@@ -182,10 +277,7 @@ if not success:
 Initialize OCCAM from command line arguments.
 
 **Parameters:**
-- `args` (list): Command line arguments as list of strings
-  - First element should be "occam" (program name)
-  - Second element should be the data file path
-  - Additional arguments can specify options
+- `args` (list): Command line arguments as list of strings. First element should be `"occam"` (program name), second should be the data file path.
 
 **Returns:** `bool` - True if successful
 
@@ -210,11 +302,7 @@ success = manager.init_from_command_line([
 Set the separator for report formatting.
 
 **Parameters:**
-- `separator` (int): Separator type
-  - `pyoccam.TABSEP` (1): Tab-separated
-  - `pyoccam.COMMASEP` (2): Comma-separated
-  - `pyoccam.SPACESEP` (3): Space-separated (default)
-  - `pyoccam.HTMLFORMAT` (4): HTML format
+- `separator` (int): One of `pyoccam.TABSEP` (1), `pyoccam.COMMASEP` (2), `pyoccam.SPACESEP` (3, recommended), `pyoccam.HTMLFORMAT` (4)
 
 **Example:**
 ```python
@@ -229,32 +317,22 @@ Set which variables/statistics to display in reports.
 **Parameters:**
 - `variables` (str): Comma-separated list of variable names
 
-**Available Variables:**
-- `level$I`: Search level (integer format)
-- `h`: Entropy
-- `ddf`: Degrees of freedom delta (use `ddf$I` for integer)
-- `lr`: Likelihood ratio
-- `alpha`: p-value
-- `%dH(DV)`: Percent of DV entropy explained
-- `information`: Information (transmission)
-- `daic`: AIC relative to reference
-- `dbic`: BIC relative to reference
-- `incr_alpha`: Incremental alpha (p-value vs. progenitor)
-- `pct_correct_data`: Percent correct on training data
-- `pct_correct_test`: Percent correct on test data (if available)
+**Available Variables:** `level$I`, `h`, `ddf` (use `ddf$I` for integer), `lr`, `alpha`, `%dH(DV)`, `information`, `daic`, `dbic`, `incr_alpha`, `pct_correct_data`, `pct_correct_test`
 
 **Important:** Do NOT include `ID$I` or `Model` in the variables list - these are added automatically.
 
 **Example:**
 ```python
-# Standard format (no ID or Model)
+# Standard format
 manager.set_report_variables("level$I, h, ddf, lr, alpha, %dH(DV), daic, dbic")
 
 # With incremental alpha
 manager.set_report_variables("level$I, h, ddf, alpha, %dH(DV), daic, dbic, incr_alpha")
 
 # With test data statistics
-manager.set_report_variables("level$I, h, ddf, alpha, daic, dbic, pct_correct_data, pct_correct_test")
+manager.set_report_variables(
+    "level$I, h, ddf, alpha, daic, dbic, pct_correct_data, pct_correct_test"
+)
 ```
 
 ---
@@ -263,11 +341,7 @@ manager.set_report_variables("level$I, h, ddf, alpha, daic, dbic, pct_correct_da
 Set the reference model for statistics computation.
 
 **Parameters:**
-- `model_name` (str): Reference model name
-  - `"bottom"`: Bottom model (independence model) - **recommended**
-  - `"top"`: Top model (saturated model)
-  - `"default"`: Default model
-  - Or any specific model name like `"IV:ABC"`
+- `model_name` (str): `"bottom"` (recommended), `"top"`, `"default"`, or a specific model
 
 **Example:**
 ```python
@@ -280,20 +354,7 @@ manager.set_ref_model("bottom")  # Most common choice
 Set the search algorithm type.
 
 **Parameters:**
-- `search_type` (str): One of the following:
-  - `"loopless-up"`: Loopless ascending (most common)
-  - `"loopless-down"`: Loopless descending
-  - `"full-up"`: Full ascending
-  - `"full-down"`: Full descending
-  - `"disjoint-up"`: Disjoint ascending
-  - `"disjoint-down"`: Disjoint descending
-  - `"chain-up"`: Chain ascending
-  - `"chain-down"`: Chain descending
-
-**Example:**
-```python
-manager.set_search_type("loopless-up")
-```
+- `search_type` (str): One of `"loopless-up"`, `"loopless-down"`, `"full-up"`, `"full-down"`, `"disjoint-up"`, `"disjoint-down"`, `"chain-up"`, `"chain-down"`
 
 ---
 
@@ -301,12 +362,7 @@ manager.set_search_type("loopless-up")
 Enable or disable debug output.
 
 **Parameters:**
-- `enable` (bool): True to enable debug output, False to disable
-
-**Example:**
-```python
-manager.set_debug_mode(True)  # Enable detailed output
-```
+- `enable` (bool): True to enable, False to disable
 
 ---
 
@@ -315,65 +371,20 @@ manager.set_debug_mode(True)  # Enable detailed output
 #### `set_calc_expected_dv(enable)`
 Set whether to calculate expected dependent variable values.
 
-**Parameters:**
-- `enable` (bool): True to calculate expected DV values
-
-**Example:**
-```python
-manager.set_calc_expected_dv(True)
-```
-
----
-
 #### `set_skip_trained_model_table(skip)`
 Skip the trained model table in fit output.
 
-**Parameters:**
-- `skip` (bool): True to skip the table
-
-**Example:**
-```python
-manager.set_skip_trained_model_table(False)  # Include the table
-```
-
----
-
 #### `set_skip_ivi_tables(skip)`
 Skip the IVI (Individual Variable Information) tables in fit output.
-
-**Parameters:**
-- `skip` (bool): True to skip IVI tables
-
-**Example:**
-```python
-manager.set_skip_ivi_tables(True)  # Skip for cleaner output
-```
-
----
 
 #### `set_fit_classifier_target(target_state)`
 Set target state for classifier confusion matrix.
 
 **Parameters:**
-- `target_state` (str): Target state value (e.g., "0", "1", "positive")
-
-**Example:**
-```python
-manager.set_fit_classifier_target("1")  # Treat "1" as positive class
-```
-
----
+- `target_state` (str): Target state value (e.g., "0", "1")
 
 #### `set_default_fit_model(model_name)`
 Set default model for fit comparison.
-
-**Parameters:**
-- `model_name` (str): Model name to use as default
-
-**Example:**
-```python
-manager.set_default_fit_model("bottom")
-```
 
 ---
 
@@ -383,30 +394,17 @@ manager.set_default_fit_model("bottom")
 Perform beam search and generate formatted report of best models.
 
 **Parameters:**
-- `search_type` (str): Search algorithm (e.g., "loopless-up")
+- `search_type` (str): Search algorithm (e.g., `"loopless-up"`, `"full-up"`)
 - `levels` (int): Number of levels to search
-- `width` (int): Beam width (number of models to keep per level)
-- `include_test_data` (bool): **Ignored** - test data columns are automatically included if test data is present
+- `width` (int): Beam width (models to keep per level)
+- `include_test_data` (bool): **Ignored** - test data columns are automatically included if present
 
-**Returns:** `str` - Formatted report as string
-
-**Example:**
-```python
-# Basic search
-report = manager.generate_search_report("loopless-up", levels=7, width=3)
-print(report)
-
-# Output example:
-# ID  Model           Level  h       ddf  Alpha    %dH(DV)  dAIC    dBIC
-# 1   IV              1      6.234   420  0.000    0.00     0.00    0.00
-# 2   IV:ApZ          2      5.891   418  0.023    5.50     -8.34   3.21
-# 3   IV:ApZ:EdK      3      5.645   416  0.045    9.45     -14.2   6.54
-```
+**Returns:** `str` - Formatted report
 
 **Notes:**
 - Models are stored internally and can be retrieved with `get_kept_models()`
 - Best models by various criteria are tracked automatically
-- Search results persist until next search is run
+- **Must be called before `get_best_model_*()`** methods
 
 ---
 
@@ -414,92 +412,67 @@ print(report)
 Generate complete fit report for a specific model.
 
 **Parameters:**
-- `model_name` (str): Model to fit (e.g., "IV:ApZ:EdK")
-- `target_state` (str): Target state for confusion matrix (default: "0")
+- `model_name` (str): Model to fit (e.g., `"IV:ApZ:EdK"`)
+- `target_state` (str): Target state for confusion matrix (default: `"0"`)
 
-**Returns:** `str` - Formatted fit report including:
-- Model structure
-- Fit statistics
-- Contingency tables
-- Confusion matrix (if target state is specified)
-- Test data performance (if test data available)
-
-**Example:**
-```python
-best = manager.get_best_model_by_bic()
-fit_report = manager.generate_fit_report(best, target_state="0")
-print(fit_report)
-
-# Output includes:
-# - Fit statistics (H, dDF, LR, Alpha, AIC, BIC)
-# - Trained model table
-# - Confusion matrix:
-#           Predicted
-#           0      1
-# Actual 0  TN     FP
-#        1  FN     TP
-# - Performance metrics (accuracy, sensitivity, specificity, etc.)
-```
+**Returns:** `str` - Formatted fit report including model structure, fit statistics, contingency tables, confusion matrix, and test data performance (if available)
 
 ---
 
 #### `get_confusion_matrix(model_name, target_state="0")`
 Get confusion matrix for a model as a Python dictionary.
 
-**⚠️ v0.9.0 uses sklearn-compatible naming:** All keys use lowercase with explicit `train_` and `test_` prefixes, following sklearn's `cross_validate()` pattern.
-
 **Parameters:**
-- `model_name` (str): **REQUIRED** - Model name (e.g., from `get_best_model_by_bic()`)
-- `target_state` (str): **REQUIRED** - Target state value (default: "0")
+- `model_name` (str): Model name
+- `target_state` (str): Target state value (default: `"0"`)
 
-**Returns:** `dict` with the following keys:
+**Returns:** `dict` with sklearn-compatible keys:
 
-**Always Present (Training Data):**
-- `'train_tn'` (float): True negatives
-- `'train_fp'` (float): False positives
-- `'train_fn'` (float): False negatives
-- `'train_tp'` (float): True positives
-- `'train_accuracy'` (float): Overall accuracy
-- `'train_sensitivity'` (float): True positive rate (recall/TPR)
-- `'train_specificity'` (float): True negative rate (TNR)
-- `'train_precision'` (float): Positive predictive value (PPV)
-- `'train_npv'` (float): Negative predictive value (NPV)
-- `'train_f1_score'` (float): Harmonic mean of precision and recall
-- `'has_values'` (bool): Whether valid values were retrieved
+| Key | Type | Description |
+|-----|------|-------------|
+| `train_tn` | float | True Negatives (training) |
+| `train_fp` | float | False Positives (training) |
+| `train_fn` | float | False Negatives (training) |
+| `train_tp` | float | True Positives (training) |
+| `train_accuracy` | float | Overall accuracy (training) |
+| `train_sensitivity` | float | True Positive Rate / Recall (training) |
+| `train_specificity` | float | True Negative Rate (training) |
+| `train_precision` | float | Positive Predictive Value (training) |
+| `train_npv` | float | Negative Predictive Value (training) |
+| `train_f1_score` | float | Harmonic mean of precision and recall (training) |
+| `has_values` | bool | Whether valid values were retrieved |
+| `has_test_data` | bool | Whether test data metrics are available |
 
-**Present When Test Data Available:**
-- `'test_tn'`, `'test_fp'`, `'test_fn'`, `'test_tp'` (float): Test confusion matrix
-- `'test_accuracy'` (float): Test set accuracy
-- `'test_sensitivity'` (float): Test set sensitivity
-- `'test_specificity'` (float): Test set specificity
-- `'test_precision'` (float): Test set precision
-- `'test_npv'` (float): Test set NPV
-- `'test_f1_score'` (float): Test set F1 score
-- `'has_test_data'` (bool): True if test metrics are available
+**If test data is available, these additional keys are present:**
 
-**Example (v0.9.0):**
+| Key | Type | Description |
+|-----|------|-------------|
+| `test_tn` | float | True Negatives (test) |
+| `test_fp` | float | False Positives (test) |
+| `test_fn` | float | False Negatives (test) |
+| `test_tp` | float | True Positives (test) |
+| `test_accuracy` | float | Overall accuracy (test) |
+| `test_sensitivity` | float | True Positive Rate / Recall (test) |
+| `test_specificity` | float | True Negative Rate (test) |
+| `test_precision` | float | Positive Predictive Value (test) |
+| `test_npv` | float | Negative Predictive Value (test) |
+| `test_f1_score` | float | Harmonic mean of precision and recall (test) |
+
+**Example:**
 ```python
-# CORRECT USAGE - Must pass model_name and target_state!
 best = manager.get_best_model_by_bic()
-cm = manager.get_confusion_matrix(best, target_state="0")  # ✓ CORRECT
-
-# WRONG USAGE - Will raise TypeError!
-# cm = manager.get_confusion_matrix()  # ✗ WRONG - missing arguments!
+cm = manager.get_confusion_matrix(best, target_state="0")
 
 if cm['has_values']:
-    # Training data - Use lowercase with train_ prefix!
     print(f"Training Confusion Matrix:")
     print(f"  TN={cm['train_tn']:.0f}, FP={cm['train_fp']:.0f}")
     print(f"  FN={cm['train_fn']:.0f}, TP={cm['train_tp']:.0f}")
-    print(f"\nTraining Performance:")
     print(f"  Accuracy:    {cm['train_accuracy']:.3f}")
     print(f"  Sensitivity: {cm['train_sensitivity']:.3f}")
     print(f"  Specificity: {cm['train_specificity']:.3f}")
     print(f"  Precision:   {cm['train_precision']:.3f}")
-    print(f"  NPV:         {cm['train_npv']:.3f}")
     print(f"  F1 Score:    {cm['train_f1_score']:.3f}")
     
-    # Test data (if available) - Use lowercase with test_ prefix!
     if cm['has_test_data']:
         print(f"\nTest Performance:")
         print(f"  TN={cm['test_tn']:.0f}, FP={cm['test_fp']:.0f}")
@@ -507,99 +480,47 @@ if cm['has_values']:
         print(f"  Accuracy:    {cm['test_accuracy']:.3f}")
         print(f"  Sensitivity: {cm['test_sensitivity']:.3f}")
         print(f"  Specificity: {cm['test_specificity']:.3f}")
-        
-        # Check for overfitting
-        gap = cm['train_accuracy'] - cm['test_accuracy']
-        if gap > 0.1:
-            print(f"  ⚠️ Large train-test gap: {gap:.3f}")
-```
-
-**Key Naming Pattern (v0.9.0):**
-```python
-# Training metrics - ALL lowercase with train_ prefix
-cm['train_tn']          # True negatives
-cm['train_fp']          # False positives
-cm['train_fn']          # False negatives
-cm['train_tp']          # True positives
-cm['train_accuracy']    # Accuracy
-cm['train_sensitivity'] # Sensitivity/Recall
-cm['train_specificity'] # Specificity
-cm['train_precision']   # Precision/PPV
-cm['train_npv']         # Negative Predictive Value
-cm['train_f1_score']    # F1 Score
-
-# Test metrics - ALL lowercase with test_ prefix
-cm['test_tn']           # Test true negatives
-cm['test_fp']           # Test false positives
-cm['test_fn']           # Test false negatives
-cm['test_tp']           # Test true positives
-cm['test_accuracy']     # Test accuracy
-cm['test_sensitivity']  # Test sensitivity
-cm['test_specificity']  # Test specificity
-cm['test_precision']    # Test precision
-cm['test_npv']          # Test NPV
-cm['test_f1_score']     # Test F1 score
-
-# Flags - lowercase
-cm['has_values']        # True if matrix computed
-cm['has_test_data']     # True if test data available
 ```
 
 **Important Notes:**
-- **Sklearn Compatibility**: Naming follows sklearn's `cross_validate()` pattern with explicit `train_` and `test_` prefixes
-- **All Lowercase**: Unlike some older examples, v0.9.0 uses ALL lowercase (e.g., `train_tn` not `train_TN`)
-- **Smart Caching**: Results are cached - subsequent calls with same model/target are instant
-- **Automatic Generation**: First call automatically runs `generate_fit_report()` internally if needed
-- **Always Check `has_values`**: Ensure the confusion matrix was successfully computed before accessing values
-- **Target State Must Exist**: The target_state must be a valid state in your dependent variable
+- **Key naming follows sklearn convention**: All keys use `train_` and `test_` prefixes with lowercase names, matching `sklearn.model_selection.cross_validate()` patterns.
+- **Smart Caching**: Repeated calls with the same model/target return cached values instantly.
+- **Automatic Generation**: On first call for a model/target combination, it automatically runs the fit report internally.
+- The confusion matrix uses a **double-swap pattern** internally to ensure consistency between printed output and extracted values.
 
 ---
 
 ### Best Model Selection Methods
 
-After running `generate_search_report()`, these methods return the best model according to different criteria:
+After running `generate_search_report()`, these methods return the best model name:
 
 #### `get_best_model_by_bic()`
-Get best model by BIC (Bayesian Information Criterion).
+Best model by BIC (Bayesian Information Criterion). Most parsimonious - **recommended for most analyses**.
 
-**Returns:** `str` - Model name with lowest BIC (most parsimonious)
+#### `get_best_model_by_aic()`
+Best model by AIC (Akaike Information Criterion). Less conservative than BIC.
+
+#### `get_best_model_by_information()`
+Best model by information (highest transmission).
+
+#### `get_best_model_by_info_alpha()`
+Best model by information where incremental alpha < 0.05 (highest information that is significantly better than its parent model).
+
+**Returns:** `str` - Model name (e.g., `"IV:ApZ:EdK"`)
 
 **Example:**
 ```python
 report = manager.generate_search_report("loopless-up", 7, 3)
-best = manager.get_best_model_by_bic()
-print(f"Best BIC model: {best}")  # e.g., "IV:ApZ:EdK"
+best_bic = manager.get_best_model_by_bic()
+best_aic = manager.get_best_model_by_aic()
+best_info = manager.get_best_model_by_information()
+best_sig = manager.get_best_model_by_info_alpha()
+
+print(f"Best BIC: {best_bic}")
+print(f"Best AIC: {best_aic}")
+print(f"Best Info: {best_info}")
+print(f"Best Significant: {best_sig}")
 ```
-
----
-
-#### `get_best_model_by_aic()`
-Get best model by AIC (Akaike Information Criterion).
-
-**Returns:** `str` - Model name with lowest AIC
-
----
-
-#### `get_best_model_by_information()`
-Get best model by information, following the official OCCAM manual definition.
-
-**OCCAM Manual Definition (Section IV):** "The best model by Information is the model with highest information where ALL steps from the starting model have Incremental Alpha < 0.05." This ensures every step in the path is statistically significant.
-
-**Returns:** `str` - Model name with highest information where all incremental steps are statistically significant (Inc.Alpha < 0.05). Returns empty string if no models meet the criterion.
-
-**Example:**
-```python
-# Get statistically defensible best model by information
-best = manager.get_best_model_by_information()
-
-# This returns only models marked with * in OCCAM search output
-# (models "reachable" via all statistically significant steps)
-```
-
-**Why This Matters:**
-- Models with Inc.Alpha > 0.05 may be overfitting
-- The "highest raw information" model may include components that don't significantly improve prediction
-- This method returns scientifically defensible models for publication
 
 ---
 
@@ -609,30 +530,15 @@ best = manager.get_best_model_by_information()
 Create a model and optionally compute its statistics.
 
 **Parameters:**
-- `model_name` (str): Model structure (e.g., "IV:ABC:DEF")
+- `model_name` (str): Model structure (e.g., `"IV:ABC:DEF"`)
 - `make_fit_table` (bool): If True, compute fit table and all statistics
 
 **Returns:** `Model` object
-
-**Example:**
-```python
-# Just create the model structure
-model = manager.make_model("IV:ApZ")
-
-# Create model and compute all statistics
-model = manager.make_model("IV:ApZ:EdK", make_fit_table=True)
-print(f"Model: {model.name}")
-print(f"BIC: {model.bic:.2f}")
-print(f"Information: {model.information:.4f}")
-```
 
 ---
 
 #### `get_model_statistics(model_name)`
 Get complete statistics for a specific model. Equivalent to `make_model(model_name, make_fit_table=True)`.
-
-**Parameters:**
-- `model_name` (str): Model structure
 
 **Returns:** `Model` object with all statistics computed
 
@@ -652,83 +558,19 @@ print(f"% Correct = {stats.pct_correct_data:.2f}%")
 ### Information Methods
 
 #### `get_variable_list()`
-Get list of all variable names in the dataset.
-
-**Returns:** `list` of strings (variable names in order, with dependent variable last)
-
-**Example:**
-```python
-vars = manager.get_variable_list()
-print(vars)  # ['Apoe', 'Zyg', 'Ed', 'Kn', ..., 'CaseControl']
-print(f"Dependent variable: {vars[-1]}")
-```
-
----
+**Returns:** `list` of strings - variable names in order, with dependent variable last.
 
 #### `get_basic_statistics()`
-Get basic dataset statistics as formatted string.
-
-**Returns:** `str` - Multi-line string with:
-- Sample size
-- Number of variables
-- H(data) - entropy of the data
-- Test data status
-
-**Example:**
-```python
-stats = manager.get_basic_statistics()
-print(stats)
-# Output:
-# Sample size: 424
-# Variables: 11
-# H(data): 6.234
-# Test data: None
-```
-
----
+**Returns:** `str` - Multi-line string with sample size, variable count, H(data), and test data status.
 
 #### `get_sample_size()`
-Get the number of samples in the dataset.
-
-**Returns:** `int` - Number of samples
-
-**Example:**
-```python
-n = manager.get_sample_size()
-print(f"Dataset has {n} samples")
-```
-
----
+**Returns:** `int` - Number of samples.
 
 #### `has_test_data()`
-Check if test data is available.
-
-**Returns:** `bool` - True if test data is present
-
-**Example:**
-```python
-if manager.has_test_data():
-    print("Test data available - will compute test performance")
-    # Set up test data reporting
-    manager.set_report_variables("level$I, h, ddf, alpha, daic, dbic, pct_correct_data, pct_correct_test")
-else:
-    print("No test data - using training data only")
-```
-
----
+**Returns:** `bool` - True if test data is present.
 
 #### `get_available_search_types()`
-Get list of available search algorithm types.
-
-**Returns:** `list` of strings
-
-**Example:**
-```python
-types = manager.get_available_search_types()
-print(types)
-# ['loopless-up', 'loopless-down', 'full-up', 'full-down',
-#  'disjoint-up', 'disjoint-down', 'chain-up', 'chain-down']
-```
+**Returns:** `list` of strings - Available search algorithm names.
 
 ---
 
@@ -739,27 +581,8 @@ Get list of all models kept from the last beam search.
 
 **Returns:** `list` of `Model` objects
 
-**Example:**
-```python
-manager.generate_search_report("loopless-up", 5, 3)
-models = manager.get_kept_models()
-
-for model in models:
-    print(f"{model.name}: BIC={model.bic:.2f}, Info={model.information:.4f}")
-```
-
----
-
 #### `get_search_model_count()`
-Get count of models kept from the last search.
-
-**Returns:** `int` - Number of kept models
-
-**Example:**
-```python
-count = manager.get_search_model_count()
-print(f"Search found {count} models")
-```
+**Returns:** `int` - Number of kept models from last search.
 
 ---
 
@@ -769,9 +592,7 @@ The `Model` class represents a single OCCAM model with its statistics.
 
 ### Attributes
 
-All attributes are read/write:
-
-- `name` (str): Model name (e.g., "IV:ApZ:EdK")
+- `name` (str): Model name (e.g., `"IV:ApZ:EdK"`)
 - `h` (float): Entropy H
 - `information` (float): Information (transmission)
 - `aic` (float): Akaike Information Criterion
@@ -783,28 +604,70 @@ All attributes are read/write:
 - `lr` (float): Likelihood ratio
 - `pct_correct_data` (float): Percent correct on training data
 - `pct_correct_test` (float): Percent correct on test data (0.0 if no test data)
-- `pct_coverage` (float): Percent coverage (for test data)
-- `pct_missed_test` (float): Percent missed in test data (0.0 if no test data)
+- `pct_coverage` (float): Percent coverage
+- `pct_missed_test` (float): Percent missed in test data
 - `incr_alpha` (float): Incremental alpha (vs progenitor model)
 - `level` (int): Search level
+
+---
+
+## FitReportAnalyzer API
+
+The `FitReportAnalyzer` class automatically parses fit report text and identifies model quality, interesting conditional DV patterns, confusion matrix insights, and actionable recommendations.
+
+### Import
+
+```python
+from pyoccam import FitReportAnalyzer
+```
+
+### Constructor
+
+```python
+FitReportAnalyzer(fit_report_text, cm_dict=None)
+```
+
+**Parameters:**
+- `fit_report_text` (str): Output from `manager.generate_fit_report()`
+- `cm_dict` (dict, optional): Confusion matrix dictionary from `manager.get_confusion_matrix()` - enables richer analysis when provided
+
+### Methods
+
+#### `print_summary()`
+Print a human-readable analysis summary to stdout.
+
+#### `analyze()`
+Get findings as a structured dictionary for programmatic use.
+
+**Returns:** `dict` with keys:
+- `overview`: Model quality summary (sample size, info capture, transmission)
+- `model_quality`: Statistical significance details
+- `conditional_patterns`: Interesting IV->DV patterns found
+- `confusion_matrix`: Performance insights from CM analysis
+- `recommendations`: Actionable suggestions
 
 ### Example
 
 ```python
-manager = data.manager
-manager.generate_search_report("loopless-up", 7, 3)
+# Get fit report and confusion matrix
+fit_report = manager.generate_fit_report(best, target_state="0")
+cm = manager.get_confusion_matrix(best, target_state="0")
 
-models = manager.get_kept_models()
-for model in models:
-    print(f"Model: {model.name}")
-    print(f"  Level: {model.level}")
-    print(f"  H: {model.h:.3f}")
-    print(f"  BIC: {model.bic:.2f}")
-    print(f"  Information: {model.information:.4f}")
-    print(f"  Alpha: {model.alpha:.6f}")
-    print(f"  % Correct: {model.pct_correct_data:.1f}%")
-    if model.pct_correct_test > 0:
-        print(f"  % Correct (test): {model.pct_correct_test:.1f}%")
+# Analyze
+analyzer = FitReportAnalyzer(fit_report, cm_dict=cm)
+analyzer.print_summary()  # Human-readable output
+
+# Programmatic access
+findings = analyzer.analyze()
+print(f"Info capture: {findings['overview'].get('info_capture', 'N/A')}")
+print(f"Patterns found: {len(findings['conditional_patterns'])}")
+print(f"Recommendations: {len(findings['recommendations'])}")
+```
+
+### Command-Line Usage
+
+```bash
+python -m pyoccam.analyze_fit my_fit_report.txt
 ```
 
 ---
@@ -813,18 +676,12 @@ for model in models:
 
 ### Report Separators
 - `pyoccam.TABSEP` = 1 - Tab-separated
-- `pyoccam.COMMASEP` = 2 - Comma-separated  
+- `pyoccam.COMMASEP` = 2 - Comma-separated
 - `pyoccam.SPACESEP` = 3 - Space-separated (**recommended**)
 - `pyoccam.HTMLFORMAT` = 4 - HTML format
 
 ### Version
 - `pyoccam.__version__` - Package version string
-
-**Example:**
-```python
-print(f"Using PyOccam version {pyoccam.__version__}")
-manager.set_report_separator(pyoccam.SPACESEP)
-```
 
 ---
 
@@ -846,7 +703,6 @@ manager.set_report_variables("level$I, h, ddf, lr, alpha, %dH(DV), daic, dbic")
 manager.set_ref_model("bottom")
 
 # 3. Run beam search
-print("\nRunning beam search...")
 report = manager.generate_search_report("loopless-up", levels=7, width=3)
 print(report)
 
@@ -855,17 +711,60 @@ best = manager.get_best_model_by_bic()
 print(f"\nBest model by BIC: {best}")
 
 # 5. Generate fit report
-print("\nFit Report:")
 fit_report = manager.generate_fit_report(best, target_state="0")
 print(fit_report)
 
 # 6. Extract confusion matrix
 cm = manager.get_confusion_matrix(best, target_state="0")
 print(f"\nConfusion Matrix Analysis:")
-print(f"  Accuracy: {cm['accuracy']:.3f}")
-print(f"  Sensitivity: {cm['sensitivity']:.3f}")
-print(f"  Specificity: {cm['specificity']:.3f}")
-print(f"  F1 Score: {cm['f1_score']:.3f}")
+print(f"  Accuracy:    {cm['train_accuracy']:.3f}")
+print(f"  Sensitivity: {cm['train_sensitivity']:.3f}")
+print(f"  Specificity: {cm['train_specificity']:.3f}")
+print(f"  F1 Score:    {cm['train_f1_score']:.3f}")
+```
+
+---
+
+### CSV to OCCAM with Train/Test Validation
+
+```python
+import pyoccam
+
+# 1. Convert CSV with train/test split
+output_file, data = pyoccam.make_occam_input_from_csv(
+    "survey_data.csv",
+    test_split=0.2,
+    random_state=42,
+    exclude_columns=["respondent_id"]
+)
+
+# 2. Explore lookup tables
+print(f"Variables with lookups: {list(data.lookups.keys())}")
+for code, name in sorted(data.lookups['education'].items()):
+    print(f"  {code} = {name}")
+
+# 3. Search
+manager = data.manager
+report = manager.generate_search_report("full-up", 7, 3)
+best = manager.get_best_model_by_aic()
+
+# 4. Fit and extract confusion matrix
+fit_report = manager.generate_fit_report(best, target_state="0")
+cm = manager.get_confusion_matrix(best, target_state="0")
+
+print(f"\nTraining: {cm['train_accuracy']:.1%} accuracy")
+print(f"  TP={cm['train_tp']:.0f}  FP={cm['train_fp']:.0f}")
+print(f"  FN={cm['train_fn']:.0f}  TN={cm['train_tn']:.0f}")
+
+if cm.get('has_test_data'):
+    print(f"\nTest: {cm['test_accuracy']:.1%} accuracy")
+    print(f"  TP={cm['test_tp']:.0f}  FP={cm['test_fp']:.0f}")
+    print(f"  FN={cm['test_fn']:.0f}  TN={cm['test_tn']:.0f}")
+
+# 5. Automated analysis
+from pyoccam import FitReportAnalyzer
+analyzer = FitReportAnalyzer(fit_report, cm_dict=cm)
+analyzer.print_summary()
 ```
 
 ---
@@ -877,7 +776,6 @@ import pyoccam
 
 data = pyoccam.load_dementia()
 manager = data.manager
-manager.set_report_separator(pyoccam.SPACESEP)
 
 # Run search
 manager.generate_search_report("loopless-up", 7, 3)
@@ -885,21 +783,23 @@ manager.generate_search_report("loopless-up", 7, 3)
 # Get different "best" models
 best_bic = manager.get_best_model_by_bic()
 best_aic = manager.get_best_model_by_aic()
-best_info = manager.get_best_model_by_information()  # OCCAM manual definition: highest info with inc.alpha < 0.05
+best_info = manager.get_best_model_by_information()
+best_sig = manager.get_best_model_by_info_alpha()
 
 print("Model Selection Comparison:")
-print(f"  Best BIC (most parsimonious): {best_bic}")
-print(f"  Best AIC (intermediate):      {best_aic}")
-print(f"  Best Information (stat sig):  {best_info}")
+print(f"  Best BIC:  {best_bic}")
+print(f"  Best AIC:  {best_aic}")
+print(f"  Best Info: {best_info}")
+print(f"  Best Sig:  {best_sig}")
 
-# Compare specific models
+# Compare statistics
 for model_name in [best_bic, best_aic, best_info]:
-    if model_name:  # Check not empty
+    if model_name:
         model = manager.get_model_statistics(model_name)
         print(f"\n{model.name}:")
         print(f"  BIC: {model.bic:.2f}")
         print(f"  AIC: {model.aic:.2f}")
-        print(f"  Information: {model.information:.4f}")
+        print(f"  Info: {model.information:.4f}")
         print(f"  % Correct: {model.pct_correct_data:.1f}%")
 ```
 
@@ -910,81 +810,39 @@ for model_name in [best_bic, best_aic, best_info]:
 ```python
 import pyoccam
 
-# Load data with test split
-data = pyoccam.load_data("data_with_test.txt")
+# Load data with test split (from CSV or pre-split OCCAM file)
+output, data = pyoccam.make_occam_input_from_csv("mydata.csv", test_split=0.2)
 manager = data.manager
 
-# Check if test data is present
+# Check for test data
 if manager.has_test_data():
-    print("Test data detected - configuring for train/test analysis")
+    print("Test data detected")
     
     # Include test columns in reports
     manager.set_report_variables(
         "level$I, h, ddf, alpha, daic, dbic, "
-        "pct_correct_data, pct_correct_test, pct_missed_test"
+        "pct_correct_data, pct_correct_test"
     )
     
-    # Run search (test columns auto-included)
+    # Search and fit
     report = manager.generate_search_report("loopless-up", 5, 3)
-    print(report)
-    
-    # Get best model and confusion matrix
     best = manager.get_best_model_by_bic()
     cm = manager.get_confusion_matrix(best, "0")
     
-    # Training performance (v0.9.0+ uses train_* prefix)
-    print(f"\nTraining Data:")
-    print(f"  Accuracy: {cm['train_accuracy']:.3f}")
-    print(f"  TN={cm['train_tn']:.0f}, FP={cm['train_fp']:.0f}, FN={cm['train_fn']:.0f}, TP={cm['train_tp']:.0f}")
+    # Training performance
+    print(f"\nTraining: {cm['train_accuracy']:.1%} accuracy")
+    print(f"  Sensitivity: {cm['train_sensitivity']:.3f}")
+    print(f"  Specificity: {cm['train_specificity']:.3f}")
     
-    # Test performance (v0.9.0+ uses test_* prefix with lowercase)
+    # Test performance
     if cm['has_test_data']:
-        print(f"\nTest Data:")
-        print(f"  Accuracy: {cm['test_accuracy']:.3f}")
+        print(f"\nTest: {cm['test_accuracy']:.1%} accuracy")
         print(f"  Sensitivity: {cm['test_sensitivity']:.3f}")
         print(f"  Specificity: {cm['test_specificity']:.3f}")
-        print(f"  TN={cm['test_tn']:.0f}, FP={cm['test_fp']:.0f}, FN={cm['test_fn']:.0f}, TP={cm['test_tp']:.0f}")
-else:
-    print("No test data - using training data only")
-```
-
----
-
-### Advanced: Exploring Multiple Search Strategies
-
-```python
-import pyoccam
-
-data = pyoccam.load_dementia()
-manager = data.manager
-manager.set_report_separator(pyoccam.SPACESEP)
-manager.set_report_variables("level$I, h, ddf, alpha, daic, dbic")
-
-search_types = ["loopless-up", "disjoint-up", "chain-up"]
-results = {}
-
-for search_type in search_types:
-    print(f"\nRunning {search_type} search...")
-    report = manager.generate_search_report(search_type, levels=5, width=3)
-    best = manager.get_best_model_by_bic()
-    
-    # Get statistics for best model
-    model = manager.get_model_statistics(best)
-    results[search_type] = {
-        'model': model.name,
-        'bic': model.bic,
-        'info': model.information,
-        'alpha': model.alpha
-    }
-    
-    print(f"  Best: {model.name} (BIC={model.bic:.2f})")
-
-# Summary comparison
-print("\n" + "="*60)
-print("Search Strategy Comparison:")
-print("="*60)
-for search_type, res in results.items():
-    print(f"{search_type:15s} {res['model']:20s} BIC={res['bic']:7.2f} Info={res['info']:.4f}")
+        
+        # Train/test gap
+        gap = cm['train_accuracy'] - cm['test_accuracy']
+        print(f"\nTrain/test gap: {gap:.1%}")
 ```
 
 ---
@@ -994,36 +852,44 @@ for search_type, res in results.items():
 ```python
 import pyoccam
 
-# Load data and run search in one line
+# Load and search in one line
 data, best = pyoccam.quick_search("dementia05.txt", "loopless-up", levels=7, width=3)
 
-# Generate fit report
+# Fit and extract
 fit_report = data.manager.generate_fit_report(best, "0")
-print(fit_report)
-
-# Get confusion matrix
 cm = data.manager.get_confusion_matrix(best, "0")
-print(f"Accuracy: {cm['accuracy']:.3f}")
+print(f"Accuracy: {cm['train_accuracy']:.3f}")
 ```
 
 ---
 
-### Using the Convenience Wrapper
+### Multiple Search Strategies
 
 ```python
 import pyoccam
 
-# Using OccamData's convenience method
 data = pyoccam.load_dementia()
-
-# Quick search directly on the data object
-best = data.quick_search(search_type="loopless-up", levels=5, width=3)
-
-# Access manager for detailed analysis
 manager = data.manager
-cm = manager.get_confusion_matrix(best, "0")
-print(f"Best model: {best}")
-print(f"Accuracy: {cm['accuracy']:.3f}")
+
+search_types = ["loopless-up", "disjoint-up", "chain-up"]
+results = {}
+
+for search_type in search_types:
+    print(f"\nRunning {search_type} search...")
+    report = manager.generate_search_report(search_type, levels=5, width=3)
+    best = manager.get_best_model_by_bic()
+    model = manager.get_model_statistics(best)
+    results[search_type] = {
+        'model': model.name, 'bic': model.bic,
+        'info': model.information, 'alpha': model.alpha
+    }
+    print(f"  Best: {model.name} (BIC={model.bic:.2f})")
+
+# Summary
+print("\n" + "=" * 60)
+print("Search Strategy Comparison:")
+for st, res in results.items():
+    print(f"  {st:15s} {res['model']:20s} BIC={res['bic']:7.2f} Info={res['info']:.4f}")
 ```
 
 ---
@@ -1035,9 +901,7 @@ print(f"Accuracy: {cm['accuracy']:.3f}")
 #### Import Error: Module Not Found
 ```python
 # Error: ModuleNotFoundError: No module named 'pyoccam'
-
 # Solution: Rebuild the extension
-# In Anaconda PowerShell:
 python setup.py clean --all
 python setup.py build_ext --inplace --compiler=mingw32
 pip install -e .
@@ -1046,23 +910,18 @@ pip install -e .
 #### Import Error: DLL Load Failed
 ```python
 # Error: ImportError: DLL load failed while importing _pyoccam
-
-# Solution: Ensure MinGW is in PATH and rebuild
-# Check MinGW installation:
+# Solution: Ensure MinGW is in PATH
 gcc --version  # Should show MinGW
-
-# Rebuild:
-python setup.py clean --all
-python setup.py build_ext --inplace --compiler=mingw32
+# Then rebuild
 ```
 
 #### Empty Model Name from get_best_model_*
 ```python
 best = manager.get_best_model_by_bic()
 if not best or best == "":
-    print("No models found - did you run generate_search_report first?")
+    print("No models found - run generate_search_report first!")
     
-# Solution: Always run generate_search_report before calling get_best_model_*
+# Always run search before getting best model:
 manager.generate_search_report("loopless-up", 7, 3)
 best = manager.get_best_model_by_bic()  # Now works
 ```
@@ -1070,101 +929,38 @@ best = manager.get_best_model_by_bic()  # Now works
 #### Confusion Matrix Returns Empty
 ```python
 cm = manager.get_confusion_matrix("IV:ApZ", "0")
-if not cm['has_values']:
+if not cm.get('has_values'):
     print("No confusion matrix - check model name and target state")
-    
-# Solution: Ensure model name is correct and was in the search results
-# Or call generate_fit_report first:
-manager.generate_fit_report("IV:ApZ", "0")
-cm = manager.get_confusion_matrix("IV:ApZ", "0")  # Now works
 ```
 
-#### Invalid Search Type
-```python
-# Error: Unknown search type
-
-# Solution: Use exact strings with "-up" or "-down" suffix
-manager.generate_search_report("loopless-up", 7, 3)  # Correct
-# NOT: "loopless" or "loopless_up"
-
-# Check available types:
-print(manager.get_available_search_types())
-```
-
-#### Data File Not Found
-```python
-# Error: FileNotFoundError
-
-# Solution: Use absolute paths or ensure file is in current directory
-import os
-print(os.getcwd())  # Check current directory
-data = pyoccam.load_data(os.path.abspath("mydata.txt"))
-```
+#### Running from Wrong Directory
+**Critical**: Never run scripts from *within* the `pyoccam/` package directory. This causes namespace conflicts. Always run from the parent directory containing `setup.py`.
 
 ---
 
 ### Best Practices
 
 1. **Always call `generate_search_report()` before `get_best_model_*()`**
-   ```python
-   # Good
-   manager.generate_search_report("loopless-up", 7, 3)
-   best = manager.get_best_model_by_bic()
-   
-   # Bad - will return empty string
-   best = manager.get_best_model_by_bic()  # No search run yet!
-   ```
 
-2. **Use SPACESEP for readable reports**
-   ```python
-   manager.set_report_separator(pyoccam.SPACESEP)  # Recommended
-   ```
+2. **Use SPACESEP for readable reports**: `manager.set_report_separator(pyoccam.SPACESEP)`
 
-3. **Don't include ID or Model in report variables**
-   ```python
-   # Good
-   manager.set_report_variables("level$I, h, ddf, alpha, daic, dbic")
-   
-   # Bad - ID and Model are added automatically
-   manager.set_report_variables("ID$I, Model, level$I, h")  # Don't do this
-   ```
+3. **Don't include ID or Model in report variables** - they are added automatically
 
-4. **Check for test data before accessing test metrics**
-   ```python
-   if manager.has_test_data():
-       manager.set_report_variables("..., pct_correct_test")
-   ```
+4. **Check for test data before accessing test metrics**: `if cm.get('has_test_data'):`
 
-5. **Cache confusion matrix results when needed repeatedly**
-   ```python
-   # First call generates report and caches
-   cm = manager.get_confusion_matrix(best, "0")
-   
-   # Subsequent calls with same model/target are instant
-   cm2 = manager.get_confusion_matrix(best, "0")  # Returns cached result
-   
-   # Different model or target generates new report
-   cm3 = manager.get_confusion_matrix(best, "1")  # New computation
-   ```
+5. **Use sklearn-prefixed keys** for confusion matrix: `cm['train_accuracy']`, not `cm['accuracy']`
 
-6. **Use appropriate search levels and width**
-   ```python
-   # For initial exploration: shallow and narrow
-   manager.generate_search_report("loopless-up", levels=3, width=3)
-   
-   # For thorough analysis: deeper and wider
-   manager.generate_search_report("loopless-up", levels=7, width=5)
-   
-   # Balance time vs thoroughness based on dataset size
-   ```
+6. **Cache confusion matrix results**: Same model/target returns cached values instantly
+
+7. **Run from project root**, not from inside the `pyoccam/` directory
 
 ---
 
 ### Performance Tips
 
 - **Beam search parameters**: Larger width and more levels increase computation time
-- **Reference model**: Use "bottom" for most analyses (computationally efficient)
-- **Confusion matrix caching**: Reuse the same Model instance to benefit from caching
+- **Reference model**: Use `"bottom"` for most analyses (computationally efficient)
+- **Confusion matrix caching**: Reuse the same model/target to benefit from caching
 - **Report variables**: Only include variables you need to reduce string processing
 
 ---
@@ -1172,12 +968,13 @@ data = pyoccam.load_data(os.path.abspath("mydata.txt"))
 ## Getting Help
 
 ```python
-# Show quick help
+# Show quick help with all available functions
 pyoccam.help()
 
 # Access demo materials
-demo_path = pyoccam.get_demo_script(copy_to_current=True)
-notebook_path = pyoccam.get_demo_notebook(copy_to_current=True)
+pyoccam.get_demo_script('basic', copy_to_current=True)    # Basic demo
+pyoccam.get_demo_script('advanced', copy_to_current=True)  # Model comparison
+pyoccam.get_demo_script('csv', copy_to_current=True)       # CSV conversion
 
 # Run the demo
 pyoccam.run_demo()
@@ -1190,12 +987,12 @@ print(pyoccam.__version__)
 
 ## Additional Resources
 
-- **GitHub Repository**: https://github.com/occam-ra/occam
+- **GitHub Repository**: https://github.com/occam-ra/occam (branch: `pyoccam-port`)
 - **Test PyPI**: https://test.pypi.org/project/pyoccam/
-- **OCCAM Manual**: See `Occam_Manual.pdf` in project files
+- **OCCAM Manual**: See `Occam_Manual.pdf` in project files (Martin Zwick, Portland State University)
 
 ---
 
-**Last Updated:** November 2025  
-**Version:** 0.1.2  
+**Last Updated:** February 2026
+**Version:** 0.9.5
 **Status:** Production Ready for Research Use

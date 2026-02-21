@@ -69,7 +69,7 @@ ext_modules = [
 
 setup(
     name='pyoccam',
-    version='0.9.4',
+    version='0.9.5',
     author='David Percy',
     author_email='percyd@pdx.edu',
     description='OCCAM Reconstructability Analysis Tools',
@@ -77,15 +77,21 @@ setup(
     long_description_content_type='text/markdown',
     url='https://github.com/occam-ra/occam',
     ext_modules=ext_modules,
-    packages=find_packages(),
+    packages=find_packages(exclude=['examples', 'examples.*']),
     zip_safe=False,
     package_data={
         'pyoccam': [
             'README.md',
             'dementia05.txt',
             'landslides.txt',
+            'landslides_lookups.csv',
             'pyoccam_demo.py',
+            'pyoccam_demo_advanced.py',
+            'pyoccam_demo_csv.py',
+            'analyze_fit.py',
+            'sample_mydata.csv',
             'pyoccam_demo.ipynb',
+            'pyoccam_demo_advanced.ipynb',
             '*.dll',
             '*.pyd',
         ],

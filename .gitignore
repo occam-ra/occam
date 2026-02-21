@@ -142,6 +142,44 @@ build_all_pythons_output.txt
 
 # Keep: build_all_pythons2.bat (main build script)
 
+# Stale examples folder (canonical demos are in pyoccam/)
+pyoccam/examples/
+
+# CSV demo generated output (sample_mydata.csv is tracked, its outputs are not)
+pyoccam/sample_mydata.txt
+pyoccam/sample_mydata_lookups.csv
+pyoccam/sample_mydata_split.txt
+pyoccam/sample_mydata_split_lookups.csv
+
+# Pareto/analysis scripts
+fit_pareto_sedimentary.py
+pareto_miss_analysis.py
+pareto_fit_output/
+
+# Ensemble scripts
+ensemble_ra.py
+ensemble_test.py
+run_ensemble_wtnsy.py
+run_ensemble_wtnsy_v2.py
+test_ensemble_volcanic.py
+ENSEMBLE_RA_README.md
+
+# Misc analysis scripts
+analyze_fit.py
+complete_config_template.py
+example_config_usage.py
+example_threshold_comparison.py
+cleanup_pyoccam.py
+decode_rules.py
+decode_rules_v2.py
+simple-upload.py
+
+# Test/debug scripts in root
+test_csv_converter.py
+test_v094.py
+test_wheels.py
+test_pyoccam.ipynb
+
 # -----------------------------------------------------------------------------
 # Documentation Variants (keep core, ignore working copies)
 # -----------------------------------------------------------------------------
@@ -156,6 +194,11 @@ COMMA_FIX_INSTRUCTIONS.md
 COMPLETE_FIX_GUIDE.md
 NEXT_STEPS_DEBUG.md
 Response_To_Cm_Struct_Implementation_Strategy.MD
+CONFIGURATION_REFERENCE.md
+PRACTICAL_GUIDE.md
+QUICK_START.md
+version_0.9.1_release_guide.md
+FIT_ANALYZER_README.md
 
 # Keep: README.md, INSTALL.md, CONTRIBUTING.md, CODE_OF_CONDUCT.md, 
 #       LICENSE, Occam_python_pacage_journey.md, PyOccam_API_Reference.md
@@ -191,6 +234,9 @@ tree.txt
 # Example data files
 !pyoccam/dementia05.txt
 !pyoccam/landslides.txt
+!pyoccam/landslides_lookups.csv
+!pyoccam/sample_mydata.csv
+!pyoccam/analyze_fit.py
 
 # Example notebook
 !pyoccam/pyoccam_demo.ipynb
@@ -219,8 +265,9 @@ tree.txt
 # ============================================================================
 # ✓ All C++ source (.cpp, .h)
 # ✓ Core Python files (__init__.py, setup.py, pyoccam_pybind11.cpp)
-# ✓ Example data (dementia05.txt, landslides.txt)
-# ✓ Example scripts (pyoccam_demo.py, pyoccam_demo.ipynb)
+# ✓ Example data (dementia05.txt, landslides.txt, landslides_lookups.csv, sample_mydata.csv)
+# ✓ Example scripts (pyoccam_demo.py, pyoccam_demo_csv.py, pyoccam_demo.ipynb)
+# ✓ Analysis tools (analyze_fit.py)
 # ✓ Documentation (README.md, LICENSE, INSTALL.md, API docs, journey docs)
 # ✓ Build infrastructure (setup.py, MANIFEST.in, Makefile, build_all_pythons2.bat)
 # ✓ Test files (tests/ directory)

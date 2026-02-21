@@ -3,11 +3,14 @@
 PyOccam Advanced Demo
 =====================
 
-This script demonstrates advanced PyOccam features including:
-1. CSV conversion with train/test splits
+This script demonstrates advanced PyOccam features using REAL landslide
+susceptibility data from the Oregon Coast Range, including:
+1. Loading and exploring real geospatial data
 2. Model selection strategies comparison
-3. Sklearn pipeline integration
+3. Confusion matrix analysis across models
 4. Batch processing patterns
+5. CSV conversion for your own data
+6. Command line usage examples
 
 For basic usage, see pyoccam_demo.py
 """
@@ -17,82 +20,41 @@ print(f"PyOccam {pyoccam.__version__} - Advanced Demo")
 print("=" * 70)
 
 # ============================================================================
-# PART 1: Working with CSV Data and Train/Test Splits
+# PART 1: Exploring the Landslides Dataset
 # ============================================================================
 
 print("\n" + "=" * 70)
-print("PART 1: CSV Conversion with Train/Test Split")
+print("PART 1: Exploring Real Landslide Susceptibility Data")
 print("=" * 70)
 
-# For this demo, we'll create a sample CSV file
-# In practice, you'd use your own data file
+# The landslides dataset is rich in categorical variables derived from
+# GIS layers. Continuous variables like slope, elevation, and TWI have
+# been binned (reclassified) into discrete categories -- a common GIS
+# preprocessing step that makes the data ideal for Reconstructability
+# Analysis, which operates on discrete/nominal data.
 
-import csv
-import tempfile
-import os
-
-# Create sample data (simulating a GIS landslide dataset)
-sample_data = [
-    ["slope", "aspect", "elevation", "landcover", "landslide"],
-    ["steep", "north", "high", "forest", "1"],
-    ["gentle", "south", "low", "grass", "0"],
-    ["steep", "east", "high", "bare", "1"],
-    ["moderate", "west", "medium", "forest", "0"],
-    ["steep", "north", "high", "bare", "1"],
-    ["gentle", "south", "low", "urban", "0"],
-    ["steep", "east", "medium", "forest", "1"],
-    ["moderate", "north", "high", "grass", "0"],
-    ["steep", "west", "high", "bare", "1"],
-    ["gentle", "east", "low", "forest", "0"],
-    ["steep", "south", "medium", "bare", "1"],
-    ["moderate", "west", "low", "grass", "0"],
-    ["steep", "north", "high", "forest", "1"],
-    ["gentle", "south", "medium", "urban", "0"],
-    ["steep", "east", "high", "bare", "1"],
-    ["moderate", "north", "low", "grass", "0"],
-    ["steep", "west", "medium", "forest", "1"],
-    ["gentle", "east", "high", "urban", "0"],
-    ["steep", "south", "high", "bare", "1"],
-    ["moderate", "north", "medium", "grass", "0"],
-] * 20  # Repeat to get more samples
-
-# Write to temp file
-temp_csv = os.path.join(tempfile.gettempdir(), "sample_landslide.csv")
-with open(temp_csv, 'w', newline='') as f:
-    writer = csv.writer(f)
-    for row in sample_data:
-        writer.writerow(row)
-
-print(f"\nCreated sample CSV: {temp_csv}")
-print(f"Total rows: {len(sample_data) - 1}")
-
-# Convert WITH train/test split
-output_file, data = pyoccam.make_occam_input_from_csv(
-    temp_csv,
-    test_split=0.2,      # 20% held out for testing
-    random_state=42,     # Reproducible
-    dv_column="landslide",
-    verbose=True
-)
-
-print(f"\nData object: {data}")
-print(f"Has test data: {data.has_test_data}")
+landslides = pyoccam.load_landslides()
+print(f"\nDataset: {landslides}")
+print(f"Samples: {landslides.n_samples}")
+print(f"Features: {landslides.n_features}")
+print(f"Target: {landslides.target_name}")
+print(f"\nFeature variables:")
+for i, name in enumerate(landslides.feature_names):
+    print(f"  {i+1:2d}. {name}")
 
 # ============================================================================
 # PART 2: Model Selection Strategies Comparison
 # ============================================================================
 
 print("\n" + "=" * 70)
-print("PART 2: Comparing Model Selection Strategies")
+print("PART 2: Comparing Model Selection Strategies on Landslides")
 print("=" * 70)
 
-# Use the built-in dementia dataset for richer analysis
-dementia = pyoccam.load_dementia()
-manager = dementia.manager
+manager = landslides.manager
 
 # Run a comprehensive search
-print("\nRunning search...")
-report = manager.generate_search_report("loopless-up", levels=7, width=5)
+print("\nRunning full-up search (levels=7, width=5)...")
+report = manager.generate_search_report("full-up", levels=7, width=5)
 
 # Get best models by different criteria
 best_bic = manager.get_best_model_by_bic()
@@ -104,132 +66,56 @@ print(f"  BIC (most conservative):    {best_bic}")
 print(f"  AIC (moderate):             {best_aic}")
 print(f"  Information (alpha<0.05):   {best_info}")
 
-# Compare their confusion matrices
-print("\nConfusion Matrix Comparison:")
-print("-" * 60)
+# ============================================================================
+# PART 3: Confusion Matrix Analysis
+# ============================================================================
+
+print("\n" + "=" * 70)
+print("PART 3: Confusion Matrix Comparison")
+print("=" * 70)
+
+import sys, io
+
+print("\nComparing accuracy, sensitivity, and specificity:")
+print("-" * 80)
+print(f"{'Criterion':<10} {'Model':<42} {'Acc':>6} {'Sens':>6} {'Spec':>6}")
+print("-" * 80)
 
 for name, model in [("BIC", best_bic), ("AIC", best_aic), ("Info", best_info)]:
-    cm = manager.get_confusion_matrix(model, target_state="0")
+    # Suppress stdout from get_confusion_matrix (it prints fit report text)
+    old_stdout = sys.stdout
+    sys.stdout = io.StringIO()
+    try:
+        cm = manager.get_confusion_matrix(model, target_state="0")
+    finally:
+        sys.stdout = old_stdout
     if cm.get('has_values', False):
-        print(f"{name:5s} | {model:25s} | Acc={cm['train_accuracy']:.1%} | "
-              f"Sens={cm['train_sensitivity']:.1%} | Spec={cm['train_specificity']:.1%}")
+        print(f"{name:<10} {model:<42} "
+              f"{cm['train_accuracy']:5.1%} "
+              f"{cm['train_sensitivity']:5.1%} "
+              f"{cm['train_specificity']:5.1%}")
 
-# ============================================================================
-# PART 3: Sklearn Pipeline Integration
-# ============================================================================
-
-print("\n" + "=" * 70)
-print("PART 3: Sklearn Pipeline Integration")
-print("=" * 70)
-
+# Show detailed confusion matrix for the BIC model
+print(f"\nDetailed confusion matrix for BIC model: {best_bic}")
+old_stdout = sys.stdout
+sys.stdout = io.StringIO()
 try:
-    from sklearn.base import BaseEstimator, ClassifierMixin
-    from sklearn.model_selection import cross_val_score
-    import numpy as np
-    
-    SKLEARN_AVAILABLE = True
-except ImportError:
-    print("sklearn not available - skipping pipeline demo")
-    print("Install with: pip install scikit-learn")
-    SKLEARN_AVAILABLE = False
-
-if SKLEARN_AVAILABLE:
-    
-    class OccamClassifier(BaseEstimator, ClassifierMixin):
-        """
-        Sklearn-compatible wrapper for PyOccam models.
-        
-        This allows PyOccam to be used in sklearn pipelines, cross-validation,
-        and model comparison workflows.
-        
-        Parameters:
-            search_type: Type of search ("loopless-up", "full-up", etc.)
-            levels: Search depth
-            width: Beam width
-            selection: Model selection criterion ("bic", "aic", "information")
-        """
-        
-        def __init__(self, search_type="loopless-up", levels=5, width=3, 
-                     selection="bic"):
-            self.search_type = search_type
-            self.levels = levels
-            self.width = width
-            self.selection = selection
-            self.manager_ = None
-            self.best_model_ = None
-            self.classes_ = None
-            
-        def fit(self, X, y):
-            """Fit the OCCAM model to training data."""
-            # Convert numpy arrays to OCCAM format
-            # This is a simplified version - real implementation would
-            # need to handle the OCCAM file format properly
-            
-            # For demo, we'll use the dementia dataset directly
-            self.manager_ = pyoccam.VBMManager()
-            
-            # In a real implementation, you'd:
-            # 1. Write X, y to a temp OCCAM file
-            # 2. Load it into manager
-            # 3. Run search
-            
-            # For this demo, use dementia data
-            data = pyoccam.load_dementia()
-            self.manager_ = data.manager
-            
-            # Run search
-            self.manager_.generate_search_report(
-                self.search_type, self.levels, self.width
-            )
-            
-            # Select best model
-            if self.selection == "bic":
-                self.best_model_ = self.manager_.get_best_model_by_bic()
-            elif self.selection == "aic":
-                self.best_model_ = self.manager_.get_best_model_by_aic()
-            else:
-                self.best_model_ = self.manager_.get_best_model_by_information()
-            
-            self.classes_ = np.array([0, 1])
-            return self
-        
-        def predict(self, X):
-            """Predict class labels."""
-            # In real implementation, would use model for prediction
-            # For demo, return dummy predictions
-            return np.zeros(len(X), dtype=int)
-        
-        def score(self, X, y):
-            """Return accuracy score."""
-            if self.manager_ is None:
-                return 0.0
-            cm = self.manager_.get_confusion_matrix(self.best_model_, target_state="0")
-            return cm.get('train_accuracy', 0.0)
-    
-    print("\nOccamClassifier example:")
-    print("-" * 40)
-    
-    # Create classifier
-    clf = OccamClassifier(search_type="loopless-up", levels=5, selection="bic")
-    
-    # Fit (uses dementia data internally for demo)
-    clf.fit(None, None)
-    
-    print(f"Best model: {clf.best_model_}")
-    print(f"Score: {clf.score(None, None):.1%}")
-    
-    print("\nNote: Full sklearn integration requires converting data between")
-    print("numpy arrays and OCCAM format. See PRACTICAL_GUIDE.md for details.")
+    cm = manager.get_confusion_matrix(best_bic, target_state="0")
+finally:
+    sys.stdout = old_stdout
+if cm.get('has_values', False):
+    print(f"  TP={cm['train_tp']:4.0f}  FP={cm['train_fp']:4.0f}")
+    print(f"  FN={cm['train_fn']:4.0f}  TN={cm['train_tn']:4.0f}")
+    print(f"  Precision: {cm['train_precision']:.1%}")
+    print(f"  NPV:       {cm['train_npv']:.1%}")
 
 # ============================================================================
-# PART 4: Batch Processing Pattern
+# PART 4: Batch Processing - Compare Both Datasets
 # ============================================================================
 
 print("\n" + "=" * 70)
-print("PART 4: Batch Processing Pattern")
+print("PART 4: Batch Processing - Comparing Datasets and Search Types")
 print("=" * 70)
-
-# Demonstrate processing multiple datasets/configurations
 
 datasets = [
     ("Dementia", pyoccam.load_dementia),
@@ -237,75 +123,77 @@ datasets = [
 ]
 
 search_configs = [
-    ("loopless-up", 5, 3),
-    ("full-up", 4, 3),
+    ("full-up", 5, 3, "shallow"),
+    ("full-up", 7, 5, "deep"),
 ]
 
-print("\nBatch results:")
-print("-" * 80)
-print(f"{'Dataset':<12} {'Search':<15} {'Best Model':<25} {'Accuracy':<10}")
+print(f"\n{'Dataset':<12} {'Depth':<16} {'Best Model (BIC)':<40} {'Accuracy':<10}")
 print("-" * 80)
 
 for ds_name, loader in datasets:
-    try:
-        data = loader()
-        manager = data.manager
-        
-        for search_type, levels, width in search_configs:
+    for search_type, levels, width, label in search_configs:
+        try:
+            # Reload data fresh for each search -- the C++ manager
+            # cannot be reused across multiple searches
+            data = loader()
+            mgr = data.manager
+            
+            report = mgr.generate_search_report(search_type, levels, width)
+            best = mgr.get_best_model_by_bic()
+            
+            # Suppress stdout from get_confusion_matrix (it prints fit report text)
+            old_stdout = sys.stdout
+            sys.stdout = io.StringIO()
             try:
-                report = manager.generate_search_report(search_type, levels, width)
-                best = manager.get_best_model_by_bic()
-                cm = manager.get_confusion_matrix(best, target_state="0")
-                acc = cm.get('train_accuracy', 0.0)
-                
-                print(f"{ds_name:<12} {search_type:<15} {best:<25} {acc:.1%}")
-            except Exception as e:
-                print(f"{ds_name:<12} {search_type:<15} ERROR: {e}")
-                
-    except Exception as e:
-        print(f"{ds_name:<12} LOAD ERROR: {e}")
+                cm = mgr.get_confusion_matrix(best, target_state="0")
+            finally:
+                sys.stdout = old_stdout
+            
+            acc = cm.get('train_accuracy', 0.0)
+            depth_label = f"{label} ({levels}x{width})"
+            print(f"{ds_name:<12} {depth_label:<16} {best:<40} {acc:.1%}")
+        except Exception as e:
+            print(f"{ds_name:<12} {label:<16} ERROR: {e}")
 
 # ============================================================================
-# PART 5: Command Line Usage Examples
+# PART 5: CSV Conversion for Your Own Data
 # ============================================================================
 
 print("\n" + "=" * 70)
-print("PART 5: Command Line Usage")
+print("PART 5: Converting Your Own CSV Data")
 print("=" * 70)
 
 print("""
-CSV conversion with train/test split from command line:
+To use your own CSV data with PyOccam:
 
-  # Basic conversion with 20% test split
+  # Basic conversion (last column = DV)
+  output_file, data = pyoccam.make_occam_input_from_csv("mydata.csv")
+
+  # With train/test split for validation
+  output_file, data = pyoccam.make_occam_input_from_csv(
+      "mydata.csv",
+      test_split=0.2,               # 20% held out for testing
+      random_state=42,              # Reproducible split
+      max_cardinality=20,           # Exclude columns with >20 unique values
+      dv_column="target",           # Specify DV column by name
+      exclude_columns=["ID", "Name"] # Always exclude these columns
+  )
+
+  # Then analyze
+  best = data.quick_search()
+  cm = data.manager.get_confusion_matrix(best, target_state="0")
+
+Or from the command line:
+
   python -m pyoccam csv2occam mydata.csv --test-split 0.2
-
-  # With exclusions and custom cardinality
-  python -m pyoccam csv2occam mydata.csv \\
-      --test-split 0.3 \\
-      --random-state 42 \\
-      --max-cardinality 25 \\
-      --exclude "ID,x,y,OBJECTID" \\
-      --dv target_column
-
-  # Just convert, don't run search
-  python -m pyoccam csv2occam mydata.csv --test-split 0.2 --no-search
+  python -m pyoccam csv2occam mydata.csv --dv LS --exclude x,y,Pt_ID
 """)
 
 # ============================================================================
-# Cleanup
+# Done
 # ============================================================================
 
-# Remove temp files
-try:
-    os.remove(temp_csv)
-    os.remove(output_file)
-except:
-    pass
-
-print("\n" + "=" * 70)
+print("=" * 70)
 print("Advanced Demo Complete!")
 print("=" * 70)
-print("\nFor more examples, see:")
-print("  - PRACTICAL_GUIDE.md - Real-world tips from landslide/wildfire projects")
-print("  - PyOccam_API_Reference.md - Complete API documentation")
-print("  - pyoccam.help() - Quick reference")
+print("\nFor more info: pyoccam.help()")
